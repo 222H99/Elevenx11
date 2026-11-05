@@ -2632,14 +2632,34 @@ function initKeyboardFix(){
   if(!window.visualViewport)return;
   const sync=()=>{
     const kb=Math.max(0,window.innerHeight-window.visualViewport.height-(window.visualViewport.offsetTop||0));
+    // 小于 30px 视为浏览器工具栏抖动，不做位移，避免输入栏/弹窗被顶到半空后卡住
+    const use=kb>30?kb:0;
     const bb=document.querySelector(".bottombar");
-    if(bb)bb.style.transform=kb>0?"translateY("+(-kb)+"px)":"";
+    if(bb)bb.style.transform=use?"translateY("+(-use)+"px)":"";
+    const np=document.getElementById("notify-prompt");
+    if(np)np.style.transform=use?"translateY("+(-use)+"px)":"";
     const ml=document.querySelector(".view.open .msglist");
-    if(ml)ml.style.paddingBottom=(kb>0?kb:0)+"px";
+    if(ml)ml.style.paddingBottom=use?use+"px":"";
   };
   window.visualViewport.addEventListener("resize",sync);
   window.visualViewport.addEventListener("scroll",sync);
   window.addEventListener("resize",sync);
+  // 键盘收起 / 失焦 / 转屏 / 切页时强制复位，避免输入栏和通知弹窗停在页面中间
+  function resetKbShift(){
+    try{
+      const bb=document.querySelector(".bottombar");
+      if(bb)bb.style.transform="";
+      const np=document.getElementById("notify-prompt");
+      if(np)np.style.transform="";
+      const ml=document.querySelector(".view.open .msglist");
+      if(ml)ml.style.paddingBottom="";
+    }catch(_){}
+  }
+  window.__resetKbShift=resetKbShift;
+  document.addEventListener("focusout",function(){setTimeout(resetKbShift,250);});
+  document.addEventListener("visibilitychange",function(){if(!document.hidden)setTimeout(resetKbShift,120);});
+  window.addEventListener("orientationchange",function(){setTimeout(resetKbShift,300);});
+  setTimeout(resetKbShift,80);
 }
 /* ===== 皮肤 ===== */
 function hexToRgba(hex,a){
@@ -4385,6 +4405,7 @@ function showView(id){
   if(id==="view-redpacket"){newR=0;updateNewBadge();renderRedpackets();}
   if(id==="view-game"){fillGamePlayers();initGameCanvas();}
   if(id==="view-music"){renderMusicList();setTimeout(maybePartnerMusicInvite,1200);}
+  if(window.__resetKbShift)window.__resetKbShift();
   if(id==="view-chat"){newR=0;updateNewBadge();renderChat();}
   refreshMiniPlayer();
   $("emoji-panel").classList.remove("open");
