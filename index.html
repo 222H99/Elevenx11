@@ -728,7 +728,7 @@ input,textarea{-webkit-user-select:text;user-select:text;}
 .invite-btn.no{background:var(--panel,#F2F2F7);color:#8E8E93;}
 .invite-wait{font-size:12px;color:#8E8E93;padding:4px 0;}
 .game-actions{position:relative;z-index:1;display:flex;gap:10px;margin:12px 14px 0;padding-bottom:12px;}
-.mom-unread{position:sticky;top:0;z-index:6;margin:2px 0 6px;background:linear-gradient(135deg,rgba(52,120,246,.16),rgba(90,200,250,.16));color:#3478F6;border:1px solid rgba(52,120,246,.28);border-radius:22px;padding:8px 14px;text-align:center;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;}
+.mom-unread{position:sticky;top:0;z-index:6;margin:2px 0 8px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;font-weight:600;color:var(--accent);background:var(--glass,rgba(255,255,255,.85));-webkit-backdrop-filter:blur(12px) saturate(160%);backdrop-filter:blur(12px) saturate(160%);border:1px solid var(--glassborder,rgba(255,255,255,.3));border-radius:20px;padding:8px 14px;box-shadow:0 4px 14px rgba(0,0,0,.12);cursor:pointer;text-align:center;}
 .mom-profile{background:var(--glass,rgba(255,255,255,.45));-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);border:1px solid var(--glassborder,rgba(255,255,255,.6));box-shadow:inset 0 1px 0 var(--glassinner,rgba(255,255,255,.5)),0 8px 24px rgba(0,0,0,.08);border-radius:20px;overflow:hidden;margin-bottom:14px;}
 .mp-cover{height:120px;position:relative;background:linear-gradient(135deg,#5AC8FA,#3478F6);background-size:cover;background-position:center;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 10px 30px rgba(0,0,0,.08);overflow:hidden;}
@@ -777,6 +777,10 @@ input,textarea{-webkit-user-select:text;user-select:text;}
 .mc-sub{margin-top:2px;}
 .mc-reply{border:none;background:none;color:#8E8E93;font-size:11px;padding:0;cursor:pointer;}
 .mc-replies{border-left:2px solid var(--line);margin-left:2px;padding-left:10px;margin-top:4px;}
+.mc-replies .mc-replies{padding-left:8px;margin-top:3px;}
+.mc-row.kid{margin-left:0;padding:5px 0;}
+.mc-replies .mc-av{width:22px;height:22px;}
+.mc-row.mc-rep-target{background:rgba(52,120,246,.07);border-radius:8px;}
 .mc-repind{display:flex;align-items:center;gap:6px;font-size:12px;color:#8E8E93;padding:3px 8px;background:var(--panel);border-radius:8px;margin:0 14px 6px;}
 .mc-repind b{color:var(--accent);}
 .mc-repind button{border:none;background:none;color:#8E8E93;cursor:pointer;font-size:14px;line-height:1;}
@@ -2644,6 +2648,14 @@ function migrate(s){
   if(!Array.isArray(s.letters))s.letters=[];
   if(!Array.isArray(s.guestbook))s.guestbook=[];
   if(!Array.isArray(s.moments))s.moments=[];
+  // 旧数据修复：以前所有互动共用一个 unread 标记，导致🔔一律显示“特别关注发布了动态”。
+  // 这里按来源补上类型：新动态=post，对方回复我的评论=reply，对方评论我的动态=comment。
+  if(Array.isArray(s.moments))s.moments.forEach(function(m){
+    if(!m||!m.unread)return;
+    if(m.unreadKind!==undefined)return;
+    if(m.from!=="partner"){m.unreadKind="comment";return;}
+    if((m.comments||[]).length)m.unreadKind="reply"; else m.unreadKind="post";
+  });
   if(!Array.isArray(s.quizBank))s.quizBank=[];
   if(!Array.isArray(s.redpackets))s.redpackets=[];
   if(!Array.isArray(s.emojis))s.emojis=[];
@@ -3717,7 +3729,7 @@ function catchUpMissed(){
     });
     momN=fill(state.moments,"lastMomentsTime",state.settings.momentsMinMin,state.settings.momentsMaxMin,function(){
       const t=cardFor(state.settings.activeMomentsCountMin,state.settings.activeMomentsCountMax);
-      return t?{id:uid(),from:"partner",text:t,likes:[],comments:[],time:0,unread:true}:null;
+      return t?{id:uid(),from:"partner",text:t,likes:[],comments:[],time:0,unread:true,unreadKind:"post"}:null;
     });
     letN=fill(state.letters,"lastLetterTime",Number(state.settings.letterMinSec)/60||1,Number(state.settings.letterMaxSec)/60||5,function(){
       const t=cardFor(state.settings.activeLetterCountMin,state.settings.activeLetterCountMax);
@@ -3740,7 +3752,7 @@ function catchUpMissed(){
             target.comments.push({id:uid(),from:"partner",text:t,time:lastC+(i+1)*60000,likes:[],replies:[]});
             cmtN++;
           }
-          if(cmtN)target.unread=true;
+          if(cmtN){target.unread=true;target.unreadKind="comment";}
         }
         state.settings.lastCommentTime=now;
       }
@@ -6093,50 +6105,104 @@ function relTime(ts){
   if(s<604800)return Math.floor(s/86400)+"天前";
   return fmtTime(ts);
 }
+/* 递归查找评论（支持任意层级的“回复的回复”） */
 function findComment(m,cid){
-  for(const c of (m.comments||[])){if(c.id===cid)return c;const r=(c.replies||[]).find(x=>x.id===cid);if(r)return r;}
-  return null;
+  const walk=function(arr){
+    for(const c of (arr||[])){
+      if(c.id===cid)return c;
+      if(c.replies&&c.replies.length){const r=walk(c.replies);if(r)return r;}
+    }
+    return null;
+  };
+  return walk(m.comments||[]);
 }
 let replyCtx={momentId:null,commentId:null,name:""};
+/* 递归渲染评论楼中楼：之前只画一层，回复“对方的回复”时内容写进状态却看不见 */
+function mpViewOpen(){var v=document.getElementById("view-moments");return !!(v&&v.classList.contains("open"));}
+/* 定位到某条动态并闪一下（仿留言板的定位效果） */
+/* 统一“查看”：先切到该动态所属的主页，再定位闪烁 */
+function locateMoment(id){
+  if(!id)return false;
+  var m=state.moments.find(function(x){return x.id===id;});
+  if(!m)return false;
+  var needSide=(m.from==="partner")?"partner":"me";
+  if(mpSide!==needSide){mpSide=needSide;renderMoments();setTimeout(function(){focusMomentCard(id);},200);return true;}
+  return focusMomentCard(id);
+}
+function focusMomentCard(id){
+  if(!id)return false;
+  var card=document.querySelector('#moment-feed .moment-card[data-id="'+id+'"]');
+  if(!card)return false;
+  try{card.scrollIntoView({behavior:"smooth",block:"center"});}catch(_){}
+  card.style.transition="box-shadow .6s";
+  card.style.boxShadow="0 0 0 3px rgba(52,120,246,.6),0 8px 24px rgba(0,0,0,.12)";
+  setTimeout(function(){card.style.boxShadow="";},2000);
+  return true;
+}
+function momUnreadPost(){return state.moments.filter(function(x){return x.from==="partner"&&x.unread&&x.unreadKind==="post";});}
+function momUnreadAct(){return state.moments.filter(function(x){return x.unread&&(x.unreadKind==="reply"||x.unreadKind==="comment");});}
+/* 主页顶部提示条：和“留言”的 🔔 有新留言/回复（N）· 点击查看 一致 */
+function updateMomBell(){
+  var el=$("mom-unread");if(!el)return;
+  var posts=momUnreadPost(),acts=momUnreadAct();
+  var show=mpSide==="me"&&(posts.length>0||acts.length>0);
+  el.classList.toggle("hidden",!show);
+  if(!show){el.onclick=null;return;}
+  if(acts.length){
+    var kinds=acts.map(function(x){return x.unreadKind;});
+    var label=kinds.every(function(k){return k==="reply";})?"有新回复":(kinds.every(function(k){return k==="comment";})?"有新评论":"有新回复/评论");
+    el.innerHTML='🔔 '+label+'（'+acts.length+'）· 点击查看';
+  }else{
+    el.innerHTML='🔔 你的特别关注发布了'+(posts.length>1?posts.length+' 条动态':'一条动态')+' · 查看 ›';
+  }
+  el.onclick=function(){
+    if(acts.length){
+      // 对方回复/评论我的动态：清未读 → 定位到对应动态并闪烁，不整表重绘
+      acts.forEach(function(m){m.unread=false;});
+      save();
+      var newest=acts.slice().sort(function(a,b){return b.time-a.time;})[0];
+      if(mpViewOpen()){locateMoment(newest.id);}
+      else{window._momentFocusId=newest.id;}
+      updateMomBell();
+    }else{
+      // 对方真的发了新动态：打开对方主页并定位到最新一条
+      var np=posts.slice().sort(function(a,b){return b.time-a.time;})[0];
+      posts.forEach(function(m){m.unread=false;});
+      save();
+      if(np)window._momentFocusId=np.id;
+      openPartnerProfile();
+    }
+  };
+}
+let momentDraft={};      // 每个动态输入框的草稿，重绘后不丢字
+let momentFocusMid=null; // 当前占有焦点的动态输入框
 function renderComments(m){
   if(!(m.comments&&m.comments.length))return "";
-  const cs=m.comments.map(c=>{
-    const cl=c.likes&&c.likes.indexOf("me")>-1;
-    const replies=(c.replies||[]).map(r=>{
-      const rl=r.likes&&r.likes.indexOf("me")>-1;
-      const rRep='<div class="mc-sub"><button class="mc-reply" data-mreply="'+r.id+'" data-mname="'+esc(authorName(r.from))+'">回复</button></div>';
-      return '<div class="mc-row rep" data-mc="'+r.id+'"><img class="mc-av" src="'+authorAvatar(r.from)+'"><div class="mc-body"><div class="mc-top"><b class="mc-user">'+esc(authorName(r.from))+'</b><span class="mc-time">'+relTime(r.time)+'</span><button class="mc-like'+(rl?" on":"")+'" data-clike="'+r.id+'"><svg class="icon"><use xlink:href="#i-heart"/></svg></button></div><div class="mc-text">'+esc(r.text)+'</div>'+rRep+'</div></div>';
-    }).join("");
-    var repBtn='<div class="mc-sub"><button class="mc-reply" data-mreply="'+c.id+'" data-mname="'+esc(authorName(c.from))+'">回复</button></div>';
-    return '<div class="mc-row" data-mc="'+c.id+'"><img class="mc-av" src="'+authorAvatar(c.from)+'"><div class="mc-body"><div class="mc-top"><b class="mc-user">'+esc(authorName(c.from))+'</b><span class="mc-time">'+relTime(c.time)+'</span><button class="mc-like'+(cl?" on":"")+'" data-clike="'+c.id+'"><svg class="icon"><use xlink:href="#i-heart"/></svg></button></div><div class="mc-text">'+esc(c.text)+'</div>'+repBtn+(replies?'<div class="mc-replies">'+replies+'</div>':'')+'</div></div>';
-  }).join("");
-  return '<div class="moment-comments">'+cs+'</div>';
+  const row=function(item,depth){
+    const liked=item.likes&&item.likes.indexOf("me")>-1;
+    const cls=depth===1?"mc-row rep":(depth>1?"mc-row rep kid":"mc-row");
+    const repBtn='<div class="mc-sub"><button class="mc-reply" data-mreply="'+item.id+'" data-mname="'+esc(authorName(item.from))+'">回复</button></div>';
+    const kids=(item.replies&&item.replies.length)?'<div class="mc-replies">'+item.replies.map(function(x){return row(x,depth+1);}).join("")+'</div>':'';
+    return '<div class="'+cls+'" data-mc="'+item.id+'"><img class="mc-av" src="'+authorAvatar(item.from)+'"><div class="mc-body"><div class="mc-top"><b class="mc-user">'+esc(authorName(item.from))+'</b><span class="mc-time">'+relTime(item.time)+'</span><button class="mc-like'+(liked?" on":"")+'" data-clike="'+item.id+'"><svg class="icon"><use xlink:href="#i-heart"/></svg></button></div><div class="mc-text">'+esc(item.text)+'</div>'+repBtn+kids+'</div></div>';
+  };
+  return '<div class="moment-comments">'+m.comments.map(function(c){return row(c,0);}).join("")+'</div>';
 }
 function renderMoments(){
   renderMomentProfile();
   const feed=$("moment-feed");
-  const base=mpSide==="partner"?state.moments.filter(function(x){return x.from==="partner";}):state.moments;
+  // 我的主页只放“我”的动态，他的主页只放“他”的动态，两边不再混排
+  const base=state.moments.filter(function(x){return x.from===(mpSide==="partner"?"partner":"me");});
   $("moment-empty").classList.toggle("hidden",base.length>0);
   $("moment-empty").textContent=mpSide==="partner"?"对方还没有发动态。":"还没有动态，发一条吧。";
-  const partnerNew=state.moments.filter(x=>x.from==="partner"&&x.unread);
-  const showBell=mpSide==="me"&&partnerNew.length>0;
-  $("mom-unread").classList.toggle("hidden",!showBell);
-  if(showBell){
-    $("mom-unread").innerHTML='你的特别关注发布了'+(partnerNew.length>1?partnerNew.length+' 条动态':'一条动态')+' <span class="mu-go">查看 ›</span>';
-  }
-  $("mom-unread").onclick=function(){
-    partnerNew.forEach(function(m){m.unread=false;});
-    save();openPartnerProfile();
-  };
-  // 定位到指定动态（对方赞/评论/回复时触发）
-  if(window._momentFocusId){
+  updateMomBell();
+  // 定位到指定动态（对方赞/评论/回复时触发，只定位动态卡片本身）
+  // 仅在首页视图打开时消费，否则保留到下次进入主页
+  if(window._momentFocusId&&mpViewOpen()){
     var _fid=window._momentFocusId;window._momentFocusId=null;
-    setTimeout(function(){
-      var card=document.querySelector('#moment-feed .moment-card[data-id="'+_fid+'"]');
-      if(card){card.scrollIntoView({behavior:"smooth",block:"center"});card.style.transition="box-shadow .6s";card.style.boxShadow="0 0 0 3px rgba(52,120,246,.6),0 8px 24px rgba(0,0,0,.12)";setTimeout(function(){card.style.boxShadow="";},2000);}
-    },150);
+    setTimeout(function(){locateMoment(_fid);},150);
   }
   const arr=base.slice().reverse();
+  const wasFocus=momentFocusMid;
   feed.innerHTML=arr.map(m=>{
     const av=m.from==="me"?state.me.avatar:state.partner.avatar;
     const nm=authorName(m.from);
@@ -6145,8 +6211,20 @@ function renderMoments(){
     const liked=m.likes&&m.likes.indexOf("me")>-1;
     const likeCnt=(m.likes&&m.likes.length)||0;
     const repInd=replyCtx&&replyCtx.momentId===m.id?'<div class="mc-repind" data-ri="'+m.id+'">回复 <b>'+esc(replyCtx.name)+'</b><button data-ri-x>×</button></div>':'';
-    return '<div class="moment-card" data-id="'+m.id+'"><div class="moment-head"><img class="mh-av" src="'+av+'"'+op+' alt=""><div class="mh-info"><div class="mh-name"'+op+'>'+esc(nm)+'</div><div class="mh-time">'+fmtTime(m.time)+'</div></div><button class="mdel" data-mdel="'+m.id+'">删除</button></div>'+img+'<div class="moment-caption">'+esc(m.text||"")+'</div><div class="moment-actions"><button class="ma-btn'+(liked?" liked":"")+'" data-like="'+m.id+'"><svg class="icon" style="fill:'+(liked?"currentColor":"none")+'"><use xlink:href="#i-heart"/></svg>'+(likeCnt?likeCnt:"赞")+'</button><button class="ma-btn" data-cm="'+m.id+'"><svg class="icon"><use xlink:href="#i-reply"/></svg>评论</button></div>'+renderComments(m)+repInd+'<div class="moment-comment-input hidden" data-ci="'+m.id+'"><input class="text-input" placeholder="评论…" maxlength="40" style="padding:6px 10px;"><button class="small-btn" style="padding:6px 12px;" data-csend="'+m.id+'">发送</button></div></div>';
+    const ciOpen=replyCtx&&replyCtx.momentId===m.id;
+    return '<div class="moment-card" data-id="'+m.id+'"><div class="moment-head"><img class="mh-av" src="'+av+'"'+op+' alt=""><div class="mh-info"><div class="mh-name"'+op+'>'+esc(nm)+'</div><div class="mh-time">'+fmtTime(m.time)+'</div></div><button class="mdel" data-mdel="'+m.id+'">删除</button></div>'+img+'<div class="moment-caption">'+esc(m.text||"")+'</div><div class="moment-actions"><button class="ma-btn'+(liked?" liked":"")+'" data-like="'+m.id+'"><svg class="icon" style="fill:'+(liked?"currentColor":"none")+'"><use xlink:href="#i-heart"/></svg>'+(likeCnt?likeCnt:"赞")+'</button><button class="ma-btn" data-cm="'+m.id+'"><svg class="icon"><use xlink:href="#i-reply"/></svg>评论</button></div>'+renderComments(m)+repInd+'<div class="moment-comment-input'+(ciOpen?'':' hidden')+'" data-ci="'+m.id+'"><input class="text-input" value="'+esc(momentDraft[m.id]||"")+'" placeholder="'+(ciOpen?'回复 '+(replyCtx.name||'')+'…':'评论…')+'" maxlength="40" style="padding:6px 10px;"><button class="small-btn" style="padding:6px 12px;" data-csend="'+m.id+'">发送</button></div></div>';
   }).join("");
+  // 重绘后恢复被“回复”目标的高亮
+  if(replyCtx&&replyCtx.momentId&&replyCtx.commentId){
+    var _tc=feed.querySelector('.moment-card[data-id="'+replyCtx.momentId+'"] [data-mc="'+replyCtx.commentId+'"]');
+    if(_tc)_tc.classList.add("mc-rep-target");
+  }
+  // 重绘保住输入焦点与光标（避免对方事件重绘时“打字断掉”）
+  if(wasFocus&&replyCtx&&replyCtx.momentId===wasFocus){
+    var _ci=feed.querySelector('[data-ci="'+wasFocus+'"]');
+    if(_ci){var _inp=_ci.querySelector("input");
+      if(_inp){setTimeout(function(){try{var l=_inp.value.length;_inp.focus();_inp.setSelectionRange(l,l);}catch(_){}},0);}}
+  }
   feed.querySelectorAll("[data-openp]").forEach(b=>b.addEventListener("click",function(e){e.stopPropagation();openPartnerProfile();}));
   feed.querySelectorAll("[data-like]").forEach(b=>b.addEventListener("click",()=>{
     const m=state.moments.find(x=>x.id===b.dataset.like);if(!m)return;
@@ -6163,30 +6241,46 @@ function renderMoments(){
   }));
   feed.querySelectorAll("[data-cm]").forEach(b=>b.addEventListener("click",()=>{
     const ci=feed.querySelector('[data-ci="'+b.dataset.cm+'"]');
-    if(ci)ci.classList.toggle("hidden");
+    if(ci){ci.classList.toggle("hidden");if(!ci.classList.contains("hidden")){const inp=ci.querySelector("input");if(inp)setTimeout(function(){inp.focus();},80);}}
   }));
+  feed.querySelectorAll(".moment-comment-input input").forEach(function(inp){
+    const mid=inp.closest(".moment-comment-input").dataset.ci;
+    inp.addEventListener("input",function(){momentDraft[mid]=inp.value;});
+    inp.addEventListener("focus",function(){momentFocusMid=mid;});
+    inp.addEventListener("blur",function(){if(momentFocusMid===mid)momentFocusMid=null;});
+  });
   feed.querySelectorAll("[data-mreply]").forEach(b=>b.addEventListener("click",function(e){
     e.preventDefault();e.stopPropagation();
     const card=b.closest(".moment-card");if(!card)return;
     const mid=card.dataset.id;
     replyCtx={momentId:mid,commentId:b.dataset.mreply,name:b.dataset.mname};
+    momentFocusMid=mid;
     feed.querySelectorAll(".mc-repind").forEach(function(x){x.remove();});
+    feed.querySelectorAll(".mc-rep-target").forEach(function(x){x.classList.remove("mc-rep-target");});
+    const row=b.closest(".mc-row");if(row)row.classList.add("mc-rep-target");
     const ind=document.createElement("div");
     ind.className="mc-repind";ind.dataset.ri=mid;
     ind.innerHTML='回复 <b>'+esc(replyCtx.name)+'</b><button data-ri-x>×</button>';
     ind.querySelector("[data-ri-x]").addEventListener("click",function(ev){
       ev.preventDefault();ev.stopPropagation();
-      replyCtx={momentId:null,commentId:null,name:""};ind.remove();
+      replyCtx={momentId:null,commentId:null,name:""};momentFocusMid=null;
+      ind.remove();
+      if(row)row.classList.remove("mc-rep-target");
+      const ci=card.querySelector('[data-ci="'+mid+'"]');
+      if(ci){momentDraft[mid]="";const inp=ci.querySelector("input");if(inp){inp.value="";inp.placeholder="评论…";}ci.classList.add("hidden");}
     });
     const ci=card.querySelector('[data-ci="'+mid+'"]');
     if(ci){ci.parentNode.insertBefore(ind,ci);ci.classList.remove("hidden");
       const inp=ci.querySelector("input");
-      if(inp){setTimeout(function(){try{ci.scrollIntoView({block:"center",behavior:"smooth"});}catch(_){}inp.focus();},60);}
+      if(inp){inp.placeholder='回复 '+(replyCtx.name||'')+'…';if(momentDraft[mid])inp.value=momentDraft[mid];
+        setTimeout(function(){try{ci.scrollIntoView({block:"center",behavior:"smooth"});}catch(_){}inp.focus();},60);}
     }
   }));
-  feed.querySelectorAll("[data-ri-x]").forEach(b=>b.addEventListener("click",()=>{
-    replyCtx={momentId:null,commentId:null,name:""};
-    renderMoments();
+  feed.querySelectorAll("[data-ri-x]").forEach(b=>b.addEventListener("click",function(ev){
+    ev.preventDefault();ev.stopPropagation();
+    replyCtx={momentId:null,commentId:null,name:""};momentFocusMid=null;
+    var _ind=b.closest(".mc-repind");if(_ind)_ind.remove();
+    feed.querySelectorAll(".mc-rep-target").forEach(function(x){x.classList.remove("mc-rep-target");});
   }));
   feed.querySelectorAll("[data-clike]").forEach(b=>b.addEventListener("click",()=>{
     const m=state.moments.find(x=>x.id===b.closest(".moment-card").dataset.id);if(!m)return;
@@ -6212,6 +6306,7 @@ function renderMoments(){
       m.comments.push({id:uid(),from:"me",text:t,time:Date.now(),likes:[],replies:[]});
     }
     if(inp)inp.value="";
+    momentDraft[mid]="";momentFocusMid=null;
     save();renderMoments();
     // 对方可能楼中楼回复我的评论（80%，间隔约 1~60 秒）
     const _rn=Math.max(1,Math.round(rand(Number(state.settings.replyCommentNMin)||1,Number(state.settings.replyCommentNMax)||1)));
@@ -6246,7 +6341,7 @@ $("post-send").addEventListener("click",()=>{
     const card=pickCardText();
     if(card&&Math.random()<0.5){
       setTimeout(()=>{
-        state.moments.push({id:uid(),from:"partner",text:card,likes:[],comments:[],time:Date.now(),unread:true});
+        state.moments.push({id:uid(),from:"partner",text:card,likes:[],comments:[],time:Date.now(),unread:true,unreadKind:"post"});
         newM++;updateNewBadge();
         save();renderMoments();toast("对方发了新动态");
         pushMsg("partner","sys","📷 对方发了一条新动态");renderChat();save();
@@ -6342,7 +6437,8 @@ function partnerLike(postId){
   const m=state.moments.find(x=>x.id===postId);if(!m)return;
   if(!m.likes)m.likes=[];
   if(m.likes.indexOf("partner")<0)m.likes.push("partner");
-  m.unread=true;window._momentFocusId=postId;newM++;updateNewBadge();
+  // 点赞只更新角标，不自动滚动；定位只发生在用户点 🔔 提示条时
+  newM++;updateNewBadge();
   save();renderMoments();toast("对方赞了你的动态");
 }
 function partnerReplyComment(postId){
@@ -6361,7 +6457,9 @@ function partnerReplyComment(postId){
     if(!m.comments)m.comments=[];
     m.comments.push({id:uid(),from:"partner",text:card,time:Date.now(),likes:[],replies:[]});
   }
-  m.unread=true;window._momentFocusId=postId;newM++;updateNewBadge();
+  // 对方回复我的评论：主页顶部 🔔“有新回复（N）· 点击查看”，点击时才定位到对应动态
+  m.unread=true;m.unreadKind="reply";
+  newM++;updateNewBadge();
   save();renderMoments();toast("对方回复了你的评论");
   pushMsg("partner","sys","💬 对方回复了你的评论");renderChat();save();
 }
@@ -6372,7 +6470,9 @@ function partnerComment(postId){
   const card=pickCardsN(Math.round(rand(_a,_b))).join("\n");if(!card)return;
   if(!m.comments)m.comments=[];
   m.comments.push({id:uid(),from:"partner",text:card,time:Date.now(),likes:[],replies:[]});
-  m.unread=true;window._momentFocusId=postId;newM++;updateNewBadge();
+  // 对方主动评论：🔔“有新评论（N）· 点击查看”，点击时才定位
+  m.unread=true;m.unreadKind="comment";
+  newM++;updateNewBadge();
   save();renderMoments();toast("对方评论了你的动态");
   pushMsg("partner","sys","💬 对方评论了你的动态");renderChat();save();
 }
@@ -6386,8 +6486,7 @@ function maybePartnerMomentPost(force){
     const text=cards.join("\n");
     setTimeout(()=>{
       var _nid=uid();
-      state.moments.push({id:_nid,from:"partner",text:text,likes:[],comments:[],time:Date.now(),unread:true});
-      window._momentFocusId=_nid;
+      state.moments.push({id:_nid,from:"partner",text:text,likes:[],comments:[],time:Date.now(),unread:true,unreadKind:"post"});
       newM++;updateNewBadge();save();renderMoments();
       toast("对方发了新动态");pushMsg("partner","sys","📷 对方发了一条新动态");renderChat();save();
     },1200+i*rand(3000,8000));
@@ -6627,7 +6726,7 @@ $("me-gb-import").addEventListener("click",()=>{const inp=document.createElement
 $("me-card-clear").addEventListener("click",()=>{state.skin.meTopImage="";state.skin.meTopBg=0;renderMe();save();toast("卡片背景已恢复");});
 $("me-card-import").addEventListener("click",()=>{const inp=document.createElement("input");inp.type="file";inp.accept="image/*";inp.onchange=()=>{const f=inp.files&&inp.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{state.skin.meTopImage=String(rd.result);renderMe();save();toast("卡片背景已更换");};rd.readAsDataURL(f);};inp.click();});
 $("me-nav-chat").addEventListener("click",()=>showView("view-chat"));
-$("me-nav-moments").addEventListener("click",()=>showView("view-moments"));
+$("me-nav-moments").addEventListener("click",()=>{mpSide="me";showView("view-moments");});
 $("me-nav-letter").addEventListener("click",()=>showView("view-letters"));
 $("me-nav-note").addEventListener("click",()=>showView("view-guestbook"));
 $("me-nav-settings").addEventListener("click",()=>{_settingsFrom="view-me";showView("view-settings");});
@@ -7316,5 +7415,43 @@ init();
 })();
 </script>
 
+<script>
+// ===== 安卓适配 =====
+// 安卓返回键：从子页面返回上一级
+(function(){
+  var _historyStack=[];
+  var _origShowView=null;
+  function pushView(v){
+    if(!v)return;
+    if(_historyStack[_historyStack.length-1]===v)return;
+    _historyStack.push(v);
+    if(_historyStack.length>30)_historyStack.shift();
+    try{history.pushState({__view:v},"");}catch(_e){}
+  }
+  function popView(){
+    if(_historyStack.length>1){
+      _historyStack.pop();
+      var cur=_historyStack[_historyStack.length-1];
+      // 这里必须调原始 showView：再走包装会重复入栈
+      if(_origShowView)try{_origShowView(cur);}catch(_e){}
+    }
+  }
+  window.addEventListener("popstate",function(){popView();});
+  // 监听视图切换，记录栈
+  // 注意：全局 function 声明出来的 window.showView 是不可配置属性，
+  // 用 Object.defineProperty 重新定义会抛“Cannot redefine property”，
+  // 且 setter 永远拿不到初始函数；这里直接替换函数引用。
+  if(typeof showView==="function"&&!window.__showViewWrapped){
+    var _orig=showView;
+    var _wrapped=function(v){
+      pushView(v);
+      return _orig.apply(this,arguments);
+    };
+    _wrapped.__orig=_orig;
+    _origShowView=_orig;
+    try{window.showView=_wrapped;window.__showViewWrapped=true;}catch(_e){}
+  }
+})();
+</script>
 </body>
 </html>
