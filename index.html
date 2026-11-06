@@ -3773,44 +3773,74 @@ function catchUpMissed(){
   }catch(e){}
 }
 
-/* ===== 后台保活·默认音频保活 =====
-   开启“后台保活”后，默认额外播放一段人耳听不见的静音音频（18Hz，音量0），
-   让浏览器认为页面正在播放媒体，从而尽量不被挂起。关闭保活或切走后停止。 */
-let keepCtx=null;
-function startKeepAliveAudio(){
+/* ===== 后台保活 =====
+   开启后：切到后台播放一段人耳听不见的静音音频，让浏览器认为页面正在播放媒体，
+   尽量不被挂起、定时消息不被冻结；回到前台立刻停止，不在状态栏显示“正在播放”。
+   关键：AudioContext / 音频元素必须在“用户手势”里解锁过，否则后台恢复播放会被浏览器拦截。 */
+let keepCtx=null,keepAudio=null,_keepArmed=false;
+const KEEP_SILENCE="data:audio/wav;base64,UklGRsQPAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YaAPAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+
+function _keepAudioEl(){
+  if(keepAudio)return keepAudio;
   try{
-    if(keepCtx)return;
-    const AC=window.AudioContext||window.webkitAudioContext;
-    if(!AC)return;
-    keepCtx=new AC();
-    const osc=keepCtx.createOscillator();
-    const g=keepCtx.createGain();
-    osc.frequency.value=18;
-    g.gain.value=0;
-    osc.connect(g);g.connect(keepCtx.destination);
-    osc.start();
-    keepCtx._osc=osc;
-  }catch(e){try{if(keepCtx&&keepCtx.close)keepCtx.close();}catch(_){}keepCtx=null;}
+    var a=new Audio(KEEP_SILENCE);
+    a.loop=true;a.preload="auto";a.volume=0.02;a.setAttribute("playsinline","");
+    keepAudio=a;
+  }catch(e){keepAudio=null;}
+  return keepAudio;
+}
+/* 必须在用户手势里调用一次：创建并解锁音频，之后后台才能直接恢复 */
+function _keepArm(){
+  try{
+    if(!keepCtx){
+      var AC=window.AudioContext||window.webkitAudioContext;
+      if(AC){
+        keepCtx=new AC();
+        var osc=keepCtx.createOscillator(),g=keepCtx.createGain();
+        osc.frequency.value=18;   /* 人耳几乎听不到 */
+        g.gain.value=0.0001;      /* 不要设成 0：0 增益会被部分浏览器判为“无声”，起不到保活作用 */
+        osc.connect(g);g.connect(keepCtx.destination);
+        osc.start();
+        keepCtx._osc=osc;
+      }
+    }
+    if(keepCtx&&keepCtx.state==="suspended")try{keepCtx.resume();}catch(e){}
+    var a=_keepAudioEl();
+    if(a&&a.paused){var pr=a.play();if(pr&&pr.catch)pr.catch(function(){});}
+  }catch(e){}
+  _keepArmed=true;
+  /* 开启后就让静音音频一直循环播放（前后台都播），后台更难被挂起 */
+}
+function startKeepAliveAudio(){
+  if(!state||!state.settings||!state.settings.keepAlive)return;
+  if(!_keepArmed)_keepArm();
+  try{if(keepCtx&&keepCtx.state==="suspended")keepCtx.resume();}catch(e){}
+  try{var a=_keepAudioEl();if(a&&a.paused){var pr=a.play();if(pr&&pr.catch)pr.catch(function(){});}}catch(e){}
 }
 function stopKeepAliveAudio(){
-  try{if(keepCtx){if(keepCtx._osc)try{keepCtx._osc.stop();}catch(_){}keepCtx.close();}}catch(e){}
-  keepCtx=null;
+  try{if(keepCtx&&keepCtx.state==="running"&&keepCtx.suspend)keepCtx.suspend();}catch(e){}
+  try{if(keepAudio&&!keepAudio.paused)keepAudio.pause();}catch(e){}
 }
-function resumeKeepAliveAudio(){
-  try{if(keepCtx&&keepCtx.state==="suspended")keepCtx.resume();}catch(e){}
+function syncKeepAliveAudio(){
+  if(!state||!state.settings)return;
+  /* 开启期间前后台都保持播放；被浏览器暂停过就续播 */
+  if(state.settings.keepAlive)startKeepAliveAudio();else stopKeepAliveAudio();
 }
-function ensureKeepAliveAudio(){
-  if(!state||!state.settings||!state.settings.keepAlive)return;
-  if(!keepCtx)startKeepAliveAudio();else resumeKeepAliveAudio();
-}
+function resumeKeepAliveAudio(){syncKeepAliveAudio();}
+function ensureKeepAliveAudio(){if(state&&state.settings&&state.settings.keepAlive)_keepArm();}
+/* 页面任意位置第一次触摸时解锁一次（开关可能是在别的会话里打开的） */
+document.addEventListener("pointerdown",function(){
+  if(_keepArmed)return;
+  if(state&&state.settings&&state.settings.keepAlive)_keepArm();
+},{passive:true,capture:true});
 
 /* 后台保活：回到前台时重排定时，并补发后台期间错过的一条主动消息 */
 let _hidAt=0;
 document.addEventListener("visibilitychange",()=>{
-  if(document.hidden){_hidAt=Date.now();if(state&&state.settings&&state.settings.keepAlive)startKeepAliveAudio();return;}
+  if(document.hidden){_hidAt=Date.now();syncKeepAliveAudio();return;}
   // 返回前台：预载聊天背景，避免返回后背景闪现
   if(!window._wallPre||!window._wallPre.complete){try{if(state&&state.skin&&state.skin.bgImage){window._wallPre=new Image();window._wallPre.onload=function(){try{if(window._wallPre.decode)window._wallPre.decode().catch(function(){});}catch(e){}};window._wallPre.src=wallUrl(state.skin.bgImage);}}catch(e){}}
-  if(!state.settings.keepAlive)stopKeepAliveAudio();else resumeKeepAliveAudio();
+  syncKeepAliveAudio();
   reviveSocialTimers();
   try{catchUpMissed();}catch(e){}
   const away=_hidAt?Date.now()-_hidAt:0;_hidAt=0;
@@ -4505,7 +4535,7 @@ function bindSetting(){
   $("sw-active-tag").classList.toggle("on",state.settings.showActiveTag!==false);
   $("sw-dark").classList.toggle("on",state.skin.dark);
   $("sw-keep-alive").classList.toggle("on",state.settings.keepAlive===true);
-  if(state.settings.keepAlive&&document.hidden)startKeepAliveAudio();
+  if(state.settings.keepAlive)ensureKeepAliveAudio();
   $("skin-accent").value=state.skin.accent;$("skin-bg").value=state.skin.bg;
   $("skin-mybubble").value=state.skin.mybubble;$("skin-partbubble").value=state.skin.partbubble;
   $("skin-mybubbleDark").value=state.skin.mybubbleDark||state.skin.mybubble;
@@ -4694,7 +4724,7 @@ $("sw-read").addEventListener("click",e=>{state.settings.readReceipt=!state.sett
 $("sw-partner-quote").addEventListener("click",e=>{state.settings.partnerQuote=!state.settings.partnerQuote;e.target.classList.toggle("on",state.settings.partnerQuote);save();toast(state.settings.partnerQuote?"对方引用我的消息已开启":"对方引用我的消息已关闭");});
 $("sw-active-tag").addEventListener("click",e=>{state.settings.showActiveTag=(state.settings.showActiveTag===false);e.target.classList.toggle("on",state.settings.showActiveTag!==false);save();renderChat();toast(state.settings.showActiveTag!==false?"主动消息标注已开启":"主动消息标注已关闭");});
 $("sw-dark").addEventListener("click",e=>{state.skin.dark=!state.skin.dark;e.target.classList.toggle("on",state.skin.dark);applySkin();save();});
-$("sw-keep-alive").addEventListener("click",e=>{state.settings.keepAlive=!state.settings.keepAlive;e.target.classList.toggle("on",state.settings.keepAlive);save();if(state.settings.keepAlive){if(document.hidden)startKeepAliveAudio();}else stopKeepAliveAudio();toast(state.settings.keepAlive?"已开启后台保活（含音频保活）":"已关闭后台保活");});
+$("sw-keep-alive").addEventListener("click",e=>{state.settings.keepAlive=!state.settings.keepAlive;e.target.classList.toggle("on",state.settings.keepAlive);save();if(state.settings.keepAlive){ensureKeepAliveAudio();toast("已开启后台保活（静音音频已开始播放）");}else{stopKeepAliveAudio();toast("已关闭后台保活");}});
 ["accent","bg","mybubble","partbubble","topbar","bottombar"].forEach(k=>{
   $("skin-"+k).addEventListener("input",e=>{state.skin[k]=e.target.value;applySkin();save();});
 });
@@ -5785,8 +5815,15 @@ var _settingsFrom="view-me";$("btn-settings-back").addEventListener("click",()=>
 $("btn-letters-back").addEventListener("click",()=>showView("view-me"));
 $("btn-guestbook-back").addEventListener("click",()=>showView("view-me"));
 $("btn-moments-back").addEventListener("click",()=>{if(mpSide==="partner"){if(_momentsFrom==="view-chat"){showView("view-chat");return;}openMyProfile();return;}showView("view-me");});
-$("mp-avatar").addEventListener("click",function(){if(mpSide==="partner"){$("file-avatar").dataset.who="partner";$("file-avatar").click();}else{openPartnerProfile();}});
-$("mom-name").addEventListener("click",function(){if(mpSide==="partner"){$("file-avatar").dataset.who="partner";$("file-avatar").click();}else{openPartnerProfile();}});
+$("mp-avatar").addEventListener("click",function(){
+  /* 顶部的头像：永远是“更换头像”（当前显示谁的就换谁的） */
+  $("file-avatar").dataset.who=(mpSide==="partner"?"partner":"me");
+  $("file-avatar").click();
+});
+$("mom-name").addEventListener("click",function(){
+  if(mpSide==="partner"){openPartnerProfile();return;}
+  openMeEdit();
+});
 $("btn-redpacket-back").addEventListener("click",()=>showView("view-me"));
 
 /* ===== 双向写信 ===== */
@@ -6183,7 +6220,7 @@ function renderComments(m){
     const cls=depth===1?"mc-row rep":(depth>1?"mc-row rep kid":"mc-row");
     const repBtn='<div class="mc-sub"><button class="mc-reply" data-mreply="'+item.id+'" data-mname="'+esc(authorName(item.from))+'">回复</button></div>';
     const kids=(item.replies&&item.replies.length)?'<div class="mc-replies">'+item.replies.map(function(x){return row(x,depth+1);}).join("")+'</div>':'';
-    return '<div class="'+cls+'" data-mc="'+item.id+'"><img class="mc-av" src="'+authorAvatar(item.from)+'"><div class="mc-body"><div class="mc-top"><b class="mc-user">'+esc(authorName(item.from))+'</b><span class="mc-time">'+relTime(item.time)+'</span><button class="mc-like'+(liked?" on":"")+'" data-clike="'+item.id+'"><svg class="icon"><use xlink:href="#i-heart"/></svg></button></div><div class="mc-text">'+esc(item.text)+'</div>'+repBtn+kids+'</div></div>';
+    return '<div class="'+cls+'" data-mc="'+item.id+'"><img class="mc-av" data-cav="'+item.from+'" src="'+authorAvatar(item.from)+'"><div class="mc-body"><div class="mc-top"><b class="mc-user">'+esc(authorName(item.from))+'</b><span class="mc-time">'+relTime(item.time)+'</span><button class="mc-like'+(liked?" on":"")+'" data-clike="'+item.id+'"><svg class="icon"><use xlink:href="#i-heart"/></svg></button></div><div class="mc-text">'+esc(item.text)+'</div>'+repBtn+kids+'</div></div>';
   };
   return '<div class="moment-comments">'+m.comments.map(function(c){return row(c,0);}).join("")+'</div>';
 }
@@ -6226,6 +6263,11 @@ function renderMoments(){
       if(_inp){setTimeout(function(){try{var l=_inp.value.length;_inp.focus();_inp.setSelectionRange(l,l);}catch(_){}},0);}}
   }
   feed.querySelectorAll("[data-openp]").forEach(b=>b.addEventListener("click",function(e){e.stopPropagation();openPartnerProfile();}));
+  /* 动态/评论里的头像：只有“他的”头像才进入他的主页 */
+  feed.querySelectorAll("[data-cav]").forEach(b=>b.addEventListener("click",function(e){
+    if(this.dataset.cav!=="partner")return;
+    e.stopPropagation();openPartnerProfile();
+  }));
   feed.querySelectorAll("[data-like]").forEach(b=>b.addEventListener("click",()=>{
     const m=state.moments.find(x=>x.id===b.dataset.like);if(!m)return;
     if(!m.likes)m.likes=[];
