@@ -899,7 +899,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-06h">
+<meta name="app-build" content="2026-11-06i">
 </head>
 <body>
 <div id="__veil" style="position:fixed;inset:0;z-index:99998;background:#fafafa;"></div>
@@ -1508,7 +1508,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
         <div class="set-row"><span class="set-label">最快（分钟）<div class="set-sub">间隔在最快~最慢间随机，均填 0 关闭</div></span><input class="set-input" id="set-social-msg-min" type="number" min="0" max="1440" value="1"></div>
         <div class="set-row"><span class="set-label">最慢（分钟）</span><input class="set-input" id="set-social-msg-max" type="number" min="0" max="1440" value="5"></div>
         <div class="set-row"><span class="set-label">后台保活<div class="set-sub">部署成网站后防止页面被挂起，回来补发错过的消息</div></span><button class="switch" id="sw-keep-alive"></button></div>
-        <div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-06h</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div>
+        <div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-06i</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div>
       </div>
       </div>
       <div class="set-page">
@@ -3789,7 +3789,7 @@ function _keepAudioEl(){
   if(keepAudio)return keepAudio;
   try{
     var a=new Audio(KEEP_SILENCE);
-    a.loop=true;a.preload="auto";a.volume=0.05;a.setAttribute("playsinline","");
+    a.loop=true;a.preload="auto";a.volume=0.02;a.setAttribute("playsinline","");
     keepAudio=a;
   }catch(e){keepAudio=null;}
   return keepAudio;
@@ -7516,7 +7516,7 @@ init();
    不使用 Service Worker（避免缓存接管导致打不开/黑屏），只用“对比构建号 + 换 URL”这一招。 */
 (function(){
   if(!/^https?:$/.test(location.protocol))return;
-  var BUILD="2026-11-06h";
+  var BUILD="2026-11-06i";
   var KEY="app_build_reloaded";
   var busy=false;
   function go(url){location.replace(url+"&skipabout=1");}
