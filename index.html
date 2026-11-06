@@ -899,7 +899,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-06b">
+<meta name="app-build" content="2026-11-06d">
 </head>
 <body>
 <div id="__veil" style="position:fixed;inset:0;z-index:99998;background:#fafafa;"></div>
@@ -1350,6 +1350,10 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
     </div>
     <div class="set-pages" id="set-pages">
       <div class="set-page">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 4px 8px;font-size:11px;color:#8E8E93;">
+        <span>版本 <span id="ver-build">2026-11-06d</span></span>
+        <a id="ver-check" style="color:#3478F6;text-decoration:none;padding:2px 4px;">检查更新</a>
+      </div>
       <!-- 双方资料 -->
       <div class="set-sec-title">个人信息</div>
       <div class="set-group" id="group-profile">
@@ -1508,7 +1512,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
         <div class="set-row"><span class="set-label">最快（分钟）<div class="set-sub">间隔在最快~最慢间随机，均填 0 关闭</div></span><input class="set-input" id="set-social-msg-min" type="number" min="0" max="1440" value="1"></div>
         <div class="set-row"><span class="set-label">最慢（分钟）</span><input class="set-input" id="set-social-msg-max" type="number" min="0" max="1440" value="5"></div>
         <div class="set-row"><span class="set-label">后台保活<div class="set-sub">部署成网站后防止页面被挂起，回来补发错过的消息</div></span><button class="switch" id="sw-keep-alive"></button></div>
-        <div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-06b</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div>
+        <div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-06d</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div>
       </div>
       </div>
       <div class="set-page">
@@ -3811,7 +3815,7 @@ function _keepArm(){
     }
     if(keepCtx&&keepCtx.state==="suspended")try{keepCtx.resume();}catch(e){}
     var a=_keepAudioEl();
-    if(a&&a.paused){var pr=a.play();if(pr&&pr.catch)pr.catch(function(){});}
+    if(a&&a.paused){var pr=a.play();if(pr&&pr.then)pr.then(function(){_keepMediaSession(true);}).catch(function(){});else _keepMediaSession(true);}
   }catch(e){}
   _keepArmed=true;
   /* 开启后就让静音音频一直循环播放（前后台都播），后台更难被挂起 */
@@ -3820,11 +3824,40 @@ function startKeepAliveAudio(){
   if(!state||!state.settings||!state.settings.keepAlive)return;
   if(!_keepArmed)_keepArm();
   try{if(keepCtx&&keepCtx.state==="suspended")keepCtx.resume();}catch(e){}
-  try{var a=_keepAudioEl();if(a&&a.paused){var pr=a.play();if(pr&&pr.catch)pr.catch(function(){});}}catch(e){}
+  try{var a=_keepAudioEl();if(a&&a.paused){var pr=a.play();if(pr&&pr.then)pr.then(function(){_keepMediaSession(true);}).catch(function(){});else _keepMediaSession(true);}}catch(e){}
 }
+
+/* 让系统把它识别成“正在播放的媒体”：安卓通知栏/锁屏、iOS 控制中心才会出现播放卡片 */
+function _keepMediaSession(on){
+  try{
+    if(!('mediaSession' in navigator))return;
+    var m=document.getElementById("music-audio");
+    if(on&&m&&!m.paused)return;   /* 正在放歌时不抢媒体会话 */
+    if(on){
+      if(window.MediaMetadata&&!navigator.mediaSession.metadata){
+        navigator.mediaSession.metadata=new MediaMetadata({
+          title:"后台保活中（静音）",
+          artist:"Eleven×11",
+          album:"保持在线",
+          artwork:[{src:"./icon-192.png",sizes:"192x192",type:"image/png"}]
+        });
+      }
+      navigator.mediaSession.playbackState="playing";
+      try{navigator.mediaSession.setPositionState&&navigator.mediaSession.setPositionState({duration:1,playbackRate:1,position:0});}catch(e){}
+      try{navigator.mediaSession.setActionHandler("play",function(){startKeepAliveAudio();});}catch(e){}
+      try{navigator.mediaSession.setActionHandler("pause",function(){startKeepAliveAudio();});}catch(e){}
+      try{navigator.mediaSession.setActionHandler("stop",function(){stopKeepAliveAudio();});}catch(e){}
+    }else{
+      navigator.mediaSession.playbackState="none";
+      try{navigator.mediaSession.metadata=null;}catch(e){}
+    }
+  }catch(e){}
+}
+
 function stopKeepAliveAudio(){
   try{if(keepCtx&&keepCtx.state==="running"&&keepCtx.suspend)keepCtx.suspend();}catch(e){}
   try{if(keepAudio&&!keepAudio.paused)keepAudio.pause();}catch(e){}
+  _keepMediaSession(false);
 }
 function syncKeepAliveAudio(){
   if(!state||!state.settings)return;
@@ -4737,6 +4770,13 @@ if($("btn-check-update"))$("btn-check-update").addEventListener("click",function
     if(m&&m[1]&&m[1]!==b){location.replace(location.pathname+"?v="+encodeURIComponent(m[1])+"&t="+Date.now());}
     else{try{toast("已是最新版本");}catch(e){}}
   }).catch(function(){try{toast("检查失败，请检查网络");}catch(e){}});
+if($("ver-check"))$("ver-check").addEventListener("click",function(){var cur=document.querySelector('meta[name="app-build"]');var b=cur?cur.content:"";
+  fetch(location.pathname+"?__bust="+Date.now(),{cache:"no-store"}).then(function(r){return r.text();}).then(function(t){
+    var m=/name=["']app-build["']\s+content=["']([^"']+)["']/i.exec(t);
+    if(m&&m[1]&&m[1]!==b){location.replace(location.pathname+"?v="+encodeURIComponent(m[1])+"&t="+Date.now());}
+    else{try{toast("已是最新版本");}catch(e){}}
+  }).catch(function(){try{toast("检查失败，请检查网络");}catch(e){}});
+});
 });
 ["accent","bg","mybubble","partbubble","topbar","bottombar"].forEach(k=>{
   $("skin-"+k).addEventListener("input",e=>{state.skin[k]=e.target.value;applySkin();save();});
@@ -7476,7 +7516,7 @@ init();
    不使用 Service Worker（避免缓存接管导致打不开/黑屏），只用“对比构建号 + 换 URL”这一招。 */
 (function(){
   if(!/^https?:$/.test(location.protocol))return;
-  var BUILD="2026-11-06b";
+  var BUILD="2026-11-06d";
   var KEY="app_build_reloaded";
   var last=0;
   function check(){
