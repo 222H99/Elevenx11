@@ -938,7 +938,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-07du">
+<meta name="app-build" content="2026-11-07ef">
 </head>
 <body>
 <div id="__veil" style="position:fixed;inset:0;z-index:99998;background:#fafafa;"></div>
@@ -1465,8 +1465,8 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
       <div class="set-group"><div class="set-row"><span class="set-label">对方回复我的评论概率（%）<div class="set-sub">我在动态下评论后，他回复我</div></span><input class="set-input" id="set-prob-reply-comment" type="number" min="0" max="100" value="80"></div><div class="set-row"><span class="set-label">回复最快时长（分钟）</span><input class="set-input" id="set-replyc-min-min" type="number" min="1" max="1440" step="1" value="1"></div><div class="set-row"><span class="set-label">回复最慢时长（分钟）</span><input class="set-input" id="set-replyc-max-min" type="number" min="1" max="1440" step="1" value="5"></div><div class="set-row"><span class="set-label">字卡数最少<div class="set-sub">每条回复用几张字卡</div></span><input class="set-input" id="set-replyc-card-min" type="number" min="1" max="20" value="1"></div><div class="set-row"><span class="set-label">字卡数最多</span><input class="set-input" id="set-replyc-card-max" type="number" min="1" max="20" value="2"></div><div class="set-row"><span class="set-label">条数最少<div class="set-sub">一次回复几条</div></span><input class="set-input" id="set-replyc-n-min" type="number" min="1" max="20" value="1"></div><div class="set-row"><span class="set-label">条数最多</span><input class="set-input" id="set-replyc-n-max" type="number" min="1" max="20" value="1"></div>
       </div>
       <!-- 符号拼接 -->
-      <div class="set-sec-title">符号拼接</div>
-      <div class="set-group"><div class="set-row"><span class="set-label">对方发的动态 / 留言 / 信件用符号拼接<div class="set-sub">多条字卡用 。，？！…、 随机隔开，关闭则直接拼接</div></span><div class="switch on" id="sw-card-join-sym"></div></div></div>
+
+      <div class="set-group"><div class="set-row"><span class="set-label">符号拼接</span><div class="switch on" id="sw-card-join-sym"></div></div></div>
       <!-- 主动发动态 -->
       <div class="set-sec-title">主动发动态</div>
       <div class="set-group"></div>
@@ -1518,7 +1518,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
       </div>
       <!-- 主动发消息 -->
       <div class="set-sec-title">主动发消息</div>
-      <div class="set-group"><div class="set-row"><span class="set-label">后台保活<div class="set-sub">部署成网站后防止页面被挂起，回来补发错过的消息</div></span><button class="switch" id="sw-keep-alive"></button></div><div class="set-row"><span class="set-label">消息通知<div class="set-sub">对方来消息时用系统通知提醒；iOS 需先添加到主屏幕</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-notify-test" style="white-space:nowrap;">验证消息</button><button class="switch" id="sw-notify"></button></div></div><div class="set-row"><span class="set-label">来消息弹窗<div class="set-sub">App 内顶部弹出的提示条，点一下直达对应页面</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-pop-test" style="white-space:nowrap;">验证弹窗</button><button class="switch" id="sw-msgpop"></button></div></div><div class="set-row"><span class="set-label">最快（分钟）<div class="set-sub">间隔在最快~最慢间随机，均填 0 关闭</div></span><input class="set-input" id="set-social-msg-min" type="number" min="0" max="1440" value="1"></div><div class="set-row"><span class="set-label">最慢（分钟）</span><input class="set-input" id="set-social-msg-max" type="number" min="0" max="1440" value="5"></div><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-07du</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">后台保活<div class="set-sub">部署成网站后防止页面被挂起，回来补发错过的消息</div></span><button class="switch" id="sw-keep-alive"></button></div><div class="set-row"><span class="set-label">消息通知<div class="set-sub">对方来消息时用系统通知提醒；iOS 需先添加到主屏幕</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-notify-test" style="white-space:nowrap;">验证消息</button><button class="switch" id="sw-notify"></button></div></div><div class="set-row"><span class="set-label">来消息弹窗<div class="set-sub">App 内顶部弹出的提示条，点一下直达对应页面</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-pop-test" style="white-space:nowrap;">验证弹窗</button><button class="switch" id="sw-msgpop"></button></div></div><div class="set-row"><span class="set-label">最快（分钟）<div class="set-sub">间隔在最快~最慢间随机，均填 0 关闭</div></span><input class="set-input" id="set-social-msg-min" type="number" min="0" max="1440" value="1"></div><div class="set-row"><span class="set-label">最慢（分钟）</span><input class="set-input" id="set-social-msg-max" type="number" min="0" max="1440" value="5"></div><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-07ef</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div>
       </div>
       </div>
       <div class="set-page">
@@ -2532,6 +2532,14 @@ function defaultState(){
 
 /* ===== IndexedDB 存储（占用浏览器存储，非内存）===== */
 let db=null,state=defaultState();
+/* 空闲执行器：把不急着用的初始化放到首屏画完之后，避免拖慢启动 */
+window.__idle=(function(){
+  var q=[];
+  function sched(){if(window.requestIdleCallback)requestIdleCallback(run,{timeout:1200});else setTimeout(run,60);}
+  function run(){var t=q.shift();if(t){try{t();}catch(e){}}if(q.length)sched();}
+  return function(fn){if(typeof fn!=="function")return;q.push(fn);if(q.length===1)sched();};
+})();
+
 const DB_NAME="privateChatDB_v1",STORE="kv";
 function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,1);r.onupgradeneeded=e=>{if(!e.target.result.objectStoreNames.contains(STORE))e.target.result.createObjectStore(STORE);};r.onsuccess=e=>{db=e.target.result;res(db);};r.onerror=e=>rej(r.error);});}
 function dbGet(k){return new Promise((res,rej)=>{const tx=db.transaction(STORE,"readonly");const q=tx.objectStore(STORE).get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error);});}
@@ -2809,9 +2817,11 @@ async function init(){
     setTimeout(()=>{ window._dbReady=true;aboutLoadStatus("加载完成");}, 300);
   }catch(e){window._dbReady=true;aboutLoadStatus("加载完成（离线模式）");}
   try{setTimeout(function(){
-    if(typeof catchUpSocial==="function")catchUpSocial();
-    if(typeof catchUpMissed==="function")catchUpMissed();
-    if(typeof reviveSocialTimers==="function")reviveSocialTimers();
+    window.__idle(function(){
+      try{if(typeof catchUpSocial==="function")catchUpSocial();}catch(e){}
+      try{if(typeof catchUpMissed==="function")catchUpMissed();}catch(e){}
+      try{if(typeof reviveSocialTimers==="function")reviveSocialTimers();}catch(e){}
+    });
   },900);}catch(e){}
 }
 function startOpening(){
@@ -2847,6 +2857,7 @@ function startOpening(){
     try{if(typeof showView==="function")showView("view-me");}catch(e){}
     try{void document.body.offsetHeight;}catch(e){}
     try{document.body.classList.remove("splash-on");}catch(e){}
+    try{if(window.__revealCallMini)setTimeout(window.__revealCallMini,60);}catch(e){}
     op.classList.add("hide");
     setTimeout(()=>{if(op.parentNode)op.parentNode.removeChild(op);},700);
   };
@@ -3582,6 +3593,11 @@ function maybePartnerSurvey(){
 
 /* —— 红包中心（不在聊天框里，独立视图）—— */
 function renderRedpackets(){
+  var _s=("rp")+"|"+(state.redpackets).length+"|"+((window.__chatRev||0));
+  if(!window.__rSig)window.__rSig={};
+  if(window.__rSig["rp"]===_s)return;
+  window.__rSig["rp"]=_s;
+
   const list=$("rp-list");
   $("rp-empty").classList.toggle("hidden",state.redpackets.length>0);
   list.innerHTML=state.redpackets.slice().reverse().map(r=>{
@@ -3943,7 +3959,7 @@ function catchUpSocial(){
       var n=Math.max(1,Math.round(rand(Number(state.settings.activeMomentsCountMin)||1,Number(state.settings.activeMomentsCountMax)||3)));
       var cards=null;try{cards=pickCardsN(n);}catch(e){}
       if(!cards||!cards.length)continue;
-      state.moments.push({id:uid(),from:"partner",text:cards.join("\n"),likes:[],comments:[],time:mt[i],unread:true,unreadKind:"post"});
+      state.moments.push({id:uid(),from:"partner",text:joinCards(cards),likes:[],comments:[],time:mt[i],unread:true,unreadKind:"post"});
       newM++;changed=true;
     }
     if(mt.length){try{state.settings.lastMomentsTime=mt[mt.length-1];}catch(e){}}
@@ -3960,7 +3976,7 @@ function catchUpSocial(){
       var c=null;try{c=pickCardsN(Math.round(rand(a1,b1)));}catch(e){}
       if(!c||!c.length)continue;
       if(!m2.comments)m2.comments=[];
-      m2.comments.push({id:uid(),from:"partner",text:c.join("\n"),time:ct[j],likes:[],replies:[]});
+      m2.comments.push({id:uid(),from:"partner",text:joinCards(c),time:ct[j],likes:[],replies:[]});
       m2.unread=true;m2.unreadKind="comment";newM++;changed=true;
     }
     if(ct.length){try{state.settings.lastCommentTime=ct[ct.length-1];}catch(e){}}
@@ -3971,7 +3987,7 @@ function catchUpSocial(){
       var nc=null;try{nc=pickCardsN(nn);}catch(e){}
       if(!nc||!nc.length)continue;
       var pid=uid();
-      state.guestbook.push({id:pid,from:"partner",text:nc.join("\n"),time:nt[k2]});
+      state.guestbook.push({id:pid,from:"partner",text:joinCards(nc),time:nt[k2]});
       try{gbUnread.push(pid);}catch(e){}
       newN++;changed=true;
     }
@@ -4263,6 +4279,7 @@ function restoreCallState(){
     try{var _ls=localStorage.getItem("callSave");if(_ls)cs=JSON.parse(_ls);}catch(e){}
     if(!cs&&typeof state!=="undefined"&&state)cs=state.callSave;
     if(!cs||!cs.on)return;
+
     if(cs.status==="incoming"||cs.status==="missed"){state.callSave=null;save();return;}
     call={on:true,dir:cs.dir||"out",status:"active",start:(cs.start||cs.ts||Date.now()),acc:Number(cs.acc)||0,runStart:0,running:false,timer:null,mini:!!cs.mini,muted:false,video:cs.video!==false,camOn:cs.camOn!==false,timeouts:[]};
     setCallAvatar();applyCallMode();
@@ -4273,10 +4290,22 @@ function restoreCallState(){
     $("call-mini-btn").classList.remove("hidden");
     $("call-hangup").classList.remove("hidden");
     $("call-hangup").querySelector(".cb-label").textContent="挂断";
-    // 恢复为“暂停中”：不弹窗、不计时，进入聊天界面后再继续
-    $("call-overlay").classList.remove("show");$("call-mini").classList.add("hidden");
-    callTick();
-    if($("view-chat")&&$("view-chat").classList.contains("open")&&typeof resumeCallOnChat==="function")resumeCallOnChat();
+    // 恢复后立刻接着计时；小弹窗等开屏结束再露出来，避免“透出开屏”叠在上面
+    call.mini=true;call._inChat=false;
+    $("call-overlay").classList.remove("show");
+    $("call-mini").classList.add("hidden");
+    if(!call.running){call.runStart=Date.now();startCallTimer();}else{callTick();}
+    window.__revealCallMini=function(){
+      try{
+        if(!call.on||call.status!=="active")return;
+        if(document.body.classList.contains("splash-on")){setTimeout(window.__revealCallMini,200);return;}
+        call.mini=true;
+        $("call-overlay").classList.remove("show");
+        $("call-mini").classList.remove("hidden");
+        callTick();
+      }catch(e){}
+    };
+    setTimeout(function(){if(window.__revealCallMini)window.__revealCallMini();},1200);
   }catch(e){}
 }
 window.addEventListener("pagehide",pauseCallTimer);
@@ -5409,6 +5438,17 @@ function showView(id){
   if(id==="view-music"){renderMusicList();setTimeout(maybePartnerMusicInvite,1200);try{if(typeof warm163==="function")warm163();}catch(e){}}
   if(window.__resetKbShift)window.__resetKbShift();
   if(id==="view-chat"){newR=0;updateNewBadge();renderChat();}
+  /* 通话：进聊天页恢复计时并还原成小弹窗/通话页；离开聊天页暂停计时但仍留小弹窗 */
+  try{
+    if(typeof call!=="undefined"&&call&&call.on&&call.status==="active"){
+      if(id==="view-chat"){call._inChat=true;if(typeof resumeCallOnChat==="function")resumeCallOnChat();}
+      else{
+        if(call._inChat){call._inChat=false;if(call.running&&typeof pauseCallTimer==="function")pauseCallTimer();}
+        if(!call.mini&&typeof minimizeCall==="function")minimizeCall();
+        else if(typeof callTick==="function")callTick();
+      }
+    }
+  }catch(e){}
   refreshMiniPlayer();
   $("emoji-panel").classList.remove("open");
   $("btn-emoji").classList.remove("active");
@@ -5429,7 +5469,20 @@ function closePlus(){$("plus-overlay").classList.remove("show");}
 $("btn-plus").addEventListener("click",()=>$("plus-overlay").classList.add("show"));
 $("plus-overlay").addEventListener("click",e=>{if(e.target.id==="plus-overlay")closePlus();});
 $("top-call").addEventListener("click",()=>{
-  if(call.on){toast("正在通话中");return;}
+  if(call.on){
+    /* 已有通话：点电话不再只弹提示，直接回到通话界面（暂停中的会恢复计时） */
+    try{
+      if(call.status==="incoming"){$("call-overlay").classList.add("show");$("call-mini").classList.add("hidden");}
+      else if(call.status==="active"){
+        /* 点电话 = 回到完整通话界面（从暂停/小弹窗恢复计时） */
+        call.mini=false;
+        if(!call.running){call.runStart=Date.now();startCallTimer();}
+        expandCall();setCallAvatar();applyCallMode();persistCallState();
+      }
+      else {toast("正在通话中");}
+    }catch(e){toast("正在通话中");}
+    return;
+  }
   startCallOut(true);
 });
 $("call-cam").addEventListener("click",toggleCam);
@@ -6027,12 +6080,20 @@ let _gctx=null;
 function initGameCanvas(){
   const cv=$("game-canvas");
   const dpr=window.devicePixelRatio||1;
-  cv.width=cv.clientWidth*dpr;
-  cv.height=cv.clientHeight*dpr;
-  _gctx=cv.getContext("2d");
-  _gctx.setTransform(dpr,0,0,dpr,0,0);
+  const wpx=Math.round(cv.clientWidth*dpr), hpx=Math.round(cv.clientHeight*dpr);
+  if(cv.width!==wpx||cv.height!==hpx||!_gctx){
+    cv.width=wpx;cv.height=hpx;
+    _gctx=cv.getContext("2d");
+    _gctx.setTransform(dpr,0,0,dpr,0,0);
+    window.__gSig="";
+  }
   buildColorSwatches();
   buildGameTools();
+  /* 画布内容没变化（笔画数、最后一条、尺寸都没变）就不用整幅重画 */
+  var st=game.strokes||[];
+  var sig=st.length+"|"+(st.length?(st[st.length-1].e||"")+(st[st.length-1].p?st[st.length-1].p.length:0):"")+"|"+wpx+"x"+hpx;
+  if(sig===window.__gSig)return;
+  window.__gSig=sig;
   renderGame();
 }
 function buildColorSwatches(){
@@ -6470,6 +6531,11 @@ $("btn-redpacket-back").addEventListener("click",()=>showView("view-me"));
 
 /* ===== 双向写信 ===== */
 function renderLetters(){
+  var _s=("letters")+"|"+(state.letters).length+"|"+((window.__chatRev||0));
+  if(!window.__rSig)window.__rSig={};
+  if(window.__rSig["letters"]===_s)return;
+  window.__rSig["letters"]=_s;
+
   const list=$("letter-list");
   const le=$("letter-empty");if(le)le.classList.toggle("hidden",state.letters.length>0);
   // 只有"顶层信件"（非回信，即 replyTo 为空）作为主卡；带 replyTo 的作为其回信线程
@@ -6620,6 +6686,11 @@ $("letter-send").addEventListener("click",sendLetter);
 
 /* ===== 留言板 ===== */
 function renderGuestbook(){
+  var _s=("guest")+"|"+(state.guestbook).length+"|"+((window.__chatRev||0));
+  if(!window.__rSig)window.__rSig={};
+  if(window.__rSig["guest"]===_s)return;
+  window.__rSig["guest"]=_s;
+
   const list=$("note-list");
   const notes=state.guestbook;
   // 配对：相邻两角色互为问答——我的留言+对方回复 / 对方留言+我的回复；无配对=单卡
@@ -6893,6 +6964,11 @@ function renderComments(m){
   return '<div class="moment-comments">'+m.comments.map(function(c){return row(c,0);}).join("")+'</div>';
 }
 function renderMoments(){
+  var _s=("mom")+"|"+(state.moments).length+"|"+((window.__chatRev||0));
+  if(!window.__rSig)window.__rSig={};
+  if(window.__rSig["mom"]===_s)return;
+  window.__rSig["mom"]=_s;
+
   renderMomentProfile();
   const feed=$("moment-feed");
   // 我的主页只放“我”的动态，他的主页只放“他”的动态，两边不再混排
@@ -7157,7 +7233,7 @@ function partnerReplyComment(postId){
   if(!probPct("socialProbReplyComment"))return;
   const _a=Math.max(1,Math.round(Number(state.settings.replyCommentCardMin)||1));
   const _b=Math.max(_a,Math.round(Number(state.settings.replyCommentCardMax)||_a));
-  const card=pickCardsN(Math.round(rand(_a,_b))).join("\n");if(!card)return;
+  const card=joinCards(pickCardsN(Math.round(rand(_a,_b))));if(!card)return;
   const myC=(m.comments||[]).slice().reverse().find(c=>c.from==="me");
   if(myC){
     // 仿INS：楼中楼回复我的评论
@@ -7177,7 +7253,7 @@ function partnerComment(postId){
   const m=state.moments.find(x=>x.id===postId);if(!m)return;
   const _a=Math.max(1,Math.round(Number(state.settings.commentCardMin)||1));
   const _b=Math.max(_a,Math.round(Number(state.settings.commentCardMax)||_a));
-  const card=pickCardsN(Math.round(rand(_a,_b))).join("\n");if(!card)return;
+  const card=joinCards(pickCardsN(Math.round(rand(_a,_b))));if(!card)return;
   if(!m.comments)m.comments=[];
   m.comments.push({id:uid(),from:"partner",text:card,time:Date.now(),likes:[],replies:[]});
   // 对方主动评论：🔔“有新评论（N）· 点击查看”，点击时才定位
@@ -7293,7 +7369,7 @@ function initAbout(){
   const _waitReady=()=>{
     if(window._dbReady){
       _dbReady=true;
-      try{if(typeof backfillSurveyHistory==="function")backfillSurveyHistory();}catch(e){}
+      try{window.__idle(function(){if(typeof backfillSurveyHistory==="function")backfillSurveyHistory();});}catch(e){}
       _tryEnable();return;
     }
     setTimeout(_waitReady,100);
@@ -7920,6 +7996,13 @@ window.__dockTopPx=function(){try{if(window.__dockEl&&document.contains(window._
   }
   function reapply(){
     var L=state.cp2Layout||{};
+    /* 布局没变化就直接跳过：避免每次 reapply 都做大量 getBoundingClientRect + 写样式 */
+    try{
+      var _sig=JSON.stringify({ly:L.layout,w:L.widgets||{},d:L.deleted||[],dt:window.__dockTopPx(),cw:page.clientWidth,ph:state.me1PhotosSize||0});
+      if(_sig===window.__cp2ReapplySig)return;
+      window.__cp2ReapplySig=_sig;
+    }catch(e){}
+
     var deleted=L.deleted||[];
     var wids=L.widgets||{};
     var _ly=L.layout;
@@ -8272,7 +8355,7 @@ init();
    不使用 Service Worker（避免缓存接管导致打不开/黑屏），只用“对比构建号 + 换 URL”这一招。 */
 (function(){
   if(!/^https?:$/.test(location.protocol))return;
-  var BUILD="2026-11-07du";
+  var BUILD="2026-11-07ef";
   var KEY="app_build_reloaded";
   var busy=false;
   function go(url){location.replace(url+"&skipabout=1");}
