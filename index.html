@@ -914,7 +914,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-07bc">
+<meta name="app-build" content="2026-11-07bf">
 </head>
 <body>
 <div id="__veil" style="position:fixed;inset:0;z-index:99998;background:#fafafa;"></div>
@@ -1472,7 +1472,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
       </div>
       <!-- 主动发消息 -->
       <div class="set-sec-title">主动发消息</div>
-      <div class="set-group"><div class="set-row"><span class="set-label">后台保活<div class="set-sub">部署成网站后防止页面被挂起，回来补发错过的消息</div></span><button class="switch" id="sw-keep-alive"></button></div><div class="set-row"><span class="set-label">消息通知<div class="set-sub">对方来消息时用系统通知提醒；iOS 需先添加到主屏幕</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-notify-test" style="white-space:nowrap;">验证消息</button><button class="switch" id="sw-notify"></button></div></div><div class="set-row"><span class="set-label">来消息弹窗<div class="set-sub">App 内顶部弹出的提示条，点一下直达对应页面</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-pop-test" style="white-space:nowrap;">验证弹窗</button><button class="switch" id="sw-msgpop"></button></div></div><div class="set-row"><span class="set-label">最快（分钟）<div class="set-sub">间隔在最快~最慢间随机，均填 0 关闭</div></span><input class="set-input" id="set-social-msg-min" type="number" min="0" max="1440" value="1"></div><div class="set-row"><span class="set-label">最慢（分钟）</span><input class="set-input" id="set-social-msg-max" type="number" min="0" max="1440" value="5"></div><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-07bc</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">后台保活<div class="set-sub">部署成网站后防止页面被挂起，回来补发错过的消息</div></span><button class="switch" id="sw-keep-alive"></button></div><div class="set-row"><span class="set-label">消息通知<div class="set-sub">对方来消息时用系统通知提醒；iOS 需先添加到主屏幕</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-notify-test" style="white-space:nowrap;">验证消息</button><button class="switch" id="sw-notify"></button></div></div><div class="set-row"><span class="set-label">来消息弹窗<div class="set-sub">App 内顶部弹出的提示条，点一下直达对应页面</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-pop-test" style="white-space:nowrap;">验证弹窗</button><button class="switch" id="sw-msgpop"></button></div></div><div class="set-row"><span class="set-label">最快（分钟）<div class="set-sub">间隔在最快~最慢间随机，均填 0 关闭</div></span><input class="set-input" id="set-social-msg-min" type="number" min="0" max="1440" value="1"></div><div class="set-row"><span class="set-label">最慢（分钟）</span><input class="set-input" id="set-social-msg-max" type="number" min="0" max="1440" value="5"></div><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-07bf</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div>
       </div>
       </div>
       <div class="set-page">
@@ -7767,7 +7767,7 @@ init();
    不使用 Service Worker（避免缓存接管导致打不开/黑屏），只用“对比构建号 + 换 URL”这一招。 */
 (function(){
   if(!/^https?:$/.test(location.protocol))return;
-  var BUILD="2026-11-07bc";
+  var BUILD="2026-11-07bf";
   var KEY="app_build_reloaded";
   var busy=false;
   function go(url){location.replace(url+"&skipabout=1");}
@@ -7853,14 +7853,33 @@ try{if(state&&state.musicSession)musicSession=true;}catch(e){}
     if(sw&&!sw._bound){sw._bound=1;sw.classList.toggle("on",popOn());sw.addEventListener("click",function(){setPop(!popOn());toast(popOn()?"来消息弹窗：开":"来消息弹窗：关");});}
     var tb=document.getElementById("btn-pop-test");
     if(tb&&!tb._bound){tb._bound=1;tb.addEventListener("click",function(){
-      var p=document.getElementById("incoming-pop");if(!p)return;
-      var av=document.getElementById("ip-av"),nm=document.getElementById("ip-name"),tx=document.getElementById("ip-text"),tm=document.getElementById("ip-time");
+      /* 验证 = 真的发一条系统通知（后台/通知栏弹窗），和对方来消息时一样 */
+      if(!("Notification" in window)){toast("这个浏览器不支持系统通知，先添加到主屏幕再打开试试");return;}
+      var nm=(typeof state!=="undefined"&&state.partner&&state.partner.name)||"对方";
+      function fire(){
+        try{
+          var n=new Notification(nm,{body:"这是一条验证通知",icon:(state.partner&&state.partner.avatar)||"",tag:"cp2-test"});
+          n.onclick=function(){try{window.focus();if(typeof showView==="function")showView("view-chat");}catch(e){}try{n.close();}catch(e){}};
+          toast("已发一条后台通知，去通知栏看看");
+        }catch(e){toast("系统通知发不出去：iOS 需要先「添加到主屏幕」并从图标打开，再允许通知");}
+      }
+      if(Notification.permission==="granted"){fire();return;}
+      if(Notification.permission==="denied"){toast("通知被拦截了，请在 系统设置→通知 里允许本应用");return;}
+      try{Notification.requestPermission().then(function(r){if(r==="granted")fire();else toast("没允许通知，就收不到后台弹窗");}).catch(function(){toast("这个浏览器不支持，先添加到主屏幕再试");});}
+      catch(e){toast("这个浏览器不支持，先添加到主屏幕再试");}
+      return;
+      /* 旧的内嵌弹窗逻辑保留在下面，作为不支持系统通知时的兜底 */
+      if(!popOn()){toast("先打开上面的开关，才会弹消息通知");return;}
       var s=(typeof state!=="undefined"&&state)||{};
-      if(av)av.src=(s.partner&&s.partner.avatar)||"";
-      if(nm)nm.textContent=(s.partner&&s.partner.name)||"对方";
-      if(tx)tx.textContent="这是一条验证消息，点一下就能直达聊天";
-      if(tm){var d=new Date();tm.textContent=("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2);}
-      p.classList.add("show");clearTimeout(window.__popT);window.__popT=setTimeout(function(){p.classList.remove("show");},4200);
+      var last=null;
+      try{(s.messages||[]).forEach(function(m){if(m.from==="partner"&&m.type!=="sys")last=m;});}catch(e){}
+      var msg=last?{from:"partner",type:last.type,text:last.text,time:Date.now()}
+                  :{from:"partner",type:"text",text:"在吗？想你了",time:Date.now()};
+      if(msg.type==="image"&&!msg.text)msg.text="[图片]";
+      window.__suppressPop=false;
+      if(typeof maybeShowIncomingPop==="function"){maybeShowIncomingPop(msg);return;}
+      var p=document.getElementById("incoming-pop");if(!p)return;
+      p.classList.add("show");clearTimeout(window.__popT);window.__popT=setTimeout(function(){p.classList.remove("show");},5200);
     });}
   }
   document.addEventListener("DOMContentLoaded",bind);
