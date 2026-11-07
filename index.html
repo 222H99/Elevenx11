@@ -103,6 +103,29 @@ input,textarea{-webkit-user-select:text;user-select:text;}
 .msg-avatar{width:30px;height:30px;border-radius:50%;object-fit:cover;flex:0 0 auto;background:var(--panel);}
 .msg-row.partner .msg-avatar{margin-right:8px;}
 .msg-row.me .msg-avatar{margin-left:8px;order:2;}
+body{--fs:1;}
+body.fs-1{--fs:.9;}body.fs-2{--fs:1;}body.fs-3{--fs:1.12;}body.fs-4{--fs:1.26;}
+body.fs-1 .bubble,body.fs-2 .bubble,body.fs-3 .bubble,body.fs-4 .bubble{font-size:calc(15px * var(--fs));}
+body.fs-1 .set-label,body.fs-2 .set-label,body.fs-3 .set-label,body.fs-4 .set-label{font-size:calc(15px * var(--fs));}
+body.fs-1 .set-sub,body.fs-2 .set-sub,body.fs-3 .set-sub,body.fs-4 .set-sub{font-size:calc(12px * var(--fs));}
+body.fs-1 .set-sec-title,body.fs-2 .set-sec-title,body.fs-3 .set-sec-title,body.fs-4 .set-sec-title{font-size:calc(13px * var(--fs));}
+body.fs-1 .set-tab,body.fs-2 .set-tab,body.fs-3 .set-tab,body.fs-4 .set-tab{font-size:calc(13px * var(--fs));}
+body.fs-1 .top-name,body.fs-2 .top-name,body.fs-3 .top-name,body.fs-4 .top-name{font-size:calc(13px * var(--fs));}
+body.fs-1 .msg-input,body.fs-2 .msg-input,body.fs-3 .msg-input,body.fs-4 .msg-input{font-size:calc(16px * var(--fs));}
+body.fs-1 .set-input,body.fs-2 .set-input,body.fs-3 .set-input,body.fs-4 .set-input{font-size:calc(15px * var(--fs));}
+/* 性能优化：固定栏/按钮的毛玻璃开销减半，滚动与点击更跟手 */
+.top-btn,.bb-btn,.input-wrap,.bottombar,.topbar,.send-btn,.mini-player,.me-nav{
+  -webkit-backdrop-filter:blur(9px) saturate(140%) !important;
+  backdrop-filter:blur(9px) saturate(140%) !important;
+}
+/* 按下立刻给反馈，不用等事件跑完 */
+button:active,.top-btn:active,.bb-btn:active,.send-btn:active,.small-btn:active,.set-row:active,.set-tab:active,.me-app:active{
+  transition:none !important;opacity:.82;transform:scale(.985);
+}
+button,.small-btn,.bb-btn,.top-btn,.send-btn,.me-app,.set-row,.set-tab,.plus-item{
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+}
+body.av-square .msg-avatar,body.av-square #top-avatar-partner{border-radius:8px !important;}
 .msg-col{display:flex;flex-direction:column;max-width:76%;}
 .msg-row.me .msg-col{align-items:flex-end;order:1;}
 .msg-row.partner .msg-col{align-items:flex-start;}
@@ -914,7 +937,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-07bf">
+<meta name="app-build" content="2026-11-07dd">
 </head>
 <body>
 <div id="__veil" style="position:fixed;inset:0;z-index:99998;background:#fafafa;"></div>
@@ -1114,10 +1137,10 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
             </div>
           <!-- 照片框 液态玻璃（左大图16:9 右小图1:1+文字） -->
           <div id="cp2-block-photo" data-cp2="photo" style="position:absolute;left:25px;top:440px;width:340px;height:196px;box-sizing:border-box;overflow:hidden;max-width:360px;margin:0;border-radius:20px;padding:8px;display:flex;gap:8px;background:transparent;-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);border:1px solid rgba(255,255,255,.55);box-shadow:0 12px 32px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.6);">
-            <div id="cp2-photo-main" style="flex:1.3;height:100%;align-self:stretch;border-radius:14px;background:rgba(255,255,255,.4);overflow:hidden;background-size:cover;background-position:center;cursor:pointer;display:flex;align-items:center;justify-content:center;color:rgba(0,0,0,.25);font-size:11px;">+</div>
+            <div id="cp2-photo-main" style="flex:1.3;aspect-ratio:16/9;align-self:flex-start;max-height:100%;border-radius:14px;background:rgba(255,255,255,.4);overflow:hidden;background-size:cover;background-position:center;cursor:pointer;display:flex;align-items:center;justify-content:center;color:rgba(0,0,0,.25);font-size:11px;">+</div>
             <div style="flex:1;display:flex;flex-direction:column;gap:8px;min-width:0;">
-              <div id="cp2-photo-sub" style="flex:1;min-height:0;border-radius:14px;background:rgba(255,255,255,.4);overflow:hidden;background-size:cover;background-position:center;cursor:pointer;display:flex;align-items:center;justify-content:center;color:rgba(0,0,0,.25);font-size:11px;">+</div>
-              <div id="cp2-line" style="text-align:left;font-size:12px;overflow:hidden;max-height:34px;color:var(--ttext);opacity:.85;cursor:pointer;line-height:1.4;">Destiny is never the sole answer.</div>
+              <div id="cp2-photo-sub" style="aspect-ratio:1/1;max-height:100%;border-radius:14px;background:rgba(255,255,255,.4);overflow:hidden;background-size:cover;background-position:center;cursor:pointer;display:flex;align-items:center;justify-content:center;color:rgba(0,0,0,.25);font-size:11px;">+</div>
+              <div id="cp2-line" style="text-align:left;font-size:12px;color:var(--ttext);opacity:.85;cursor:pointer;line-height:1.4;">Destiny is never the sole answer.</div>
             </div>
           </div>
           </div>
@@ -1321,17 +1344,14 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
       </div>
       <div class="card-sec">
         <div class="sec-label" id="cards-sec-label">本组字卡</div>
-        <input class="text-input" id="card-search" placeholder="🔍 搜索字卡…" maxlength="40" style="margin-bottom:8px;">
-        <div class="add-group-row">
-          <input class="text-input" id="new-card-text" placeholder="添加一条字卡" maxlength="80">
-          <button class="small-btn" id="btn-add-card">添加</button>
+        <div class="add-group-row" style="margin-bottom:8px;">
+          <input class="text-input" id="new-card-text" placeholder="输入一条字卡，回车即可添加" maxlength="80">
+          <button class="small-btn" id="btn-add-card" style="min-width:66px;font-weight:600;">＋ 添加</button>
         </div>
-        <div class="add-group-row" style="margin-top:10px;align-items:flex-start;">
-          <textarea class="batch-area" id="batch-cards" placeholder="批量导入：每行一条字卡，例如：&#10;早安，今天过得好吗&#10;想你了&#10;在忙什么呢？"></textarea>
-          <button class="small-btn" id="btn-batch-import" style="height:auto;align-self:stretch;">批量导入<br>(自动查重)</button>
-        </div>
-        <div class="add-group-row" style="margin-top:10px;">
-          <button class="small-btn ghost" id="btn-import-card-json" style="width:100%;">导入字卡 JSON（自动识别分组）</button>
+        <input class="text-input" id="card-search" placeholder="🔍 搜索字卡（仅当前分组）…" maxlength="40" style="margin-bottom:8px;">
+        <div class="add-group-row" style="margin-top:2px;">
+          <button class="small-btn ghost" id="btn-batch-open" style="flex:1;font-size:13px;">批量导入字卡</button>
+          <button class="small-btn ghost" id="btn-import-card-json" style="flex:1;font-size:13px;">导入 JSON</button>
           <input type="file" id="file-card-json" accept="application/json,.json" hidden>
         </div>
         <div class="card-sel-bar" id="card-sel-bar">
@@ -1346,6 +1366,21 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
     </div>
   </div>
 
+
+  <!-- 批量导入字卡 -->
+  <div class="overlay" id="batch-overlay">
+    <div class="sheet">
+      <div class="sheet-grip"></div>
+      <div style="padding:4px 16px 18px;">
+        <div class="edit-sheet-title">批量导入字卡（导入到当前分组）</div>
+        <textarea class="batch-area" id="batch-cards" placeholder="每行一条字卡，例如：&#10;早安，今天过得好吗&#10;想你了&#10;在忙什么呢？"></textarea>
+        <div class="edit-actions">
+          <button class="small-btn ghost" id="batch-cancel">取消</button>
+          <button class="small-btn" id="btn-batch-import">导入</button>
+        </div>
+      </div>
+    </div>
+  </div>
   <!-- 通用输入弹层 -->
   <div class="mini-input-overlay" id="mini-input-overlay">
     <div class="mini-input-box">
@@ -1389,6 +1424,12 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
             <div>点击更换对方头像（从相册导入）</div>
           </div>
         </div>
+        <div class="set-row"><span class="set-label">头像形状</span>
+          <div style="display:flex;gap:8px;">
+            <button class="small-btn ghost" data-avshape="round" style="font-size:12px;padding:6px 12px;">圆形</button>
+            <button class="small-btn ghost" data-avshape="square" style="font-size:12px;padding:6px 12px;">方形</button>
+          </div>
+        </div>
       </div>
       <!-- 资料 -->
       <div class="set-sec-title">资料</div>
@@ -1422,8 +1463,12 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
       <div class="set-sec-title">主页回复</div>
       <div class="set-group"><div class="set-row"><span class="set-label">对方回复我的评论概率（%）<div class="set-sub">我在动态下评论后，他回复我</div></span><input class="set-input" id="set-prob-reply-comment" type="number" min="0" max="100" value="80"></div><div class="set-row"><span class="set-label">回复最快时长（分钟）</span><input class="set-input" id="set-replyc-min-min" type="number" min="1" max="1440" step="1" value="1"></div><div class="set-row"><span class="set-label">回复最慢时长（分钟）</span><input class="set-input" id="set-replyc-max-min" type="number" min="1" max="1440" step="1" value="5"></div><div class="set-row"><span class="set-label">字卡数最少<div class="set-sub">每条回复用几张字卡</div></span><input class="set-input" id="set-replyc-card-min" type="number" min="1" max="20" value="1"></div><div class="set-row"><span class="set-label">字卡数最多</span><input class="set-input" id="set-replyc-card-max" type="number" min="1" max="20" value="2"></div><div class="set-row"><span class="set-label">条数最少<div class="set-sub">一次回复几条</div></span><input class="set-input" id="set-replyc-n-min" type="number" min="1" max="20" value="1"></div><div class="set-row"><span class="set-label">条数最多</span><input class="set-input" id="set-replyc-n-max" type="number" min="1" max="20" value="1"></div>
       </div>
+      <!-- 符号拼接 -->
+      <div class="set-sec-title">符号拼接</div>
+      <div class="set-group"><div class="set-row"><span class="set-label">对方发的动态 / 留言 / 信件用符号拼接<div class="set-sub">多条字卡用 。，？！…、 随机隔开，关闭则直接拼接</div></span><div class="switch on" id="sw-card-join-sym"></div></div></div>
       <!-- 主动发动态 -->
       <div class="set-sec-title">主动发动态</div>
+      <div class="set-group"></div>
       <div class="set-group"><div class="set-row"><span class="set-label">主动发动态概率（%）<div class="set-sub">他主动发新动态</div></span><input class="set-input" id="set-prob-moments" type="number" min="0" max="100" value="15"></div><div class="set-row"><span class="set-label">动态最快间隔（分钟）</span><input class="set-input" id="set-moments-min-min" type="number" min="1" max="1440" step="1" value="1"></div><div class="set-row"><span class="set-label">动态最慢间隔（分钟）</span><input class="set-input" id="set-moments-max-min" type="number" min="1" max="1440" step="1" value="5"></div><div class="set-row"><span class="set-label">动态 · 字卡数最少<div class="set-sub">每条动态用几张字卡</div></span><input class="set-input" id="set-active-moments-count-min" type="number" min="1" max="20" value="1"></div><div class="set-row"><span class="set-label">动态 · 字卡数最多</span><input class="set-input" id="set-active-moments-count-max" type="number" min="1" max="20" value="3"></div><div class="set-row"><span class="set-label">动态 · 条数最少<div class="set-sub">一次触发发几条动态</div></span><input class="set-input" id="set-moment-burst-min" type="number" min="1" value="1"></div><div class="set-row"><span class="set-label">动态 · 条数最多<div class="set-sub">填多少就发多少，不设上限</div></span><input class="set-input" id="set-moment-burst-max" type="number" min="1" value="1"></div><div class="set-row"><span class="set-label">离开补发 · 每小时上限<div class="set-sub">离开/切后台回来，动态每小时最多补几条</div></span><input class="set-input" id="set-catch-moments-per-hour" type="number" min="1" max="60" value="3"></div>
       </div>
       <!-- 主动评论 -->
@@ -1472,12 +1517,22 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
       </div>
       <!-- 主动发消息 -->
       <div class="set-sec-title">主动发消息</div>
-      <div class="set-group"><div class="set-row"><span class="set-label">后台保活<div class="set-sub">部署成网站后防止页面被挂起，回来补发错过的消息</div></span><button class="switch" id="sw-keep-alive"></button></div><div class="set-row"><span class="set-label">消息通知<div class="set-sub">对方来消息时用系统通知提醒；iOS 需先添加到主屏幕</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-notify-test" style="white-space:nowrap;">验证消息</button><button class="switch" id="sw-notify"></button></div></div><div class="set-row"><span class="set-label">来消息弹窗<div class="set-sub">App 内顶部弹出的提示条，点一下直达对应页面</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-pop-test" style="white-space:nowrap;">验证弹窗</button><button class="switch" id="sw-msgpop"></button></div></div><div class="set-row"><span class="set-label">最快（分钟）<div class="set-sub">间隔在最快~最慢间随机，均填 0 关闭</div></span><input class="set-input" id="set-social-msg-min" type="number" min="0" max="1440" value="1"></div><div class="set-row"><span class="set-label">最慢（分钟）</span><input class="set-input" id="set-social-msg-max" type="number" min="0" max="1440" value="5"></div><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-07bf</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">后台保活<div class="set-sub">部署成网站后防止页面被挂起，回来补发错过的消息</div></span><button class="switch" id="sw-keep-alive"></button></div><div class="set-row"><span class="set-label">消息通知<div class="set-sub">对方来消息时用系统通知提醒；iOS 需先添加到主屏幕</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-notify-test" style="white-space:nowrap;">验证消息</button><button class="switch" id="sw-notify"></button></div></div><div class="set-row"><span class="set-label">来消息弹窗<div class="set-sub">App 内顶部弹出的提示条，点一下直达对应页面</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-pop-test" style="white-space:nowrap;">验证弹窗</button><button class="switch" id="sw-msgpop"></button></div></div><div class="set-row"><span class="set-label">最快（分钟）<div class="set-sub">间隔在最快~最慢间随机，均填 0 关闭</div></span><input class="set-input" id="set-social-msg-min" type="number" min="0" max="1440" value="1"></div><div class="set-row"><span class="set-label">最慢（分钟）</span><input class="set-input" id="set-social-msg-max" type="number" min="0" max="1440" value="5"></div><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-07dd</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div>
       </div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
       <div class="set-sec-title">外观</div>
+      <div class="set-group">
+        <div class="set-row"><span class="set-label">字体大小</span>
+          <div style="display:flex;gap:6px;">
+            <button class="small-btn ghost" data-fsz="1" style="font-size:12px;padding:6px 10px;">小</button>
+            <button class="small-btn ghost" data-fsz="2" style="font-size:12px;padding:6px 10px;">标准</button>
+            <button class="small-btn ghost" data-fsz="3" style="font-size:12px;padding:6px 10px;">大</button>
+            <button class="small-btn ghost" data-fsz="4" style="font-size:12px;padding:6px 10px;">特大</button>
+          </div>
+        </div>
+      </div>
       <div class="set-group">
         <div class="set-row"><span class="set-label">夜间模式<div class="set-sub">深色配色，可随时开关</div></span><button class="switch" id="sw-dark"></button></div>
         <div class="set-row"><span class="set-label">主题色（强调/图标）</span><input class="color-input" type="color" id="skin-accent"></div>
@@ -2353,6 +2408,24 @@ function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show")
 let incomingPopTimer=null;
 function hideIncomingPop(){const p=$("incoming-pop");if(p)p.classList.remove("show");}
 /* 滑出网站/后台时用系统通知弹窗（需授权） */
+/* 系统通知图标：把对方头像画成 192×192 PNG（SVG dataURL 在通知栏里显示不出来） */
+function __notifyIcon(){
+  return new Promise(function(res){
+    try{
+      var src="";
+      try{var _st=window.state||(typeof state!=="undefined"?state:null);src=(_st&&_st.partner&&_st.partner.avatar)||"";}catch(e){}
+      if(!src){res("");return;}
+      if(/^data:image\/png/i.test(src)){res(src);return;}
+      var img=new Image();
+      img.onload=function(){
+        try{var c=document.createElement("canvas");c.width=192;c.height=192;var g=c.getContext("2d");
+          g.fillStyle="#FFFFFF";g.fillRect(0,0,192,192);g.drawImage(img,0,0,192,192);res(c.toDataURL("image/png"));}catch(e){res("");}
+      };
+      img.onerror=function(){res("");};
+      img.src=src;
+    }catch(e){res("");}
+  });
+}
 function notifySystem(m){
   if(!("Notification" in window))return;
   if(Notification.permission!=="granted"){
@@ -2365,7 +2438,9 @@ function notifySystem(m){
     if(m.type==="poke")body="拍了拍你";
     else if(m.type==="image")body="[图片]";
     else body=m.text||"来消息了";
-    new Notification(nm,{body:body,icon:(state.partner&&state.partner.avatar)||""});
+    __notifyIcon().then(function(ic){
+      try{new Notification(nm,{body:body,icon:ic||undefined});}catch(e){}
+    });
   }catch(e){}
 }
 /* 通知权限：未开启时每次打开提醒，最多 6 次，直到用户允许 */
@@ -2398,11 +2473,11 @@ try{
   });
   if(_npLater)_npLater.addEventListener("click",function(){var p=document.getElementById("notify-prompt");if(p)p.classList.remove("show");});
 }catch(e){}
-function maybeShowIncomingPop(m){
-  if(window.__suppressPop)return;
+function maybeShowIncomingPop(m,force){
+  if(!force&&window.__suppressPop)return;
   if(!m||m.from!=="partner"||m.type==="sys")return;
-  if(document.hidden){notifySystem(m);return;} // 滑出网站/后台 → 系统通知
-  if($("view-chat")&&$("view-chat").classList.contains("open"))return;
+  if(!force&&document.hidden){notifySystem(m);return;} // 滑出网站/后台 → 系统通知
+  if(!force&&$("view-chat")&&$("view-chat").classList.contains("open"))return;
   const av=$("ip-av"),nm=$("ip-name"),tx=$("ip-text"),tm=$("ip-time");
   if(av)av.src=(state.partner&&state.partner.avatar)||avatarSvg("#5AC8FA");
   if(nm)nm.textContent=(state.partner&&state.partner.name)||"对方";
@@ -2416,7 +2491,7 @@ function maybeShowIncomingPop(m){
     tm.textContent=("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2);
   }
   const p=$("incoming-pop");
-  if(p&&typeof window.__msgPopOn==="function"&&window.__msgPopOn()===false){p.classList.remove("show");}
+  if(!force&&p&&typeof window.__msgPopOn==="function"&&window.__msgPopOn()===false){p.classList.remove("show");}
   else if(p){p.classList.add("show");clearTimeout(incomingPopTimer);incomingPopTimer=setTimeout(hideIncomingPop,5200);}
 }
 $("incoming-pop").addEventListener("click",()=>{hideIncomingPop();if(typeof showView==="function")showView("view-chat");});
@@ -2460,7 +2535,7 @@ let saveTimer;
 function _emojiBackup(){
   try{localStorage.setItem("cp2EmojiLib",JSON.stringify({me:state.emojis||[],partner:state.partnerEmojis||[],t:Date.now()}));}catch(e){}
 }
-function save(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>{trimSocial();try{_emojiBackup();}catch(e){}const j=JSON.stringify(state);try{localStorage.setItem("privateChat",j);}catch(_){try{localStorage.setItem("privateChat",j.replace(/"data:[^"]*"/g,'""'));}catch(_2){}}
+function save(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>{trimSocial();try{_emojiBackup();}catch(e){}const j=JSON.stringify(state);try{if(j.length<300000)localStorage.setItem("privateChat",j);}catch(_){try{localStorage.setItem("privateChat",j.replace(/"data:[^"]*"/g,'""'));}catch(_2){}}
   if(db)dbSet("state",state).catch(function(err){
     var nm=(err&&err.name)||"Error";
     var c=null;try{c=JSON.parse(JSON.stringify(state));}catch(_){c=null;}
@@ -2474,7 +2549,7 @@ function save(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>{trimSocial();t
       dbSet("state",c).then(function(){}).catch(function(e2){try{toast("保存失败："+((e2&&e2.name)||nm));}catch(_){}});
     }
   });
-},200);}
+},320);}
 
 /* ===== 写信/留言/主页 条数控制：仅限制最多15条，避免无限膨胀（不再用内置内容填充）===== */
 const SOCIAL_MAX=15;
@@ -2506,6 +2581,7 @@ function migrate(s){
   if(s.settings.readReceipt===undefined)s.settings.readReceipt=true;
   if(s.settings.replyProb===undefined)s.settings.replyProb=100;
   if(s.settings.emojiProb===undefined)s.settings.emojiProb=20;
+  if(s.settings.cardJoinSymbol===undefined)s.settings.cardJoinSymbol=true;
   if(s.settings.emojiSteal===undefined)s.settings.emojiSteal=true;
   if(s.settings.emojiStealProb===undefined)s.settings.emojiStealProb=5;
   if(s.settings.letterCatchMax===undefined)s.settings.letterCatchMax=5;
@@ -3708,6 +3784,7 @@ function _deliverLetterReply(p,when){
   var already=false;
   try{already=state.letters.some(function(l){return l.replyTo===p.letterId&&l.from==="partner";});}catch(e){}
   try{state.pendingLetterReplies=(state.pendingLetterReplies||[]).filter(function(x){return x.letterId!==p.letterId;});}catch(e){}
+  try{localStorage.setItem("pendingLetterReplies",JSON.stringify(state.pendingLetterReplies||[]));}catch(e){}
   if(already){save();return;}
   state.letters.push({id:uid(),from:"partner",subject:p.subject||"收到",body:p.body||"",time:when||Date.now(),replyTo:p.letterId});
   try{newL++;updateNewBadge();}catch(e){}
@@ -3786,7 +3863,10 @@ function catchUpMissed(){
   if(!state||!state.settings||!state.settings.unlocked)return;
   var now=Date.now();
   try{
-    var pend=(state.pendingLetterReplies||[]).slice();
+    // 离线期间的回信：本地存储同步落盘的一并补发（避免关闭太快 IndexedDB 没写完）
+    var _all=(state.pendingLetterReplies||[]).slice();
+    try{var _ls=JSON.parse(localStorage.getItem("pendingLetterReplies")||"[]");for(var _i=0;_i<_ls.length;_i++){var _q=_ls[_i];if(!_q||!_q.letterId)continue;var _dup=false;for(var _j=0;_j<_all.length;_j++){if(_all[_j]&&_all[_j].letterId===_q.letterId){_dup=true;break;}}if(!_dup)_all.push(_q);}}catch(e){}
+    var pend=_all;
     for(var pi=0;pi<pend.length;pi++){
       var p=pend[pi];if(!p||!p.due||p.due>now)continue;
       _deliverLetterReply(p,p.due);
@@ -3925,24 +4005,34 @@ document.addEventListener("visibilitychange",()=>{
 /* ===== 电话功能 ===== */
 let call={on:false,dir:'',status:'',start:0,timer:null,mini:false,muted:false,timeouts:[]};
 function fmtClock(sec){const m=Math.floor(sec/60),s=sec%60;return ("0"+m).slice(-2)+":"+("0"+s).slice(-2);}
-function callElapsed(){return call.on?Math.floor((Date.now()-call.start)/1000):0;}
+function callElapsed(){if(!call.on)return 0;var _acc=call.acc||0;if(call.running)_acc+=Date.now()-(call.runStart||Date.now());return Math.floor(_acc/1000);}
 function setCallAvatar(){
   $("call-avatar").src=state.partner.avatar;
   $("call-mini-avatar").src=state.partner.avatar;
   $("call-name").textContent=state.partner.name||"对方";
 }
 function clearCallTimeouts(){call.timeouts.forEach(t=>clearTimeout(t));call.timeouts=[];}
+function callTick(){
+  const s=callElapsed();$("call-timer").textContent=fmtClock(s);$("call-mini-timer").textContent=fmtClock(s);
+}
 function startCallTimer(){
   stopCallTimer();
-  const upd=()=>{const s=callElapsed();$("call-timer").textContent=fmtClock(s);$("call-mini-timer").textContent=fmtClock(s);};
-  upd();call.timer=setInterval(upd,1000);
+  if(!call.runStart)call.runStart=Date.now();
+  call.running=true;
+  call.acc=call.acc||0;
+  callTick();call.timer=setInterval(callTick,1000);
+}
+function pauseCallTimer(){
+  if(!call.on)return;
+  if(call.running){call.acc=(call.acc||0)+(Date.now()-(call.runStart||Date.now()));call.running=false;}
+  stopCallTimer();callTick();persistCallState();
 }
 function stopCallTimer(){if(call.timer){clearInterval(call.timer);call.timer=null;}}
 function startCallOut(video){
   if(video===undefined)video=true;
   if(call.on){toast("正在通话中");return;}
   var _np=$("notify-prompt");if(_np)_np.classList.remove("show");
-  call={on:true,dir:'out',status:'calling',start:0,timer:null,mini:false,muted:false,video:!!video,camOn:true,timeouts:[]};
+  call={on:true,dir:'out',status:'calling',start:0,acc:0,runStart:0,running:false,timer:null,mini:false,muted:false,video:!!video,camOn:true,timeouts:[]};
   setCallAvatar();applyCallMode();
   $("call-status").textContent="正在呼叫对方…";
   $("call-timer").classList.add("hidden");
@@ -3952,6 +4042,7 @@ function startCallOut(video){
   $("call-hangup").classList.remove("hidden");
   $("call-hangup").querySelector(".cb-label").textContent="取消";
   $("call-overlay").classList.add("show");
+  persistCallState();
   call.timeouts.push(setTimeout(()=>{
     if(!call.on||call.status!=="calling")return;
     // 对方按"未接电话概率"决定是否接听
@@ -3964,7 +4055,7 @@ function startCallOut(video){
       endCall();
       return;
     }
-    call.status="active";call.start=Date.now();
+    call.status="active";call.start=Date.now();call.acc=0;call.runStart=Date.now();
     startCallTimer();
     $("call-status").textContent="通话中";
     $("call-timer").classList.remove("hidden");
@@ -3978,7 +4069,7 @@ function incomingCall(video){
   if(video===undefined)video=true;
   if(call.on)return;
   var _np=$("notify-prompt");if(_np)_np.classList.remove("show");
-  call={on:true,dir:'in',status:'incoming',start:0,timer:null,mini:false,muted:false,video:!!video,camOn:true,timeouts:[]};
+  call={on:true,dir:'in',status:'incoming',start:0,acc:0,runStart:0,running:false,timer:null,mini:false,muted:false,video:!!video,camOn:true,timeouts:[]};
   setCallAvatar();applyCallMode();
   $("call-status").textContent="对方来电…";
   $("call-timer").classList.add("hidden");
@@ -3988,6 +4079,7 @@ function incomingCall(video){
   $("call-hangup").classList.remove("hidden");
   $("call-hangup").querySelector(".cb-label").textContent="挂断";
   $("call-overlay").classList.add("show");
+  persistCallState();
   call.timeouts.push(setTimeout(()=>{
     if(call.on&&call.status==="incoming"){toast("对方已挂断");endCall();}
   },20000));
@@ -3995,7 +4087,7 @@ function incomingCall(video){
 function acceptCall(){
   if(!call.on||call.status!=="incoming")return;
   clearCallTimeouts();
-  call.status="active";call.start=Date.now();
+  call.status="active";call.start=Date.now();call.acc=0;call.runStart=Date.now();
   startCallTimer();
   $("call-status").textContent="通话中";
   $("call-timer").classList.remove("hidden");
@@ -4005,6 +4097,7 @@ function acceptCall(){
   $("call-mini-btn").classList.remove("hidden");applyCallMode();
   $("call-hangup").querySelector(".cb-label").textContent="挂断";
   toast("已接通");
+  persistCallState();
 }
 function endCall(){
   if(!call.on)return;
@@ -4028,7 +4121,43 @@ function endCall(){
   toast(tip);
   if(log){pushMsg("partner","sys",log);save();renderChat();}
   call.on=false;
+  persistCallState();
 }
+function persistCallState(){
+  try{
+    if(typeof state==="undefined"||!state)return;
+    if(call&&call.on){
+      state.callSave={on:true,dir:call.dir,status:call.status,start:call.start||0,acc:(call.acc||0)+(call.running?(Date.now()-(call.runStart||Date.now())):0),ts:Date.now(),video:!!call.video,camOn:!!call.camOn,mini:!!call.mini};
+    }else{state.callSave=null;}
+    try{localStorage.setItem("callSave",state.callSave?JSON.stringify(state.callSave):"");}catch(e){}
+    save();
+  }catch(e){}
+}
+function restoreCallState(){
+  try{
+    var cs=null;
+    try{var _ls=localStorage.getItem("callSave");if(_ls)cs=JSON.parse(_ls);}catch(e){}
+    if(!cs&&typeof state!=="undefined"&&state)cs=state.callSave;
+    if(!cs||!cs.on)return;
+    if(cs.status==="incoming"||cs.status==="missed"){state.callSave=null;save();return;}
+    call={on:true,dir:cs.dir||"out",status:"active",start:(cs.start||cs.ts||Date.now()),acc:Number(cs.acc)||0,runStart:0,running:false,timer:null,mini:!!cs.mini,muted:false,video:cs.video!==false,camOn:cs.camOn!==false,timeouts:[]};
+    setCallAvatar();applyCallMode();
+    $("call-status").textContent="通话中";
+    $("call-timer").classList.remove("hidden");
+    $("call-accept").classList.add("hidden");
+    $("call-mute").classList.remove("hidden");
+    $("call-mini-btn").classList.remove("hidden");
+    $("call-hangup").classList.remove("hidden");
+    $("call-hangup").querySelector(".cb-label").textContent="挂断";
+    // 恢复为“暂停中”：不弹窗、不计时，进入聊天界面后再继续
+    $("call-overlay").classList.remove("show");$("call-mini").classList.add("hidden");
+    callTick();
+    if($("view-chat")&&$("view-chat").classList.contains("open")&&typeof resumeCallOnChat==="function")resumeCallOnChat();
+  }catch(e){}
+}
+window.addEventListener("pagehide",pauseCallTimer);
+document.addEventListener("visibilitychange",function(){if(document.hidden)persistCallState();});
+setTimeout(restoreCallState,700);
 function applyCallMode(){
   var ov=$("call-overlay");if(!ov)return;
   ov.classList.toggle("video",!!call.video);
@@ -4049,6 +4178,7 @@ function minimizeCall(){
   call.mini=true;
   $("call-overlay").classList.remove("show");
   $("call-mini").classList.remove("hidden");
+  persistCallState();
 }
 function expandCall(){
   if(!call.on)return;
@@ -4088,7 +4218,10 @@ $("call-mini").addEventListener("click",expandCall);
 })();
 $("call-mute").addEventListener("click",toggleMute);
 function replyCards(){
-  const gid=state.settings.replyGroupId;
+  let gid=state.settings.replyGroupId;
+  // 分组被删除/清空后自动归位，避免字卡池被“悬空分组”卡成空
+  if(gid&&!state.groups.some(function(g){return g.id===gid&&!g.disabled;})){gid=null;try{state.settings.replyGroupId=null;save();}catch(e){}}
+
   if(gid){
     const g=activeCards().filter(c=>c.groupId===gid);
     if(g.length)return g; // 指定分组有字卡就用它
@@ -4122,13 +4255,13 @@ function scheduleReply(){
     const n=Math.max(1,Math.round(Number(state.settings.replyTimes)||1));
     const pool=replyCards();
     if(!pool.length){
-      // 没有字卡就不回复：对方只按字卡回，避免内置兜底刷消息
+      // 不使用内置兜底内容：没有字卡就不回复
       setTyping(false);
       return;
     }else{
       const picks=[];const sh=shuffle(pool.slice());
       for(let i=0;i<n;i++)picks.push(sh[i%sh.length]);
-      const myMine=state.messages.filter(m=>m.from==="me"&&!m.recalled&&(m.type==="text"||m.type==="image")).slice(-5);
+      const myMine=state.messages.filter(m=>m.from==="me"&&!m.recalled&&!m.active&&(m.type==="text"||m.type==="image")).slice(-5);
       const qOn=!!state.settings.partnerQuote&&myMine.length>0;
       let delay=0;
       picks.forEach(c=>{
@@ -4311,6 +4444,7 @@ $("file-emoji").addEventListener("change",e=>{
 let activeGroupId=null;
 let cardSelMode=false,cardSel=new Set();
 function groupById(id){return state.groups.find(g=>g.id===id);}
+function cardsCountInGroup(gid){return state.cards.filter(function(c){return c.groupId===gid;}).length;}
 function renderCards(){
   if(!activeGroupId&&state.groups.length)activeGroupId=state.groups[0].id;
   if(!cardSelMode)cardSel.clear();
@@ -4324,10 +4458,12 @@ function renderCards(){
   // 本组字卡
   const list=$("card-list");const gname=groupById(activeGroupId)?groupById(activeGroupId).name:"";
   const q=$("card-search").value.trim().toLowerCase();
-  $("cards-sec-label").textContent=q?"全部字卡 · 搜索：“"+$("card-search").value.trim()+"”":"本组字卡"+(gname?"（"+gname+"）":"");
-  const cards=state.cards.filter(c=>(q?true:c.groupId===activeGroupId)&&(!q||c.text.toLowerCase().includes(q)));
+  const _grpN=cardsCountInGroup(activeGroupId);
+  $("cards-sec-label").textContent=(gname?"本组字卡（"+gname+"）· 共 "+_grpN+" 条":"本组字卡")+(q?" · 搜索：“"+$("card-search").value.trim()+"”":"");
+  // 搜索只搜索当前选中分组里的字卡
+  const cards=state.cards.filter(c=>c.groupId===activeGroupId&&(!q||c.text.toLowerCase().includes(q)));
   $("card-empty").classList.toggle("hidden",cards.length>0);
-  $("card-empty").textContent=q?("没有找到包含“"+$("card-search").value.trim()+"”的字卡"):"还没有字卡，添加或批量导入一些吧。";
+  $("card-empty").textContent=q?("本组没有包含“"+$("card-search").value.trim()+"”的字卡（只搜索本组）"):"还没有字卡，添加或批量导入一些吧。";
   list.innerHTML=cards.length?cards.map(c=>{
     const selCls=cardSelMode&&cardSel.has(c.id)?" sel":"";
     const selModeCls=cardSelMode?" sel-mode":"";
@@ -4382,6 +4518,7 @@ function addCard(){
   if(state.cards.some(c=>c.groupId===activeGroupId&&c.text===t)){toast("该字卡已存在（自动查重）");return;}
   state.cards.push({id:uid(),groupId:activeGroupId,text:t});$("new-card-text").value="";
   save();renderCards();
+  try{ var _i=$("new-card-text"); if(_i&&!document.hidden)_i.focus(); }catch(e){}
 }
 let mibCb=null;
 function miniInput(title,hint,def,cb){
@@ -4493,6 +4630,12 @@ function moveSelectedToGroup(){
   });
 }
 try{
+  if($("btn-batch-toggle"))$("btn-batch-toggle").addEventListener("click",function(){
+    var w=$("batch-wrap");if(!w)return;
+    var open=w.classList.contains("hidden");
+    w.classList.toggle("hidden",!open);
+    this.textContent=open?"收起批量导入":"批量导入 / 导入 JSON";
+  });
   if($("btn-import-card-json"))$("btn-import-card-json").addEventListener("click",function(){$("file-card-json").click();});
   if($("file-card-json"))$("file-card-json").addEventListener("change",function(e){
     var f=e.target.files&&e.target.files[0];if(!f)return;
@@ -4576,6 +4719,7 @@ function batchImport(){
     exist.push(t);state.cards.push({id:uid(),groupId:activeGroupId,text:t});added++;
   });
   $("batch-cards").value="";save();renderCards();
+  try{$("batch-overlay").classList.remove("show");}catch(e){}
   toast("导入完成：新增 "+added+" 条，重复跳过 "+skip+" 条");
 }
 $("btn-add-group").addEventListener("click",addGroup);
@@ -4583,6 +4727,9 @@ $("new-group-name").addEventListener("keydown",e=>{if(e.key==="Enter")addGroup()
 $("btn-add-card").addEventListener("click",addCard);
 $("new-card-text").addEventListener("keydown",e=>{if(e.key==="Enter")addCard();});
 $("btn-batch-import").addEventListener("click",batchImport);
+if($("btn-batch-open"))$("btn-batch-open").addEventListener("click",function(){$("batch-overlay").classList.add("show");});
+if($("batch-cancel"))$("batch-cancel").addEventListener("click",function(){$("batch-overlay").classList.remove("show");});
+if($("batch-overlay"))$("batch-overlay").addEventListener("click",function(e){if(e.target.id==="batch-overlay")this.classList.remove("show");});
 
 /* ===== 设置 ===== */
 function renderSettingsSelect(){
@@ -4624,6 +4771,7 @@ function bindSetting(){
   $("sw-keep-alive").classList.toggle("on",state.settings.keepAlive===true);
   if($("sw-notify"))$("sw-notify").classList.toggle("on",!!(("Notification" in window)&&Notification.permission==="granted"));
   if($("sw-emoji-steal"))$("sw-emoji-steal").classList.toggle("on",state.settings.emojiSteal!==false);
+  if($("sw-card-join-sym"))$("sw-card-join-sym").classList.toggle("on",state.settings.cardJoinSymbol!==false);
   if(state.settings.keepAlive)ensureKeepAliveAudio();
   $("skin-accent").value=state.skin.accent;$("skin-bg").value=state.skin.bg;
   $("skin-mybubble").value=state.skin.mybubble;$("skin-partbubble").value=state.skin.partbubble;
@@ -4812,6 +4960,7 @@ $("set-reply-group").addEventListener("change",e=>{state.settings.replyGroupId=e
 $("sw-auto").addEventListener("click",e=>{state.settings.autoReply=true;e.target.classList.add("on");save();toast("自动回复保持开启");});
 $("sw-read").addEventListener("click",e=>{state.settings.readReceipt=!state.settings.readReceipt;e.target.classList.toggle("on",state.settings.readReceipt);save();renderChat();});
 $("sw-partner-quote").addEventListener("click",e=>{state.settings.partnerQuote=!state.settings.partnerQuote;e.target.classList.toggle("on",state.settings.partnerQuote);save();toast(state.settings.partnerQuote?"对方引用我的消息已开启":"对方引用我的消息已关闭");});
+$("sw-card-join-sym")&&$("sw-card-join-sym").addEventListener("click",function(){state.settings.cardJoinSymbol=(state.settings.cardJoinSymbol===false);save();bindSetting();toast(state.settings.cardJoinSymbol!==false?"标点符号已开启":"已关闭标点，改为直接拼接");});
 $("sw-emoji-steal")&&$("sw-emoji-steal").addEventListener("click",function(e){state.settings.emojiSteal=(state.settings.emojiSteal===false);e.target.classList.toggle("on",state.settings.emojiSteal!==false);save();toast(state.settings.emojiSteal!==false?"偷表情玩法已开启":"偷表情玩法已关闭");});
 $("sw-active-tag").addEventListener("click",e=>{state.settings.showActiveTag=(state.settings.showActiveTag===false);e.target.classList.toggle("on",state.settings.showActiveTag!==false);save();renderChat();toast(state.settings.showActiveTag!==false?"主动消息标注已开启":"主动消息标注已关闭");});
 $("sw-dark").addEventListener("click",e=>{state.skin.dark=!state.skin.dark;e.target.classList.toggle("on",state.skin.dark);applySkin();save();});
@@ -4903,6 +5052,70 @@ $("file-bgimg").addEventListener("change",e=>{
 });
 $("btn-bgimg-clear").addEventListener("click",()=>{state.skin.bgImage="";applySkin();save();toast("已移除背景图");});
 
+/* ===== 头像形状（圆形/方形）===== */
+function applyAvatarShape(){
+  try{
+    var sh=(state.settings&&state.settings.avatarShape)||"round";
+    document.body.classList.toggle("av-square",sh==="square");
+    document.querySelectorAll("[data-avshape]").forEach(function(b){
+      var on=b.getAttribute("data-avshape")===sh;
+      b.style.background=on?"var(--accent,#3478F6)":"";
+      b.style.color=on?"#fff":"";
+      b.style.borderColor=on?"transparent":"";
+    });
+  }catch(e){}
+}
+window.__applyAvatarShape=applyAvatarShape;
+/* ===== 全局字体大小 ===== */
+function applyFontSize(){
+  try{
+    var n=Number(state.settings&&state.settings.fontSize)||2;
+    if(n<1)n=1;if(n>4)n=4;
+    ["fs-1","fs-2","fs-3","fs-4"].forEach(function(c){document.body.classList.remove(c);});
+    document.body.classList.add("fs-"+n);
+    document.querySelectorAll("[data-fsz]").forEach(function(b){
+      var on=Number(b.getAttribute("data-fsz"))===n;
+      b.style.background=on?"var(--accent,#3478F6)":"";
+      b.style.color=on?"#fff":"";
+      b.style.borderColor=on?"transparent":"";
+    });
+  }catch(e){}
+}
+window.__applyFontSize=applyFontSize;
+(function(){
+  function bindFs(){
+    document.querySelectorAll("[data-fsz]").forEach(function(b){
+      if(b._fsBound)return;b._fsBound=1;
+      b.addEventListener("click",function(){
+        state.settings.fontSize=Number(b.getAttribute("data-fsz"))||2;
+        try{save();}catch(e){}
+        applyFontSize();
+        toast("字体大小已调整");
+      });
+    });
+    applyFontSize();
+  }
+  document.addEventListener("DOMContentLoaded",bindFs);
+  setTimeout(bindFs,300);setTimeout(bindFs,1500);
+})();
+(function(){
+  function bind(){
+    var btns=document.querySelectorAll("[data-avshape]");
+    if(!btns.length)return;
+    btns.forEach(function(b){
+      if(b._avBound)return;b._avBound=1;
+      b.addEventListener("click",function(){
+        state.settings.avatarShape=b.getAttribute("data-avshape");
+        try{save();}catch(e){}
+        applyAvatarShape();
+        toast("头像形状："+(state.settings.avatarShape==="square"?"方形":"圆形"));
+      });
+    });
+    applyAvatarShape();
+  }
+  document.addEventListener("DOMContentLoaded",bind);
+  setTimeout(bind,300);setTimeout(bind,1500);
+})();
 /* ===== 头像（相册导入）===== */
 $("avatar-me").addEventListener("click",()=>{$("file-avatar").dataset.who="me";$("file-avatar").click();});
 $("avatar-partner").addEventListener("click",()=>{$("file-avatar").dataset.who="partner";$("file-avatar").click();});
@@ -5010,9 +5223,32 @@ $("btn-save-lockpwd").addEventListener("click",function(){
 
 /* ===== 主输入 ===== */
 $("btn-send").addEventListener("click",sendMyText);
-$("msg-input").addEventListener("keydown",e=>{
-  if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMyText();}
-});
+/* 回车发送：兼容中文输入法组词，组词确认后自动发出，避免要按两次才发出 */
+(function(){
+  var inp=$("msg-input"),pending=false,lastSend=0;
+  function now(){return Date.now();}
+  function fire(){
+    var t=(inp.value||"").trim();
+    if(!t)return;
+    if(now()-lastSend<250)return;  /* 防止 keydown/keyup 重复触发 */
+    lastSend=now();
+    sendMyText();
+  }
+  inp.addEventListener("keydown",function(e){
+    if(e.key!=="Enter"&&e.keyCode!==13)return;
+    if(e.shiftKey)return;
+    e.preventDefault();
+    if(e.isComposing||e.keyCode===229){pending=true;return;}  /* 输入法还在组词，等 compositionend */
+    fire();
+  });
+  inp.addEventListener("compositionend",function(){if(pending){pending=false;setTimeout(fire,0);}});
+  inp.addEventListener("keyup",function(e){
+    if(e.key!=="Enter"&&e.keyCode!==13)return;
+    if(e.isComposing)return;
+    pending=false;
+    fire();
+  });
+})();
 $("qi-close").addEventListener("click",clearQuote);
 
 /* ===== 视图切换 ===== */
@@ -5027,6 +5263,13 @@ function updateNewBadge(){
   setBadge("badge-note",newN);
 }
 var _musicFrom="view-me";
+function resumeCallOnChat(){
+  if(!call.on||call.status!=="active")return;
+  if(!call.running){call.runStart=Date.now();startCallTimer();}
+  if(call.mini){$("call-overlay").classList.remove("show");$("call-mini").classList.remove("hidden");}
+  else{$("call-overlay").classList.add("show");$("call-mini").classList.add("hidden");}
+  setCallAvatar();applyCallMode();persistCallState();
+}
 function showView(id){
   if(id==="view-music"){["view-chat","view-me","view-cards","view-settings","view-letters","view-guestbook","view-moments","view-redpacket","view-game","view-couple"].forEach(function(v){if($(v).classList.contains("open"))_musicFrom=v;});}
   ["view-chat","view-me","view-cards","view-settings","view-letters","view-guestbook","view-moments","view-redpacket","view-game","view-music","view-couple"].forEach(v=>$(v).classList.toggle("open",v===id));
@@ -5384,7 +5627,7 @@ function playMusic(i){
   const song=pl[i];
   // 加载提示
   var _loading=$("mp-play");if(_loading)_loading.textContent="⏳";
-  au.src=song.url;au.volume=state.musicVol;au.loop=state.musicLoop;
+  au.src=song.url;au.volume=state.musicVol;au.loop=(state.settings.musicMode||"order")==="loop";
   au.oncanplay=function(){if(_loading)_loading.innerHTML='<svg class="icon" style="width:18px;height:18px;fill:currentColor;stroke:none"><use xlink:href="#i-mpause"/></svg>';};
   au.play().catch(async()=>{
     // 播放失败：如果是网易云歌曲，自动刷新链接
@@ -5409,6 +5652,11 @@ function playMusic(i){
 }
 function nextMusic(d){
   const pl=state.musicPlaylist;if(!pl.length)return;
+  const mode=state.settings.musicMode||"order";
+  if(mode==="random"&&pl.length>1){
+    let r=state.musicCur;while(r===state.musicCur)r=Math.floor(Math.random()*pl.length);
+    playMusic(r);return;
+  }
   let i=(state.musicCur<0?0:state.musicCur+d);if(i<0)i=pl.length-1;if(i>=pl.length)i=0;
   playMusic(i);
 }
@@ -5426,7 +5674,7 @@ function setModeIcon(){
   setSvgUse("m-mode-use","#i-mode-"+m);
   var b=$("m-mode");
   if(b){
-    var lb={order:"顺序",loop:"循环",random:"随机"};
+    var lb={order:"顺序",loop:"单曲循环",random:"随机"};
     b.title="播放模式："+lb[m];
     b.classList.toggle("on",m!=="order");
   }
@@ -5451,7 +5699,7 @@ var _163Warmed=false;
       else if(pl.length)playMusic(0);
       return;
     }
-    if(mode==="loop"){nextMusic(1);return;}
+    if(mode==="loop"){try{const a=musicAudio();a.currentTime=0;a.play().catch(()=>{});}catch(e){}return;}
     if(state.musicCur+1<state.musicPlaylist.length)nextMusic(1);
     else{const a=musicAudio();a.pause();a.currentTime=0;renderMusBtn();}
   });
@@ -5463,10 +5711,11 @@ var _163Warmed=false;
   $("m-prev").addEventListener("click",()=>nextMusic(-1));
   $("m-next").addEventListener("click",()=>nextMusic(1));
   if($("m-mode"))$("m-mode").addEventListener("click",()=>{
-    const order=["order","loop","random"],lb={order:"顺序",loop:"循环",random:"随机"},ic={order:"↻",loop:"🔂",random:"⇄"};
+    const order=["order","loop","random"],lb={order:"顺序",loop:"单曲循环",random:"随机"},ic={order:"↻",loop:"🔂",random:"⇄"};
     const cur=state.settings.musicMode||"order";
     state.settings.musicMode=order[(order.indexOf(cur)+1)%3];
     save();setModeIcon();
+    try{var _au=musicAudio();_au.loop=(state.settings.musicMode==="loop");}catch(e){}
     toast("播放模式："+lb[state.settings.musicMode]);
   });
   if($("m-mode"))setModeIcon();
@@ -6169,9 +6418,11 @@ function socialDelay(){
 }
 // 回信（我写信后对方回信）的独立回复时间：replyLetterMinSec/MaxSec
 function replyLetterDelay(){
-  const a=Math.max(0,Number(state.settings.replyLetterMinSec)||0);
-  const b=Math.max(a,Number(state.settings.replyLetterMaxSec)||0);
-  return rand(a*1000,b*1000);
+  // 回信时间：在你设置的「回信最快 ~ 回信最慢」区间内随机
+  var a=Math.max(0,Number(state.settings.replyLetterMinSec)||0);
+  var b=Math.max(a,Number(state.settings.replyLetterMaxSec)||0);
+  if(b<=0)return 0;
+  return Math.round(rand(a*1000,b*1000));
 }
 // 主动写信（对方主动来信）的独立回复时间：letterMinSec/MaxSec
 function letterDelay(){
@@ -6191,6 +6442,27 @@ function socialCardCount(){
   if(!total)return 0;
   return Math.min(total,8+Math.floor(Math.random()*8)); // 8~15
 }
+// 多条字卡拼接：开启时用「 · 」隔开，关闭时用换行
+function joinCards(list){
+  var arr=(list||[]).filter(function(x){return x&&String(x).trim();});
+  if(!arr.length)return "";
+  if(arr.length===1)return arr[0];
+  var seps=["。","，","！","？","…","、"];
+  if(state.settings.cardJoinSymbol===false)return arr.join("");
+  // 每条字卡之间各自随机一个标点（不是整段共用一个），保证不会只出现一种
+  var syms=[];
+  for(var i=0;i<arr.length-1;i++)syms.push(seps[Math.floor(Math.random()*seps.length)]);
+  var uniq={};syms.forEach(function(s2){uniq[s2]=1;});
+  if(Object.keys(uniq).length<2){
+    var j=Math.floor(Math.random()*syms.length);
+    var alt=seps[Math.floor(Math.random()*seps.length)];
+    if(alt===syms[j])alt=seps[(seps.indexOf(alt)+1)%seps.length];
+    syms[j]=alt;
+  }
+  var out=arr[0];
+  for(var k=0;k<syms.length;k++)out+=syms[k]+arr[k+1];
+  return out;
+}
 function pickCardsN(n){
   const pool=state.cards.filter(c=>c.text&&String(c.text).trim());
   if(!pool.length||n<=0)return [];
@@ -6206,12 +6478,13 @@ function sendLetter(){
   save();renderLetters();toast("信已寄出");
   // 对方从字卡里选取内容回信（回信概率/回信时间独立设置，字卡条数8~15条）
   if(!probPct("replyLetterProb"))return;
-  const replyBody=pickCardsN(socialCardCount()).join("\n");if(!replyBody)return; // 没有字卡就不回信
+  const replyBody=joinCards(pickCardsN(socialCardCount()));if(!replyBody)return; // 没有字卡就不回信
   const subjects=["收到","回信","念你","看到了","已读","安好","知道了"];
   const r=subjects[Math.floor(Math.random()*subjects.length)];
   const _due=Date.now()+replyLetterDelay();
   state.pendingLetterReplies=state.pendingLetterReplies||[];
   state.pendingLetterReplies.push({letterId:myId,due:_due,subject:r,body:replyBody});
+  try{localStorage.setItem("pendingLetterReplies",JSON.stringify(state.pendingLetterReplies));}catch(e){}
   save();
   setTimeout(function(){
     _deliverLetterReply({letterId:myId,due:_due,subject:r,body:replyBody},_due);
@@ -6795,7 +7068,7 @@ function maybePartnerMomentPost(force){
   for(let i=0;i<cnt;i++){
     const n=Math.max(1,Math.round(rand(Number(state.settings.activeMomentsCountMin)||1,Number(state.settings.activeMomentsCountMax)||3)));
     const cards=pickCardsN(n);if(!cards||!cards.length)continue;
-    const text=cards.join("\n");
+    const text=joinCards(cards);
     setTimeout(()=>{
       var _nid=uid();
       state.moments.push({id:_nid,from:"partner",text:text,likes:[],comments:[],time:Date.now(),unread:true,unreadKind:"post"});
@@ -6839,7 +7112,7 @@ function maybePartnerLetter(force){
   const cnt=Math.max(1,Math.round(rand(Number(state.settings.letterBurstMin)||1,Number(state.settings.letterBurstMax)||1)));
   const d0=letterDelay();
   for(let i=0;i<cnt;i++){
-    const body=pickCardsN(Math.max(1,Math.round(rand(Number(state.settings.activeLetterCountMin)||1,Number(state.settings.activeLetterCountMax)||1)))).join("\n");if(!body)continue; // 写信条数区间（设置）
+    const body=joinCards(pickCardsN(Math.max(1,Math.round(rand(Number(state.settings.activeLetterCountMin)||1,Number(state.settings.activeLetterCountMax)||1)))));if(!body)continue; // 写信条数区间（设置）
     const subjects=["想你","碎碎念","分享","无题","随笔","突然","想起","碎片","小记","日常","展信安","见信好"];
     const r=subjects[Math.floor(Math.random()*subjects.length)];
     setTimeout(()=>{
@@ -6856,7 +7129,7 @@ function maybePartnerNote(force){
   const cnt=Math.max(1,Math.round(rand(Number(state.settings.noteBurstMin)||1,Number(state.settings.noteBurstMax)||1)));
   const d0=noteDelay();
   for(let i=0;i<cnt;i++){
-    const card=pickCardsN(Math.max(1,Math.round(rand(Number(state.settings.activeNoteCountMin)||1,Number(state.settings.activeNoteCountMax)||1)))).join("\n");
+    const card=joinCards(pickCardsN(Math.max(1,Math.round(rand(Number(state.settings.activeNoteCountMin)||1,Number(state.settings.activeNoteCountMax)||1)))));
     if(!card)continue; // 留言条数区间（设置）
     setTimeout(()=>{
       const pid=uid();
@@ -7260,6 +7533,7 @@ if(window.__cp2Reapply)window.__cp2Reapply();
   function keyOf(el){return (el&&el.getAttribute)?el.getAttribute("data-cp2"):"";}
   var LAB={av:"头像",chat:"对话框",record:"唱片",count:"倒数日",photo:"照片框"};
   var ORDER=["av","chat","record","count","photo"];
+window.__dockTopPx=function(){try{if(window.__dockEl&&document.contains(window.__dockEl))return Math.round(window.__dockEl.getBoundingClientRect().top);}catch(e){}var a=document.querySelectorAll("div");for(var i=0;i<a.length;i++){var st=getComputedStyle(a[i]);if(st.position==="fixed"&&a[i].id!=="app"&&a[i].getBoundingClientRect().top>400&&(a[i].querySelector("#me-nav-settings")||a[i].querySelector("#me-nav-music"))){window.__dockEl=a[i];return Math.round(a[i].getBoundingClientRect().top);}}return 0;};
   function defPos(id){
     var cw=page.clientWidth||348;
     switch(id){
@@ -7396,7 +7670,10 @@ if(window.__cp2Reapply)window.__cp2Reapply();
     // 切换布局：先把所有组件恢复到默认位置，清掉手动拖动残留，避免切换后照片框等错乱
     var _rcA=page.querySelectorAll('[data-cp2]');
     var _phOld=page.querySelector('[data-cp2="photo"]');
-    var _phSize=_phOld?{w:_phOld.offsetWidth,h:_phOld.offsetHeight}:null;
+    var _phSize=null;
+    try{var _svPh=JSON.parse(localStorage.getItem("cp2PhotoUserSize")||"null");if(!_svPh)_svPh=JSON.parse(localStorage.getItem("cp2PhotoSize")||"null");if(_svPh&&_svPh.w>80&&_svPh.h>60)_phSize={w:Math.round(_svPh.w),h:Math.round(_svPh.h)};}catch(e){}
+    if(!_phSize){var _wv=(state.cp2Layout||{}).widgets&&state.cp2Layout.widgets.photo;if(_wv&&_wv.w>80&&_wv.h>60)_phSize={w:Math.round(_wv.w),h:Math.round(_wv.h)};}
+    if(!_phSize&&_phOld&&_phOld.offsetWidth>80&&_phOld.offsetHeight>60)_phSize={w:_phOld.offsetWidth,h:_phOld.offsetHeight};
     for(var _ra=0;_ra<_rcA.length;_ra++){
       var _da=defPos(_rcA[_ra].getAttribute('data-cp2'));
       if(_da&&_rcA[_ra].getAttribute('data-cp2')==="photo"&&_phSize&&_phSize.w>80&&_phSize.h>60){_da.w=_phSize.w;_da.h=_phSize.h;}
@@ -7415,13 +7692,33 @@ if(window.__cp2Reapply)window.__cp2Reapply();
       if(lay==="simple"){
         // 隐藏唱片+倒数日后，照片框自动上移到空出的唱片位置
         var _ph=page.querySelector('[data-cp2="photo"]');
-        if(_ph){var _dp=defPos("photo");_w2.photo={x:_dp.x,y:272,w:(_phSize&&_phSize.w>80?_phSize.w:_dp.w),h:(_phSize&&_phSize.h>60?_phSize.h:_dp.h)};}
+        if(_ph){
+          var _dp=defPos("photo");
+          var _hh=(_phSize&&_phSize.h>60?_phSize.h:_dp.h);
+          var _dockT2=window.__dockTopPx()?Math.round(window.__dockTopPx()-page.getBoundingClientRect().top):null;
+          var _yp2=272;
+          if(_dockT2&&(_dockT2-14-_hh)<_yp2)_yp2=Math.max(0,Math.round(_dockT2-14-_hh));
+          _w2.photo={x:_dp.x,y:_yp2,w:(_phSize&&_phSize.w>80?_phSize.w:_dp.w),h:_hh};
+        }
       }else if(_w2.photo){
         // couple：照片框隐藏，清掉临时位置，切回经典/横向时回到默认位置
         delete _w2.photo;
       }
       if(window.__cp2Reapply)window.__cp2Reapply();
       saveLayout();
+      /* 切完布局后把用户调好的照片框尺寸再压回去，避免被默认尺寸覆盖 */
+      setTimeout(function(){
+        try{
+          var _sv=JSON.parse(localStorage.getItem("cp2PhotoUserSize")||"null")||JSON.parse(localStorage.getItem("cp2PhotoSize")||"null");
+          var _el=document.getElementById("cp2-block-photo");
+          if(_sv&&_sv.w>80&&_sv.h>60&&_el){
+            _el.style.width=Math.round(_sv.w)+"px";
+            _el.style.height=Math.round(_sv.h)+"px";
+            if(window.__cp2Reapply)window.__cp2Reapply();
+            saveLayout();
+          }
+        }catch(e){}
+      },140);
       try{localStorage.setItem("privateChat",JSON.stringify(state));}catch(_){}
       return;
     }
@@ -7469,6 +7766,11 @@ if(window.__cp2Reapply)window.__cp2Reapply();
     if(!cur)return;
     active=false;
     saveLayout();
+    try{
+      if(mode==="resize"&&cur&&cur.getAttribute&&cur.getAttribute("data-cp2")==="photo"){
+        localStorage.setItem("cp2PhotoUserSize",JSON.stringify({w:Math.round(cur.offsetWidth),h:Math.round(cur.offsetHeight)}));
+      }
+    }catch(e){}
     cur.style.willChange="";cur.style.zIndex="";
     var its=items();for(var i=0;i<its.length;i++){its[i].classList.toggle("cp-jiggle",editing);}
     cur=null;mode="drag";
@@ -7484,7 +7786,7 @@ if(window.__cp2Reapply)window.__cp2Reapply();
         if(!editing)setEditing(true);
         el.style.zIndex="60";
         var its=items();for(var i=0;i<its.length;i++){its[i].classList.toggle("cp-jiggle",its[i]===el);}
-      },150);
+      },480);
     });
   }
   function reapply(){
@@ -7500,14 +7802,12 @@ if(window.__cp2Reapply)window.__cp2Reapply();
     var its=items();
     var _pr=page.getBoundingClientRect();
     var _cw=Math.max(page.clientWidth||348,(window.innerWidth||0)-48,320);
-    var _dockTop=window.innerHeight-200;
-    var _alld=document.querySelectorAll("div");
-    for(var _q=0;_q<_alld.length;_q++){var _st=getComputedStyle(_alld[_q]);if(_st.position==="fixed"&&_alld[_q].id!=="app"&&(_alld[_q].querySelector("#me-nav-settings")||_alld[_q].querySelector("#me-nav-music"))){_dockTop=_alld[_q].getBoundingClientRect().top;break;}}
+    var _dockTop=window.__dockTopPx()||(window.innerHeight-200);
     for(var i=0;i<its.length;i++){
       var el=its[i];var id=keyOf(el);if(!id)continue;
       var d=wids[id]||defPos(id);
       var _yMax=Math.max(0,(_dockTop-60)-_pr.top-d.h);
-      if(id==="photo"){var _phTopMax0=(_dockTop-1)-_pr.top-d.h;if(d.y>_phTopMax0)d.y=Math.max(0,_phTopMax0);var _phMax=_dockTop-_pr.top-d.y-1;if(d.h>_phMax&&_phMax>60)d.h=_phMax;}
+      if(id==="photo"){var _phTopMax0=(_dockTop-1)-_pr.top-d.h;if(d.y>_phTopMax0)d.y=Math.max(0,_phTopMax0);/* 太高时整体上移，绝不压缩用户调好的尺寸 */}
       var dp2=defPos(id);
       if(d.w<80)d.w=dp2.w;
       if(d.h<60)d.h=dp2.h;
@@ -7538,11 +7838,7 @@ if(window.__cp2Reapply)window.__cp2Reapply();
       var _target=_rF.top;
       if(_target>_maxTop)_target=_maxTop;
       if(_target<_minTop)_target=_minTop;
-      if(_target>_maxTop){
-        var _nh=Math.max(100,_dockTop-2-_minTop);
-        if(_nh<_rF.height){_phF.style.height=Math.round(_nh)+"px";}
-        _target=_minTop;
-      }
+      /* 空间不够时只上移，不压缩用户调好的照片框高度 */
       var _dy=_target-_rF.top;
       if(Math.abs(_dy)>=1){_phF.style.top=((parseFloat(_phF.style.top)||0)+_dy)+"px";}
     }
@@ -7557,9 +7853,7 @@ if(window.__cp2Reapply)window.__cp2Reapply();
     if(!active||!cur)return;
     if(mode==="resize"){
       var rpr=page.getBoundingClientRect();
-      var rdockTop=window.innerHeight-200;
-      var ra=document.querySelectorAll("div");
-      for(var rq=0;rq<ra.length;rq++){var rst=getComputedStyle(ra[rq]);if(rst.position==="fixed"&&ra[rq].id!=="app"&&(ra[rq].querySelector("#me-nav-settings")||ra[rq].querySelector("#me-nav-music"))){rdockTop=ra[rq].getBoundingClientRect().top;break;}}
+      var rdockTop=window.__dockTopPx()||(window.innerHeight-200);
       var rYMax=Math.max(56,(rdockTop-60)-rpr.top-cur.offsetTop);
       var nw=Math.max(56,orig.w+(e.clientX-startX));
       var nh=Math.max(56,Math.min(orig.h+(e.clientY-startY),rYMax));
@@ -7580,7 +7874,7 @@ if(window.__cp2Reapply)window.__cp2Reapply();
   function updDots(){var w=pager.offsetWidth||320;var p=Math.round(pager.scrollLeft/w);
     document.querySelectorAll("#me-dots span").forEach(function(s,i){s.style.opacity=i===p?1:.4;});
     if(p===1)renderCouple();}
-  pager.addEventListener("scroll",function(){clearTimeout(pager._t);pager._t=setTimeout(updDots,100);},{passive:true});
+  pager.addEventListener("scroll",function(){if(pager._raf)return;pager._raf=requestAnimationFrame(function(){pager._raf=0;updDots();});},{passive:true});
   document.querySelectorAll("#me-dots span").forEach(function(s){s.addEventListener("click",function(){
     var p=Number(this.dataset.p);pager.scrollTo({left:p*(pager.offsetWidth||320),behavior:"smooth"});});});
 })();
@@ -7687,7 +7981,7 @@ init();
         items.forEach(function(x){x.classList.toggle('cp-jiggle',x===el);});
         var rz=el.querySelector('.cp2-resize');if(rz)rz.style.display='block';
         el.style.zIndex='80';
-      },150);
+      },480);
     });
   });
   window.addEventListener('pointermove',function(e){
@@ -7767,7 +8061,7 @@ init();
    不使用 Service Worker（避免缓存接管导致打不开/黑屏），只用“对比构建号 + 换 URL”这一招。 */
 (function(){
   if(!/^https?:$/.test(location.protocol))return;
-  var BUILD="2026-11-07bf";
+  var BUILD="2026-11-07dd";
   var KEY="app_build_reloaded";
   var busy=false;
   function go(url){location.replace(url+"&skipabout=1");}
@@ -7819,16 +8113,40 @@ try{if(state&&state.musicSession)musicSession=true;}catch(e){}
       var p2=document.getElementById('cp2-block-photo');
       if(p2){
         var sv=null;
-        try{sv=JSON.parse(localStorage.getItem('cp2PhotoSize')||'null');}catch(e){}
+        try{sv=JSON.parse(localStorage.getItem('cp2PhotoUserSize')||'null');}catch(e){}
+        if(!sv){try{sv=JSON.parse(localStorage.getItem('cp2PhotoSize')||'null');}catch(e){}}
         if(!sv&&state.cp2Layout&&state.cp2Layout.widgets&&state.cp2Layout.widgets.photo)sv=state.cp2Layout.widgets.photo;
         if(sv&&sv.w>80){
           var pw=(p2.parentElement&&p2.parentElement.clientWidth)||360;
-          var w=Math.max(120,Math.min(Math.round(sv.w),pw-50));
-          var h=Math.max(90,Math.min(Math.round(sv.h||196),420));
-          var dock=(window.innerHeight||844)-200;
-          var top=p2.getBoundingClientRect().top;
-          if(h>dock-8-top)h=Math.max(90,dock-8-top);
+          /* 尺寸按用户调整后的原样还原，不因为一次屏幕空间不够就把记录改小 */
+          var w=Math.max(120,Math.min(Math.round(sv.w),pw-16));
+          var h=Math.max(90,Math.min(Math.round(sv.h||196),560));
+          var dk=(window.innerHeight||844)-200;
+          try{var _dkk=window.__dockTopPx();if(_dkk)dk=_dkk;}catch(e){}
+          var pgEl=p2.parentElement;
+          var prt=pgEl?pgEl.getBoundingClientRect().top:0;
+          var minTop=0;
+          var _o=["av","chat","record","count"];
+          for(var _k=0;_k<_o.length;_k++){
+            var _e=pgEl.querySelector('[data-cp2="'+_o[_k]+'"]');
+            if(_e&&getComputedStyle(_e).display!=="none"){var _b=_e.getBoundingClientRect().bottom-prt;if(_b>minTop)minTop=_b;}
+          }
+          minTop=Math.round(minTop+12);
+          var left=Math.max(0,Math.round((pw-w)/2));
+          /* 尽量贴在底部固定栏上沿；放不下就贴着上方组件，尺寸照旧保留 */
+          var _lay=(state.cp2Layout||{}).layout;
+          var newTop=Math.round((dk-14-h)-prt);
+          if(_lay==="simple")newTop=Math.min(minTop,Math.round((dk-14-h)-prt)); /* 简洁布局：默认贴对话下方；尺寸太大时整体上移，保证整块露出 */
+          if(newTop<minTop)newTop=minTop;
+          if(newTop<0)newTop=0;
           p2.style.width=w+'px';p2.style.height=h+'px';
+          p2.style.left=left+'px';p2.style.top=newTop+'px';
+          /* 有别人（重排/动效）把尺寸改回默认时，再压一次，保证用户调的大小不被吃掉 */
+          (function(_el,_w,_h){setTimeout(function(){try{if(Math.abs(_el.offsetWidth-_w)>2||Math.abs(_el.offsetHeight-_h)>2){_el.style.width=_w+"px";_el.style.height=_h+"px";}}catch(e){}},120);})(p2,w,h);
+          try{
+            if(state.cp2Layout){state.cp2Layout.widgets=state.cp2Layout.widgets||{};}
+            if(state.cp2Layout){state.cp2Layout.widgets.photo={x:left,y:newTop,w:w,h:h};}
+          }catch(e){}
         }
       }
     }catch(e){}
@@ -7837,7 +8155,7 @@ try{if(state&&state.musicSession)musicSession=true;}catch(e){}
   document.addEventListener('DOMContentLoaded',function(){setTimeout(ap,60);});
   window.addEventListener('load',function(){
     setTimeout(ap,100);setTimeout(ap,600);
-    var n=0;var t=setInterval(function(){n++;ap();if(n>20)clearInterval(t);},400);
+    var n=0;var t=setInterval(function(){n++;ap();if(n>3)clearInterval(t);},700);
   });
   document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(ap,120);});
 })();
@@ -7852,35 +8170,56 @@ try{if(state&&state.musicSession)musicSession=true;}catch(e){}
     var sw=document.getElementById("sw-msgpop");
     if(sw&&!sw._bound){sw._bound=1;sw.classList.toggle("on",popOn());sw.addEventListener("click",function(){setPop(!popOn());toast(popOn()?"来消息弹窗：开":"来消息弹窗：关");});}
     var tb=document.getElementById("btn-pop-test");
-    if(tb&&!tb._bound){tb._bound=1;tb.addEventListener("click",function(){
-      /* 验证 = 真的发一条系统通知（后台/通知栏弹窗），和对方来消息时一样 */
-      if(!("Notification" in window)){toast("这个浏览器不支持系统通知，先添加到主屏幕再打开试试");return;}
-      var nm=(typeof state!=="undefined"&&state.partner&&state.partner.name)||"对方";
-      function fire(){
-        try{
-          var n=new Notification(nm,{body:"这是一条验证通知",icon:(state.partner&&state.partner.avatar)||"",tag:"cp2-test"});
+    if(tb&&!tb._bound){tb._bound=1;tb.addEventListener("click",runTestPop);}
+  }
+  /* ==== 验证弹窗：每次点都弹，内容用「主动发消息」同一套模板（头像+名字+字卡文案+时间）==== */
+  function testPopMessage(){
+    var txt="";
+    try{if(typeof partnerActiveMsgText==="function")txt=partnerActiveMsgText();}catch(e){}
+    if(!txt)txt="这是一条验证通知";
+    return {from:"partner",type:"text",text:txt,time:Date.now(),active:true,kind:"verify"};
+  }
+  function runTestPop(){
+    // 1) App 内弹窗（强制显示：不受开关、当前页面、是否在聊天页影响）
+    var msg=testPopMessage();
+    try{
+      if(typeof maybeShowIncomingPop==="function")maybeShowIncomingPop(msg,true);
+      else showPopFallback(msg);
+    }catch(e){showPopFallback(msg);}
+    // 2) 顺便发一条系统通知（能发就发，发不了不影响上面的弹窗）
+    fireTestNotify(msg);
+  }
+  function showPopFallback(msg){
+    var p=document.getElementById("incoming-pop");if(!p)return;
+    var av=document.getElementById("ip-av"),nm=document.getElementById("ip-name"),tx=document.getElementById("ip-text"),tm=document.getElementById("ip-time");
+    var nmTxt=(typeof state!=="undefined"&&state.partner&&state.partner.name)||"对方";
+    if(av)av.src=(typeof state!=="undefined"&&state.partner&&state.partner.avatar)||"";
+    if(nm)nm.textContent=nmTxt;
+    if(tx)tx.textContent=msg.text||"";
+    if(tm)tm.textContent=new Date().toTimeString().slice(0,5);
+    p.classList.add("show");
+    clearTimeout(window.__popT);
+    window.__popT=setTimeout(function(){p.classList.remove("show");},5200);
+  }
+  function fireTestNotify(msg){
+    if(!("Notification" in window)){toast("已弹出 App 内提示；这个浏览器不支持系统通知");return;}
+    function fire(){
+      try{
+        var nm=(typeof state!=="undefined"&&state.partner&&state.partner.name)||"对方";
+        var opt={body:"这是一条验证通知",tag:"cp2-test-"+Date.now()};
+        Promise.resolve(typeof __notifyIcon==="function"?"":null).then(function(){
+          try{return __notifyIcon();}catch(e){return null;}
+        }).then(function(ic){
+          var n=new Notification(nm,{body:opt.body,icon:ic||undefined,tag:opt.tag});
           n.onclick=function(){try{window.focus();if(typeof showView==="function")showView("view-chat");}catch(e){}try{n.close();}catch(e){}};
-          toast("已发一条后台通知，去通知栏看看");
-        }catch(e){toast("系统通知发不出去：iOS 需要先「添加到主屏幕」并从图标打开，再允许通知");}
-      }
-      if(Notification.permission==="granted"){fire();return;}
-      if(Notification.permission==="denied"){toast("通知被拦截了，请在 系统设置→通知 里允许本应用");return;}
-      try{Notification.requestPermission().then(function(r){if(r==="granted")fire();else toast("没允许通知，就收不到后台弹窗");}).catch(function(){toast("这个浏览器不支持，先添加到主屏幕再试");});}
-      catch(e){toast("这个浏览器不支持，先添加到主屏幕再试");}
-      return;
-      /* 旧的内嵌弹窗逻辑保留在下面，作为不支持系统通知时的兜底 */
-      if(!popOn()){toast("先打开上面的开关，才会弹消息通知");return;}
-      var s=(typeof state!=="undefined"&&state)||{};
-      var last=null;
-      try{(s.messages||[]).forEach(function(m){if(m.from==="partner"&&m.type!=="sys")last=m;});}catch(e){}
-      var msg=last?{from:"partner",type:last.type,text:last.text,time:Date.now()}
-                  :{from:"partner",type:"text",text:"在吗？想你了",time:Date.now()};
-      if(msg.type==="image"&&!msg.text)msg.text="[图片]";
-      window.__suppressPop=false;
-      if(typeof maybeShowIncomingPop==="function"){maybeShowIncomingPop(msg);return;}
-      var p=document.getElementById("incoming-pop");if(!p)return;
-      p.classList.add("show");clearTimeout(window.__popT);window.__popT=setTimeout(function(){p.classList.remove("show");},5200);
-    });}
+        }).catch(function(){
+          try{var n2=new Notification(nm,{body:opt.body,icon:"",tag:opt.tag});n2.onclick=function(){try{n2.close();}catch(e){}};}catch(e){}
+        });
+      }catch(e){toast("系统通知发不出去：iOS 需要先「添加到主屏幕」并从图标打开，再允许通知");}
+    }
+    if(Notification.permission==="granted"){fire();return;}
+    if(Notification.permission==="denied"){toast("系统通知被拦截了，App 内提示已弹出");return;}
+    try{Notification.requestPermission().then(function(r){if(r==="granted")fire();}).catch(function(){});}catch(e){}
   }
   document.addEventListener("DOMContentLoaded",bind);
   setTimeout(bind,200);setTimeout(bind,1200);
