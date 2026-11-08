@@ -833,7 +833,7 @@ body.av-square .msg-avatar,body.av-square #top-avatar-partner{border-radius:8px 
 .moment-head .mdel{border:none;background:none;color:#8E8E93;font-size:12px;cursor:pointer;padding:4px;flex:0 0 auto;}
 .moment-comments{padding:4px 14px 8px;border-top:1px solid var(--line);margin-top:6px;}
 .mc-row{display:flex;gap:8px;padding:7px 0;align-items:flex-start;}
-.mc-row.rep{margin-left:46px;}
+.mc-row.rep{margin-left:0;}
 .mc-av{width:26px;height:26px;border-radius:50%;object-fit:cover;flex:0 0 auto;background:var(--panel);}
 .mc-body{flex:1;min-width:0;}
 .mc-top{display:flex;align-items:baseline;gap:8px;}
@@ -859,8 +859,8 @@ body.av-square .msg-avatar,body.av-square #top-avatar-partner{border-radius:8px 
 .mc-emoji-sheet .mce-cell img{width:100%;height:100%;object-fit:cover;}
 .mc-emoji-sheet .mce-close{margin-top:12px;border:none;border-radius:12px;padding:10px;background:rgba(255,255,255,.14);color:#fff;font-size:14px;}
 .mc-reply{border:none;background:none;color:#8E8E93;font-size:11px;padding:0;cursor:pointer;}
-.mc-replies{border-left:2px solid var(--line);margin-left:2px;padding-left:18px;margin-top:4px;}
-.mc-replies .mc-replies{padding-left:34px;margin-top:3px;}
+.mc-replies{border-left:1px solid rgba(0,0,0,.10);margin-left:14px;padding-left:24px;margin-top:4px;}
+.mc-replies .mc-replies{padding-left:24px;margin-left:14px;margin-top:0;}
 .mc-row.kid{margin-left:0;padding:5px 0;}
 .mc-replies .mc-av{width:22px;height:22px;}
 .mc-row.mc-rep-target{background:rgba(52,120,246,.07);border-radius:8px;}
@@ -985,7 +985,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-08kf">
+<meta name="app-build" content="2026-11-08ko">
 </head>
 <body>
 <div id="__veil" aria-hidden="true" style="position:fixed;inset:0;z-index:99998;display:flex;align-items:center;justify-content:center;background-image:radial-gradient(120% 80% at 50% 0%,rgba(255,255,255,.92),rgba(255,255,255,0) 62%),linear-gradient(168deg,#eef1f6,#e4eaf3 58%,#dfe6f1);background-size:cover;background-position:center;background-repeat:no-repeat;background-color:#f3f5f8;opacity:1;transition:opacity .22s ease;">
@@ -1572,7 +1572,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
       </div>
       <!-- 主动发消息 -->
       <div class="set-sec-title">主动发消息</div>
-      <div class="set-group"><div class="set-row"><span class="set-label">后台保活<div class="set-sub">部署成网站后防止页面被挂起，回来补发错过的消息</div></span><button class="switch" id="sw-keep-alive"></button></div><div class="set-row"><span class="set-label">消息通知<div class="set-sub">对方来消息时用系统通知提醒；iOS 需先添加到主屏幕</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-notify-test" style="white-space:nowrap;">验证消息</button><button class="switch" id="sw-notify"></button></div></div><div class="set-row"><span class="set-label">来消息弹窗<div class="set-sub">App 内顶部弹出的提示条，点一下直达对应页面</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-pop-test" style="white-space:nowrap;">验证弹窗</button><button class="switch" id="sw-msgpop"></button></div></div><div class="set-row"><span class="set-label">最快（分钟）<div class="set-sub">间隔在最快~最慢间随机，均填 0 关闭</div></span><input class="set-input" id="set-social-msg-min" type="number" min="0" max="1440" value="1"></div><div class="set-row"><span class="set-label">最慢（分钟）</span><input class="set-input" id="set-social-msg-max" type="number" min="0" max="1440" value="5"></div><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-08kf</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">后台保活<div class="set-sub">部署成网站后防止页面被挂起，回来补发错过的消息</div></span><button class="switch" id="sw-keep-alive"></button></div><div class="set-row"><span class="set-label">消息通知<div class="set-sub">对方来消息时用系统通知提醒；iOS 需先添加到主屏幕</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-notify-test" style="white-space:nowrap;">验证消息</button><button class="switch" id="sw-notify"></button></div></div><div class="set-row"><span class="set-label">来消息弹窗<div class="set-sub">App 内顶部弹出的提示条，点一下直达对应页面</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-pop-test" style="white-space:nowrap;">验证弹窗</button><button class="switch" id="sw-msgpop"></button></div></div><div class="set-row"><span class="set-label">最快（分钟）<div class="set-sub">间隔在最快~最慢间随机，均填 0 关闭</div></span><input class="set-input" id="set-social-msg-min" type="number" min="0" max="1440" value="1"></div><div class="set-row"><span class="set-label">最慢（分钟）</span><input class="set-input" id="set-social-msg-max" type="number" min="0" max="1440" value="5"></div><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-08ko</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div>
       </div>
       </div>
       <div class="set-page">
@@ -1591,15 +1591,17 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
         <div class="set-row"><span class="set-label">消息框大小<div class="set-sub">文字气泡的字号与内边距</div></span><input type="range" id="set-chat-bub" min="80" max="140" step="5" style="flex:1;max-width:140px;margin-left:auto;"></div>
         <div class="set-row" style="display:block;padding-top:4px;">
           <span class="set-label">效果预览<div class="set-sub">上面是对方、下面是你，拖动上面两个滑杆即时变化</div></span>
-          <div id="chat-size-preview" style="margin-top:10px;border-radius:16px;padding:12px;background:rgba(120,130,145,.08);border:1px solid rgba(255,255,255,.5);display:flex;flex-direction:column;gap:8px;overflow:hidden;">
+          <div id="chat-size-preview" style="margin-top:10px;border-radius:16px;padding:12px 4px;background:rgba(120,130,145,.08);border:1px solid rgba(255,255,255,.5);display:flex;flex-direction:column;gap:8px;overflow:hidden;">
             <style>#chat-size-preview .bubble{font-size:calc(15px * var(--fs,1) * var(--bubfx,1)) !important;padding:calc(6px * var(--bubfx,1)) calc(12px * var(--bubfx,1)) !important;max-width:76%;}#chat-size-preview .msg-avatar{width:var(--msgav,30px) !important;height:var(--msgav,30px) !important;}#chat-size-preview .msg-row{margin:0;}</style>
-            <div style="display:flex;align-items:center;gap:8px;padding:2px 2px 8px;border-bottom:1px solid rgba(120,130,145,.16);margin-bottom:4px;">
-              <img id="csp-av-top" src="" alt="" style="width:var(--msgav,30px);height:var(--msgav,30px);border-radius:50%;object-fit:cover;flex:0 0 auto;">
-              <span id="csp-top-name" style="font-size:12px;font-weight:600;opacity:.75;">对方</span>
-              <span style="font-size:11px;opacity:.4;margin-left:auto;">聊天顶部</span>
+            <div style="padding:2px 2px 8px;border-bottom:1px solid rgba(120,130,145,.16);margin-bottom:4px;">
+              <div style="display:flex;justify-content:flex-end;"><span style="font-size:11px;opacity:.4;">聊天顶部</span></div>
+              <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+                <img id="csp-av-top" src="" alt="" style="width:var(--msgav,30px);height:var(--msgav,30px);border-radius:50%;object-fit:cover;flex:0 0 auto;">
+                <span id="csp-top-name" style="font-size:12px;font-weight:600;opacity:.75;">对方</span>
+              </div>
             </div>
-            <div class="msg-row partner"><img class="msg-avatar" id="csp-av-p" src="" alt=""><div class="bubble">今天想你了，在干嘛？</div></div>
-            <div class="msg-row me"><img class="msg-avatar" id="csp-av-m" src="" alt=""><div class="bubble">刚忙完，正想给你发消息～</div></div>
+            <div class="msg-row partner"><img class="msg-avatar" id="csp-av-p" src="" alt=""><div class="msg-col"><div class="bubble">今天想你了，在干嘛？</div></div></div>
+            <div class="msg-row me"><img class="msg-avatar" id="csp-av-m" src="" alt=""><div class="msg-col"><div class="bubble">刚忙完，正想给你发消息～</div></div></div>
             <div id="csp-tip" style="font-size:11px;opacity:.55;text-align:center;margin-top:2px;">头像 30px · 气泡 100%</div>
           </div>
         </div>
@@ -2709,7 +2711,67 @@ function __flushSave(){
     }
   });
 }
+
+/* ===== 轻量 UI 偏好（小键兜底）：字号 / 头像气泡 / 头像形状 / 页面二布局 =====
+   为什么单独存一份：主状态 privateChat 可能超大（图多时 localStorage 跳过写入、IndexedDB 也可能写失败），
+   这些设置只是一两百字节，单独落一个小键，启动后一律以它为最新值，避免刷新/重开后变回默认。 */
+function __prefSave(){
+  try{
+    var s=(state&&state.settings)||{};
+    /* 任何一项在 state 里缺失时，直接取界面上正在生效的值，保证偏好键始终完整可恢复 */
+    var _fs=Number(s.fontSize)||0;
+    if(!_fs){var _m=/fs-(\d)/.exec(document.body.className);_fs=_m?Number(_m[1]):2;}
+    /* 界面上滑杆的当前位置最可信（用户刚拖完），其次 state，最后取生效中的 CSS 变量 */
+    var _sav=document.getElementById("set-chat-av"),_sbub=document.getElementById("set-chat-bub");
+    var _av=Number(_sav&&_sav.value)||Number(s.avatarSize)||parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--msgav"))||30;
+    var _bs=Number(_sbub&&_sbub.value)||Number(s.bubbleScale)||Math.round((parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--bubfx"))||1)*100);
+    /* 保护：如果磁盘上的偏好比当前内存状态更新（用户刚改过、而主库还没跟上），不许用旧值覆盖它 */
+    var _cur=null;try{_cur=JSON.parse(localStorage.getItem("uiPrefs.v1")||"null");}catch(e){_cur=null;}
+    var _uts=Number(s.__ts)||0;
+    if(_cur&&Number(_cur.ts)>_uts){
+      if(_cur.fontSize!==undefined)_fs=_cur.fontSize;
+      if(_cur.avatarSize!==undefined)_av=_cur.avatarSize;
+      if(_cur.bubbleScale!==undefined)_bs=_cur.bubbleScale;
+      if(_cur.avatarShape!==undefined)s.avatarShape=_cur.avatarShape;
+    }
+    localStorage.setItem("uiPrefs.v1",JSON.stringify({
+      ts:Math.max(Date.now(),Number(_cur&&_cur.ts)||0),
+      fontSize:_fs,avatarSize:Math.round(_av),bubbleScale:_bs,avatarShape:s.avatarShape,
+      cp2Layout:(state&&state.cp2Layout)||null
+    }));
+  }catch(e){}
+}
+function __prefApply(){
+  var p=null;try{p=JSON.parse(localStorage.getItem("uiPrefs.v1")||"null");}catch(e){p=null;}
+  if(!p)return;
+  try{
+    state.settings=state.settings||{};
+    ["fontSize","avatarSize","bubbleScale","avatarShape"].forEach(function(k){
+      if(p[k]!==undefined&&p[k]!==null)state.settings[k]=p[k];
+    });
+    state.settings.__ts=Number(p.ts)||0;
+    if(p.cp2Layout&&typeof p.cp2Layout==="object"){state.cp2Layout=p.cp2Layout;}
+  }catch(e){}
+  try{if(window.__applyFontSize)window.__applyFontSize();}catch(e){}
+  try{if(window.__applyChatSizes)window.__applyChatSizes();}catch(e){}
+  try{if(window.__applyAvatarShape)window.__applyAvatarShape();}catch(e){}
+  try{if(window.__cp2Reapply)window.__cp2Reapply();}catch(e){}
+}
+function __prefReapplyAll(){
+  try{if(window.__applyFontSize)window.__applyFontSize();}catch(e){}
+  try{if(window.__applyChatSizes)window.__applyChatSizes();}catch(e){}
+  try{if(window.__applyAvatarShape)window.__applyAvatarShape();}catch(e){}
+  try{if(window.__cp2Reapply)window.__cp2Reapply();}catch(e){}
+}
+
 function save(){window.__chatRev=(window.__chatRev||0)+1;clearTimeout(saveTimer);saveTimer=setTimeout(__flushSave,320);}
+/* 退出/切后台前把偏好再写一遍（有些手机滑杆只在松手时触发 change，早写一次更保险） */
+(function(){
+  function flushPref(){try{__prefSave();}catch(e){}}
+  try{document.addEventListener("visibilitychange",function(){if(document.visibilityState==="hidden")flushPref();});}catch(e){}
+  try{window.addEventListener("pagehide",flushPref);}catch(e){}
+  try{window.addEventListener("beforeunload",flushPref);}catch(e){}
+})();
 
 /* ===== 写信/留言/主页 条数控制：仅限制最多15条，避免无限膨胀（不再用内置内容填充）===== */
 const SOCIAL_MAX=15;
@@ -2933,6 +2995,7 @@ async function init(){
   aboutLoadStatus("正在读取本地记录…");
   try{const l=localStorage.getItem("privateChat");if(l)state=migrate(JSON.parse(l));}catch(_){}
   state=migrate(state);
+  try{__prefApply();}catch(e){}
   /* 首屏只做皮肤和顶栏：完整渲染等 IndexedDB 读完再做一次，避免启动时同一套界面渲染两遍 */
   try{applySkin();}catch(e){}
   try{if(typeof applyChatSizes==="function"||typeof window.__applyChatSizes==="function")window.__applyChatSizes();}catch(e){}
@@ -2955,7 +3018,7 @@ async function init(){
       var _lp=(state&&state.profile)||{};var _sp=(s.profile)||{};
       var _pics=["cpPhoto","cpPhotoCard","cpPhotoSub","cpRecord","cpMeAvatar","cpPartnerAvatar"];
       for(var _i=0;_i<_pics.length;_i++){var _k=_pics[_i];if(!_sp[_k]&&_lp[_k]){_sp[_k]=_lp[_k];}}
-      state=migrate(s);applySkin();renderAll();try{if(typeof renderCouple==="function")renderCouple();}catch(e){}
+      state=migrate(s);try{__prefApply();}catch(e){}applySkin();renderAll();try{if(typeof renderCouple==="function")renderCouple();}catch(e){}
       /* 页面二图片预热放到空闲时做，别和首屏渲染抢主线程 */
       try{if(window.__idle){window.__idle(function(){try{preloadCp2Images();}catch(e){}});}else{setTimeout(function(){try{preloadCp2Images();}catch(e){}},120);}}catch(e){}setTimeout(function(){if(window.optimizeCp2Images)window.optimizeCp2Images();},5400);
       setTimeout(function(){try{window.__fitCompute(false);}catch(e){}},150);
@@ -4430,8 +4493,13 @@ document.addEventListener("visibilitychange",()=>{
 });
 /* ===== 电话功能 ===== */
 let call={on:false,dir:'',status:'',start:0,timer:null,mini:false,muted:false,timeouts:[]};
-function fmtClock(sec){const m=Math.floor(sec/60),s=sec%60;return ("0"+m).slice(-2)+":"+("0"+s).slice(-2);}
-function callElapsed(){if(!call.on)return 0;var _acc=call.acc||0;if(call.running)_acc+=Date.now()-(call.runStart||Date.now());return Math.floor(_acc/1000);}
+function fmtClock(sec){const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60;if(h>0)return h+":"+("0"+m).slice(-2)+":"+("0"+s).slice(-2);return ("0"+m).slice(-2)+":"+("0"+s).slice(-2);}
+function callElapsed(){
+  if(!call.on)return 0;
+  /* 唯一基准：接通那一刻的绝对时间戳。离开网站、切后台、重开都靠它，不再靠累加，避免任何一次重算把读数归零 */
+  if(call.startAbs){var _d=Date.now()-call.startAbs;if(!isFinite(_d)||_d<0)_d=0;return Math.floor(_d/1000);}
+  var _acc=call.acc||0;if(call.running)_acc+=Date.now()-(call.runStart||Date.now());return Math.floor(_acc/1000);
+}
 function setCallAvatar(){
   $("call-avatar").src=state.partner.avatar;
   $("call-mini-avatar").src=state.partner.avatar;
@@ -4447,11 +4515,13 @@ function startCallTimer(){
   call.runStart=Date.now();
   call.running=true;
   call.acc=call.acc||0;
+  if(!call.startAbs)call.startAbs=Date.now()-(call.acc||0);
   callTick();call.timer=setInterval(callTick,1000);
 }
 function pauseCallTimer(){
   if(!call.on)return;
   if(call.running){call.acc=(call.acc||0)+(Date.now()-(call.runStart||Date.now()));call.running=false;}
+  call.startAbs=0;
   call.runStart=0;
   stopCallTimer();callTick();persistCallState();
 }
@@ -4496,7 +4566,7 @@ function startCallOut(video){
       endCall();
       return;
     }
-    call.status="active";call.start=Date.now();call.acc=0;call.runStart=Date.now();
+    call.status="active";call.start=Date.now();call.acc=0;call.runStart=Date.now();call.startAbs=Date.now();call.startAbs=Date.now();
     startCallTimer();maybePartnerHangup();
     $("call-status").textContent="通话中";
     $("call-timer").classList.remove("hidden");
@@ -4528,7 +4598,7 @@ function incomingCall(video){
 function acceptCall(){
   if(!call.on||call.status!=="incoming")return;
   clearCallTimeouts();
-  call.status="active";call.start=Date.now();call.acc=0;call.runStart=Date.now();
+  call.status="active";call.start=Date.now();call.acc=0;call.runStart=Date.now();call.startAbs=Date.now();
   startCallTimer();maybePartnerHangup();
   $("call-status").textContent="通话中";
   $("call-timer").classList.remove("hidden");
@@ -4562,16 +4632,22 @@ function endCall(){
   }
   toast(tip);
   if(log){pushMsg("partner","sys",log);save();renderChat();}
-  call.on=false;
+  call.on=false;call._ended=true;
   persistCallState();
 }
 function persistCallState(){
   try{
     if(typeof state==="undefined"||!state)return;
     if(call&&call.on){
-      state.callSave={on:true,dir:call.dir,status:call.status,start:call.start||0,acc:(call.acc||0)+(call.running?(Date.now()-(call.runStart||Date.now())):0),ts:Date.now(),video:!!call.video,camOn:!!call.camOn,mini:!!call.mini};
-    }else{state.callSave=null;}
-    try{localStorage.setItem("callSave",state.callSave?JSON.stringify(state.callSave):"");}catch(e){}
+      state.callSave={on:true,dir:call.dir,status:call.status,start:call.start||0,startAbs:call.startAbs||0,acc:(call.acc||0)+(call.running?(Date.now()-(call.runStart||Date.now())):0),ts:Date.now(),video:!!call.video,camOn:!!call.camOn,mini:!!call.mini};
+      try{localStorage.setItem("callSave",JSON.stringify(state.callSave));}catch(e){}
+    }else if(call&&call._ended){
+      /* 只有「真的挂断」才允许清掉存档；页面还没恢复出通话就切后台/退出时，绝不能把存档抹掉 */
+      state.callSave=null;
+      try{localStorage.setItem("callSave","");}catch(e){}
+    }else{
+      return;
+    }
     save();
   }catch(e){}
 }
@@ -4584,7 +4660,10 @@ function restoreCallState(){
 
     if(cs.status==="incoming"||cs.status==="missed"){state.callSave=null;save();return;}
     var _gap=Math.max(0,Date.now()-(Number(cs.ts)||Date.now()));
-    call={on:true,dir:cs.dir||"out",status:"active",start:(cs.start||cs.ts||Date.now()),acc:(Number(cs.acc)||0)+_gap,runStart:0,running:false,timer:null,mini:!!cs.mini,muted:false,video:cs.video!==false,camOn:cs.camOn!==false,timeouts:[]};
+    var _accAll=(Number(cs.acc)||0)+_gap;
+    var _abs=Number(cs.startAbs)||0;
+    if(!_abs)_abs=Date.now()-_accAll;
+    call={on:true,_ended:false,dir:cs.dir||"out",status:"active",start:(cs.start||cs.ts||Date.now()),startAbs:_abs,acc:_accAll,runStart:0,running:false,timer:null,mini:!!cs.mini,muted:false,video:cs.video!==false,camOn:cs.camOn!==false,timeouts:[]};
     setCallAvatar();applyCallMode();
     $("call-status").textContent="通话中";
     $("call-timer").classList.remove("hidden");
@@ -5788,10 +5867,10 @@ window.__applyChatSizes=applyChatSizes;
 (function(){
   function bindCS(){
     var a=$("set-chat-av"),b=$("set-chat-bub");
-    if(a&&!a._csB){a._csB=1;a.addEventListener("input",function(){state.settings.avatarSize=Math.max(20,Math.min(48,Math.round(Number(this.value)||30)));applyChatSizes();});
-      a.addEventListener("change",function(){save();});}
-    if(b&&!b._csB){b._csB=1;b.addEventListener("input",function(){state.settings.bubbleScale=Math.max(80,Math.min(140,Math.round(Number(this.value)||100)));applyChatSizes();});
-      b.addEventListener("change",function(){save();});}
+    if(a&&!a._csB){a._csB=1;a.addEventListener("input",function(){state.settings.avatarSize=Math.max(20,Math.min(48,Math.round(Number(this.value)||30)));state.settings.__ts=Date.now();applyChatSizes();try{__prefSave();}catch(e){}});
+      a.addEventListener("change",function(){try{__prefSave();}catch(e){}save();});}
+    if(b&&!b._csB){b._csB=1;b.addEventListener("input",function(){state.settings.bubbleScale=Math.max(80,Math.min(140,Math.round(Number(this.value)||100)));state.settings.__ts=Date.now();applyChatSizes();try{__prefSave();}catch(e){}});
+      b.addEventListener("change",function(){try{__prefSave();}catch(e){}save();});}
     applyChatSizes();
   }
   document.addEventListener("DOMContentLoaded",bindCS);
@@ -5803,7 +5882,8 @@ window.__applyChatSizes=applyChatSizes;
     document.querySelectorAll("[data-fsz]").forEach(function(b){
       if(b._fsBound)return;b._fsBound=1;
       b.addEventListener("click",function(){
-        state.settings.fontSize=Number(b.getAttribute("data-fsz"))||2;
+        state.settings.fontSize=Number(b.getAttribute("data-fsz"))||2;state.settings.__ts=Date.now();
+        try{__prefSave();}catch(e){}
         try{save();}catch(e){}
         applyFontSize();
         toast("字体大小已调整");
@@ -5821,7 +5901,8 @@ window.__applyChatSizes=applyChatSizes;
     btns.forEach(function(b){
       if(b._avBound)return;b._avBound=1;
       b.addEventListener("click",function(){
-        state.settings.avatarShape=b.getAttribute("data-avshape");
+        state.settings.avatarShape=b.getAttribute("data-avshape");state.settings.__ts=Date.now();
+        try{__prefSave();}catch(e){}
         try{save();}catch(e){}
         applyAvatarShape();
         toast("头像形状："+(state.settings.avatarShape==="square"?"方形":"圆形"));
@@ -5922,7 +6003,7 @@ $("btn-clear-msgs").addEventListener("click",()=>{
 });
 $("btn-reset-all").addEventListener("click",()=>{
   if(!confirm("一键重置：将清空全部聊天、动态、留言、信件、字卡、表情、问卷等所有数据，并恢复默认设置。此操作不可撤销。确认重置？"))return;
-  try{localStorage.removeItem("privateChat");}catch(_){}
+  try{localStorage.removeItem("privateChat");localStorage.removeItem("uiPrefs.v1");}catch(_){}
   if(db){
     const tx=db.transaction(STORE,"readwrite");
     tx.objectStore(STORE).clear();
@@ -7668,15 +7749,26 @@ function openCommentEmoji(mid,btn){
 })();
 function renderComments(m){
   if(!(m.comments&&m.comments.length))return "";
-  const row=function(item,depth){
+  /* 楼层结构：首评（无缩进、无竖线）→ 其下所有回复压平在同一缩进层，同一条竖线贯穿，
+     回复的回复不再继续右移，位置与第一条回复完全一致 */
+  function collect(list,out){
+    out=out||[];
+    (list||[]).forEach(function(x){out.push(x);if(x.replies&&x.replies.length)collect(x.replies,out);});
+    return out;
+  }
+  function rowHtml(item,isRep){
     const liked=item.likes&&item.likes.indexOf("me")>-1;
-    const cls=depth===1?"mc-row rep":(depth>1?"mc-row rep kid":"mc-row");
+    const cls=isRep?"mc-row rep":"mc-row";
     const repBtn='<div class="mc-sub"><button class="mc-reply" data-mreply="'+item.id+'" data-mname="'+esc(authorName(item.from))+'">回复</button></div>';
-    const kids=(item.replies&&item.replies.length)?'<div class="mc-replies">'+item.replies.map(function(x){return row(x,depth+1);}).join("")+'</div>':'';
-    return '<div class="'+cls+'" data-mc="'+item.id+'"><img class="mc-av" data-cav="'+item.from+'" src="'+authorAvatar(item.from)+'"><div class="mc-body"><div class="mc-top"><b class="mc-user">'+esc(authorName(item.from))+'</b><span class="mc-time">'+relTime(item.time)+'</span><button class="mc-like'+(liked?" on":"")+'" data-clike="'+item.id+'"><svg class="icon"><use xlink:href="#i-heart"/></svg></button></div><div class="mc-text">'+esc(item.text)+(item.emoji?'<img class="mc-emoji" src="'+item.emoji+'" alt="">':'')+'</div>'+repBtn+kids+'</div></div>';
-  };
-  return '<div class="moment-comments">'+m.comments.map(function(c){return row(c,0);}).join("")+'</div>';
+    return '<div class="'+cls+'" data-mc="'+item.id+'"><img class="mc-av" data-cav="'+item.from+'" src="'+authorAvatar(item.from)+'"><div class="mc-body"><div class="mc-top"><b class="mc-user">'+esc(authorName(item.from))+'</b><span class="mc-time">'+relTime(item.time)+'</span><button class="mc-like'+(liked?" on":"")+'" data-clike="'+item.id+'"><svg class="icon"><use xlink:href="#i-heart"/></svg></button></div><div class="mc-text">'+esc(item.text)+(item.emoji?'<img class="mc-emoji" src="'+item.emoji+'" alt="">':'')+'</div>'+repBtn+'</div></div>';
+  }
+  return '<div class="moment-comments">'+m.comments.map(function(c){
+    var reps=collect(c.replies||[],[]);
+    var block=reps.length?('<div class="mc-replies">'+reps.map(function(r){return rowHtml(r,true);}).join("")+'</div>'):'';
+    return rowHtml(c,false)+block;
+  }).join("")+'</div>';
 }
+
 function renderMoments(){
   var _s=("mom")+"|"+(mpSide||"me")+"|"+(state.moments).length+"|"+((window.__chatRev||0));
   if(!window.__rSig)window.__rSig={};
@@ -8334,11 +8426,37 @@ window.__clampCp2AboveDock=function(){
     });
   }catch(e){}
 };
+/* 照片框不许被固定栏盖住：只在“真的会压到固定栏”时处理（矮屏 / 手机底部安全区把固定栏抬高时）。
+   空间够就完全不动，保持“照片框位置固定”；空间不够时优先整体上移，上移会压到上面组件才改为压缩高度。 */
+window.__keepPhotoAboveDock=function(){
+  try{
+    var ph=document.getElementById("cp2-block-photo"),dock=document.getElementById("me-dock-bar");
+    if(!ph||!dock||!ph.offsetParent)return;
+    /* 缩放还没定下来时不要动高度，否则会把缩放测量的基准改掉 */
+    if(!window.__fitValid)return;
+    var k=Number(window.__fitK)||1;if(!(k>0))k=1;
+    if(!ph._kOrig){ph._kOrig={top:ph.offsetTop,h:ph.offsetHeight};}
+    ph.style.top=ph._kOrig.top+"px";ph.style.height=ph._kOrig.h+"px";
+    /* 用屏幕坐标反复校正，缩放换算误差在迭代里自动收敛；只在真的压住固定栏时才收 */
+    for(var i=0;i<8;i++){
+      var pr=ph.getBoundingClientRect(),dr=dock.getBoundingClientRect();
+      var over=pr.bottom-(dr.top-6);
+      if(over<=1)break;   /* 只在真的压住固定栏时才动，正常留白不碰 */
+      var step=Math.max(1,over/k);
+      var h=ph.offsetHeight;
+      if(h>48){ph.style.height=Math.max(48,h-step)+"px";}
+      else{ph.style.top=Math.max(0,ph.offsetTop-step)+"px";}
+    }
+  }catch(e){}
+};
+
 function scheduleCp2Clamp(delay){
   clearTimeout(_cp2ClampT);
-  _cp2ClampT=setTimeout(function(){try{window.__clampCp2AboveDock();}catch(e){}},delay||0);
+  _cp2ClampT=setTimeout(function(){try{window.__clampCp2AboveDock();}catch(e){}try{window.__keepPhotoAboveDock();}catch(e){}},delay||0);
 }
 window.addEventListener("resize",function(){scheduleCp2Clamp(80);});
+try{if(window.visualViewport)window.visualViewport.addEventListener("resize",function(){scheduleCp2Clamp(120);});}catch(e){}
+window.addEventListener("orientationchange",function(){scheduleCp2Clamp(260);});
 window.addEventListener("load",function(){scheduleCp2Clamp(120);scheduleCp2Clamp(600);});
 setTimeout(function(){try{applyLook();}catch(e){}},700);
 setTimeout(function(){try{applyLook();}catch(e){}},1800);
@@ -8699,6 +8817,7 @@ window.__dockTopPx=function(){try{if(window.__dockEl&&document.contains(window._
   }
   function saveLayout(){
     if(!state)return;
+    try{__prefSave();}catch(e){}
     var del=[],wids={};
     if(trash){var tc=trash.children;for(var i=0;i<tc.length;i++){var k=keyOf(tc[i]);if(k)del.push(k);}}
     var its=items();
@@ -9514,7 +9633,7 @@ init();
    不使用 Service Worker（避免缓存接管导致打不开/黑屏），只用“对比构建号 + 换 URL”这一招。 */
 (function(){
   if(!/^https?:$/.test(location.protocol))return;
-  var BUILD="2026-11-08kf";
+  var BUILD="2026-11-08ko";
   var KEY="app_build_reloaded";
   var busy=false;
   function go(url){location.replace(url+"&skipabout=1");}
