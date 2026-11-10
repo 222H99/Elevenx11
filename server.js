@@ -470,7 +470,10 @@ const server = http.createServer((req, res) => {
     return res.end(loginPage());
   }
   if (p === "/" || p === "") {
-    res.writeHead(302, { Location: "/index.html" });
+    /* 根地址自动带上文件修改时间做版本号，浏览器永远拿不到旧缓存 */
+    let v = "1";
+    try { v = String(Math.floor(fs.statSync(path.join(ROOT, "index.html")).mtimeMs)); } catch (e) {}
+    res.writeHead(302, { Location: "/index.html?v=" + v });
     return res.end();
   }
   if (p.startsWith("/api/netease/")) {
