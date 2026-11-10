@@ -470,11 +470,13 @@ const server = http.createServer((req, res) => {
     return res.end(loginPage());
   }
   if (p === "/" || p === "") {
-    /* 根地址自动带上文件修改时间做版本号，浏览器永远拿不到旧缓存 */
-    let v = "1";
-    try { v = String(Math.floor(fs.statSync(path.join(ROOT, "index.html")).mtimeMs)); } catch (e) {}
-    res.writeHead(302, { Location: "/index.html?v=" + v, "Cache-Control": "no-store" });
-    return res.end();
+    /* 根地址直接返回首页内容，并明确禁止缓存：永远拿最新版 */
+    try {
+      const buf = fs.readFileSync(path.join(ROOT, "index.html"));
+      res.writeHead(200, { "Content-Type": "text/html; charset=utf-8",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0", "Pragma": "no-cache", "Expires": "0" });
+      return res.end(buf);
+    } catch (e) { res.writeHead(500); return res.end("index missing"); }
   }
   if (p === "/diag") {
     const html = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
