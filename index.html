@@ -101,6 +101,17 @@ input,textarea{-webkit-user-select:text;user-select:text;}
 .msg-day span{background:transparent;padding:0;border-radius:0;}
 .msg-sys{text-align:center;font-size:12px;color:#8E8E93;margin:8px 0;padding:0 20px;line-height:1.5;}
 .msg-row{display:flex;margin:2px 0;max-width:100%;align-items:flex-start;}
+/* iMessage 那种「气泡弹出来」的入场：我发的从底部弹起，对方的从左侧滑入 */
+@keyframes wxsPopOut{0%{opacity:0;transform:translate3d(0,8px,0) scale(.97)}100%{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+@keyframes wxsPopIn{0%{opacity:0;transform:translate3d(-10px,0,0) scale(.97)}100%{opacity:1;transform:translate3d(0,0,0) scale(1)}}
+.msg-row.wxs-anim-out,.msg-row.wxs-anim-in{will-change:transform,opacity;backface-visibility:hidden;-webkit-backface-visibility:hidden;}
+.msg-row.wxs-anim-out{animation:wxsPopOut .22s cubic-bezier(.25,.8,.35,1) both;transform-origin:right bottom;}
+.msg-row.wxs-anim-in{animation:wxsPopIn .22s cubic-bezier(.25,.8,.35,1) both;transform-origin:left bottom;}
+@keyframes wxsFade{0%{opacity:0}100%{opacity:1}}
+/* 开了“减弱动态效果”的手机：不做位移/缩放，只留一个很轻的淡入，别让动效彻底消失 */
+@media (prefers-reduced-motion:reduce){
+  .msg-row.wxs-anim-out,.msg-row.wxs-anim-in{animation:wxsFade .16s ease-out both!important;transform:none!important;}
+}
 .msg-row.me{justify-content:flex-end;}
 .msg-row.partner{justify-content:flex-start;}
 .msg-avatar{width:var(--msgav,30px);height:var(--msgav,30px);border-radius:50%;object-fit:cover;flex:0 0 auto;background:var(--panel);}
@@ -1215,7 +1226,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-11uf">
+<meta name="app-build" content="2026-11-11uo">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -2772,7 +2783,7 @@ body.fs-4 .msg-more{font-size:calc(12px * var(--fs))}
       <!-- 主动发消息 -->
       <!-- 通知与后台 -->
       <div class="set-sec-title">通知与后台</div>
-      <div class="set-group"><div class="set-row"><span class="set-label">后台保活<div class="set-sub">部署成网站后防止页面被挂起，回来补发错过的消息</div></span><button class="switch" id="sw-keep-alive"></button></div><div class="set-row"><span class="set-label">消息通知<div class="set-sub">对方来消息时用系统通知提醒；iOS 需先添加到主屏幕</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-notify-test" style="white-space:nowrap;">验证消息</button><button class="switch" id="sw-notify"></button></div></div><div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;"><span class="set-label">系统通知提示音<div class="set-sub">后台来消息发通知时响；默认「苹果微信」消息提示音，可上传自己的音频替换</div></span><div class="snd-ops" style="justify-content:flex-end;margin-left:0;"><button class="small-btn ghost" id="btn-notify-snd-test">试听</button><button class="small-btn ghost" id="btn-notify-snd-up">上传</button><button class="switch on" id="sw-notify-snd"></button></div></div><input type="file" id="file-notify-snd" accept="audio/*" hidden><div class="set-row"><span class="set-label">来消息弹窗<div class="set-sub">App 内顶部弹出的提示条，点一下直达对应页面</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-pop-test" style="white-space:nowrap;">验证弹窗</button><button class="switch" id="sw-msgpop"></button></div></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">后台保活<div class="set-sub">部署成网站后防止页面被挂起，回来补发错过的消息</div></span><button class="switch" id="sw-keep-alive"></button></div><div class="set-row"><span class="set-label">消息通知<div class="set-sub">对方来消息时用系统通知提醒；iOS 需先添加到主屏幕</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-notify-test" style="white-space:nowrap;">验证消息</button><button class="switch" id="sw-notify"></button></div></div><div class="set-row"><span class="set-label">通知状态<div class="set-sub" id="notify-diag">检查中…</div></span></div><div class="set-row"><span class="set-label">用对方头像当通知图标<div class="set-sub">iPhone 的通知小图标＝主屏图标，所以要把对方头像设成主屏图标（设置后需删除桌面图标、重新添加到主屏幕）</div></span><button class="small-btn ghost" id="btn-icon-avatar" style="white-space:nowrap;">设置</button></div><div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;"><span class="set-label">系统通知提示音<div class="set-sub">后台来消息发通知时响；默认「苹果微信」消息提示音，可上传自己的音频替换</div></span><div class="snd-ops" style="justify-content:flex-end;margin-left:0;"><button class="small-btn ghost" id="btn-notify-snd-test">试听</button><button class="small-btn ghost" id="btn-notify-snd-up">上传</button><button class="switch on" id="sw-notify-snd"></button></div></div><input type="file" id="file-notify-snd" accept="audio/*" hidden><div class="set-row"><span class="set-label">后台也响提示音<div class="set-sub">默认关：后台只播静音音频保活，锁屏/控制中心不会出现播放卡片。打开后后台来消息会出声，但系统可能把页面识别成“正在播放”</div></span><button class="switch" id="sw-bg-sound"></button></div><div class="set-row"><span class="set-label">来消息弹窗<div class="set-sub">App 内顶部弹出的提示条，点一下直达对应页面</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-pop-test" style="white-space:nowrap;">验证弹窗</button><button class="switch" id="sw-msgpop"></button></div></div></div>
       <!-- 免打扰 -->
       <div class="set-sec-title">免打扰</div>
       <div class="set-group"><div class="set-row"><span class="set-label">免打扰时段<div class="set-sub">这段时间不弹窗、不发系统通知；聊天页照常收到</div></span><button class="switch" id="sw-dnd"></button></div><div class="set-row"><span class="set-label">开始</span><button class="set-input dnd-time" id="set-dnd-start" style="width:142px;min-width:142px;font-size:14px;text-align:right;">23:00</button></div><div class="set-row"><span class="set-label">结束</span><button class="set-input dnd-time" id="set-dnd-end" style="width:142px;min-width:142px;font-size:14px;text-align:right;">07:00</button></div></div>
@@ -2784,7 +2795,7 @@ body.fs-4 .msg-more{font-size:calc(12px * var(--fs))}
       <div class="set-group"><div class="set-row"><span class="set-label">网易云登录<div class="set-sub" id="ny-set-state">扫码登录后可在音乐页听 VIP 完整歌曲</div></span><button class="small-btn" id="btn-ny-login" style="font-size:12px;padding:6px 12px;">登录</button></div></div>
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-11uf</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-11uo</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -3950,8 +3961,10 @@ let incomingPopTimer=null;
 function hideIncomingPop(){const p=$("incoming-pop");if(p)p.classList.remove("show");}
 /* 滑出网站/后台时用系统通知弹窗（需授权） */
 /* 系统通知图标：把对方头像画成 192×192 PNG（SVG dataURL 在通知栏里显示不出来） */
+var __notifyIconCache={src:"",data:""};
 function __notifyIcon(){
   return new Promise(function(res){
+    try{if(__notifyIconCache.data&&__notifyIconCache.src===((window.state||{partner:{}}).partner||{}).avatar){res(__notifyIconCache.data);return;}}catch(e){}
     try{
       var src="";
       try{var _st=window.state||(typeof state!=="undefined"?state:null);src=(_st&&_st.partner&&_st.partner.avatar)||"";}catch(e){}
@@ -3960,7 +3973,9 @@ function __notifyIcon(){
       var img=new Image();
       img.onload=function(){
         try{var c=document.createElement("canvas");c.width=192;c.height=192;var g=c.getContext("2d");
-          g.fillStyle="#FFFFFF";g.fillRect(0,0,192,192);g.drawImage(img,0,0,192,192);res(c.toDataURL("image/png"));}catch(e){res("");}
+          g.fillStyle="#FFFFFF";g.fillRect(0,0,192,192);g.drawImage(img,0,0,192,192);
+          var _d=c.toDataURL("image/png");try{__notifyIconCache.src=(window.state||{partner:{}}).partner.avatar;__notifyIconCache.data=_d;}catch(e){}
+          res(_d);}catch(e){res("");}
       };
       img.onerror=function(){res("");};
       img.src=src;
@@ -4007,6 +4022,7 @@ function msgPreviewText(m){
   try{document.addEventListener("touchstart",__primeSnd,{passive:true});}catch(e){}
   function playData(d,vol){
     try{
+      if(document.hidden&&!(state&&state.settings&&state.settings.bgSoundOn===true))return; /* 默认后台不出声，保持纯静音保活，避免播放卡片 */
       if(document.hidden&&__sndEl){
         try{__sndEl.muted=false;__sndEl.volume=(vol===undefined?0.9:vol);__sndEl.src=d;__sndEl.currentTime=0;}catch(e){}
         var r=__sndEl.play();if(r&&r.catch)r.catch(function(){});
@@ -4086,7 +4102,69 @@ function msgPreviewText(m){
     }catch(e){}
   };
 })();
+/* ===== 用对方头像当主屏图标（iOS 的系统通知小图标就是主屏图标） ===== */
+function __iconPng(src,size){
+  return new Promise(function(res){
+    try{
+      if(!src){res("");return;}
+      if(/^data:image\/png/i.test(src)){res(src);return;}
+      var img=new Image();
+      img.onload=function(){
+        try{
+          var c=document.createElement("canvas");c.width=size;c.height=size;
+          var g=c.getContext("2d");g.fillStyle="#FFFFFF";g.fillRect(0,0,size,size);
+          /* 居中裁切成正方形，避免头像被拉扁 */
+          var w=img.width,h=img.height,side=Math.min(w,h),sx=(w-side)/2,sy=(h-side)/2;
+          g.drawImage(img,sx,sy,side,side,0,0,size,size);
+          res(c.toDataURL("image/png"));
+        }catch(e){res("");}
+      };
+      img.onerror=function(){res("");};
+      img.src=src;
+    }catch(e){res("");}
+  });
+}
+function buildManifest(icons){
+  var m={name:"Eleven×11",short_name:"Eleven×11",start_url:"./",scope:"./",display:"standalone",background_color:"#ffffff",theme_color:"#ffffff"};
+  if(icons&&icons.length)m.icons=icons.map(function(x){return {src:x,u:"any",sizes:"any"};});
+  return "data:application/manifest+json,"+encodeURIComponent(JSON.stringify(m));
+}
+function applyPartnerAppIcon(){
+  var src=(state&&state.partner&&state.partner.avatar)||"";
+  if(!src){toast("先给对象设置头像");return Promise.resolve(false);}
+  return __iconPng(src,180).then(function(png){
+    if(!png){toast("这个头像转不了 PNG，换一张试试");return false;}
+    try{
+      Array.prototype.forEach.call(document.querySelectorAll('link[rel="apple-touch-icon"]'),function(l){l.href=png;});
+      var lk=document.querySelector('link[rel="manifest"]')||document.createElement("link");
+      lk.rel="manifest";
+      lk.href=buildManifest([png]);
+      if(!lk.parentNode)document.head.appendChild(lk);
+      state.settings.iconPartner=true;save();try{__flushSave();}catch(e){}
+      toast("已把对方头像设为主屏图标：请删除桌面上的旧图标，再从 Safari「添加到主屏幕」重新添加");
+      return true;
+    }catch(e){toast("设置失败："+(e&&e.message||e));return false;}
+  });
+}
+function paintNotifyDiag(){
+  var el=document.getElementById("notify-diag");if(!el)return;
+  var out=[];
+  try{
+    if(!("Notification" in window)){out.push("当前环境不支持通知：iOS 请在 Safari 里「分享 → 添加到主屏幕」，再从桌面图标打开");}
+    else if(Notification.permission==="denied"){out.push("通知权限被拒绝：到 设置 → 通知 → 找到本 App 重新打开");}
+    else if(Notification.permission==="default"){out.push("还没允许通知：点「验证消息」并在弹窗里选“允许”");}
+    else{
+      var sa=(window.navigator.standalone===true)||(window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches)||(window.matchMedia&&window.matchMedia("(display-mode: fullscreen)").matches);
+      out.push(sa?"通知已允许（主屏幕模式）":"通知已允许（但现在是浏览器标签页：iOS 的标签页里系统通知不会弹出，需添加到主屏幕再从图标打开）");
+    }
+  }catch(e){out.push("读取通知状态失败");}
+  try{if(!(state&&state.settings&&state.settings.notifyOn!==false))out.push("「消息通知」开关是关闭状态：不会弹系统通知");}catch(e){}
+  try{if(typeof window.__inDND==="function"&&window.__inDND())out.push("免打扰时段生效中：这段时间不发系统通知");}catch(e){}
+
+  el.textContent=out.join(" · ");
+}
 function notifySystem(m){
+  if(!(state&&state.settings&&state.settings.notifyOn!==false))return; /* 消息通知开关关了就不发 */
   if(typeof window.__inDND==="function"&&window.__inDND())return;
   if(!("Notification" in window))return;
   if(Notification.permission!=="granted"){
@@ -4098,7 +4176,19 @@ function notifySystem(m){
     let body="";
     body=msgPreviewText(m)||"来消息了";
     __notifyIcon().then(function(ic){
-      try{new Notification(nm,{body:body,icon:ic||undefined,silent:false,renotify:true,tag:"eleven-msg"});}catch(e){}
+      var opt={body:body,icon:ic||undefined,silent:false,renotify:true,tag:"eleven-msg"};
+      try{
+        if(navigator.serviceWorker){
+          navigator.serviceWorker.getRegistration().then(function(reg){
+            try{
+              if(reg&&reg.showNotification){reg.showNotification(nm,opt);return;}
+            }catch(e){}
+            try{new Notification(nm,opt);}catch(e){}
+          }).catch(function(){try{new Notification(nm,opt);}catch(e){}});
+          return;
+        }
+      }catch(e){}
+      try{new Notification(nm,opt);}catch(e){}
     });
     try{window.__playNotifySound&&window.__playNotifySound();}catch(e){}
   }catch(e){}
@@ -4255,7 +4345,6 @@ function __flushSave(){
        图片类 dataURL 只记长度（不参与比较内容），整串再取一个轻量哈希，避免每次都比几百 KB 的字符串。 */
     var sig=__stateSig();
     if(sig===window.__lastSaveSig)return;
-    if(sig===window.__lastSaveSig)return;
     window.__lastSaveSig=sig;
   }else{
     var j=null;try{j=JSON.stringify(state);}catch(e){}
@@ -4404,6 +4493,8 @@ function migrate(s){
   if(s.settings.commentPickMin===undefined)s.settings.commentPickMin=2;
   if(s.settings.commentPickMax===undefined)s.settings.commentPickMax=3;
   if(s.settings.commentPerPostMax===undefined)s.settings.commentPerPostMax=3;
+  if(s.settings.bgSoundOn===undefined)s.settings.bgSoundOn=false;
+  if(s.settings.notifyOn===undefined)s.settings.notifyOn=true;
   if(s.settings.catchMomentsPerHour===undefined)s.settings.catchMomentsPerHour=3;
   if(s.settings.catchCommentPerHour===undefined)s.settings.catchCommentPerHour=3;
   if(s.settings.catchNotePerHour===undefined)s.settings.catchNotePerHour=3;
@@ -5222,6 +5313,31 @@ function renderChat(){
   if(!entries.length)html='<div class="empty-hint">还没有消息，发一条开启私密对话吧。</div>';
   list.innerHTML=html;
   window.__chatLastDay=lastDay;
+  /* 新消息气泡入场动效：只让这次新出现的行播，重绘旧消息不会再弹一次 */
+  try{
+    var _map={},_maxT=0,_had=window.__chatAnimAfter!==undefined;
+    state.messages.forEach(function(m){_map[m.id]=m.time;if(m.time>_maxT)_maxT=m.time;});
+    if(_had){
+      var _after=Number(window.__chatAnimAfter)||0;
+      var _anim=function(el){
+        try{
+          el.classList.add(el.classList.contains("me")?"wxs-anim-out":"wxs-anim-in");
+          setTimeout(function(){try{el.classList.remove("wxs-anim-out","wxs-anim-in");}catch(e){}},320);
+        }catch(e){}
+      };
+      Array.prototype.forEach.call(list.children,function(el){
+        var id=el&&el.getAttribute?el.getAttribute("data-id"):"";if(!id)return;
+        var t=_map[id];if(t===undefined)return;
+        if(t>_after)_anim(el);
+      });
+      /* 兜底：只要有新消息，至少让最后一行动起来（防止时间基准异常时整屏不动） */
+      if(window.__chatNewMsg){
+        var _rows=list.querySelectorAll(".msg-row");
+        if(_rows.length)_anim(_rows[_rows.length-1]);
+      }
+    }
+    window.__chatAnimAfter=_maxT;
+  }catch(e){}
   var _moreBtn=document.getElementById("msg-more-btn");
   if(_moreBtn)_moreBtn.addEventListener("click",function(){
     window.__chatWin=(Number(window.__chatWin)||80)+400;
@@ -5927,6 +6043,7 @@ function chatAppendTail(m){
     if(window.__chatLastDay&&dayKey(m.time)!==window.__chatLastDay)return false;
     list.insertAdjacentHTML("beforeend",msgRowHTML(m));
     var row=list.lastElementChild;
+    try{if(row&&row.classList.contains("msg-row")){row.classList.add("wxs-anim-out");setTimeout(function(){try{row.classList.remove("wxs-anim-out");}catch(e){}},420);}}catch(e){}
     if(row&&!row.dataset.rp&&!row.dataset.sq){
       row.addEventListener("click",function(e){if(row._lp){row._lp=false;return;}e.stopPropagation();openActions(row.dataset.id);});
       try{bindLongPress(row);}catch(e){}
@@ -6285,12 +6402,8 @@ function _keepArm(){
     }
     if(keepCtx&&keepCtx.state==="suspended")try{keepCtx.resume();}catch(e){}
     var a=_keepAudioEl();
-    /* 只在用户手势里解锁一次（播一下立刻停），前台不常播，避免被系统当成在放音乐 */
-    if(a&&a.paused){
-      var pr=a.play();
-      if(pr&&pr.then){pr.then(function(){try{a.pause();}catch(e){}}).catch(function(){});}
-      else{try{setTimeout(function(){try{a.pause();}catch(e){}},0);}catch(e){}}
-    }
+    /* 用户手势里解锁并保持播放（静音内容无声），与 sl 版一致 */
+    if(a&&a.paused){var pr=a.play();if(pr&&pr.catch)pr.catch(function(){});}
   }catch(e){}
   _keepArmed=true;
   /* 开启后就让静音音频一直循环播放（前后台都播），后台更难被挂起 */
@@ -6299,12 +6412,8 @@ function startKeepAliveAudio(){
   if(!state||!state.settings||!state.settings.keepAlive)return;
   if(!_keepArmed)_keepArm();
   try{if(keepCtx&&keepCtx.state==="suspended")keepCtx.resume();}catch(e){}
-  /* 前台不播静音音频：否则系统会把它当成“正在播放的音乐”，锁屏/控制中心/通知栏出现播放卡片。
-     只有切到后台才播，回来立刻停，卡片随之消失。 */
-  if(!document.hidden){
-    try{var _a0=_keepAudioEl();if(_a0&&!_a0.paused)_a0.pause();}catch(e){}
-    return;
-  }
+  /* 与 sl 版一致：静音音频前后台一直循环播放（内容本身无声），
+     同时不伪造媒体会话，所以锁屏/控制中心不会出现播放卡片。 */
   try{var a=_keepAudioEl();if(a&&a.paused){var pr=a.play();if(pr&&pr.catch)pr.catch(function(){});}}catch(e){}
 }
 
@@ -7639,10 +7748,14 @@ function bindSetting(){
   $("sw-active-tag").classList.toggle("on",state.settings.showActiveTag!==false);
   $("sw-dark").classList.toggle("on",state.skin.dark);
   $("sw-keep-alive").classList.toggle("on",state.settings.keepAlive===true);
-  if($("sw-notify"))$("sw-notify").classList.toggle("on",!!(("Notification" in window)&&Notification.permission==="granted"));
+  if($("sw-bg-sound"))$("sw-bg-sound").classList.toggle("on",state.settings.bgSoundOn===true);
+  if($("sw-notify"))$("sw-notify").classList.toggle("on",!!(("Notification" in window)&&Notification.permission==="granted"&&state.settings.notifyOn!==false));
+  try{paintNotifyDiag();}catch(e){}
   if($("sw-emoji-steal"))$("sw-emoji-steal").classList.toggle("on",state.settings.emojiSteal!==false);
   if($("sw-card-join-sym"))$("sw-card-join-sym").classList.toggle("on",state.settings.cardJoinSymbol!==false);
+  try{if(state.settings.iconPartner)setTimeout(function(){applyPartnerAppIcon();},1200);}catch(e){}
   if(state.settings.keepAlive)ensureKeepAliveAudio();
+  else{try{stopKeepAliveAudio();}catch(e){}}
   $("skin-accent").value=state.skin.accent;$("skin-bg").value=state.skin.bg;
   $("skin-mybubble").value=state.skin.mybubble;$("skin-partbubble").value=state.skin.partbubble;
   $("skin-mybubbleDark").value=state.skin.mybubbleDark||state.skin.mybubble;
@@ -7986,15 +8099,21 @@ if($("sw-notify"))$("sw-notify").addEventListener("click",function(){
         toast("iOS 需先“添加到主屏幕”再从图标打开才能开启通知");return;
       }
       if(Notification.permission==="granted"){
-        btn.classList.remove("on");
-        toast("通知已在系统里允许；如需关闭请到浏览器/系统设置中修改");return;
+        /* 权限已经有了：这个开关就是「要不要用系统通知」，点一下真能关掉 */
+        state.settings.notifyOn=!(state.settings.notifyOn!==false);
+        btn.classList.toggle("on",state.settings.notifyOn===true);
+        save();
+        toast(state.settings.notifyOn?"系统通知已打开":"系统通知已关闭（来消息不会再弹通知）");
+        try{paintNotifyDiag();}catch(e){}
+        return;
       }
       Notification.requestPermission().then(function(r){
-        if(r==="granted"){btn.classList.add("on");state.settings.notifyTry=6;save();toast("通知已开启");}
+        if(r==="granted"){btn.classList.add("on");state.settings.notifyOn=true;state.settings.notifyTry=6;save();toast("通知已开启");try{paintNotifyDiag();}catch(e){}}
         else{btn.classList.remove("on");toast("未开启通知权限");}
       }).catch(function(){toast("该浏览器不支持通知，iOS 请添加到主屏幕后再试");});
     }catch(e){toast("开启通知失败："+(e&&e.message||e));}
   });
+  if($("btn-icon-avatar"))$("btn-icon-avatar").addEventListener("click",function(){applyPartnerAppIcon();});
   if($("btn-notify-test"))$("btn-notify-test").addEventListener("click",function(){
     if(typeof window.__runTestPop==="function"){window.__runTestPop();return;}
     try{
@@ -8008,11 +8127,17 @@ if($("sw-notify"))$("sw-notify").addEventListener("click",function(){
         return;
       }
       new Notification("验证消息",{body:"如果你看到这条通知，说明消息通知已生效"});
-      toast("已发送验证消息");
+      toast("已发送验证消息");paintNotifyDiag();
     }catch(e){toast("发送失败："+(e&&e.message||e));}
   });
 $("sw-keep-alive").addEventListener("click",e=>{state.settings.keepAlive=!state.settings.keepAlive;e.target.classList.toggle("on",state.settings.keepAlive);save();if(state.settings.keepAlive){ensureKeepAliveAudio();toast("已开启后台保活（静音音频已开始播放）");}else{stopKeepAliveAudio();toast("已关闭后台保活");}});
-if($("btn-check-update"))$("btn-check-update").addEventListener("click",function(){
+
+$("sw-bg-sound")&&$("sw-bg-sound").addEventListener("click",function(){
+  state.settings.bgSoundOn=(state.settings.bgSoundOn!==true);
+  this.classList.toggle("on",state.settings.bgSoundOn);
+  save();
+  toast(state.settings.bgSoundOn?"后台会响提示音（可能出现播放卡片）":"后台只播静音，不会出现播放卡片");
+});if($("btn-check-update"))$("btn-check-update").addEventListener("click",function(){
   var cur=document.querySelector('meta[name="app-build"]');var b=cur?cur.content:"";
   try{toast("正在检查…");}catch(e){}
   fetch("./index.html?__bust="+Date.now(),{cache:"no-store"}).then(function(r){
@@ -13920,7 +14045,7 @@ init();
    不使用 Service Worker（避免缓存接管导致打不开/黑屏），只用“对比构建号 + 换 URL”这一招。 */
 (function(){
   if(!/^https?:$/.test(location.protocol))return;
-  var BUILD="2026-11-11uf";
+  var BUILD="2026-11-11uo";
   var KEY="app_build_reloaded";
   var busy=false;
   function go(url){location.replace(url+"&skipabout=1");}
