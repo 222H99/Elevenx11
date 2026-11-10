@@ -17,7 +17,7 @@ const PORT = Number(process.env.PORT || 8787);
 const DATA_DIR = path.join(ROOT, "data");
 const SESSION_FILE = path.join(DATA_DIR, "sessions.json");
 const SID_COOKIE = "wns_sid";
-const QR_TTL = 300 * 1000; // 二维码有效期 5 分钟
+const QR_TTL = 100 * 1000; // 二维码有效期 100 秒（网易云侧约 2 分钟就失效，缓存更久会扫出“授权失败”）
 const MAX_BODY = 8 * 1024;
 
 const MIME = {
@@ -63,6 +63,9 @@ function newSid() {
 }
 
 function getSid(req) {
+  /* 跨域托管（页面在 GitHub Pages 等）时，浏览器不给带 Cookie，改用 x-wns-sid 头 */
+  const hs = String(req.headers["x-wns-sid"] || "").trim();
+  if (/^[a-f0-9]{32,}$/.test(hs)) return hs;
   const raw = req.headers.cookie || "";
   const m = raw.match(new RegExp(SID_COOKIE + "=([a-f0-9]{32,})"));
   return m ? m[1] : null;
@@ -164,10 +167,12 @@ async function fetchProfile(s) {
 
 /* ---------------- 工具 ---------------- */
 function json(res, code, obj) {
+  if (res.__sid && !obj.sid) obj.sid = res.__sid;
   const body = JSON.stringify(obj);
   const h = { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store",
     "Access-Control-Allow-Origin": res.__acao || "*",
-    "Access-Control-Allow-Headers": "Content-Type, x-wns-client",
+    "Access-Control-Allow-Headers": "Content-Type, x-wns-client, x-wns-sid",
+    "Access-Control-Expose-Headers": "x-wns-sid",
     "Access-Control-Allow-Methods": "POST, GET, OPTIONS" };
   res.writeHead(code, h);
   res.end(body);
@@ -224,6 +229,7 @@ async function api(req, res, pathname) {
      只要带 x-wns-client 自定义头即视为来自自家前端；同源请求照旧放行。 */
   if (req.headers["x-wns-client"] !== "1") return json(res, 403, { code: 403, msg: "forbidden" });
   const s = ensureSession(req, res);
+  res.__sid = s.id;
   touch(s);
 
   if (pathname === "/api/netease/session") {
@@ -537,7 +543,7 @@ p('协议：'+location.protocol);
     res.__acao = req.headers.origin || "*";
     if (req.method === "OPTIONS") {
       res.writeHead(204, { "Access-Control-Allow-Origin": res.__acao,
-        "Access-Control-Allow-Headers": "Content-Type, x-wns-client",
+        "Access-Control-Allow-Headers": "Content-Type, x-wns-client, x-wns-sid",
         "Access-Control-Allow-Methods": "POST, GET, OPTIONS", "Access-Control-Max-Age": "86400" });
       return res.end("");
     }
