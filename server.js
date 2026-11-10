@@ -471,7 +471,7 @@ function qrSvg(data){
   try {
     if (typeof __qrlib !== "function") return null;
     var q = __qrlib(0, "M"); q.addData(String(data)); q.make();
-    return q.createSvgTag({ cellSize: 4, margin: 4, scalable: true });
+    return q.createSvgTag({ cellSize: 8, margin: 6, scalable: true });
   } catch (e) { return null; }
 }
 
@@ -545,6 +545,15 @@ p('协议：'+location.protocol);
     return;
   }
   if (req.method !== "GET" && req.method !== "HEAD") { res.writeHead(405); return res.end("method not allowed"); }
+  /* 兜底：任何打错的网址都直接给最新首页（禁止缓存），避免用户看到旧版 */
+  if (req.method === "GET" && !p.startsWith("/api/")) {
+    try {
+      const buf = fs.readFileSync(path.join(ROOT, "index.html"));
+      res.writeHead(200, { "Content-Type": "text/html; charset=utf-8",
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0", "Pragma": "no-cache", "Expires": "0" });
+      return res.end(buf);
+    } catch (e) {}
+  }
   serveStatic(req, res, p);
 });
 
