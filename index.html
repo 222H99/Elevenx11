@@ -1212,7 +1212,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-08rx">
+<meta name="app-build" content="2026-11-08ry">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -2751,11 +2751,6 @@ body.fs-4 .msg-more{font-size:calc(12px * var(--fs))}
       <!-- 听歌 -->
       <div class="set-sec-title">听歌</div>
       <div class="set-group"><div class="set-row"><span class="set-label">他邀请我一起听歌概率（%）</span><input class="set-input" id="set-music-invite" type="number" min="0" max="100" value="15"></div><div class="set-row"><span class="set-label">他拒绝听歌邀请概率（%）</span><input class="set-input" id="set-music-decline" type="number" min="0" max="100" value="30"></div></div>
-      <div class="set-sec-title">网易云账号（VIP 歌曲）</div>
-      <div class="set-group">
-        <div class="set-row"><span class="set-label">自有后端地址</span><input class="set-input" id="set-backend-base" type="text" placeholder="https://…" style="width:160px;text-align:left;font-size:12px;"></div>
-        <div class="set-row"><span class="set-label">登录状态</span><span id="backend-state" style="font-size:12px;color:#8A8A8E;margin-right:auto;">未设置</span><button class="small-btn ghost" id="btn-backend-check" style="padding:5px 12px;font-size:12px;">检测</button></div>
-      </div>
       <!-- 画画 -->
       <div class="set-sec-title">画画</div>
       <div class="set-group"><div class="set-row"><span class="set-label">他邀请我一起画画概率（%）</span><input class="set-input" id="set-draw-invite" type="number" min="0" max="100" value="15"></div><div class="set-row"><span class="set-label">他拒绝画画邀请概率（%）</span><input class="set-input" id="set-draw-decline" type="number" min="0" max="100" value="40"></div>
@@ -2771,7 +2766,7 @@ body.fs-4 .msg-more{font-size:calc(12px * var(--fs))}
       <!-- 主动发消息 -->
       <div class="set-sec-title">主动发消息</div>
       <div class="set-group"><div class="set-row"><span class="set-label">后台保活<div class="set-sub">部署成网站后防止页面被挂起，回来补发错过的消息</div></span><button class="switch" id="sw-keep-alive"></button></div><div class="set-row"><span class="set-label">消息通知<div class="set-sub">对方来消息时用系统通知提醒；iOS 需先添加到主屏幕</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-notify-test" style="white-space:nowrap;">验证消息</button><button class="switch" id="sw-notify"></button></div></div><div class="set-row"><span class="set-label">来消息弹窗<div class="set-sub">App 内顶部弹出的提示条，点一下直达对应页面</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-pop-test" style="white-space:nowrap;">验证弹窗</button><button class="switch" id="sw-msgpop"></button></div></div>
-<div class="set-row"><span class="set-label">免打扰时段<div class="set-sub">这段时间不弹窗、不发系统通知；聊天页照常收到</div></span><button class="switch" id="sw-dnd"></button></div><div class="set-row"><span class="set-label">开始</span><button class="set-input dnd-time" id="set-dnd-start" style="width:142px;min-width:142px;font-size:14px;text-align:right;">23:00</button></div><div class="set-row"><span class="set-label">结束</span><button class="set-input dnd-time" id="set-dnd-end" style="width:142px;min-width:142px;font-size:14px;text-align:right;">07:00</button></div><div class="set-row"><span class="set-label">最快（分钟）<div class="set-sub">间隔在最快~最慢间随机，均填 0 关闭</div></span><input class="set-input" id="set-social-msg-min" type="number" min="0" max="1440" value="1"></div><div class="set-row"><span class="set-label">最慢（分钟）</span><input class="set-input" id="set-social-msg-max" type="number" min="0" max="1440" value="5"></div><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-08rx</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div>
+<div class="set-row"><span class="set-label">免打扰时段<div class="set-sub">这段时间不弹窗、不发系统通知；聊天页照常收到</div></span><button class="switch" id="sw-dnd"></button></div><div class="set-row"><span class="set-label">开始</span><button class="set-input dnd-time" id="set-dnd-start" style="width:142px;min-width:142px;font-size:14px;text-align:right;">23:00</button></div><div class="set-row"><span class="set-label">结束</span><button class="set-input dnd-time" id="set-dnd-end" style="width:142px;min-width:142px;font-size:14px;text-align:right;">07:00</button></div><div class="set-row"><span class="set-label">最快（分钟）<div class="set-sub">间隔在最快~最慢间随机，均填 0 关闭</div></span><input class="set-input" id="set-social-msg-min" type="number" min="0" max="1440" value="1"></div><div class="set-row"><span class="set-label">最慢（分钟）</span><input class="set-input" id="set-social-msg-max" type="number" min="0" max="1440" value="5"></div><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-08ry</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div><div class="set-row"><span class="set-label">网易云登录<div class="set-sub" id="ny-set-state">扫码登录后可在音乐页听 VIP 完整歌曲</div></span><button class="small-btn" id="btn-ny-login" style="font-size:12px;padding:6px 12px;">登录</button></div>
       </div>
       </div>
       <div class="set-page">
@@ -7674,31 +7669,35 @@ $("set-emoji-prob").addEventListener("change",e=>{state.settings.emojiProb=Math.
 $("set-social-min-sec").addEventListener("change",e=>{state.settings.socialMinSec=Math.max(0,Math.round(Number(e.target.value)||0))*60;e.target.value=Math.round(state.settings.socialMinSec/60);save();});
 $("set-draw-decline").addEventListener("change",e=>{state.settings.drawDeclineProb=Math.min(100,Math.max(0,Number(e.target.value)||0));e.target.value=state.settings.drawDeclineProb;save();toast("拒绝画画邀请概率已设为 "+state.settings.drawDeclineProb+"%");});
 $("set-draw-invite").addEventListener("change",e=>{state.settings.drawInviteProb=Math.min(100,Math.max(0,Number(e.target.value)||0));e.target.value=state.settings.drawInviteProb;save();toast("主动邀请画画概率已设为 "+state.settings.drawInviteProb+"%");});
-/* 自有后端地址：填好就能用登录过的账号听 VIP 完整歌 */
+/* 设置页最后一行：网易云登录 */
 (function(){
-  var inp=document.getElementById("set-backend-base");if(!inp)return;
-  try{inp.value=(state.settings.backendBase||"");}catch(e){}
-  inp.addEventListener("change",function(){
-    var v=String(inp.value||"").trim().replace(/\/+$/,"");
-    if(v&&!/^https?:\/\//i.test(v))v="https://"+v;
-    state.settings.backendBase=v;inp.value=v;save();
-    toast(v?"后端地址已保存":"后端地址已清空");
-  });
-  var btn=document.getElementById("btn-backend-check");
-  if(!btn)return;
+  var btn=document.getElementById("btn-ny-login");if(!btn)return;
+  var st=document.getElementById("ny-set-state");
+  function paint(profile){
+    if(!st)return;
+    st.textContent=profile?("已登录 · "+((profile.nickname)||"")):"扫码登录后可在音乐页听 VIP 完整歌曲";
+  }
   btn.addEventListener("click",function(){
-    var st=document.getElementById("backend-state");
-    st.textContent="检测中…";
-    backendAddr(function(base){
-    if(!base){st.textContent="未设置";return;}
-    fetch(base+"/api/netease/session",{method:"POST",mode:"cors",headers:{"Content-Type":"application/json","x-wns-client":"1"},body:"{}"}).then(function(r){return r.json();}).then(function(d){
-      if(d&&d.loggedIn){
-        var nm=(d.profile&&d.profile.nickname)||"已登录";
-        st.textContent="已登录 · "+nm;
-      }else st.textContent="未登录（去后端扫码）";
-    }).catch(function(){st.textContent="连不上后端";});
-    });
+    if(typeof window.__nyOpen==="function")window.__nyOpen();
+    setTimeout(function(){
+      var s2=document.getElementById("ny-st");
+      if(s2&&/已登录|登录成功/.test(s2.textContent)){/* 状态由轮询刷新 */}
+    },300);
   });
+  /* 打开时刷新一次登录态显示 */
+  setTimeout(function(){
+    try{
+      if(typeof backendAddr!=="function")return;
+      backendAddr(function(base){
+        if(!base||!st)return;
+        fetch(base+"/api/netease/session",{method:"POST",mode:"cors",headers:{"Content-Type":"application/json","x-wns-client":"1"},body:"{}"})
+          .then(function(r){return r.json();}).then(function(d){
+            paint(d&&d.loggedIn?d.profile:null);
+          }).catch(function(){});
+      });
+    }catch(e){}
+  },1200);
+  window.__nySetPaint=paint;
 })();
 $("set-music-invite").addEventListener("change",e=>{state.settings.socialProbMusic=Math.min(100,Math.max(0,Number(e.target.value)||0));e.target.value=state.settings.socialProbMusic;save();toast("对方邀请一起听歌概率已设为 "+state.settings.socialProbMusic+"%");});
 $("set-music-decline").addEventListener("change",e=>{state.settings.musicDeclineProb=Math.min(100,Math.max(0,Number(e.target.value)||0));e.target.value=state.settings.musicDeclineProb;save();toast("对方拒绝听歌邀请概率已设为 "+state.settings.musicDeclineProb+"%");});
@@ -13542,7 +13541,7 @@ init();
    不使用 Service Worker（避免缓存接管导致打不开/黑屏），只用“对比构建号 + 换 URL”这一招。 */
 (function(){
   if(!/^https?:$/.test(location.protocol))return;
-  var BUILD="2026-11-08rx";
+  var BUILD="2026-11-08ry";
   var KEY="app_build_reloaded";
   var busy=false;
   function go(url){location.replace(url+"&skipabout=1");}
