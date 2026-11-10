@@ -1215,7 +1215,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-09se">
+<meta name="app-build" content="2026-11-09sh">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -2769,7 +2769,7 @@ body.fs-4 .msg-more{font-size:calc(12px * var(--fs))}
       <!-- 主动发消息 -->
       <div class="set-sec-title">主动发消息</div>
       <div class="set-group"><div class="set-row"><span class="set-label">后台保活<div class="set-sub">部署成网站后防止页面被挂起，回来补发错过的消息</div></span><button class="switch" id="sw-keep-alive"></button></div><div class="set-row"><span class="set-label">消息通知<div class="set-sub">对方来消息时用系统通知提醒；iOS 需先添加到主屏幕</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-notify-test" style="white-space:nowrap;">验证消息</button><button class="switch" id="sw-notify"></button></div></div><div class="set-row"><span class="set-label">来消息弹窗<div class="set-sub">App 内顶部弹出的提示条，点一下直达对应页面</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-pop-test" style="white-space:nowrap;">验证弹窗</button><button class="switch" id="sw-msgpop"></button></div></div>
-<div class="set-row"><span class="set-label">免打扰时段<div class="set-sub">这段时间不弹窗、不发系统通知；聊天页照常收到</div></span><button class="switch" id="sw-dnd"></button></div><div class="set-row"><span class="set-label">开始</span><button class="set-input dnd-time" id="set-dnd-start" style="width:142px;min-width:142px;font-size:14px;text-align:right;">23:00</button></div><div class="set-row"><span class="set-label">结束</span><button class="set-input dnd-time" id="set-dnd-end" style="width:142px;min-width:142px;font-size:14px;text-align:right;">07:00</button></div><div class="set-row"><span class="set-label">最快（分钟）<div class="set-sub">间隔在最快~最慢间随机，均填 0 关闭</div></span><input class="set-input" id="set-social-msg-min" type="number" min="0" max="1440" value="1"></div><div class="set-row"><span class="set-label">最慢（分钟）</span><input class="set-input" id="set-social-msg-max" type="number" min="0" max="1440" value="5"></div><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-09se</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div><div class="set-row"><span class="set-label">网易云登录<div class="set-sub" id="ny-set-state">扫码登录后可在音乐页听 VIP 完整歌曲</div></span><button class="small-btn" id="btn-ny-login" style="font-size:12px;padding:6px 12px;">登录</button></div>
+<div class="set-row"><span class="set-label">免打扰时段<div class="set-sub">这段时间不弹窗、不发系统通知；聊天页照常收到</div></span><button class="switch" id="sw-dnd"></button></div><div class="set-row"><span class="set-label">开始</span><button class="set-input dnd-time" id="set-dnd-start" style="width:142px;min-width:142px;font-size:14px;text-align:right;">23:00</button></div><div class="set-row"><span class="set-label">结束</span><button class="set-input dnd-time" id="set-dnd-end" style="width:142px;min-width:142px;font-size:14px;text-align:right;">07:00</button></div><div class="set-row"><span class="set-label">最快（分钟）<div class="set-sub">间隔在最快~最慢间随机，均填 0 关闭</div></span><input class="set-input" id="set-social-msg-min" type="number" min="0" max="1440" value="1"></div><div class="set-row"><span class="set-label">最慢（分钟）</span><input class="set-input" id="set-social-msg-max" type="number" min="0" max="1440" value="5"></div><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-09sh</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div><div class="set-row"><span class="set-label">网易云登录<div class="set-sub" id="ny-set-state">扫码登录后可在音乐页听 VIP 完整歌曲</div></span><button class="small-btn" id="btn-ny-login" style="font-size:12px;padding:6px 12px;">登录</button></div>
       </div>
       </div>
       <div class="set-page">
@@ -8644,7 +8644,9 @@ function backendAddr(cb){
   var v="";
   try{v=String(state.settings.backendBase||"").trim().replace(/\/+$/,"");}catch(e){}
   if(v){cb(v);return;}
-  probeSameOriginBackend().then(function(){cb(__backendProbe===1?location.origin:"");});
+  /* 页面就是从后端同域名打开的，直接用当前域名，不再等探测（避免探测失败误判没后端） */
+  if(/^https?:$/.test(location.protocol)){cb(location.origin);return;}
+  cb("");
 }
 function backendSongUrl(id){
   return new Promise(function(res){
@@ -9265,7 +9267,23 @@ var _163Warmed=false;
               return j;
             });
           })
-          .then(res).catch(function(e){if(to)clearTimeout(to);rej(e);});
+          .then(res).catch(function(e){
+            if(to)clearTimeout(to);
+            /* fetch 失败时用 XHR 再试一次（iOS 上偶发 fetch 被截断） */
+            try{
+              var x=new XMLHttpRequest();
+              x.open('POST',base+path,true);
+              x.setRequestHeader('Content-Type','application/json');
+              x.setRequestHeader('x-wns-client','1');
+              x.onload=function(){
+                var j=null;try{j=JSON.parse(x.responseText);}catch(_){}
+                if(j){res(j);}else{rej(new Error('XHR HTTP '+x.status));}
+              };
+              x.onerror=function(){rej(e);};
+              x.ontimeout=function(){rej(e);};
+              x.send(JSON.stringify(data||{}));
+            }catch(_){rej(e);}
+          });
       });
     });
   }
@@ -9451,10 +9469,13 @@ var _163Warmed=false;
           });
         }else{ body.innerHTML='<div class="ny-empty">当前页面没有连上后端</div>'; }
       }
-    }).catch(function(){
+    }).catch(function(err){
+      /* 读登录状态失败也继续试着直接取二维码：能出码说明后端其实是通的 */
+      nyRefresh(false); return;
       body.innerHTML='';
       var e=document.createElement('div'); e.className='ny-empty';
-      e.textContent='连不上后端，点下面重试（部署时 server.js 要和页面同一域名）';
+      var why=(err&&err.message)||String(err||'');
+      e.textContent='连不上后端：'+why;
       body.appendChild(e);
       var rt=document.createElement('div'); rt.className='ny-acts';
       var rb=document.createElement('button'); rb.className='pri'; rb.textContent='重试';
@@ -13587,7 +13608,7 @@ init();
    不使用 Service Worker（避免缓存接管导致打不开/黑屏），只用“对比构建号 + 换 URL”这一招。 */
 (function(){
   if(!/^https?:$/.test(location.protocol))return;
-  var BUILD="2026-11-09se";
+  var BUILD="2026-11-09sh";
   var KEY="app_build_reloaded";
   var busy=false;
   function go(url){location.replace(url+"&skipabout=1");}
