@@ -1215,7 +1215,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-09sh">
+<meta name="app-build" content="2026-11-09sl">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -2769,7 +2769,7 @@ body.fs-4 .msg-more{font-size:calc(12px * var(--fs))}
       <!-- 主动发消息 -->
       <div class="set-sec-title">主动发消息</div>
       <div class="set-group"><div class="set-row"><span class="set-label">后台保活<div class="set-sub">部署成网站后防止页面被挂起，回来补发错过的消息</div></span><button class="switch" id="sw-keep-alive"></button></div><div class="set-row"><span class="set-label">消息通知<div class="set-sub">对方来消息时用系统通知提醒；iOS 需先添加到主屏幕</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-notify-test" style="white-space:nowrap;">验证消息</button><button class="switch" id="sw-notify"></button></div></div><div class="set-row"><span class="set-label">来消息弹窗<div class="set-sub">App 内顶部弹出的提示条，点一下直达对应页面</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-pop-test" style="white-space:nowrap;">验证弹窗</button><button class="switch" id="sw-msgpop"></button></div></div>
-<div class="set-row"><span class="set-label">免打扰时段<div class="set-sub">这段时间不弹窗、不发系统通知；聊天页照常收到</div></span><button class="switch" id="sw-dnd"></button></div><div class="set-row"><span class="set-label">开始</span><button class="set-input dnd-time" id="set-dnd-start" style="width:142px;min-width:142px;font-size:14px;text-align:right;">23:00</button></div><div class="set-row"><span class="set-label">结束</span><button class="set-input dnd-time" id="set-dnd-end" style="width:142px;min-width:142px;font-size:14px;text-align:right;">07:00</button></div><div class="set-row"><span class="set-label">最快（分钟）<div class="set-sub">间隔在最快~最慢间随机，均填 0 关闭</div></span><input class="set-input" id="set-social-msg-min" type="number" min="0" max="1440" value="1"></div><div class="set-row"><span class="set-label">最慢（分钟）</span><input class="set-input" id="set-social-msg-max" type="number" min="0" max="1440" value="5"></div><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-09sh</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div><div class="set-row"><span class="set-label">网易云登录<div class="set-sub" id="ny-set-state">扫码登录后可在音乐页听 VIP 完整歌曲</div></span><button class="small-btn" id="btn-ny-login" style="font-size:12px;padding:6px 12px;">登录</button></div>
+<div class="set-row"><span class="set-label">免打扰时段<div class="set-sub">这段时间不弹窗、不发系统通知；聊天页照常收到</div></span><button class="switch" id="sw-dnd"></button></div><div class="set-row"><span class="set-label">开始</span><button class="set-input dnd-time" id="set-dnd-start" style="width:142px;min-width:142px;font-size:14px;text-align:right;">23:00</button></div><div class="set-row"><span class="set-label">结束</span><button class="set-input dnd-time" id="set-dnd-end" style="width:142px;min-width:142px;font-size:14px;text-align:right;">07:00</button></div><div class="set-row"><span class="set-label">最快（分钟）<div class="set-sub">间隔在最快~最慢间随机，均填 0 关闭</div></span><input class="set-input" id="set-social-msg-min" type="number" min="0" max="1440" value="1"></div><div class="set-row"><span class="set-label">最慢（分钟）</span><input class="set-input" id="set-social-msg-max" type="number" min="0" max="1440" value="5"></div><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-09sl</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div><div class="set-row"><span class="set-label">网易云登录<div class="set-sub" id="ny-set-state">扫码登录后可在音乐页听 VIP 完整歌曲</div></span><button class="small-btn" id="btn-ny-login" style="font-size:12px;padding:6px 12px;">登录</button></div>
       </div>
       </div>
       <div class="set-page">
@@ -7810,11 +7810,20 @@ if($("sw-notify"))$("sw-notify").addEventListener("click",function(){
 $("sw-keep-alive").addEventListener("click",e=>{state.settings.keepAlive=!state.settings.keepAlive;e.target.classList.toggle("on",state.settings.keepAlive);save();if(state.settings.keepAlive){ensureKeepAliveAudio();toast("已开启后台保活（静音音频已开始播放）");}else{stopKeepAliveAudio();toast("已关闭后台保活");}});
 if($("btn-check-update"))$("btn-check-update").addEventListener("click",function(){
   var cur=document.querySelector('meta[name="app-build"]');var b=cur?cur.content:"";
-  fetch(location.pathname+"?__bust="+Date.now(),{cache:"no-store"}).then(function(r){return r.text();}).then(function(t){
+  try{toast("正在检查…");}catch(e){}
+  fetch("./index.html?__bust="+Date.now(),{cache:"no-store"}).then(function(r){
+    if(!r.ok)throw new Error("HTTP "+r.status);
+    return r.text();
+  }).then(function(t){
     var m=/name=["']app-build["']\s+content=["']([^"']+)["']/i.exec(t);
-    if(m&&m[1]&&m[1]!==b){location.replace(location.pathname+"?v="+encodeURIComponent(m[1])+"&t="+Date.now()+"&skipabout=1");}
-    else{try{toast("已是最新版本");}catch(e){}}
-  }).catch(function(){try{toast("检查失败，请检查网络");}catch(e){}});
+    var nb=m&&m[1]?m[1]:"";
+    if(nb&&nb!==b){
+      try{toast("发现新版本，正在更新…");}catch(e){}
+      location.replace("./index.html?v="+encodeURIComponent(nb)+"&t="+Date.now()+"&skipabout=1");
+    }else{
+      try{toast("已是最新版本（"+b+"）");}catch(e){}
+    }
+  }).catch(function(e){try{toast("检查失败："+((e&&e.message)||e));}catch(x){}});
 });
 ["accent","bg","mybubble","partbubble","topbar","bottombar"].forEach(k=>{
   $("skin-"+k).addEventListener("input",e=>{state.skin[k]=e.target.value;applySkin();save();});
@@ -8640,13 +8649,17 @@ function probeSameOriginBackend(){
   return __probeP;
 }
 /* 后端地址：优先用户填的；没填就看当前网站自己是否就是后端 */
+var __BACKEND_FIXED="https://elevenx11-production.up.railway.app";  /* 页面托管在 GitHub Pages 等纯静态站时，后端仍在这里 */
 function backendAddr(cb){
   var v="";
   try{v=String(state.settings.backendBase||"").trim().replace(/\/+$/,"");}catch(e){}
   if(v){cb(v);return;}
-  /* 页面就是从后端同域名打开的，直接用当前域名，不再等探测（避免探测失败误判没后端） */
-  if(/^https?:$/.test(location.protocol)){cb(location.origin);return;}
-  cb("");
+  if(!/^https?:$/.test(location.protocol)){cb("");return;}
+  /* 静态托管（github.io / pages.dev / netlify 等）自动指向 Railway 后端 */
+  if(/^(localhost|127\.0\.0\.1)$/.test(location.hostname)){cb(location.origin);return;}
+  if(/(github\.io|pages\.dev|netlify\.app|vercel\.app|surge\.sh)$/.test(location.hostname)){cb(__BACKEND_FIXED);return;}
+  if(/railway\.app$/.test(location.hostname)){cb(location.origin);return;}
+  cb(__BACKEND_FIXED);
 }
 function backendSongUrl(id){
   return new Promise(function(res){
@@ -8654,8 +8667,10 @@ function backendSongUrl(id){
       if(!base){res("");return;}
       var ctl=null,to=null;
       try{ctl=new AbortController();to=setTimeout(function(){try{ctl.abort();}catch(e){}},6000);}catch(e){}
+      var h2={"Content-Type":"application/json","x-wns-client":"1"};
+      try{var s2=localStorage.getItem('wnsSid');if(s2)h2["x-wns-sid"]=s2;}catch(_){}
       fetch(base+"/api/netease/song/url",{
-        method:"POST",mode:"cors",headers:{"Content-Type":"application/json","x-wns-client":"1"},
+        method:"POST",mode:"cors",credentials:"omit",headers:h2,
         body:JSON.stringify({id:String(id)}),signal:ctl?ctl.signal:undefined
       }).then(function(r){if(!r.ok)return {};return r.json();}).then(function(d){
         if(to)clearTimeout(to);
@@ -9255,7 +9270,9 @@ var _163Warmed=false;
         try{window.__lastBase=base;}catch(e){}
         var ctl=null,to=null;
         try{ctl=new AbortController();to=setTimeout(function(){try{ctl.abort();}catch(e){}},12000);}catch(e){}
-        fetch(base+path,{method:'POST',mode:'cors',headers:{'Content-Type':'application/json','x-wns-client':'1'},
+        var hdr={'Content-Type':'application/json','x-wns-client':'1'};
+        try{var __sid=localStorage.getItem('wnsSid');if(__sid)hdr['x-wns-sid']=__sid;}catch(_){}
+        fetch(base+path,{method:'POST',mode:'cors',credentials:'omit',headers:hdr,
           body:JSON.stringify(data||{}),signal:ctl?ctl.signal:undefined})
           .then(function(r){
             if(to)clearTimeout(to);
@@ -9264,6 +9281,7 @@ var _163Warmed=false;
               try{j=JSON.parse(txt);}catch(e){}
               if(!j){var er=new Error('HTTP '+r.status+' '+String(txt).slice(0,60));er.status=r.status;throw er;}
               j.__status=r.status;
+              if(j&&j.sid){try{localStorage.setItem('wnsSid',j.sid);}catch(_){}}
               return j;
             });
           })
@@ -9275,6 +9293,7 @@ var _163Warmed=false;
               x.open('POST',base+path,true);
               x.setRequestHeader('Content-Type','application/json');
               x.setRequestHeader('x-wns-client','1');
+              try{var __sid2=localStorage.getItem('wnsSid');if(__sid2)x.setRequestHeader('x-wns-sid',__sid2);}catch(_){}
               x.onload=function(){
                 var j=null;try{j=JSON.parse(x.responseText);}catch(_){}
                 if(j){res(j);}else{rej(new Error('XHR HTTP '+x.status));}
@@ -9289,14 +9308,14 @@ var _163Warmed=false;
   }
   function esc(t){return String(t==null?'':t);}
   function qrSrcOf(u){
-    /* 优先让本站后端出图（同源，最稳），其次页面本地生成，最后才用外网图床 */
-    if(/^https?:$/.test(location.protocol)) return location.origin+'/qr.svg?data='+encodeURIComponent(u);
+    /* 页面本地生成优先（不依赖网络，任何托管方式都能出图），失败再退到后端/图床 */
     try{
       if(typeof qrcode==="function"){
         var q=qrcode(0,'M'); q.addData(u); q.make();
         return q.createDataURL(7,10);
       }
     }catch(e){}
+    if(/^https?:$/.test(location.protocol)) return (window.__lastBase||location.origin)+'/qr.svg?data='+encodeURIComponent(u);
     return 'https://api.qrserver.com/v1/create-qr-code/?size=260x260&data='+encodeURIComponent(u);
   }
 
@@ -9312,7 +9331,16 @@ var _163Warmed=false;
 
     var a=document.createElement('div'); a.className='ny-acts';
     var open=document.createElement('a'); open.className='pri'; open.textContent='在本机网易云 App 打开';
-    open.href=curQr&&curQr.qrUrl?curQr.qrUrl:'#'; a.appendChild(open); body.appendChild(a);
+    open.href=curQr&&curQr.qrUrl?curQr.qrUrl:'#';
+    open.target='_blank'; open.rel='noopener';
+    open.style.display='block'; open.style.textAlign='center';
+    open.addEventListener('click',function(ev){
+      if(!(curQr&&curQr.qrUrl))return;
+      ev.preventDefault();
+      try{window.location.href=curQr.qrUrl;}catch(e){}
+      setTimeout(function(){try{window.open(curQr.qrUrl,'_blank');}catch(e){}},300);
+    });
+    a.appendChild(open); body.appendChild(a);
 
     var a2=document.createElement('div'); a2.className='ny-acts';
     var again=document.createElement('button'); again.className='pri'; again.textContent='换一个二维码';
@@ -13608,7 +13636,7 @@ init();
    不使用 Service Worker（避免缓存接管导致打不开/黑屏），只用“对比构建号 + 换 URL”这一招。 */
 (function(){
   if(!/^https?:$/.test(location.protocol))return;
-  var BUILD="2026-11-09sh";
+  var BUILD="2026-11-09sl";
   var KEY="app_build_reloaded";
   var busy=false;
   function go(url){location.replace(url+"&skipabout=1");}
