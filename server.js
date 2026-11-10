@@ -289,6 +289,24 @@ async function api(req, res, pathname) {
     return json(res, 200, { code: 200, msg: "已取消" });
   }
 
+  /* 粘贴 Cookie 登录：扫码被网易云风控拦截时的备用入口 */
+  if (pathname === "/api/netease/cookie") {
+    const body = (await readBody(req)) || {};
+    let ck = String(body.cookie || "").trim();
+    if (!ck) return json(res, 400, { code: 400, msg: "没有收到 Cookie" });
+    /* 允许只粘 MUSIC_U 的值，也允许整条 Cookie */
+    if (!ck.includes("=")) ck = "MUSIC_U=" + ck;
+    ck = ck.split(";").map((x) => x.trim()).filter((x) => /^(MUSIC_U|__csrf|_ntes_nuid|_ntes_nnid|NMTID)=/.test(x)).join("; ");
+    if (!/MUSIC_U=[^;\s]+/.test(ck)) return json(res, 400, { code: 400, msg: "Cookie 里没有 MUSIC_U，请复制完整 Cookie" });
+    s.cookie = ck;
+    s.qr = null;
+    let profile = null;
+    try { profile = await fetchProfile(s); } catch (_) {}
+    if (!profile && !loggedIn(s)) { s.cookie = ""; return json(res, 400, { code: 400, msg: "Cookie 无效或已过期" }); }
+    if (!profile) { s.cookie = ""; return json(res, 400, { code: 400, msg: "这个 Cookie 登录不上（可能已过期），请重新获取" }); }
+    return json(res, 200, { code: 200, loggedIn: true, profile });
+  }
+
   if (pathname === "/api/netease/logout") {
     s.qr = null; s.cookie = ""; s.profile = null;
     return json(res, 200, { code: 200, msg: "已退出登录" });
