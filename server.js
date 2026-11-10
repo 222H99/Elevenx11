@@ -476,6 +476,33 @@ const server = http.createServer((req, res) => {
     res.writeHead(302, { Location: "/index.html?v=" + v, "Cache-Control": "no-store" });
     return res.end();
   }
+  if (p === "/diag") {
+    const html = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>自检</title>
+<style>body{background:#111;color:#ddd;font:15px/1.6 -apple-system,sans-serif;padding:18px}h3{color:#fff;margin:18px 0 6px}
+pre{background:#1b1b1e;padding:10px;border-radius:8px;white-space:pre-wrap;word-break:break-all;font-size:13px}
+.ok{color:#54d17a}.bad{color:#ff6b6b}</style></head><body>
+<h3>自检页面</h3><div id="log"></div>
+<script>
+var out=document.getElementById('log');
+function p(t,c){var d=document.createElement('div');d.className=c||'';d.textContent=t;out.appendChild(d);}
+function show(t,c){var pre=document.createElement('pre');pre.className=c||'';pre.textContent=t;out.appendChild(pre);}
+p('当前地址：'+location.href);
+p('页面来源：'+location.origin);
+p('协议：'+location.protocol);
+(function(){
+  var t0=Date.now();
+  fetch('/api/netease/session',{method:'POST',mode:'cors',headers:{'Content-Type':'application/json','x-wns-client':'1'},body:'{}'})
+   .then(function(r){return r.text().then(function(txt){
+      p('接口 /api/netease/session → HTTP '+r.status+'（用时 '+((Date.now()-t0)/1000).toFixed(2)+'s）', r.ok?'ok':'bad');
+      show(txt.slice(0,600));
+    });})
+   .catch(function(e){p('接口请求失败：'+(e&&e.message||e),'bad');});
+})();
+</script></body></html>`;
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" });
+    return res.end(html);
+  }
   if (p === "/x" || p === "/x/") {
     /* 备用入口：任何浏览器都不会命中旧缓存 */
     try {
