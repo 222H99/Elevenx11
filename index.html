@@ -1212,7 +1212,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-08ry">
+<meta name="app-build" content="2026-11-08rz">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -2766,7 +2766,7 @@ body.fs-4 .msg-more{font-size:calc(12px * var(--fs))}
       <!-- 主动发消息 -->
       <div class="set-sec-title">主动发消息</div>
       <div class="set-group"><div class="set-row"><span class="set-label">后台保活<div class="set-sub">部署成网站后防止页面被挂起，回来补发错过的消息</div></span><button class="switch" id="sw-keep-alive"></button></div><div class="set-row"><span class="set-label">消息通知<div class="set-sub">对方来消息时用系统通知提醒；iOS 需先添加到主屏幕</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-notify-test" style="white-space:nowrap;">验证消息</button><button class="switch" id="sw-notify"></button></div></div><div class="set-row"><span class="set-label">来消息弹窗<div class="set-sub">App 内顶部弹出的提示条，点一下直达对应页面</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-pop-test" style="white-space:nowrap;">验证弹窗</button><button class="switch" id="sw-msgpop"></button></div></div>
-<div class="set-row"><span class="set-label">免打扰时段<div class="set-sub">这段时间不弹窗、不发系统通知；聊天页照常收到</div></span><button class="switch" id="sw-dnd"></button></div><div class="set-row"><span class="set-label">开始</span><button class="set-input dnd-time" id="set-dnd-start" style="width:142px;min-width:142px;font-size:14px;text-align:right;">23:00</button></div><div class="set-row"><span class="set-label">结束</span><button class="set-input dnd-time" id="set-dnd-end" style="width:142px;min-width:142px;font-size:14px;text-align:right;">07:00</button></div><div class="set-row"><span class="set-label">最快（分钟）<div class="set-sub">间隔在最快~最慢间随机，均填 0 关闭</div></span><input class="set-input" id="set-social-msg-min" type="number" min="0" max="1440" value="1"></div><div class="set-row"><span class="set-label">最慢（分钟）</span><input class="set-input" id="set-social-msg-max" type="number" min="0" max="1440" value="5"></div><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-08ry</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div><div class="set-row"><span class="set-label">网易云登录<div class="set-sub" id="ny-set-state">扫码登录后可在音乐页听 VIP 完整歌曲</div></span><button class="small-btn" id="btn-ny-login" style="font-size:12px;padding:6px 12px;">登录</button></div>
+<div class="set-row"><span class="set-label">免打扰时段<div class="set-sub">这段时间不弹窗、不发系统通知；聊天页照常收到</div></span><button class="switch" id="sw-dnd"></button></div><div class="set-row"><span class="set-label">开始</span><button class="set-input dnd-time" id="set-dnd-start" style="width:142px;min-width:142px;font-size:14px;text-align:right;">23:00</button></div><div class="set-row"><span class="set-label">结束</span><button class="set-input dnd-time" id="set-dnd-end" style="width:142px;min-width:142px;font-size:14px;text-align:right;">07:00</button></div><div class="set-row"><span class="set-label">最快（分钟）<div class="set-sub">间隔在最快~最慢间随机，均填 0 关闭</div></span><input class="set-input" id="set-social-msg-min" type="number" min="0" max="1440" value="1"></div><div class="set-row"><span class="set-label">最慢（分钟）</span><input class="set-input" id="set-social-msg-max" type="number" min="0" max="1440" value="5"></div><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-08rz</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div><div class="set-row"><span class="set-label">网易云登录<div class="set-sub" id="ny-set-state">扫码登录后可在音乐页听 VIP 完整歌曲</div></span><button class="small-btn" id="btn-ny-login" style="font-size:12px;padding:6px 12px;">登录</button></div>
       </div>
       </div>
       <div class="set-page">
@@ -8614,19 +8614,26 @@ function songSrcOf(song){
   }catch(e){return (song&&song.url)||"";}
 }
 var __backendProbe=0,__probeP=null; /* 0=未探测 1=是同源后端 -1=不是 */
+var __probeFailAt=0;
 function probeSameOriginBackend(){
-  if(__backendProbe!==0)return Promise.resolve();
-  if(__probeP)return __probeP;
+  /* 已知可用：1；纯本地文件：-1；还没试过或上次失败：0（可重试） */
+  if(__backendProbe===1)return Promise.resolve();
+  if(__backendProbe===-1)return Promise.resolve();
   if(!/^https?:$/.test(location.protocol)){__backendProbe=-1;return Promise.resolve();}
+  if(__probeP)return __probeP;
+  if(__probeFailAt&&Date.now()-__probeFailAt<4000)return Promise.resolve();  /* 失败后 4 秒内不重复打 */
   var ctl=null,to=null;
-  try{ctl=new AbortController();to=setTimeout(function(){try{ctl.abort();}catch(e){}},2500);}catch(e){}
+  try{ctl=new AbortController();to=setTimeout(function(){try{ctl.abort();}catch(e){}},8000);}catch(e){}
   __probeP=fetch(location.origin+"/api/netease/session",{method:"POST",mode:"cors",headers:{"Content-Type":"application/json","x-wns-client":"1"},body:"{}",signal:ctl?ctl.signal:undefined})
     .then(function(r){
       if(to)clearTimeout(to);
-      if(!r.ok){__backendProbe=-1;return;}
-      return r.json().then(function(d){__backendProbe=(d&&typeof d.code!=="undefined")?1:-1;});
+      if(!r.ok){__backendProbe=0;__probeFailAt=Date.now();__probeP=null;return;}
+      return r.json().then(function(d){
+        if(d&&typeof d.code!=="undefined"){__backendProbe=1;__probeFailAt=0;}
+        else{__backendProbe=0;__probeFailAt=Date.now();__probeP=null;}
+      });
     })
-    .catch(function(){if(to)clearTimeout(to);__backendProbe=-1;});
+    .catch(function(){if(to)clearTimeout(to);__backendProbe=0;__probeFailAt=Date.now();__probeP=null;});
   return __probeP;
 }
 /* 后端地址：优先用户填的；没填就看当前网站自己是否就是后端 */
@@ -9238,6 +9245,7 @@ var _163Warmed=false;
     return new Promise(function(res,rej){
       if(typeof backendAddr!=="function"){rej(new Error('no backend'));return;}
       backendAddr(function(base){
+        if(!base&&/^https?:$/.test(location.protocol))base=location.origin;  /* 探测没成功也直连本站试一次 */
         if(!base){rej(new Error('no backend'));return;}
         fetch(base+path,{method:'POST',mode:'cors',headers:{'Content-Type':'application/json','x-wns-client':'1'},
           body:JSON.stringify(data||{})}).then(function(r){return r.json().catch(function(){return {};});})
@@ -9404,7 +9412,8 @@ var _163Warmed=false;
         // 先判断是否有后端
         if(typeof backendAddr==='function'){
           backendAddr(function(base){
-            if(!base){ body.innerHTML='<div class="ny-empty">当前页面没有连上后端，扫码登录需要部署 server.js</div>'; return; }
+            if(!base&&/^https?:$/.test(location.protocol))base=location.origin;
+            if(!base){ body.innerHTML='<div class="ny-empty">当前页面没有连上后端（部署时 server.js 要和页面同一域名）</div>'; return; }
             nyRefresh(false);
           });
         }else{ body.innerHTML='<div class="ny-empty">当前页面没有连上后端</div>'; }
@@ -9412,8 +9421,12 @@ var _163Warmed=false;
     }).catch(function(){
       body.innerHTML='';
       var e=document.createElement('div'); e.className='ny-empty';
-      e.textContent='连不上后端（需要把 server.js 一起部署在同一域名）';
+      e.textContent='连不上后端，点下面重试（部署时 server.js 要和页面同一域名）';
       body.appendChild(e);
+      var rt=document.createElement('div'); rt.className='ny-acts';
+      var rb=document.createElement('button'); rb.className='pri'; rb.textContent='重试';
+      rb.addEventListener('click',function(){try{__backendProbe=0;__probeP=null;__probeFailAt=0;}catch(x){}nyOpen();});
+      rt.appendChild(rb); body.appendChild(rt);
     });
   }
 
@@ -13541,7 +13554,7 @@ init();
    不使用 Service Worker（避免缓存接管导致打不开/黑屏），只用“对比构建号 + 换 URL”这一招。 */
 (function(){
   if(!/^https?:$/.test(location.protocol))return;
-  var BUILD="2026-11-08ry";
+  var BUILD="2026-11-08rz";
   var KEY="app_build_reloaded";
   var busy=false;
   function go(url){location.replace(url+"&skipabout=1");}
