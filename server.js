@@ -473,8 +473,16 @@ const server = http.createServer((req, res) => {
     /* 根地址自动带上文件修改时间做版本号，浏览器永远拿不到旧缓存 */
     let v = "1";
     try { v = String(Math.floor(fs.statSync(path.join(ROOT, "index.html")).mtimeMs)); } catch (e) {}
-    res.writeHead(302, { Location: "/index.html?v=" + v });
+    res.writeHead(302, { Location: "/index.html?v=" + v, "Cache-Control": "no-store" });
     return res.end();
+  }
+  if (p === "/x" || p === "/x/") {
+    /* 备用入口：任何浏览器都不会命中旧缓存 */
+    try {
+      const buf = fs.readFileSync(path.join(ROOT, "index.html"));
+      res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store, no-cache, must-revalidate" });
+      return res.end(buf);
+    } catch (e) { res.writeHead(404); return res.end("not found"); }
   }
   if (p.startsWith("/api/netease/")) {
     res.__acao = req.headers.origin || "*";
