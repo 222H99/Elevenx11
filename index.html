@@ -171,6 +171,7 @@ body.av-square .msg-avatar,body.av-square #top-avatar-partner{border-radius:8px 
 .drawbox img{width:100%;border-radius:10px;display:block;}
 .msg-time{font-size:10px;opacity:.55;margin-top:3px;line-height:1;display:flex;align-items:center;gap:4px;color:#8E8E93;}
 .msg-active{display:inline-block;font-size:10px;padding:1px 6px;border-radius:8px;background:rgba(0,0,0,.07);color:#8E8E93;}
+.rv-tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:8px;background:rgba(0,0,0,.07);color:#8E8E93;line-height:1.2;}
 .msg-row.me .msg-time{justify-content:flex-end;}
 .msg-row.partner .msg-time{justify-content:flex-start;}
 .msg-read{font-size:10px;opacity:.9;}
@@ -1250,7 +1251,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-11vx">
+<meta name="app-build" content="2026-11-11wd">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -1282,6 +1283,10 @@ body.fs-1 .msg-active,
 body.fs-2 .msg-active,
 body.fs-3 .msg-active,
 body.fs-4 .msg-active{font-size:calc(10px * var(--fs))}
+body.fs-1 .rv-tag,
+body.fs-2 .rv-tag,
+body.fs-3 .rv-tag,
+body.fs-4 .rv-tag{font-size:calc(10px * var(--fs))}
 body.fs-1 .msg-read,
 body.fs-2 .msg-read,
 body.fs-3 .msg-read,
@@ -2820,7 +2825,7 @@ body.fs-4 .msg-more{font-size:calc(12px * var(--fs))}
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
       <div class="set-group"><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
-<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-11vx</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-11wd</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -3913,7 +3918,7 @@ body.fs-4 .msg-more{font-size:calc(12px * var(--fs))}
     <p>参考了 iPhone 桌面布置、网易云音乐播放界面，以及 Twitter 个人主页的信息层级排布。</p>
 
     <h2>特别感谢</h2>
-    <p>网易云扫码登录由（小红书 <b>@真的要睡了</b>，ID：3595793398）提供 AI 指令帮忙实现；站里不少细节与想法，来自（小红书 <b>@难道我像有钱的样子么</b>，ID：1562020530）的建议。</p>
+    <p>网易云扫码登录由（小红书 <b>@真的要早睡了</b>，ID：3595793398）提供 AI 指令帮忙实现；站里不少细节与想法，来自（小红书 <b>@难道我像有钱的样子么</b>，ID：1562020530）的建议。</p>
     <p>除以上标注内容外，网站其余功能均由本人独立设计与开发完成。</p>
 
     <h2>使用条款</h2>
@@ -3921,7 +3926,7 @@ body.fs-4 .msg-more{font-size:calc(12px * var(--fs))}
       <li><b>本站为免费网站</b>，不收取任何费用，也不接受任何形式的打赏或赞助。</li>
       <li><b>禁止二传链接</b> —— 未经原作者许可，不得将本站链接传播到其他平台或个人。</li>
       <li><b>禁止二改</b> —— 不得修改本站源码后进行发布或传播。自行本地修改仅供个人使用，不得对外分享。</li>
-      <li><b>发布截图须标注</b> —— 发布与本站相关的截图时，请标注 #字卡网站 和 Eleven×11。</li>
+      <li><b>发布截图须标注</b> —— 发布与本站相关的截图时，请标注 #字卡网站。</li>
       <li><b>禁止商业用途</b> —— 不得将本站或其衍生版本用于任何盈利性质的场景。</li>
       <li><b>禁止未成年人使用</b> —— 本站内容包含对话模拟功能，使用前请确认你已年满 18 周岁。</li>
       <li><b>后果自负</b> —— 作者不对使用本站产生的任何直接或间接后果负责。</li>
@@ -4167,26 +4172,20 @@ function msgPreviewText(m){
 /* ===== 更新公告：换了新版本时弹一次，设置里也能随时再看 ===== */
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
-  ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||"2026-11-11vx";}catch(e){return "2026-11-11vx";}})(),
+  ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||"2026-11-11wd";}catch(e){return "2026-11-11wd";}})(),
   date:"2026-11-11",
-  lead:"更新不一定都看得见。这次大多是用过之后才会觉得顺手的地方。",
+  lead:"这次修的都是「用起来会硌手」的地方，打开就能感觉到。",
   items:[
-    "聊天记录全部保留：往上滑能一直翻到第一条，不再只给最近一部分",
-    "打开和滑动都快了不少，记录再多也不会等很久",
-    "收到消息的提示音，换成和你发消息时一样的那一声；系统通知有单独一条，两条都能试听，也能换成自己上传的音频",
-    "后台来消息时，系统通知一定会弹出来，不会再被悄悄吞掉",
-    "「已读不回」和「撤回了一条消息」都做成气泡旁边的小标签，和「主动」一个样式；这两个显示都能在设置里关掉",
-    "对方撤回也能整体关掉，不想看到「已撤回」的话在设置里关一下就好",
-    "声明页重写了一遍：借鉴来源、页面布局、7 条使用条款、隐私说明和联系方式都补齐了",
-    "以后每次换新版本，会先弹一次声明页，读完再弹这次更新公告；公告在设置里随时能再看",
-    "从设置页返回聊天不再整屏闪一下；回到页面时也不会突然补响一条已经过时的提示音",
-    "一起听播放时，手机的系统播放卡片会显示这首歌的封面",
-    "聊天记录几千条的时候，打开聊天快了很多：先显示最近的消息，更早的随后自动补上，全程不用手动点",
-    "顺手修掉一个旧问题：老备份里少了某个数据块时，打开字卡页会报错",
-    "提示音分工理清了：页面开着时响的是「收到消息音」，系统通知那一层的声音只在切到后台时响，不会前后台叠着响两声",
-    "对方的消息不再挑类型：文字、图片、语音、表情包、拍一拍、动态、留言、来信、邀请、撤回，在后台都会弹一条系统通知（拍一拍和撤回只弹不出声）",
-    "分工定下来了：在后台就弹系统通知并响「系统通知提示音」，页面开着就弹顶部提示并响「收发提示音」；补发的消息和主动消息都按这套走",
-    "「已读 / 已读不回」改成按事实判断：对方回过的显示「已读」，没回的才显示小标签「已读不回」，对方一回复标签当场变成「已读」；三分钟内最多触发一次已读不回，不再满屏挂标签"
+    "一起听播放时，手机系统播放卡片不再自己暂停：保活用的静音音频不再和音乐抢音频会话，也不再每次切前后台就重置播放状态",
+    "播放、暂停、切歌时，系统卡片里的歌名和封面会跟着变，不会停在上一首",
+    "对方所有消息在后台都会弹系统通知：文字、图片、语音、表情包、拍一拍、邀请、问卷、红包、来信、动态、留言，主动消息和补发消息一样算",
+    "每次进入聊天页都会停在最新一条，不用自己往下滑；历史记录仍在往上滑时自动补齐",
+    "「已读 / 已读不回」按事实显示：对方回过的当场变成「已读」，没回的才挂小标签，三分钟内最多触发一次",
+    "「已撤回的原文」标签和「主动」一样大小、一样底色，不再一个偏大一个偏小",
+    "对方撤回只改那一行，不再整屏重绘；发消息、收消息也都只追加新行，屏幕不会闪",
+    "小播放卡片只在「播放状态或封面真的变了」时才重画，不再每 0.25 秒刷新一次图片",
+    "换新版本时会先弹一次声明页，读完再弹这页更新公告；从设置里也能随时再看",
+    "声明页的文字校对过一遍：感谢名单、使用条款和隐私说明都按最新这版显示"
   ],
   foot:"有问题或建议，可以在小红书 @Eleven_（ID：5609831119）找我。谢谢你还在这里。"
 };
@@ -5306,7 +5305,7 @@ function msgRowHTML(m){
   let html="";
       if(m.recalled){
         var _hasTxt=!!(m.text&&m.text.length)&&m.type!=="image"&&m.type!=="voice";
-        html+='<div class="msg-sys msg-recall"'+(_hasTxt&&m.from==="partner"?' data-rv="'+m.id+'" style="cursor:pointer"':'')+'>'+(m.from==="me"?"你撤回了一条消息":"对方撤回了一条消息")+(_hasTxt&&m.from==="partner"?' · 点这里展开':"")+'</div>';
+        html+='<div class="msg-sys msg-recall" data-id="'+m.id+'"'+(_hasTxt&&m.from==="partner"?' data-rv="'+m.id+'" style="cursor:pointer"':'')+'>'+(m.from==="me"?"你撤回了一条消息":"对方撤回了一条消息")+(_hasTxt&&m.from==="partner"?' · 点这里展开':"")+'</div>';
         return html;
       }
     if(m.type==="poke"){
@@ -5420,9 +5419,31 @@ function maybePartnerRecall(mid){
       }catch(e){}
       state.messages.forEach(function(x){if(x&&x.quoteId===mid)x.quoteId=null;});
       save();try{__flushSave();}catch(e){}
-      renderChat();
+      /* 聊天页正开着：只改那一行；开着别的页：留给下次进入时重绘 */
+      var _vc=document.getElementById("view-chat");
+      if(_vc&&_vc.classList.contains("open")){
+        if(!__refreshRecallRow(mid))renderChat();
+        try{if(state.settings.recallOn!==false)window.__chatDirty=false;}catch(e){}
+      }else{
+        window.__chatDirty=true;
+      }
     }catch(e){}
   },1800+Math.random()*2500);
+}
+/* 撤回时只就地替换这一行的气泡，不整屏重绘（整屏重绘在 iOS 上就是那一下闪屏） */
+function __refreshRecallRow(mid){
+  try{
+    var row=document.querySelector('#msglist [data-id="'+mid+'"]');
+    var m=msgById(mid);
+    if(!row||!m)return false;
+    var tmp=document.createElement("div");
+    tmp.innerHTML=msgRowHTML(m);
+    var nr=tmp.firstElementChild;
+    if(!nr)return false;
+    row.parentNode.replaceChild(nr,row);
+    try{bindChatRow(nr);}catch(e){}
+    return true;
+  }catch(e){return false;}
 }
 /* 对方回复后，把已经显示成「已读不回」的那几行就地改成「已读」 */
 function __refreshReadMarks(ids){
@@ -6312,8 +6333,8 @@ function pushMsg(from,type,text,opts){
   /* 后台时对方的任何一条消息（文字/图片/语音/表情/拍一拍/动态/留言/信/邀请）都要有系统弹窗，
      不因为类型是 sys/poke 就被跳过；同一条只弹一次，避免和下面的 maybeShowIncomingPop 重复 */
   try{
-    /* 分工：在后台就弹系统通知（含主动消息、补发消息）；页面开着就只弹顶部提示并响收发提示音 */
-    if(from==="partner"&&!opts.quiet&&document.hidden&&m.type!=="survey"){
+    /* 分工：在后台就弹系统通知——对方任何类型（文字/图片/语音/表情/拍一拍/动态/留言/信/邀请/问卷/红包）全弹，含主动与补发；页面开着就只弹顶部提示并响收发提示音 */
+    if(from==="partner"&&document.hidden){
       m.__notified=1;
       notifySystem(m,{silent:m.type==="poke"});
     }
@@ -6728,6 +6749,14 @@ function _keepArm(){
 }
 function startKeepAliveAudio(){
   if(!state||!state.settings||!state.settings.keepAlive)return;
+  /* 正在放歌时不要开振荡器：WebAudio 和音乐同时占用音频会话，iOS/安卓会把音乐当成被打断而暂停 */
+  try{
+    var _mm=document.getElementById("music-audio");
+    if(_mm&&!_mm.paused){
+      if(keepCtx&&keepCtx.state==="running"&&keepCtx.suspend)keepCtx.suspend();
+      return;
+    }
+  }catch(e){}
   if(!_keepArmed)_keepArm();
   try{if(keepCtx&&keepCtx.state==="suspended")keepCtx.resume();}catch(e){}
   /* 只维持音频会话（低频振荡器，人耳听不到），不放任何音频文件，也不碰 mediaSession */
@@ -6738,7 +6767,7 @@ function _keepMediaSession(on){
   try{
     if(!('mediaSession' in navigator))return;
     var m=document.getElementById("music-audio");
-    if(on&&m&&!m.paused)return;   /* 正在放歌时不抢媒体会话 */
+    if(m&&!m.paused)return;   /* 正在放歌时绝不碰媒体会话：清 metadata / playbackState=none 会让系统把歌停掉 */
     if(false){ /* 不再伪造播放卡片：保活时不让系统显示“正在播放” */
       if(window.MediaMetadata&&!navigator.mediaSession.metadata){
         navigator.mediaSession.metadata=new MediaMetadata({
@@ -6767,7 +6796,7 @@ function stopKeepAliveAudio(){
 }
 function syncKeepAliveAudio(){
   if(!state||!state.settings)return;
-  if(state.settings.keepAlive){startKeepAliveAudio();_keepMediaSession(false);}
+  if(state.settings.keepAlive){startKeepAliveAudio();}
   else stopKeepAliveAudio();
 }
 function resumeKeepAliveAudio(){syncKeepAliveAudio();}
@@ -8925,7 +8954,18 @@ function showView(id){
     try{var _ms=(state.musicPlaylist||[])[state.musicCur];if(_ms&&typeof warmSongUrl==="function")warmSongUrl(_ms);}catch(e){}}
   if(window.__resetKbShift)window.__resetKbShift();
   try{if(window.__placeMeDots)window.__placeMeDots();}catch(e){}
-  if(id==="view-chat"){newR=0;updateNewBadge();if(window.__chatDirty){window.__chatDirty=false;}renderChat();}
+  if(id==="view-chat"){
+    newR=0;updateNewBadge();
+    if(window.__chatDirty){window.__chatDirty=false;}
+    renderChat();
+    /* 每次进入聊天页都定位到最新一条：刚渲染完、下一帧、补历史继续插入后再各校正一次 */
+    try{
+      scroll();
+      requestAnimationFrame(function(){try{scroll();}catch(e){}});
+      setTimeout(function(){try{if($("msglist"))scroll();}catch(e){}},260);
+      setTimeout(function(){try{if($("msglist"))scroll();}catch(e){}},900);
+    }catch(e){}
+  }
   /* 通话：进聊天页恢复计时并还原成小弹窗/通话页；离开聊天页暂停计时但仍留小弹窗 */
   try{
     if(typeof call!=="undefined"&&call&&call.on&&call.status==="active"){
@@ -9271,10 +9311,19 @@ function refreshMiniPlayer(){
   // 缩小唱片：封面优先用用户设置的歌曲封面
   const cov=state.musicCoverImg;
   const pic=cov||(s&&s.cover);
-  /* 站内小卡片恢复原样：暂停显示 ▶，播放时才转成封面唱片 */
-  $("mp-disc").innerHTML=au.paused?'<span class="mp-dic" style="font-size:19px;">▶</span>':(pic?'<img src="'+pic+'" alt="">':'<span class="mp-dic">🎵</span>');
-  $("mp-disc").classList.toggle("spin",!au.paused);
-  try{__syncMediaSession();}catch(e){}
+  /* 站内小卡片恢复原样：暂停显示 ▶，播放时才转成封面唱片
+     注意：只在「播放状态/封面」真的变了才重建 innerHTML——timeupdate 每 250ms 调一次，
+     每次都换 <img> 会重新加载图片，画面就会一闪一闪 */
+  var _disc=$("mp-disc");
+  var _key=(au.paused?"p":"r")+"|"+state.musicCur+"|"+(pic||"");
+  if(_disc.__discKey!==_key){
+    _disc.__discKey=_key;
+    _disc.innerHTML=au.paused?'<span class="mp-dic" style="font-size:19px;">▶</span>':(pic?'<img src="'+pic+'" alt="">':'<span class="mp-dic">🎵</span>');
+    _disc.classList.toggle("spin",!au.paused);
+  }
+  /* 媒体元数据同理：内容没变就不重复写，避免系统播放卡片反复刷新 */
+  var _msKey=_key;
+  if(window.__msKey!==_msKey){window.__msKey=_msKey;try{__syncMediaSession();}catch(e){}}
   const d=au.duration||0;
   $("mp-fill").style.width=(d?Math.min(100,au.currentTime/d*100):0)+"%";
   $("mp-cur").textContent=fmtSec(au.currentTime);
@@ -9526,6 +9575,7 @@ function refreshMusicMedia(){
     var opts={title:title,artist:artist,album:"私密空间"};
     if(art)opts.artwork=[{src:art,sizes:"512x512",type:"image/png"}];
     navigator.mediaSession.metadata=new MediaMetadata(opts);
+    try{var _a=document.getElementById("music-audio");if(_a)navigator.mediaSession.playbackState=_a.paused?"paused":"playing";}catch(e){}
   }catch(e){}
 }
 function nextMusic(d){
@@ -9584,8 +9634,20 @@ var _163Warmed=false;
   au.addEventListener("loadedmetadata",()=>{try{$("m-dur").textContent=fmtSec(au.duration);}catch(e){}});
   au.addEventListener("durationchange",()=>{try{$("m-dur").textContent=fmtSec(au.duration);}catch(e){}});
   au.addEventListener("timeupdate",()=>{try{if($("music-lyric-sheet").classList.contains("show"))mlHighlight();}catch(e){}});
-  au.addEventListener("play",()=>{renderMusBtn();const d=$("music-disc");if(state.musicCur>=0)d.classList.add("spin");try{if($("mini-player").classList.contains("show"))refreshMiniPlayer();}catch(e){}});
-  au.addEventListener("pause",()=>{renderMusBtn();const d=$("music-disc");if(d)d.classList.remove("spin");try{if($("mini-player").classList.contains("show"))refreshMiniPlayer();}catch(e){}});
+  au.addEventListener("play",()=>{
+    renderMusBtn();const d=$("music-disc");if(state.musicCur>=0)d.classList.add("spin");
+    try{if($("mini-player").classList.contains("show"))refreshMiniPlayer();}catch(e){}
+    /* 音乐在播：系统播放卡片同步成 playing；同时让保活振荡器让出音频会话，避免和音乐抢导致被暂停 */
+    try{if("mediaSession" in navigator)navigator.mediaSession.playbackState="playing";}catch(e){}
+    try{if(keepCtx&&keepCtx.state==="running"&&keepCtx.suspend)keepCtx.suspend();}catch(e){}
+  });
+  au.addEventListener("pause",()=>{
+    renderMusBtn();const d=$("music-disc");if(d)d.classList.remove("spin");
+    try{if($("mini-player").classList.contains("show"))refreshMiniPlayer();}catch(e){}
+    try{if("mediaSession" in navigator)navigator.mediaSession.playbackState="paused";}catch(e){}
+    /* 停了歌，如果开着后台保活且在后台，再把静音振荡器接回来继续保活 */
+    try{if(state&&state.settings&&state.settings.keepAlive&&document.hidden)startKeepAliveAudio();}catch(e){}
+  });
   $("m-play").addEventListener("click",togglePlay);
   $("m-prev").addEventListener("click",()=>nextMusic(-1));
   $("m-next").addEventListener("click",()=>nextMusic(1));
@@ -12990,7 +13052,7 @@ function initLock(){
   // 已取消密码入口（持久化免密）→ 直接进入
   /* 免密标记单独存一个小键：state 是异步加载的，等它加载完再判断会晚一步，还是会先弹一次密码 */
   try{if(localStorage.getItem("lockFree")==="1"){state.settings.unlocked=true;}}catch(e){}
-  if(state.settings.unlocked){$("lock-screen").classList.remove("show");showView("view-me");setTimeout(function(){if(typeof askNotifyPrompt==="function")askNotifyPrompt();},4000);return;}
+  if(state.settings.unlocked){$("lock-screen").classList.remove("show");showView("view-me");setTimeout(function(){if(typeof askNotifyPrompt==="function")askNotifyPrompt();},4000);try{if(typeof maybeAnnounce==="function")setTimeout(maybeAnnounce,500);}catch(e){}return;}
   // 每次进入都要求输入密码
   $("lock-sub").textContent="Across the boundary of light and dark, together with you.";
   $("lock-btn").textContent="进入";
@@ -13044,6 +13106,8 @@ function unlockGo(){
   showView("view-me");
   // 进入主界面后延迟弹通知提示，避免开屏期间透出
   setTimeout(function(){if(typeof askNotifyPrompt==="function")askNotifyPrompt();},4000);
+  /* 锁屏关掉后再确保更新公告弹出来一次（换了新版本时） */
+  try{if(typeof maybeAnnounce==="function")setTimeout(maybeAnnounce,600);}catch(e){}
 }
 $("lock-btn").addEventListener("click",submitLock);
 $("lock-input").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();submitLock();}});
@@ -14427,7 +14491,7 @@ init();
    不使用 Service Worker（避免缓存接管导致打不开/黑屏），只用“对比构建号 + 换 URL”这一招。 */
 (function(){
   if(!/^https?:$/.test(location.protocol))return;
-  var BUILD="2026-11-11vx";
+  var BUILD="2026-11-11wd";
   var KEY="app_build_reloaded";
   var busy=false;
   function go(url){location.replace(url+"&skipabout=1");}
