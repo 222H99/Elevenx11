@@ -173,6 +173,7 @@ body.av-square .msg-avatar,body.av-square #top-avatar-partner{border-radius:8px 
 .drawbox{width:min(240px,74%);border:1px dashed var(--line);border-radius:14px;padding:6px;background:var(--bg2);box-sizing:border-box;}
 .drawbox img{width:100%;border-radius:10px;display:block;}
 .msg-time{font-size:10px;opacity:.55;margin-top:3px;line-height:1;display:flex;align-items:center;gap:4px;color:#8E8E93;}
+.mc-flash{background:rgba(0,122,255,.10)!important;border-radius:12px;transition:background .3s;}
 .msg-active{display:inline-block;font-size:10px;padding:1px 6px;border-radius:8px;background:rgba(0,0,0,.07);color:#8E8E93;}
 .rv-tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:8px;background:rgba(0,0,0,.07);color:#8E8E93;line-height:1.2;}
 .msg-row.me .msg-time{justify-content:flex-end;}
@@ -1086,7 +1087,7 @@ body.av-square .msg-avatar,body.av-square #top-avatar-partner{border-radius:8px 
 .mc-like.on svg{fill:var(--danger);}
 .mc-text{font-size:13px;color:var(--ttext);line-height:1.4;word-break:break-word;margin-top:1px;}
 .mc-sub{margin-top:2px;}
-.mc-emoji{height:auto;width:min(210px,62%);max-width:min(210px,62%);max-height:230px;object-fit:contain;display:block;margin:6px 0 2px;border-radius:10px;}
+.mc-emoji{height:auto;width:min(var(--em-px,210px),72%);max-width:min(var(--em-px,210px),72%);max-height:320px;object-fit:contain;display:block;margin:6px 0 2px;border-radius:10px;}
 #sticker-view{position:absolute;inset:0;background:rgba(0,0,0,.92);z-index:80;display:none;align-items:center;justify-content:center;}
 #sticker-view.show{display:flex;}
 #sticker-view img{max-width:92vw;max-height:86vh;object-fit:contain;border-radius:14px;}
@@ -1269,7 +1270,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-11zd">
+<meta name="app-build" content="2026-11-11zv">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -2781,11 +2782,11 @@ body.fs-4 .msg-more{font-size:calc(12px * var(--fs))}
       <!-- 主动发动态 -->
       <div class="set-sec-title">主动发动态</div>
       <div class="set-group"></div>
-      <div class="set-group"><div class="set-row"><span class="set-label">主动发动态概率（%）<div class="set-sub">他主动发新动态</div></span><input class="set-input" id="set-prob-moments" type="number" min="0" max="100" value="15"></div><div class="set-row"><span class="set-label">动态最快间隔（分钟）</span><input class="set-input" id="set-moments-min-min" type="number" min="1" max="1440" step="1" value="1"></div><div class="set-row"><span class="set-label">动态最慢间隔（分钟）</span><input class="set-input" id="set-moments-max-min" type="number" min="1" max="1440" step="1" value="5"></div><div class="set-row"><span class="set-label">补发上限（条/小时）<div class="set-sub">离开后回来一次最多补几条</div></span><input class="set-input" id="set-catch-moments" type="number" min="1" max="20" value="3"></div><div class="set-row"><span class="set-label">动态 · 字卡数最少<div class="set-sub">每条动态用几张字卡</div></span><input class="set-input" id="set-active-moments-count-min" type="number" min="1" max="20" value="1"></div><div class="set-row"><span class="set-label">动态 · 字卡数最多</span><input class="set-input" id="set-active-moments-count-max" type="number" min="1" max="20" value="3"></div><div class="set-row"><span class="set-label">动态 · 条数最少<div class="set-sub">一次触发发几条动态</div></span><input class="set-input" id="set-moment-burst-min" type="number" min="1" value="1"></div><div class="set-row"><span class="set-label">动态 · 条数最多<div class="set-sub">填多少就发多少，不设上限</div></span><input class="set-input" id="set-moment-burst-max" type="number" min="1" value="1"></div><div class="set-row"><span class="set-label">离开补发 · 每小时上限<div class="set-sub">离开/切后台回来，动态每小时最多补几条</div></span><input class="set-input" id="set-catch-moments-per-hour" type="number" min="1" max="60" value="3"></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">主动发动态概率（%）<div class="set-sub">他主动发新动态</div></span><input class="set-input" id="set-prob-moments" type="number" min="0" max="100" value="15"></div><div class="set-row"><span class="set-label">动态最快间隔（分钟）</span><input class="set-input" id="set-moments-min-min" type="number" min="1" max="1440" step="1" value="1"></div><div class="set-row"><span class="set-label">动态最慢间隔（分钟）</span><input class="set-input" id="set-moments-max-min" type="number" min="1" max="1440" step="1" value="5"></div><div class="set-row"><span class="set-label">动态 · 字卡数最少<div class="set-sub">每条动态用几张字卡</div></span><input class="set-input" id="set-active-moments-count-min" type="number" min="1" max="20" value="1"></div><div class="set-row"><span class="set-label">动态 · 字卡数最多</span><input class="set-input" id="set-active-moments-count-max" type="number" min="1" max="20" value="3"></div><div class="set-row"><span class="set-label">动态 · 条数最少<div class="set-sub">一次触发发几条动态</div></span><input class="set-input" id="set-moment-burst-min" type="number" min="1" value="1"></div><div class="set-row"><span class="set-label">动态 · 条数最多<div class="set-sub">填多少就发多少，不设上限</div></span><input class="set-input" id="set-moment-burst-max" type="number" min="1" value="1"></div><div class="set-row"><span class="set-label">离开补发 · 每小时上限<div class="set-sub">离开/切后台回来，动态每小时最多补几条</div></span><input class="set-input" id="set-catch-moments-per-hour" type="number" min="1" max="60" value="3"></div>
       </div>
       <!-- 主动评论 -->
       <div class="set-sec-title">主动评论</div>
-      <div class="set-group"><div class="set-row"><span class="set-label">主动评论概率（%）<div class="set-sub">他主动评论动态</div></span><input class="set-input" id="set-prob-moment-comment" type="number" min="0" max="100" value="15"></div><div class="set-row"><span class="set-label">文字+表情评论概率（%）<div class="set-sub">他评论时附带一个表情包</div></span><input class="set-input" id="set-prob-emoji-comment" type="number" min="0" max="100" value="25"></div><div class="set-row"><span class="set-label">评论最快时长（分钟）<div class="set-sub">多久着手上一条</div></span><input class="set-input" id="set-comment-min-min" type="number" min="1" max="1440" step="1" value="1"></div><div class="set-row"><span class="set-label">评论最慢时长（分钟）</span><input class="set-input" id="set-comment-max-min" type="number" min="1" max="1440" step="1" value="5"></div><div class="set-row"><span class="set-label">补发上限（条/小时）<div class="set-sub">离开后回来一次最多补几条</div></span><input class="set-input" id="set-catch-comment" type="number" min="1" max="20" value="3"></div><div class="set-row"><span class="set-label">字卡数最少<div class="set-sub">每条评论用几张字卡</div></span><input class="set-input" id="set-comment-card-min" type="number" min="1" max="20" value="1"></div><div class="set-row"><span class="set-label">字卡数最多</span><input class="set-input" id="set-comment-card-max" type="number" min="1" max="20" value="2"></div><div class="set-row"><span class="set-label">条数最少<div class="set-sub">一次触发发几条评论</div></span><input class="set-input" id="set-comment-n-min" type="number" min="1" max="20" value="1"></div><div class="set-row"><span class="set-label">条数最多</span><input class="set-input" id="set-comment-n-max" type="number" min="1" max="20" value="3"></div><div class="set-row"><span class="set-label">随机评论最新动态 · 最少<div class="set-sub">从最新几条动态里挑，默认 2 条</div></span><input class="set-input" id="set-comment-pick-min" type="number" min="1" max="3" value="2"></div><div class="set-row"><span class="set-label">随机评论最新动态 · 最多</span><input class="set-input" id="set-comment-pick-max" type="number" min="1" max="3" value="3"></div><div class="set-row"><span class="set-label">每条动态主动评论上限<div class="set-sub">同一条动态上他最多留几条评论</div></span><input class="set-input" id="set-comment-per-post-max" type="number" min="1" max="20" value="3"></div><div class="set-row"><span class="set-label">离开补发 · 每小时上限<div class="set-sub">离开/切后台回来，评论每小时最多补几条</div></span><input class="set-input" id="set-catch-comment-per-hour" type="number" min="1" max="60" value="3"></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">主动评论概率（%）<div class="set-sub">他主动评论动态</div></span><input class="set-input" id="set-prob-moment-comment" type="number" min="0" max="100" value="15"></div><div class="set-row"><span class="set-label">文字+表情评论概率（%）<div class="set-sub">他评论时附带一个表情包</div></span><input class="set-input" id="set-prob-emoji-comment" type="number" min="0" max="100" value="25"></div><div class="set-row"><span class="set-label">评论最快时长（分钟）<div class="set-sub">多久着手上一条</div></span><input class="set-input" id="set-comment-min-min" type="number" min="1" max="1440" step="1" value="1"></div><div class="set-row"><span class="set-label">评论最慢时长（分钟）</span><input class="set-input" id="set-comment-max-min" type="number" min="1" max="1440" step="1" value="5"></div><div class="set-row"><span class="set-label">字卡数最少<div class="set-sub">每条评论用几张字卡</div></span><input class="set-input" id="set-comment-card-min" type="number" min="1" max="20" value="1"></div><div class="set-row"><span class="set-label">字卡数最多</span><input class="set-input" id="set-comment-card-max" type="number" min="1" max="20" value="2"></div><div class="set-row"><span class="set-label">条数最少<div class="set-sub">一次触发发几条评论</div></span><input class="set-input" id="set-comment-n-min" type="number" min="1" max="20" value="1"></div><div class="set-row"><span class="set-label">条数最多</span><input class="set-input" id="set-comment-n-max" type="number" min="1" max="20" value="3"></div><div class="set-row"><span class="set-label">随机评论最新动态 · 最少<div class="set-sub">从最新几条动态里挑，默认 2 条</div></span><input class="set-input" id="set-comment-pick-min" type="number" min="1" max="3" value="2"></div><div class="set-row"><span class="set-label">随机评论最新动态 · 最多</span><input class="set-input" id="set-comment-pick-max" type="number" min="1" max="3" value="3"></div><div class="set-row"><span class="set-label">每条动态主动评论上限<div class="set-sub">同一条动态上他最多留几条评论</div></span><input class="set-input" id="set-comment-per-post-max" type="number" min="1" max="20" value="3"></div><div class="set-row"><span class="set-label">离开补发 · 每小时上限<div class="set-sub">离开/切后台回来，评论每小时最多补几条</div></span><input class="set-input" id="set-catch-comment-per-hour" type="number" min="1" max="60" value="3"></div>
       </div>
       <!-- 留言回复 -->
       <div class="set-sec-title">留言回复</div>
@@ -2793,7 +2794,7 @@ body.fs-4 .msg-more{font-size:calc(12px * var(--fs))}
       </div>
       <!-- 主动发留言 -->
       <div class="set-sec-title">主动发留言</div>
-      <div class="set-group"><div class="set-row"><span class="set-label">主动留言概率（%）</span><input class="set-input" id="set-prob-note" type="number" min="0" max="100" value="15"></div><div class="set-row"><span class="set-label">留言最快时长（分钟）</span><input class="set-input" id="set-note-min-min" type="number" min="1" max="1440" step="1" value="1"></div><div class="set-row"><span class="set-label">留言最慢时长（分钟）</span><input class="set-input" id="set-note-max-min" type="number" min="1" max="1440" step="1" value="5"></div><div class="set-row"><span class="set-label">补发上限（条/小时）<div class="set-sub">离开后回来一次最多补几条</div></span><input class="set-input" id="set-catch-note" type="number" min="1" max="20" value="3"></div><div class="set-row"><span class="set-label">留言 · 字卡数最少<div class="set-sub">每条留言用几张字卡</div></span><input class="set-input" id="set-active-note-count-min" type="number" min="1" max="20" value="1"></div><div class="set-row"><span class="set-label">留言 · 字卡数最多</span><input class="set-input" id="set-active-note-count-max" type="number" min="1" max="20" value="3"></div><div class="set-row"><span class="set-label">留言 · 条数最少<div class="set-sub">一次触发发几条留言</div></span><input class="set-input" id="set-note-burst-min" type="number" min="1" value="1"></div><div class="set-row"><span class="set-label">留言 · 条数最多<div class="set-sub">填多少就发多少，不设上限</div></span><input class="set-input" id="set-note-burst-max" type="number" min="1" value="1"></div><div class="set-row"><span class="set-label">离开补发 · 每小时上限<div class="set-sub">离开/切后台回来，留言每小时最多补几条</div></span><input class="set-input" id="set-catch-note-per-hour" type="number" min="1" max="60" value="3"></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">主动留言概率（%）</span><input class="set-input" id="set-prob-note" type="number" min="0" max="100" value="15"></div><div class="set-row"><span class="set-label">留言最快时长（分钟）</span><input class="set-input" id="set-note-min-min" type="number" min="1" max="1440" step="1" value="1"></div><div class="set-row"><span class="set-label">留言最慢时长（分钟）</span><input class="set-input" id="set-note-max-min" type="number" min="1" max="1440" step="1" value="5"></div><div class="set-row"><span class="set-label">留言 · 字卡数最少<div class="set-sub">每条留言用几张字卡</div></span><input class="set-input" id="set-active-note-count-min" type="number" min="1" max="20" value="1"></div><div class="set-row"><span class="set-label">留言 · 字卡数最多</span><input class="set-input" id="set-active-note-count-max" type="number" min="1" max="20" value="3"></div><div class="set-row"><span class="set-label">留言 · 条数最少<div class="set-sub">一次触发发几条留言</div></span><input class="set-input" id="set-note-burst-min" type="number" min="1" value="1"></div><div class="set-row"><span class="set-label">留言 · 条数最多<div class="set-sub">填多少就发多少，不设上限</div></span><input class="set-input" id="set-note-burst-max" type="number" min="1" value="1"></div><div class="set-row"><span class="set-label">离开补发 · 每小时上限<div class="set-sub">离开/切后台回来，留言每小时最多补几条</div></span><input class="set-input" id="set-catch-note-per-hour" type="number" min="1" max="60" value="3"></div>
       </div>
       <!-- 信件回复 -->
       <div class="set-sec-title">信件回复</div>
@@ -2843,7 +2844,7 @@ body.fs-4 .msg-more{font-size:calc(12px * var(--fs))}
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
       <div class="set-group"><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
-<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-11zd</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-11zv</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -4219,24 +4220,18 @@ function msgPreviewText(m){
 /* ===== 更新公告：换了新版本时弹一次，设置里也能随时再看 ===== */
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
-  ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||"2026-11-11zd";}catch(e){return "2026-11-11zd";}})(),
+  ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||"2026-11-11zv";}catch(e){return "2026-11-11zv";}})(),
   date:"2026-11-11",
-  lead:"这次修的都是「用起来会硌手」的地方，打开就能感觉到。",
+  lead:"这一版主要是让打开更快、更新更省心。",
   items:[
-    "一起听播放时，手机系统播放卡片不再自己暂停：保活用的静音音频不再和音乐抢音频会话，也不再每次切前后台就重置播放状态",
-    "播放、暂停、切歌时，系统卡片里的歌名和封面会跟着变，不会停在上一首",
-    "对方所有消息在后台都会弹系统通知：文字、图片、语音、表情包、拍一拍、邀请、问卷、红包、来信、动态、留言，主动消息和补发消息一样算",
-    "每次进入聊天页都会停在最新一条，不用自己往下滑；历史记录仍在往上滑时自动补齐",
-    "「已读 / 已读不回」按事实显示：对方回过的当场变成「已读」，没回的才挂小标签，三分钟内最多触发一次",
-    "「已撤回的原文」标签和「主动」一样大小、一样底色，不再一个偏大一个偏小",
-    "对方撤回只改那一行，不再整屏重绘；发消息、收消息也都只追加新行，屏幕不会闪",
-    "小播放卡片只在「播放状态或封面真的变了」时才重画，不再每 0.25 秒刷新一次图片",
-    "换新版本时会先弹一次声明页，读完再弹这页更新公告；从设置里也能随时再看",
-    "声明页的文字校对过一遍：感谢名单、使用条款和隐私说明都按最新这版显示",
-    "切页面也不再闪：聊天页改成「一直挂着、只隐藏」，还自己把壁纸画一遍，不再靠底层壁纸透过来",
-    "系统通知和提示音一起到：提示音改用常驻的音频元素，第一次点屏幕时就先解锁好，不再等回到页面才响"
+    "点开更快：先读本地缓存立刻出内容，同时后台把新版本下好",
+    "后台更新：切出去时自动换成新版，下次点开就是最新，不用手动检查",
+    "去掉开屏动画，点开直接进锁屏和主界面",
+    "主动发消息、动态、评论、留言按设置的间隔和概率发，不再到点必发",
+    "「已读不回」只影响那一条，之后的消息照常回复",
+    "补发按离开时长补，条数与时间都像真的在后台发生过"
   ],
-  foot:"有问题或建议，可以在小红书 @Eleven_（ID：5609831119）找我。谢谢你还在这里。"
+  foot:"有问题或建议：小红书 @Eleven_（ID：5609831119）。"
 };
 function renderAnnounce(){
   var v=document.getElementById("an-ver"),b=document.getElementById("an-body");
@@ -6321,6 +6316,8 @@ function schedulePartnerDecision(id){
     const claim=Math.random()*100>=_rej; // 对方可能领取，也可能拒领（概率可调）
     r.status=claim?"claimed":"declined";
     save();renderRedpackets();
+    /* 增量刷新聊天里那张红包卡片，不然一直停在「等待对方领取」 */
+    try{if(!__refreshRpRow(r.id)){if(window.__curView==="view-chat")renderChat();}}catch(e){}
     toast(claim?"对方领取了你的红包":"对方拒领了红包");
   },rand(2500,5500));
 }
@@ -6461,7 +6458,7 @@ function pushMsg(from,type,text,opts){
     if(!_q||_q.recalled)opts.quoteId=null;
   }
   const id="m"+(++state.seq);
-  const m={id:id,from:from,type:type,text:text,src:opts.src||"",dur:opts.dur||0,sched:!!opts.sched,time:Date.now(),quoteId:opts.quoteId||null,kind:opts.kind||"",active:!!opts.active,catchup:!!opts.catchup,read:from!=="me",recalled:false};
+  const m={id:id,from:from,type:type,text:text,src:opts.src||"",dur:opts.dur||0,sched:!!opts.sched,time:(Number(opts.time)||Date.now()),quoteId:opts.quoteId||null,kind:opts.kind||"",active:!!opts.active,catchup:!!opts.catchup,read:from!=="me",recalled:false};
   state.messages.push(m);
   try{
     if(type!=="sys"&&type!=="poke"&&!opts.quiet){
@@ -6920,20 +6917,16 @@ function scheduleActiveMsg(){
     }
     lastActiveMsgTime=Date.now();
     try{state.settings.lastActiveTime=lastActiveMsgTime;save();}catch(e){}
-    // 按设定时间必发一条主动内容：留言 / 来信 / 发动态（随机一种），不受是否打开网站/页面影响
-    const acts=[];
-    if(typeof maybePartnerLetter==="function")acts.push(()=>maybePartnerLetter(true));
-    if(typeof maybePartnerNote==="function")acts.push(()=>maybePartnerNote(true));
-    if(typeof maybePartnerMomentPost==="function")acts.push(()=>maybePartnerMomentPost(true));
-    if(acts.length)acts[Math.floor(Math.random()*acts.length)]();
+    /* 动态/留言/来信各自有自己的间隔定时器与概率，这里不再额外强制发一条，避免同一件事两套机制叠加 */
     if(typeof scheduleMoments==="function")scheduleMoments();
     if(typeof scheduleMomentComment==="function")scheduleMomentComment();
     if(typeof scheduleNote==="function")scheduleNote();
     // 每次在区间内随机取下一次间隔（分钟→毫秒）
-    const d=Math.round(rand(mn*60000,mx*60000));
+    /* 主动消息最短间隔下限 30 秒：设成 0 时也不至于连续刷屏（看起来像“才发两条回一大堆”） */
+    const d=Math.max(30000,Math.round(rand(mn*60000,mx*60000)));
     activeMsgTimer=setTimeout(tick,d);
   };
-  activeMsgTimer=setTimeout(tick,Math.round(rand(mn*60000,mx*60000)));
+  activeMsgTimer=setTimeout(tick,Math.max(30000,Math.round(rand(mn*60000,mx*60000))));
 }
 /* ===== 对方主动发动态：单独的最短/最长间隔 ===== */
 let momentsTimer=null;
@@ -6944,7 +6937,7 @@ function scheduleMoments(){
   if(!state.settings.unlocked)return;
   const next=()=>Math.round(rand(mn*60000,mx*60000));
   const tick=()=>{
-    try{if(typeof maybePartnerMomentPost==="function")maybePartnerMomentPost(true);}catch(e){}
+    try{if(typeof maybePartnerMomentPost==="function")maybePartnerMomentPost();}catch(e){}
     try{state.settings.lastMomentsTime=Date.now();save();}catch(e){}
     momentsTimer=setTimeout(tick,next());
   };
@@ -6957,7 +6950,7 @@ function scheduleMomentComment(){
   if(commentTimer){clearTimeout(commentTimer);commentTimer=null;}
   if(!state.settings.unlocked)return;
   const tick=()=>{
-    try{if(typeof maybePartnerMomentComment==="function")maybePartnerMomentComment(true);}catch(e){}
+    try{if(typeof maybePartnerMomentComment==="function")maybePartnerMomentComment();}catch(e){}
     try{state.settings.lastCommentTime=Date.now();save();}catch(e){}
     commentTimer=setTimeout(tick,commentDelay());
   };
@@ -6970,7 +6963,7 @@ function scheduleNote(){
   if(noteTimer){clearTimeout(noteTimer);noteTimer=null;}
   if(!state.settings.unlocked)return;
   const tick=()=>{
-    try{if(typeof maybePartnerNote==="function")maybePartnerNote(true);}catch(e){}
+    try{if(typeof maybePartnerNote==="function")maybePartnerNote();}catch(e){}
     try{state.settings.lastNoteTime=Date.now();save();}catch(e){}
     noteTimer=setTimeout(tick,noteDelay());
   };
@@ -7241,10 +7234,17 @@ function bgCatchUpChat(away){
     /* visibilitychange 和 pageshow 会在回前台时先后各触发一次，8 秒内只补一次，否则会“连续冒出两遍” */
     try{var _now=Date.now();if(window.__lastCatchUpAt&&(_now-window.__lastCatchUpAt)<8000)return;window.__lastCatchUpAt=_now;}catch(e){}
     var _mx=Math.max(0,Number(state.settings.socialMsgMax)||0);
+    var _mn=Math.max(0,Number(state.settings.socialMsgMin)||0);
     if(!(_mx>0))return;
-    var _n=1+Math.floor(Math.random()*2), _got=false;
-    /* 补发的消息也按正常来消息走：页面开着就弹顶部提示并响收到音，在后台就弹系统通知 */
-    for(var _i=0;_i<_n;_i++){var _t=partnerActiveMsgText();if(_t){_got=true;pushMsg("partner","text",_t,{catchup:true});}}
+    /* 按离开时长估算这段后台时间里本该来几条：离开 1 个平均间隔算 1 条，最多 8 条，避免一次刷屏 */
+    var _avg=Math.max(0.5,((_mx+_mn)/2||1))*60000;
+    var _n=Math.max(1,Math.min(8,Math.round(Number(away)/_avg)));
+    var _got=false;
+    /* 时间戳按后台时间轴分布（而不是进门这一秒一起冒出），回来看到的是“他刚才发过的” */
+    var _step=Math.max(5000,Math.floor(Number(away)/(_n+1)));
+    var _base=Date.now()-_step*_n;
+    try{var _lastT=state.messages.length?Number(state.messages[state.messages.length-1].time):0;if(_lastT&&_lastT>_base)_base=_lastT+1000;}catch(e){}
+    for(var _i=0;_i<_n;_i++){var _t=partnerActiveMsgText();if(_t){_got=true;pushMsg("partner","text",_t,{catchup:true,active:true,time:_base+_i*_step});}}
     if(_got){
       lastActiveMsgTime=Date.now();
       /* 只把新增的几条追加到列表末尾，不做整块重绘（重绘会让画面闪一下） */
@@ -7578,15 +7578,18 @@ function scheduleReply(){
     var _nrp=Math.min(100,Math.max(0,Number(state.settings.readNoReplyProb)||0));
     /* 冷却：三分钟内最多出现一次已读不回，避免连着发几条时密密麻麻全是「已读不回」 */
     var _coolOk=(Date.now()-(window.__lastNoReplyTs||0))>180000;
-    if(_nrp>0&&_coolOk&&Math.random()*100<_nrp){
+    var _forceReply=(window.__forceReplyNext===true);
+    if(_forceReply)window.__forceReplyNext=false;
+    if(_nrp>0&&_coolOk&&!_forceReply&&Math.random()*100<_nrp){
       window.__lastNoReplyTs=Date.now();
+      window.__forceReplyNext=true; /* 下一条我发的消息一定回复，避免一次「已读不回」之后聊天卡住 */
       markNoReply(_srcId);setTyping(false);__refreshReadState([_srcId]);save();return;
     }
     // 对方可能用"我"添加的表情包回复（图片消息）
     const eprob=Math.min(100,Math.max(0,Number(state.settings.emojiProb)||0));
     const emoPool=(state.partnerEmojis&&state.partnerEmojis.length)?state.partnerEmojis:[];
     if(emoPool.length&&eprob>0&&Math.random()*100<eprob){
-      clearNoReply(_srcId);
+      clearNoReply();
       const e=emoPool[Math.floor(Math.random()*emoPool.length)];
       var _eid=pushMsg("partner","image","",{src:e.src,kind:"emoji"});
       __chatAppendPartner(_eid);
@@ -7603,7 +7606,7 @@ function scheduleReply(){
       const myMine=state.messages.filter(m=>m.from==="me"&&!m.recalled&&!m.active&&(m.type==="text"||m.type==="image")).slice(-5);
       const qOn=!!state.settings.partnerQuote&&myMine.length>0;
       let delay=0;
-      clearNoReply(_srcId);
+      clearNoReply();
       picks.forEach(c=>{
         const qT=qOn?myMine[Math.floor(Math.random()*myMine.length)]:null;
         setTimeout(()=>{
@@ -8760,10 +8763,7 @@ $("set-note-max-min").addEventListener("change",e=>{state.settings.noteMaxMin=Ma
 $("set-active-note-count-min").addEventListener("change",e=>{state.settings.activeNoteCountMin=Math.max(1,Math.min(20,Number(e.target.value)||1));e.target.value=state.settings.activeNoteCountMin;save();});
 $("set-active-note-count-max").addEventListener("change",e=>{state.settings.activeNoteCountMax=Math.max(1,Math.min(20,Number(e.target.value)||1));e.target.value=state.settings.activeNoteCountMax;save();});
 
-[["set-catch-moments","catchMomentsPerHour"],["set-catch-comment","catchCommentPerHour"],["set-catch-note","catchNotePerHour"]].forEach(function(p){
-  var el=$(p[0]);if(!el)return;
-  el.addEventListener("change",function(){state.settings[p[1]]=Math.max(1,Math.min(20,Math.round(Number(el.value)||3)));el.value=state.settings[p[1]];save();toast("补发上限已设为 "+el.value+" 条/小时");});
-});$("set-active-letter-count-min").addEventListener("change",e=>{state.settings.activeLetterCountMin=Math.max(1,Math.min(20,Number(e.target.value)||1));e.target.value=state.settings.activeLetterCountMin;save();});
+$("set-active-letter-count-min").addEventListener("change",e=>{state.settings.activeLetterCountMin=Math.max(1,Math.min(20,Number(e.target.value)||1));e.target.value=state.settings.activeLetterCountMin;save();});
 $("set-active-letter-count-max").addEventListener("change",e=>{state.settings.activeLetterCountMax=Math.max(1,Math.min(20,Number(e.target.value)||1));e.target.value=state.settings.activeLetterCountMax;save();});
 $("set-active-moments-count-min").addEventListener("change",e=>{state.settings.activeMomentsCountMin=Math.max(1,Math.min(20,Number(e.target.value)||1));e.target.value=state.settings.activeMomentsCountMin;save();});
 $("set-active-moments-count-max").addEventListener("change",e=>{state.settings.activeMomentsCountMax=Math.max(1,Math.min(20,Number(e.target.value)||1));e.target.value=state.settings.activeMomentsCountMax;save();});
@@ -9389,7 +9389,7 @@ try{
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",_pw);else _pw();
 }catch(e){}
 function showView(id){
-  if(id==="view-settings"){try{renderPartnerStyleUI();}catch(e){}}
+  if(id==="view-settings"){try{requestAnimationFrame(function(){try{renderPartnerStyleUI();}catch(e){}});}catch(e){try{renderPartnerStyleUI();}catch(_){}}}
   /* 切页面/从后台回来先把通话计时刷成真实用时，避免看到停住的旧数字 */
   try{if(typeof call!=="undefined"&&call&&call.on&&call.status==="active"&&typeof callTick==="function")callTick();}catch(e){}
   if(id==="view-music"){["view-chat","view-me","view-cards","view-settings","view-letters","view-guestbook","view-moments","view-redpacket","view-game","view-couple"].forEach(function(v){if($(v).classList.contains("open"))_musicFrom=v;});}
@@ -9413,7 +9413,18 @@ function showView(id){
     }catch(e){}
   }catch(e){  ["view-chat","view-me","view-cards","view-settings","view-letters","view-guestbook","view-moments","view-redpacket","view-game","view-music","view-couple"].forEach(v=>$(v).classList.toggle("open",v===id));}
   if(id==="view-cards"){renderCards();try{renderLetterTpl();}catch(e){}}
-  if(id==="view-settings"){bindSetting();try{if(window.__applyChatSizes)window.__applyChatSizes();}catch(e){}if($("set-lockpwd"))$("set-lockpwd").value=state.settings.entryPwd||LOCK_DEFAULT;if(typeof renderStorageInfo==="function")setTimeout(renderStorageInfo,150);}
+  if(id==="view-settings"){
+    /* 先把页面切过去并让这一帧画出来，再补设置项的绑定与数值，点「设置」时不会先卡一下 */
+    try{requestAnimationFrame(function(){setTimeout(function(){
+      try{
+        bindSetting();
+        if(window.__applyChatSizes)window.__applyChatSizes();
+        if($("set-lockpwd"))$("set-lockpwd").value=state.settings.entryPwd||LOCK_DEFAULT;
+        if(typeof renderStorageInfo==="function")renderStorageInfo();
+      }catch(e){}
+    },0);});}catch(e){try{bindSetting();}catch(_){}}
+    if(typeof renderStorageInfo==="function")setTimeout(renderStorageInfo,150);
+  }
   if(id==="view-letters"){updateNewBadge();renderLetters();fillLetterComposer();maybePartnerLetter();}
   if(id==="view-me"){try{__ltReadApply();updateNewBadge();}catch(e){}}
   if(id==="view-guestbook"){newN=0;updateNewBadge();renderGuestbook();maybePartnerNote();$("gb-avatar").src=state.partner.avatar||avatarSvg("#5AC8FA");$("gb-name").textContent="@"+(state.profile.partnerMpName||state.partner.name||"对方");$("gb-prompt").textContent=state.settings.gbPrompt||"你说 我在听";}
@@ -10751,9 +10762,14 @@ var _163Warmed=false;
       list.innerHTML='<div class="ny-empty">正在读取曲目…</div>';
       backBtn.style.display='block';
       call('/api/netease/playlist/tracks',{id:String(p.id)}).then(function(d){
-        var songs=(d&&d.songs)||[];
+        /* 后端返回的字段是 tracks，早期只读 songs 会永远拿到空数组 */
+        var songs=(d&&(d.tracks||d.songs))||[];
         list.innerHTML='';
-        if(!songs.length){var e=document.createElement('div');e.className='ny-empty';e.textContent='这个歌单是空的或读取失败';list.appendChild(e);return;}
+        if(!songs.length){
+          var e=document.createElement('div');e.className='ny-empty';e.textContent=(d&&d.msg)||'这个歌单是空的或读取失败';list.appendChild(e);
+          var rb=document.createElement('button');rb.className='ny-retry';rb.textContent='重新读取曲目';
+          rb.addEventListener('click',function(){openTracks(p);});list.appendChild(rb);
+          backBtn.style.display='block';return;}
         songs.forEach(function(sg){
           var row=document.createElement('div'); row.className='ny-row';
           var im=document.createElement('img'); im.src=sg.cover||''; im.alt=''; row.appendChild(im);
@@ -10766,7 +10782,7 @@ var _163Warmed=false;
           row.appendChild(add);
           list.appendChild(row);
         });
-      }).catch(function(){list.innerHTML='<div class="ny-empty">读取失败，稍后再试</div>';});
+      }).catch(function(e){list.innerHTML='';var el=document.createElement('div');el.className='ny-empty';el.textContent='读取失败：'+((e&&e.message)||'连不上后端');list.appendChild(el);backBtn.style.display='block';});
     }
     backBtn.addEventListener('click',function(){
       // 重新拉歌单
@@ -12939,6 +12955,23 @@ function locateMoment(id){
   if(mpSide!==needSide){mpSide=needSide;renderMoments();setTimeout(function(){focusMomentCard(id);},200);return true;}
   return focusMomentCard(id);
 }
+function __flashMomentComment(mid,cid){
+  try{
+    if(!mid||!cid)return;
+    if(!mpViewOpen())return;
+    var row=document.querySelector('#moment-feed .moment-card[data-id="'+mid+'"] .mc-row[data-mc="'+cid+'"]');
+    if(!row){
+      /* 目标评论还没铺出来：把卡片的评论区整块补渲染一次再找 */
+      try{renderMoments();}catch(e){}
+      row=document.querySelector('#moment-feed .moment-card[data-id="'+mid+'"] .mc-row[data-mc="'+cid+'"]');
+    }
+    if(!row)return;
+    try{row.scrollIntoView({block:"center",behavior:"smooth"});}catch(e){try{row.scrollIntoView();}catch(_){}}
+    row.classList.add("mc-flash");
+    setTimeout(function(){try{row.classList.remove("mc-flash");}catch(e){}},1400);
+  }catch(e){}
+}
+window.__flashMomentComment=__flashMomentComment;
 function focusMomentCard(id){
   if(!id)return false;
   var card=document.querySelector('#moment-feed .moment-card[data-id="'+id+'"]');
@@ -12963,7 +12996,7 @@ function momUnreadAct(){return state.moments.filter(function(x){return x.unread&
 function updateMomBell(){
   var el=$("mom-unread");if(!el)return;
   var posts=momUnreadPost(),acts=momUnreadAct();
-  var show=mpSide==="me"&&(posts.length>0||acts.length>0);
+  var show=(posts.length>0||acts.length>0);
   el.classList.toggle("hidden",!show);
   if(!show){el.onclick=null;return;}
   if(acts.length){
@@ -12979,8 +13012,8 @@ function updateMomBell(){
       acts.forEach(function(m){m.unread=false;});
       save();
       var newest=acts.slice().sort(function(a,b){return b.time-a.time;})[0];
+      window._momentFocusId=newest.id;
       if(mpViewOpen()){locateMoment(newest.id);}
-      else{window._momentFocusId=newest.id;}
       updateMomBell();
     }else{
       // 对方真的发了新动态：打开对方主页并定位到最新一条
@@ -13043,14 +13076,59 @@ function renderComments(m){
 /* 动态列表的重绘签名：只算「条数 + 文本长度」时，点赞/评论数量变了签名不变，
    renderMoments 会直接 return → 点了赞心不亮、评论发完不显示（就是「主页无法点赞评论」） */
 function __sigMoments(arr){
+  /* 评论是楼中楼：签名必须递归到每一层，否则只改“回复的回复”时签名不变、界面不重绘，
+     表现就是「点了回复、回复没出现在被回复的位置」 */
+  function sigC(list){
+    var out="";
+    for(var j=0;j<(list||[]).length;j++){var c=list[j]||{};
+      out+=";"+((c.text||"").length)+":"+((c.likes||[]).length)+":"+((c.replies||[]).length)+":"+(c.emoji?1:0);
+      if(c.replies&&c.replies.length)out+="{"+sigC(c.replies)+"}";
+    }
+    return out;
+  }
   var a=arr||[],s=String(a.length);
   for(var i=0;i<a.length;i++){
     var m=a[i]||{};var cm=m.comments||[];
     s+="|"+(m.id||"")+":"+((m.text||"").length)+":"+(m.img?1:0)+":"+((m.likes||[]).length)+":"+cm.length;
-    for(var j=0;j<cm.length;j++){var c=cm[j]||{};s+=";"+((c.text||"").length)+":"+((c.likes||[]).length)+":"+((c.replies||[]).length);}
+    s+=sigC(cm);
   }
   return s;
 }
+/* 单条动态卡片的 HTML（整页渲染和“只刷新一张卡”共用同一份模板） */
+function __momentCardHTML(m){
+  const av=m.from==="me"?state.me.avatar:state.partner.avatar;
+  const nm=authorName(m.from);
+  const op=m.from==="partner"?" data-openp='1'":"";
+  const img=m.img?'<img class="moment-img" src="'+m.img+'" alt="">':'';
+  const liked=m.likes&&m.likes.indexOf("me")>-1;
+  const likeCnt=(m.likes&&m.likes.length)||0;
+  const repInd=replyCtx&&replyCtx.momentId===m.id?'<div class="mc-repind" data-ri="'+m.id+'">回复 <b>'+esc(replyCtx.name)+'</b><button data-ri-x>×</button></div>':'';
+  const ciOpen=replyCtx&&replyCtx.momentId===m.id;
+  return '<div class="moment-card" data-id="'+m.id+'"><div class="moment-head"><img class="mh-av" src="'+__blobUrl(av)+'"'+op+' alt=""><div class="mh-info"><div class="mh-name"'+op+'>'+esc(nm)+'</div><div class="mh-time">'+fmtTime(m.time)+'</div></div><button class="mdel" data-mdel="'+m.id+'">删除</button></div>'+img+'<div class="moment-caption">'+esc(m.text||"")+'</div><div class="moment-actions"><button class="ma-btn'+(liked?" liked":"")+'" data-like="'+m.id+'"><svg class="icon" style="fill:'+(liked?"currentColor":"none")+'"><use xlink:href="#i-heart"/></svg>'+(likeCnt?likeCnt:"赞")+'</button><button class="ma-btn" data-cm="'+m.id+'"><svg class="icon"><use xlink:href="#i-reply"/></svg>评论</button></div>'+renderComments(m)+repInd+'<div class="moment-comment-input'+(ciOpen?'':' hidden')+'" data-ci="'+m.id+'"><input class="text-input" value="'+esc(momentDraft[m.id]||"")+'" placeholder="'+(ciOpen?'回复 '+(replyCtx.name||'')+'…':'评论…')+'" maxlength="40" style="padding:6px 10px;"><button class="mc-emoji-btn" data-memoji="'+m.id+'">😊</button><button class="small-btn" style="padding:6px 12px;" data-csend="'+m.id+'">发送</button></div></div>';
+}
+/* 只重画一张动态卡片：点赞 / 评论 / 回复都不再整页重绘（动态多的时候这是最卡的一下） */
+window.__refreshMomentCard=function(mid){
+  try{
+    var feed=$("moment-feed");if(!feed)return false;
+    var m=(state.moments||[]).filter(function(x){return x.id===mid;})[0];if(!m)return false;
+    var node=feed.querySelector('.moment-card[data-id="'+mid+'"]');if(!node)return false;
+    var hadInput=!!node.querySelector('[data-ci] input:focus');
+    node.insertAdjacentHTML("afterend",__momentCardHTML(m));
+    var nn=node.nextElementSibling;node.parentNode.removeChild(node);
+    try{
+      if(window.__momCards){
+        var idx=-1;
+        for(var i=0;i<window.__momCards.length;i++){if(window.__momCards[i].indexOf('data-id="'+mid+'"')>=0){idx=i;break;}}
+        if(idx>-1)window.__momCards[idx]=__momentCardHTML(m);
+      }
+    }catch(e){}
+    try{if(replyCtx&&replyCtx.momentId===mid&&replyCtx.commentId){var tc=nn.querySelector('[data-mc="'+replyCtx.commentId+'"]');if(tc)tc.classList.add("mc-rep-target");}}catch(e){}
+    if(hadInput){var inp=nn.querySelector('[data-ci] input');if(inp){try{var l=inp.value.length;inp.focus();inp.setSelectionRange(l,l);}catch(e){}}}
+    /* 卡片已经是最新的了，把整页签名同步掉，后面再调 renderMoments 就不会整页重绘 */
+    try{if(window.__rSig)window.__rSig["mom"]="mom|"+(mpSide||"me")+"|"+__sigMoments(state.moments);}catch(e){}
+    return true;
+  }catch(e){return false;}
+};
 function renderMoments(){
   var _s="mom|"+(mpSide||"me")+"|"+__sigMoments(state.moments);
   if(!window.__rSig)window.__rSig={};
@@ -13072,17 +13150,7 @@ function renderMoments(){
   }
   const arr=base.slice().reverse();
   const wasFocus=momentFocusMid;
-  const _momCards=arr.map(m=>{
-    const av=m.from==="me"?state.me.avatar:state.partner.avatar;
-    const nm=authorName(m.from);
-    const op=m.from==="partner"?" data-openp='1'":"";
-    const img=m.img?'<img class="moment-img" src="'+m.img+'" alt="">':'';
-    const liked=m.likes&&m.likes.indexOf("me")>-1;
-    const likeCnt=(m.likes&&m.likes.length)||0;
-    const repInd=replyCtx&&replyCtx.momentId===m.id?'<div class="mc-repind" data-ri="'+m.id+'">回复 <b>'+esc(replyCtx.name)+'</b><button data-ri-x>×</button></div>':'';
-    const ciOpen=replyCtx&&replyCtx.momentId===m.id;
-    return '<div class="moment-card" data-id="'+m.id+'"><div class="moment-head"><img class="mh-av" src="'+__blobUrl(av)+'"'+op+' alt=""><div class="mh-info"><div class="mh-name"'+op+'>'+esc(nm)+'</div><div class="mh-time">'+fmtTime(m.time)+'</div></div><button class="mdel" data-mdel="'+m.id+'">删除</button></div>'+img+'<div class="moment-caption">'+esc(m.text||"")+'</div><div class="moment-actions"><button class="ma-btn'+(liked?" liked":"")+'" data-like="'+m.id+'"><svg class="icon" style="fill:'+(liked?"currentColor":"none")+'"><use xlink:href="#i-heart"/></svg>'+(likeCnt?likeCnt:"赞")+'</button><button class="ma-btn" data-cm="'+m.id+'"><svg class="icon"><use xlink:href="#i-reply"/></svg>评论</button></div>'+renderComments(m)+repInd+'<div class="moment-comment-input'+(ciOpen?'':' hidden')+'" data-ci="'+m.id+'"><input class="text-input" value="'+esc(momentDraft[m.id]||"")+'" placeholder="'+(ciOpen?'回复 '+(replyCtx.name||'')+'…':'评论…')+'" maxlength="40" style="padding:6px 10px;"><button class="mc-emoji-btn" data-memoji="'+m.id+'">😊</button><button class="small-btn" style="padding:6px 12px;" data-csend="'+m.id+'">发送</button></div></div>';
-  });
+  const _momCards=arr.map(__momentCardHTML);
   /* 动态先渲染最近 15 条，往下滚再续（100 条一次性铺开会明显拖慢进入主页） */
   window.__momCards=_momCards;window.__momShown=0;
   feed.innerHTML="";
@@ -13135,7 +13203,7 @@ function bindMomentFeed(){
     var lb=t.closest("[data-like]");
     if(lb){var m1=state.moments.find(function(x){return x.id===lb.dataset.like;});if(!m1)return;
       if(!m1.likes)m1.likes=[];var i1=m1.likes.indexOf("me");if(i1>-1)m1.likes.splice(i1,1);else m1.likes.push("me");
-      save();renderMoments();toast(i1>-1?"已取消点赞":"已点赞");return;}
+      save();if(!__refreshMomentCard(m1.id))renderMoments();toast(i1>-1?"已取消点赞":"已点赞");return;}
     var db=t.closest("[data-mdel]");
     if(db){e.stopPropagation();if(!confirm("删除这条动态？"))return;
       state.moments=state.moments.filter(function(x){return x.id!==db.dataset.mdel;});save();renderMoments();toast("动态已删除");return;}
@@ -13168,7 +13236,7 @@ function bindMomentFeed(){
     if(cl){var card2=cardOf(cl);if(!card2)return;var m2=state.moments.find(function(x){return x.id===card2.dataset.id;});if(!m2)return;
       var target=findComment(m2,cl.dataset.clike);if(!target)return;
       if(!target.likes)target.likes=[];var i2=target.likes.indexOf("me");if(i2>-1)target.likes.splice(i2,1);else target.likes.push("me");
-      save();renderMoments();toast(i2>-1?"已取消点赞这条评论":"已点赞这条评论");return;}
+      save();if(!__refreshMomentCard(card2.dataset.id))renderMoments();toast(i2>-1?"已取消点赞这条评论":"已点赞这条评论");return;}
     var sb=t.closest("[data-csend]");
     if(sb){var card3=cardOf(sb);var mid2=sb.dataset.csend;
       var ci3=card3?card3.querySelector('[data-ci="'+mid2+'"]'):null;
@@ -13178,7 +13246,7 @@ function bindMomentFeed(){
       if(!txt&&!emo)return;
       var m3=state.moments.find(function(x){return x.id===mid2;});if(!m3)return;
       if(!m3.comments)m3.comments=[];
-      var myCid=null;
+      var myCid=null,isRep=!!(replyCtx&&replyCtx.momentId===mid2&&replyCtx.commentId);
       if(replyCtx&&replyCtx.momentId===mid2&&replyCtx.commentId){
         var tgt=findComment(m3,replyCtx.commentId);
         if(tgt){if(!tgt.replies)tgt.replies=[];myCid=uid();tgt.replies.push({id:myCid,from:"me",text:txt,emoji:emo||undefined,time:Date.now(),likes:[]});}
@@ -13188,7 +13256,8 @@ function bindMomentFeed(){
       }
       if(inp3)inp3.value="";momentDraft[mid2]="";momentFocusMid=null;
       try{if(window.__commentEmoji)window.__commentEmoji[mid2]="";var eb2=card3?card3.querySelector('[data-memoji="'+mid2+'"]'):null;if(eb2)eb2.textContent="😊";}catch(_){}
-      save();renderMoments();toast(replyCtx&&replyCtx.commentId?"回复已发送":"评论已发送");
+      save();if(!__refreshMomentCard(mid2))renderMoments();toast(isRep?"回复已发送":"评论已发送");
+      __flashMomentComment(mid2,myCid);
       var rn=Math.max(1,Math.round(rand(Number(state.settings.replyCommentNMin)||1,Number(state.settings.replyCommentNMax)||1)));
       state.pendingCommentReplies=state.pendingCommentReplies||[];
       for(var i3=0;i3<rn;i3++){
@@ -13379,7 +13448,7 @@ function partnerLike(postId){
   if(m.likes.indexOf("partner")<0)m.likes.push("partner");
   // 点赞只更新角标，不自动滚动；定位只发生在用户点 🔔 提示条时
   newM++;updateNewBadge();
-  save();renderMoments();toast("对方赞了你的动态");
+  save();if(!__refreshMomentCard(postId))renderMoments();toast("对方赞了你的动态");
 }
 function __deliverCommentReply(rid,fallbackDue){
   try{
@@ -13420,10 +13489,12 @@ function partnerReplyComment(postId,targetCid,whenTs){
     })(m.comments||[]);
   }
   var _t=Number(whenTs)||Date.now();
+  var _newRid=null;
   if(myC){
     // 楼中楼（推特形态）：他的回复固定挂在我最新那条评论下面，并标注回复对象
     if(!myC.replies)myC.replies=[];
-    myC.replies.push({id:uid(),from:"partner",text:card,emoji:partnerCommentEmoji()||undefined,time:_t,likes:[],toMe:true});
+    _newRid=uid();
+    myC.replies.push({id:_newRid,from:"partner",text:card,emoji:partnerCommentEmoji()||undefined,time:_t,likes:[],toMe:true});
   }else{
     if(!m.comments)m.comments=[];
     m.comments.push({id:uid(),from:"partner",text:card,time:_t,likes:[],replies:[]});
@@ -13431,7 +13502,8 @@ function partnerReplyComment(postId,targetCid,whenTs){
   // 对方回复我的评论：主页顶部 🔔“有新回复（N）· 点击查看”，点击时才定位到对应动态
   m.unread=true;m.unreadKind="reply";
   newM++;updateNewBadge();
-  save();renderMoments();toast("对方回复了你的评论");save();
+  save();if(!__refreshMomentCard(postId))renderMoments();toast("对方回复了你的评论");save();
+  setTimeout(function(){__flashMomentComment(postId,_newRid||targetCid);},60);
 }
 function partnerCommentEmoji(){
   try{
@@ -13451,7 +13523,7 @@ function partnerComment(postId){
   // 对方主动评论：🔔“有新评论（N）· 点击查看”，点击时才定位
   m.unread=true;m.unreadKind="comment";
   newM++;updateNewBadge();
-  save();renderMoments();toast("对方评论了你的动态");save();
+  save();if(!__refreshMomentCard(postId))renderMoments();toast("对方评论了你的动态");save();
 }
 function maybePartnerMomentPost(force){
   // 对方主动发新动态：一次触发按设置发 N 条，每条用 1~N 张字卡拼成
@@ -13555,9 +13627,9 @@ function initAbout(){
       var _v0=document.getElementById("__veil");
       if(_v0){_v0.style.transition="opacity .2s";_v0.style.opacity="0";setTimeout(function(){if(_v0&&_v0.parentNode)_v0.parentNode.removeChild(_v0);},260);}
     }catch(e){}
-    try{startOpening();}catch(e){}
+    /* 不再播开屏动画：直接进锁屏/主界面，点开就是内容 */
     $("about-screen").classList.remove("show");
-    setTimeout(initLock,1000);
+    initLock();
     return;
   }
   $("about-screen").classList.add("show");
@@ -13600,12 +13672,9 @@ function initAbout(){
     if(btn.disabled)return;
     try{localStorage.setItem("__aboutAck",__curBuild||"1");}catch(e){}
     var _go=function(){
-      // 先隐藏主界面，再关声明页，避免主界面先露一下
-      try{document.body.classList.add("splash-on");}catch(e){}
-      try{startOpening();}catch(e){}
+      /* 声明页读完直接进锁屏，不再走开屏动画 */
       $("about-screen").classList.remove("show");
-      // 延迟到开屏动画完全淡入后再弹锁屏，避免锁屏先闪一帧
-      setTimeout(initLock, 1000);
+      initLock();
     };
     /* 点“同意并进入”时先比一次构建号：有新版本就带 skipabout 重载（声明只出现这一次），否则正常进入 */
     if(window.__checkBuildThen)window.__checkBuildThen(_go);else _go();
@@ -15063,7 +15132,7 @@ init();
    不使用 Service Worker（避免缓存接管导致打不开/黑屏），只用“对比构建号 + 换 URL”这一招。 */
 (function(){
   if(!/^https?:$/.test(location.protocol))return;
-  var BUILD="2026-11-11zd";
+  var BUILD="2026-11-11zv";
   var KEY="app_build_reloaded";
   var busy=false;
   function go(url){location.replace(url+"&skipabout=1");}
@@ -15751,6 +15820,19 @@ try{
     if(!("serviceWorker" in navigator))return;
     if(!/^https:/i.test(location.protocol)&&location.hostname!=="localhost"&&location.hostname!=="127.0.0.1")return;
     navigator.serviceWorker.register("./sw.js",{scope:"./"}).catch(function(){});
+    /* 后台发现新版本：记下来，等切到后台时静默重载成新版（下次点开就是最新） */
+    navigator.serviceWorker.addEventListener("message",function(ev){
+      try{
+        var d=ev&&ev.data;if(!d||d.type!=="build"||!d.ver)return;
+        var cur=(document.querySelector('meta[name="app-build"]')||{}).content||"";
+        if(cur&&d.ver===cur)return;
+        window.__pendingBuild=d.ver;
+        if(document.hidden){location.reload();}
+      }catch(e){}
+    });
+    document.addEventListener("visibilitychange",function(){
+      try{if(document.hidden&&window.__pendingBuild)location.reload();}catch(e){}
+    });
   }catch(e){}
 })();
 </script>
