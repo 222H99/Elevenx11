@@ -1250,7 +1250,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-11vk">
+<meta name="app-build" content="2026-11-11vx">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -2807,7 +2807,7 @@ body.fs-4 .msg-more{font-size:calc(12px * var(--fs))}
       <!-- 主动发消息 -->
       <!-- 通知与后台 -->
       <div class="set-sec-title">通知与后台</div>
-      <div class="set-group"><div class="set-row"><span class="set-label">后台保活<div class="set-sub">部署成网站后防止页面被挂起，回来补发错过的消息</div></span><button class="switch" id="sw-keep-alive"></button></div><div class="set-row"><span class="set-label">消息通知<div class="set-sub">对方来消息时用系统通知提醒；iOS 需先添加到主屏幕</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-notify-test" style="white-space:nowrap;">验证消息</button><button class="switch" id="sw-notify"></button></div></div><div class="set-row"><span class="set-label">通知状态<div class="set-sub" id="notify-diag">检查中…</div></span></div><div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;"><span class="set-label">系统通知提示音<div class="set-sub">后台来消息发通知时响；默认「苹果微信」消息提示音，可上传自己的音频替换</div></span><div class="snd-ops" style="justify-content:flex-end;margin-left:0;"><button class="small-btn ghost" id="btn-notify-snd-test">试听</button><button class="small-btn ghost" id="btn-notify-snd-up">上传</button><button class="switch on" id="sw-notify-snd"></button></div></div><input type="file" id="file-notify-snd" accept="audio/*" hidden><div class="set-row"><span class="set-label">后台也响提示音<div class="set-sub">默认开：后台来消息时系统通知会响这一声（只有这一两秒的提示音，不是持续播放）。关掉后后台完全静音，只在页面里响</div></span><button class="switch" id="sw-bg-sound"></button></div><div class="set-row"><span class="set-label">来消息弹窗<div class="set-sub">App 内顶部弹出的提示条，点一下直达对应页面</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-pop-test" style="white-space:nowrap;">验证弹窗</button><button class="switch" id="sw-msgpop"></button></div></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">后台保活<div class="set-sub">部署成网站后防止页面被挂起，回来补发错过的消息</div></span><button class="switch" id="sw-keep-alive"></button></div><div class="set-row"><span class="set-label">消息通知<div class="set-sub">对方来消息时用系统通知提醒；iOS 需先添加到主屏幕</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-notify-test" style="white-space:nowrap;">验证消息</button><button class="switch" id="sw-notify"></button></div></div><div class="set-row"><span class="set-label">通知状态<div class="set-sub" id="notify-diag">检查中…</div></span></div><div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;"><span class="set-label">系统通知提示音<div class="set-sub">后台来消息发通知时响；默认「苹果微信」消息提示音，可上传自己的音频替换</div></span><div class="snd-ops" style="justify-content:flex-end;margin-left:0;"><button class="small-btn ghost" id="btn-notify-snd-test">试听</button><button class="small-btn ghost" id="btn-notify-snd-up">上传</button><button class="switch on" id="sw-notify-snd"></button></div></div><input type="file" id="file-notify-snd" accept="audio/*" hidden><div class="set-row"><span class="set-label">后台也响提示音<div class="set-sub">开：切到后台后页面会尽量自己响一声（iOS 把页面挂起之后页面发不出声，此时只剩系统通知，而 iPhone 的网页通知本身不带声音）。关：后台完全不响</div></span><button class="switch" id="sw-bg-sound"></button></div><div class="set-row"><span class="set-label">来消息弹窗<div class="set-sub">App 内顶部弹出的提示条，点一下直达对应页面</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-pop-test" style="white-space:nowrap;">验证弹窗</button><button class="switch" id="sw-msgpop"></button></div></div></div>
       <!-- 免打扰 -->
       <div class="set-sec-title">免打扰</div>
       <div class="set-group"><div class="set-row"><span class="set-label">免打扰时段<div class="set-sub">这段时间不弹窗、不发系统通知；聊天页照常收到</div></span><button class="switch" id="sw-dnd"></button></div><div class="set-row"><span class="set-label">开始</span><button class="set-input dnd-time" id="set-dnd-start" style="width:142px;min-width:142px;font-size:14px;text-align:right;">23:00</button></div><div class="set-row"><span class="set-label">结束</span><button class="set-input dnd-time" id="set-dnd-end" style="width:142px;min-width:142px;font-size:14px;text-align:right;">07:00</button></div></div>
@@ -2820,7 +2820,7 @@ body.fs-4 .msg-more{font-size:calc(12px * var(--fs))}
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
       <div class="set-group"><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
-<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-11vk</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-11vx</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -3986,15 +3986,26 @@ function avatarSvg(color){
   const svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="'+color+'"/><circle cx="50" cy="38" r="17" fill="#fff" opacity=".9"/><path d="M20 84c0-18 14-28 30-28s30 10 30 28z" fill="#fff" opacity=".9"/></svg>';
   return "data:image/svg+xml,"+encodeURIComponent(svg);
 }
+var __ftK=-1,__ftV="";
 function fmtTime(ts){
+  var _k=Math.floor(ts/60000);
+  if(_k===__ftK)return __ftV;
   const d=new Date(ts),p=n=>("0"+n).slice(-2);
   const today=new Date();
   const sameDay=d.getFullYear()===today.getFullYear()&&d.getMonth()===today.getMonth()&&d.getDate()===today.getDate();
   const hm=p(d.getHours())+":"+p(d.getMinutes());
-  if(sameDay) return hm;
-  return (d.getMonth()+1)+"月"+d.getDate()+"日 "+hm;
+  __ftK=_k;
+  __ftV=sameDay?hm:((d.getMonth()+1)+"月"+d.getDate()+"日 "+hm);
+  return __ftV;
 }
-function dayKey(ts){const d=new Date(ts);return d.getFullYear()+"-"+d.getMonth()+"-"+d.getDate();}
+var __dkK=-1,__dkV="",__dkD=new Date();
+function dayKey(ts){
+  if(ts===__dkK)return __dkV;
+  __dkD.setTime(ts);
+  __dkK=ts;
+  __dkV=__dkD.getFullYear()+"-"+__dkD.getMonth()+"-"+__dkD.getDate();
+  return __dkV;
+}
 function dayLabel(ts){
   const d=new Date(ts);
   const today=new Date();const yest=new Date(Date.now()-864e5);
@@ -4156,7 +4167,7 @@ function msgPreviewText(m){
 /* ===== 更新公告：换了新版本时弹一次，设置里也能随时再看 ===== */
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
-  ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||"2026-11-11vk";}catch(e){return "2026-11-11vk";}})(),
+  ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||"2026-11-11vx";}catch(e){return "2026-11-11vx";}})(),
   date:"2026-11-11",
   lead:"更新不一定都看得见。这次大多是用过之后才会觉得顺手的地方。",
   items:[
@@ -4167,7 +4178,15 @@ var ANNOUNCE={
     "「已读不回」和「撤回了一条消息」都做成气泡旁边的小标签，和「主动」一个样式；这两个显示都能在设置里关掉",
     "对方撤回也能整体关掉，不想看到「已撤回」的话在设置里关一下就好",
     "声明页重写了一遍：借鉴来源、页面布局、7 条使用条款、隐私说明和联系方式都补齐了",
-    "以后每次换新版本，会先弹一次声明页，读完再弹这次更新公告；公告在设置里随时能再看"
+    "以后每次换新版本，会先弹一次声明页，读完再弹这次更新公告；公告在设置里随时能再看",
+    "从设置页返回聊天不再整屏闪一下；回到页面时也不会突然补响一条已经过时的提示音",
+    "一起听播放时，手机的系统播放卡片会显示这首歌的封面",
+    "聊天记录几千条的时候，打开聊天快了很多：先显示最近的消息，更早的随后自动补上，全程不用手动点",
+    "顺手修掉一个旧问题：老备份里少了某个数据块时，打开字卡页会报错",
+    "提示音分工理清了：页面开着时响的是「收到消息音」，系统通知那一层的声音只在切到后台时响，不会前后台叠着响两声",
+    "对方的消息不再挑类型：文字、图片、语音、表情包、拍一拍、动态、留言、来信、邀请、撤回，在后台都会弹一条系统通知（拍一拍和撤回只弹不出声）",
+    "分工定下来了：在后台就弹系统通知并响「系统通知提示音」，页面开着就弹顶部提示并响「收发提示音」；补发的消息和主动消息都按这套走",
+    "「已读 / 已读不回」改成按事实判断：对方回过的显示「已读」，没回的才显示小标签「已读不回」，对方一回复标签当场变成「已读」；三分钟内最多触发一次已读不回，不再满屏挂标签"
   ],
   foot:"有问题或建议，可以在小红书 @Eleven_（ID：5609831119）找我。谢谢你还在这里。"
 };
@@ -4231,7 +4250,7 @@ function paintNotifyDiag(){
     }).catch(function(){});
   }catch(e){}
 }
-function notifySystem(m){
+function notifySystem(m,opts){
   if(typeof window.__inDND==="function"&&window.__inDND())return;
   /* 没有通知权限时不静默：退回 App 内弹窗，保证「总有一个提示」 */
   if(!("Notification" in window)||Notification.permission!=="granted"){
@@ -4239,12 +4258,13 @@ function notifySystem(m){
     try{if(typeof maybeShowIncomingPop==="function")maybeShowIncomingPop(m,true);}catch(e){}
     return;
   }
+  var _sil=!!(opts&&opts.silent);
   try{
     const nm=(state.partner&&state.partner.name)||"对方";
     let body="";
     body=msgPreviewText(m)||"来消息了";
     __notifyIcon().then(function(ic){
-      var opt={body:body,icon:ic||undefined,silent:false,tag:"eleven-msg-"+Date.now()};
+      var opt={body:body,icon:ic||undefined,silent:_sil,tag:"eleven-msg-"+Date.now()};
       try{
         if(navigator.serviceWorker){
           /* 必须等 Service Worker 真正激活（ready），否则 iOS 上 getRegistration 可能还是 null，
@@ -4258,7 +4278,13 @@ function notifySystem(m){
       }catch(e){}
       try{new Notification(nm,opt);}catch(e){}
     });
-    try{window.__playNotifySound&&window.__playNotifySound();}catch(e){}
+    /* 系统通知提示音只在后台响：页面开着时听到的是「收到消息音」，不重复响这一声 */
+    /* 系统通知提示音只在后台响，且受「后台也响提示音」开关控制；页面开着时只响收到消息音 */
+    try{
+      if(!_sil&&document.hidden&&!(state&&state.settings&&state.settings.bgSoundOn===false)){
+        window.__playNotifySound&&window.__playNotifySound();
+      }
+    }catch(e){}
   }catch(e){}
 }
 /* 通知权限：未开启时每次打开提醒，最多 6 次，直到用户允许 */
@@ -4295,7 +4321,7 @@ function maybeShowIncomingPop(m,force){
   if(!force&&typeof window.__inDND==="function"&&window.__inDND()){var _p0=$("incoming-pop");if(_p0)_p0.classList.remove("show");return;}
   if(!force&&window.__suppressPop)return;
   if(!m||m.from!=="partner"||m.type==="sys")return;
-  if(!force&&document.hidden){notifySystem(m);return;} // 滑出网站/后台 → 系统通知
+  if(!force&&document.hidden){if(!m.__notified)notifySystem(m,{silent:m.type==="poke"});return;} // 滑出网站/后台 → 系统通知
   if(!force&&$("view-chat")&&$("view-chat").classList.contains("open"))return;
   const av=$("ip-av"),nm=$("ip-name"),tx=$("ip-text"),tm=$("ip-time");
   if(av)av.src=(state.partner&&state.partner.avatar)||avatarSvg("#5AC8FA");
@@ -4754,6 +4780,32 @@ function preloadCp2Images(){
   }catch(e){}
 }
 function aboutLoadStatus(t){var el=document.getElementById("about-load-status");if(el)el.textContent=t;}
+/* 旧备份或写了一半的数据可能缺某个集合，先补齐，避免打开字卡/动态页直接报错 */
+function __healState(){
+  try{
+    ["messages","redpackets","cards","groups","letters","moments","emojis","partnerEmojis","hostMsgs","songs"].forEach(function(k){
+      if(!Array.isArray(state[k]))state[k]=[];
+    });
+    /* 老记录没有 answered 字段：按「它之后有没有对方的回复」补算一次，
+       这样「已读 / 已读不回」在历史消息上也显示正确 */
+    try{
+      var _ms=state.messages||[],_seenReply=false;
+      for(var _i=_ms.length-1;_i>=0;_i--){
+        var _m=_ms[_i];if(!_m)continue;
+        if(_m.from==="partner"&&(_m.type==="text"||_m.type==="image")&&!_m.active){_seenReply=true;continue;}
+        if(_m.from==="me"&&_m.type!=="sys")_m.answered=!!_seenReply;
+      }
+    }catch(e){}
+    /* 序号丢了会让新消息 id 变成 mNaN、互相覆盖，这里按现有最大编号补一个 */
+    try{
+      var _mxSeq=0;
+      (state.messages||[]).forEach(function(x){var n=parseInt(String(x&&x.id||"").replace(/^m/,""),10);if(isFinite(n)&&n>_mxSeq)_mxSeq=n;});
+      if(!isFinite(Number(state.seq))||Number(state.seq)<_mxSeq)state.seq=_mxSeq+1;
+    }catch(e){}
+    if(!state.settings||typeof state.settings!=="object")state.settings={};
+    if(!state.profile||typeof state.profile!=="object")state.profile={};
+  }catch(e){}
+}
 async function init(){
   aboutLoadStatus("正在读取本地记录…");
   try{const l=localStorage.getItem("privateChat");if(l)state=migrate(JSON.parse(l));}catch(_){}
@@ -4765,6 +4817,7 @@ async function init(){
     });
   }catch(_){}
   state=migrate(state);
+  __healState();
   try{__ltReadApply();}catch(e){}
   try{__prefApply();}catch(e){}
   /* 首屏只做皮肤和顶栏：完整渲染等 IndexedDB 读完再做一次，避免启动时同一套界面渲染两遍 */
@@ -5279,7 +5332,7 @@ function msgRowHTML(m){
       }else{
         act='<div class="invite-wait">'+(m.status==="accepted"?(isMe?"对方接受了邀请 ✓":"你接受了邀请 ✓"):(m.status==="cancelled"?"你取消了邀请 ✕":(isMe?"对方拒绝了邀请 ✕":"你拒绝了邀请 ✕")))+'</div>';
       }
-      html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" loading="lazy" decoding="async" src="'+esc(__blobUrl(isMe?state.me.avatar:state.partner.avatar))+'" alt=""><div class="msg-col"><div class="invite-card"><div class="invite-title">'+tTitle+'</div><div class="invite-sub">'+tSub+'</div><div class="invite-act">'+act+'</div></div></div></div>';
+      html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="async" src="'+esc(__blobUrl(isMe?state.me.avatar:state.partner.avatar))+'" alt=""><div class="msg-col"><div class="invite-card"><div class="invite-title">'+tTitle+'</div><div class="invite-sub">'+tSub+'</div><div class="invite-act">'+act+'</div></div></div></div>';
       return html;
     }
     const side=m.from==="me"?"me":"partner";
@@ -5290,13 +5343,13 @@ function msgRowHTML(m){
     if(m.active&&!isMe&&state.settings.showActiveTag!==false)meta+='<span class="msg-active">主动</span>';
     if(isMe&&state.settings.readReceipt){
       /* 已读不回：和「主动」一样用气泡下的小标签；没有这个状态时才显示「已读 / 已送达」文字 */
-      if(m.read&&m.noReply&&state.settings.showReadNoreply!==false)meta+='<span class="msg-noreply">已读不回</span>';
+      if(m.read&&!m.answered&&state.settings.showReadNoreply!==false)meta+='<span class="msg-noreply">已读不回</span>';
       else meta+='<span class="msg-read">'+(m.read?"已读":"已送达")+'</span>';
     }
     meta+=fmtTime(m.time)+'</div>';
     if(m.type==="image"&&m.kind!=="emoji"&&m.kind!=="draw"){
       // 普通图片：不包裹气泡，直接显示图片
-      html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" loading="lazy" decoding="async" src="'+__blobUrl(av)+'" alt=""><div class="msg-col"><img class="msg-photo" src="'+m.src+'" alt="" loading="lazy" decoding="async">'+meta+'</div></div>';
+      html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="async" src="'+__blobUrl(av)+'" alt=""><div class="msg-col"><img class="msg-photo" src="'+m.src+'" alt="" loading="lazy" decoding="async">'+meta+'</div></div>';
       return html;
     }
     if(m.type==="image"&&(m.kind==="emoji"||m.kind==="draw")){
@@ -5307,10 +5360,10 @@ function msgRowHTML(m){
     }    if(m.type==="voice"){
       const _d=Math.max(1,Math.round(Number(m.dur)||1));
       const _bars=Array.from({length:Math.min(24,Math.max(7,Math.round(_d*2.2)))}).map(function(_,i){return '<span class="vb-bar" style="height:'+(5+Math.round(Math.abs(Math.sin(i*1.7))*9))+'px"></span>';}).join("");
-      html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" loading="lazy" decoding="async" src="'+__blobUrl(av)+'" alt=""><div class="msg-col"><div class="bubble voice-bubble" data-voice="'+m.id+'"><span class="vb-tri"></span><span class="vb-wave">'+_bars+'</span><span class="vb-dur">'+_d+'"</span></div>'+meta+'</div></div>';
+      html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="async" src="'+__blobUrl(av)+'" alt=""><div class="msg-col"><div class="bubble voice-bubble" data-voice="'+m.id+'"><span class="vb-tri"></span><span class="vb-wave">'+_bars+'</span><span class="vb-dur">'+_d+'"</span></div>'+meta+'</div></div>';
       return html;
     }
-    html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" loading="lazy" decoding="async" src="'+__blobUrl(av)+'" alt=""><div class="msg-col"><div class="bubble">'+quoteBlock(m)+body+'</div>'+meta+'</div></div>';
+    html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="async" src="'+__blobUrl(av)+'" alt=""><div class="msg-col"><div class="bubble">'+quoteBlock(m)+body+'</div>'+meta+'</div></div>';
 
   return html;
 }
@@ -5324,7 +5377,7 @@ function showRecalledText(txt,anchorEl){
       wrap.className="msg-row partner rv-item";
       wrap.style.opacity="0.9";
       var av=state.partner.avatar||"";
-      wrap.innerHTML='<img class="msg-avatar" loading="lazy" decoding="async" src="'+__blobUrl(av)+'" alt=""><div class="msg-col"><div class="bubble" style="border-style:dashed;">'+esc(txt)+'</div><div class="meta"><span class="rv-tag">已撤回的原文</span></div></div>';
+      wrap.innerHTML='<img class="msg-avatar" decoding="async" src="'+__blobUrl(av)+'" alt=""><div class="msg-col"><div class="bubble" style="border-style:dashed;">'+esc(txt)+'</div><div class="meta"><span class="rv-tag">已撤回的原文</span></div></div>';
       if(anchorEl.parentNode)anchorEl.parentNode.insertBefore(wrap,anchorEl.nextSibling);
       if(wrap.scrollIntoView)try{wrap.scrollIntoView({block:"nearest"});}catch(e){}
       return;
@@ -5361,13 +5414,58 @@ function maybePartnerRecall(mid){
     try{
       var m=msgById(mid);if(!m||m.recalled)return;
       m.recalled=true;
+      /* 在后台时对方撤回也弹一条系统通知（不出声） */
+      try{
+        if(m.from==="me"&&document.hidden)notifySystem({type:"text",text:"对方撤回了一条消息",from:"partner",id:m.id},{silent:true});
+      }catch(e){}
       state.messages.forEach(function(x){if(x&&x.quoteId===mid)x.quoteId=null;});
       save();try{__flushSave();}catch(e){}
       renderChat();
     }catch(e){}
   },1800+Math.random()*2500);
 }
+/* 对方回复后，把已经显示成「已读不回」的那几行就地改成「已读」 */
+function __refreshReadMarks(ids){
+  try{
+    if(!ids||!ids.length)return;
+    ids.forEach(function(id){
+      var row=document.querySelector('#msglist [data-id="'+id+'"]');
+      if(!row)return;
+      var meta=row.querySelector('.msg-time');
+      if(!meta)return;
+      var tag=meta.querySelector('.msg-noreply');
+      if(!tag)return;
+      var sp=document.createElement('span');
+      sp.className='msg-read';sp.textContent='已读';
+      meta.replaceChild(sp,tag);
+    });
+  }catch(e){}
+}
+/* 把还没铺出来的历史消息从顶部一段段补上（补完就停，不影响滚动位置） */
+function __fillOlderRows(all,from){
+  try{
+    var list=$("msglist");
+    if(!list||!list.isConnected)return;
+    var step=600;
+    var start=Math.max(0,from-step);
+    var seg=all.slice(start,from);
+    if(!seg.length)return;
+    var html="",ld="";
+    seg.forEach(function(en){
+      var dk=dayKey(en.t);
+      if(dk!==ld){html+='<div class="msg-day"><span>'+dayLabel(en.t)+'</span></div>';ld=dk;}
+      if(en.k==="r"){html+=redpacketRowHTML(en.r);return;}
+      html+=msgRowHTML(en.m);
+    });
+    var prevH=list.scrollHeight;
+    list.insertAdjacentHTML("afterbegin",html);
+    var delta=list.scrollHeight-prevH;
+    if(delta>0)list.scrollTop=list.scrollTop+delta;
+    if(start>0)setTimeout(function(){__fillOlderRows(all,start);},16);
+  }catch(e){}
+}
 function renderChat(force){
+  var _isFullRebuild=false; /* 本次是否整块重绘（是→旧消息不播动效） */
   const list=$("msglist");
   /* 记住滚动位置：用户往上翻历史时，新消息进来不要把他拽回底部（这就是「乱滑」的根源） */
   var _prevTop=list?list.scrollTop:0, _prevH=list?list.scrollHeight:0, _prevC=list?list.clientHeight:0;
@@ -5399,12 +5497,26 @@ function renderChat(force){
   if(__total>__win){
     html+='<div class="msg-more" id="msg-more-btn">查看更早的 '+(__total-__win)+' 条消息</div>';
   }
-  __shown.forEach(en=>{
-    const dk=dayKey(en.t);
-    if(dk!==lastDay){html+='<div class="msg-day"><span>'+dayLabel(en.t)+'</span></div>';lastDay=dk;}
-    if(en.k==="r"){html+=redpacketRowHTML(en.r);return;}
-    html+=msgRowHTML(en.m);
-  });
+  function __rowsHTML(seg){
+    var out="",ld="";
+    seg.forEach(function(en){
+      var dk=dayKey(en.t);
+      if(dk!==ld){out+='<div class="msg-day"><span>'+dayLabel(en.t)+'</span></div>';ld=dk;}
+      if(en.k==="r"){out+=redpacketRowHTML(en.r);return;}
+      out+=msgRowHTML(en.m);
+    });
+    return out;
+  }
+  /* 记录很多时先画最近 600 条，剩下的在下一帧之后从顶部逐段补上：
+     打开得快，而且一条都没少，往上滑照样能翻到第一条 */
+  var __lazyFill=null;
+  if(!window.__chatWin&&__shown.length>1200){
+    var _tail=__shown.slice(__shown.length-600);
+    html+=__rowsHTML(_tail);
+    __lazyFill={all:__shown,from:__shown.length-600};
+  }else{
+    html+=__rowsHTML(__shown);
+  }
   if(!entries.length)html='<div class="empty-hint">还没有消息，发一条开启私密对话吧。</div>';
   /* 增量追加：只有「末尾多了几条、其余完全没变、同一天、没触发 60 条窗口」时才只插新行，
      避免每条来消息都把整屏 60 行删掉重画（iOS 上那一下就是闪屏） */
@@ -5435,14 +5547,17 @@ function renderChat(force){
     _appended=true;
   }else{
     list.innerHTML=html;
+    _isFullRebuild=true; /* 整块重绘：旧消息一律不播入场动效，避免切页时整屏闪 */
   }
   window.__renderedKeys=_keys;
-  window.__chatLastDay=lastDay;
+  try{if(__shown.length)window.__chatLastDay=dayKey(__shown[__shown.length-1].t);}catch(e){}
+  if(__lazyFill){try{setTimeout(function(){__fillOlderRows(__lazyFill.all,__lazyFill.from);},16);}catch(e){}}
+  
   /* 新消息气泡入场动效：只让这次新出现的行播，重绘旧消息不会再弹一次 */
   try{
     var _map={},_maxT=0,_had=window.__chatAnimAfter!==undefined;
     state.messages.forEach(function(m){_map[m.id]=m.time;if(m.time>_maxT)_maxT=m.time;});
-    if(_had){
+    if(_had&&!_isFullRebuild){
       var _after=Number(window.__chatAnimAfter)||0;
       var _anim=function(el){
         try{
@@ -6067,7 +6182,7 @@ function redpacketRowHTML(r){
   const av=out?state.me.avatar:state.partner.avatar;
   const nm=out?state.me.name:state.partner.name;
   const stTxt=out?(r.status==="claimed"?"已领取":(r.status==="declined"?"对方拒领":"等待对方领取")):(r.status==="claimed"?"已领取":(r.status==="declined"?"已拒领":"去领取"));
-  return '<div class="msg-row '+side+'" data-rp="'+r.id+'"><img class="msg-avatar" loading="lazy" decoding="async" src="'+__blobUrl(av)+'" alt="">'
+  return '<div class="msg-row '+side+'" data-rp="'+r.id+'"><img class="msg-avatar" decoding="async" src="'+__blobUrl(av)+'" alt="">'
     +'<div class="msg-col"><div class="rp-shell">'
     +'<div class="rp-head"><img class="sq-hav" src="'+__blobUrl(av)+'"><span class="sq-hname">'+esc(nm)+'</span><span class="sq-time">'+fmtTime(r.time)+'</span></div>'
     +'<div class="rp-body'+(r.status==="declined"?" declined":"")+'">'
@@ -6089,11 +6204,11 @@ function surveyRowHTML(m){
   let meta='<div class="msg-time">';
   if(isMe&&state.settings.readReceipt){
       /* 已读不回：和「主动」一样用气泡下的小标签；没有这个状态时才显示「已读 / 已送达」文字 */
-      if(m.read&&m.noReply&&state.settings.showReadNoreply!==false)meta+='<span class="msg-noreply">已读不回</span>';
+      if(m.read&&!m.answered&&state.settings.showReadNoreply!==false)meta+='<span class="msg-noreply">已读不回</span>';
       else meta+='<span class="msg-read">'+(m.read?"已读":"已送达")+'</span>';
     }
   meta+=fmtTime(m.time)+'</div>';
-  return '<div class="msg-row '+side+'" data-sq="'+m.id+'"><img class="msg-avatar" loading="lazy" decoding="async" src="'+__blobUrl(av)+'" alt="">'
+  return '<div class="msg-row '+side+'" data-sq="'+m.id+'"><img class="msg-avatar" decoding="async" src="'+__blobUrl(av)+'" alt="">'
     +'<div class="msg-col"><div class="survey-shell">'
     +'<div class="sq-head"><img class="sq-hav" src="'+__blobUrl(av)+'"><span class="sq-hname">'+esc(nm)+'</span><span class="sq-time">'+fmtTime(m.time)+'</span></div>'
     +'<div class="sq-card"><div class="sq-title">📋 '+(esc(s.title)||"问卷")+'</div>'
@@ -6166,7 +6281,10 @@ function pushMsg(from,type,text,opts){
   try{
     if(type!=="sys"&&type!=="poke"&&!opts.quiet){
       if(from==="partner"&&document.hidden&&("Notification" in window)&&Notification.permission==="granted"){
-        /* 通知权限已开：后台走系统通知那一路，声音由它负责，避免两声，其它情况照常响 */
+        /* 后台：iOS 的网页通知本身不出声，所以这里额外让页面自己尝试响一声
+           （只在系统还没挂起页面的那段时间有效；挂起后页面无法发声） */
+        /* 后台那一声统一交给系统通知（notifySystem 里播），这里不再另外响，避免重复两声 */
+        /* （历史原因：这里曾是「让页面自己尝试响一声」的位置，现由 notifySystem 接管） */
       }
       else window.__playMsgSound&&window.__playMsgSound(from==="me"?"send":"recv");
     }
@@ -6175,8 +6293,32 @@ function pushMsg(from,type,text,opts){
     var _vc=document.getElementById("view-chat");
     if(!(_vc&&_vc.classList.contains("open"))){newR++;updateNewBadge();}
   }
+  /* 对方真的发来一条回复：把这条之前「我」的消息都记成已回复（用于区分「已读」和「已读不回」） */
+  try{
+    if(from==="partner"&&(type==="text"||type==="image")&&!m.active){
+      var _flipped=[];
+      for(var _ai=state.messages.length-2;_ai>=0;_ai--){
+        var _am=state.messages[_ai];
+        if(!_am)continue;
+        if(_am.from!=="me")continue;
+        if(!_am.answered)_flipped.push(_am.id);
+        _am.answered=true;
+      }
+      /* 已经画出来的行就地改文案，不必整屏重绘 */
+      __refreshReadMarks(_flipped);
+    }
+  }catch(e){}
   if(from==="me"&&type==="survey"){try{rememberMySurvey(m);}catch(e){}}
-  maybeShowIncomingPop(m);
+  /* 后台时对方的任何一条消息（文字/图片/语音/表情/拍一拍/动态/留言/信/邀请）都要有系统弹窗，
+     不因为类型是 sys/poke 就被跳过；同一条只弹一次，避免和下面的 maybeShowIncomingPop 重复 */
+  try{
+    /* 分工：在后台就弹系统通知（含主动消息、补发消息）；页面开着就只弹顶部提示并响收发提示音 */
+    if(from==="partner"&&!opts.quiet&&document.hidden&&m.type!=="survey"){
+      m.__notified=1;
+      notifySystem(m,{silent:m.type==="poke"});
+    }
+  }catch(e){}
+  if(!opts.quiet)maybeShowIncomingPop(m);
   return id;
 }
 function markRead(){
@@ -6184,14 +6326,24 @@ function markRead(){
   state.messages.forEach(m=>{if(m.from==="me"&&m.read!==true){m.read=true;ch=true;}});
   return ch;
 }
-function markNoReply(){
+function markNoReply(mid){
+  /* 只标记这一条（以前会把「我」所有已读消息一起打上标签，看起来像到处都是已读不回） */
   let ch=false;
-  state.messages.forEach(m=>{if(m.from==="me"&&m.read&&!m.recalled&&!m.noReply){m.noReply=true;ch=true;}});
+  state.messages.forEach(m=>{
+    if(m.from!=="me"||m.recalled)return;
+    if(mid&&m.id!==mid)return;
+    if(!mid&&!m.read)return;
+    if(!m.noReply){m.noReply=true;ch=true;}
+  });
   return ch;
 }
-function clearNoReply(){
+function clearNoReply(mid){
   let ch=false;
-  state.messages.forEach(m=>{if(m.noReply){m.noReply=false;ch=true;}});
+  state.messages.forEach(m=>{
+    if(m.kind==="mark")return;
+    if(mid&&m.id!==mid)return;
+    if(m.noReply){m.noReply=false;ch=true;}
+  });
   return ch;
 }
 function sendMyText(){
@@ -6653,8 +6805,20 @@ function bgCatchUpChat(away){
     var _mx=Math.max(0,Number(state.settings.socialMsgMax)||0);
     if(!(_mx>0))return;
     var _n=1+Math.floor(Math.random()*2), _got=false;
+    /* 补发的消息也按正常来消息走：页面开着就弹顶部提示并响收到音，在后台就弹系统通知 */
     for(var _i=0;_i<_n;_i++){var _t=partnerActiveMsgText();if(_t){_got=true;pushMsg("partner","text",_t,{active:true});}}
-    if(_got){lastActiveMsgTime=Date.now();renderChat();save();if(typeof scroll==="function")scroll();}
+    if(_got){
+      lastActiveMsgTime=Date.now();
+      /* 只把新增的几条追加到列表末尾，不做整块重绘（重绘会让画面闪一下） */
+      try{
+        var _tail=true;
+        for(var _j=0;_j<state.messages.length;_j++){}
+        var _last=state.messages.slice(-_n);
+        _last.forEach(function(mm){ if(!(window.chatAppendTail&&window.chatAppendTail(mm))) _tail=false; });
+        if(!_tail) renderChat(); else try{if(window.__renderedKeys&&_last.length)window.__renderedKeys.push('m'+_last[_last.length-1].id);}catch(e){}
+      }catch(e){ renderChat(); }
+      save();if(typeof scroll==="function")scroll();
+    }
   }catch(e){}
 }
 window.__bgCatchUpChat=bgCatchUpChat;
@@ -6963,18 +7127,26 @@ function scheduleReply(){
   const sec=Math.max(0,Number(state.settings.minDelaySec)||0);
   const max=Math.max(sec,Number(state.settings.maxDelaySec)||0);
   const ms=rand(sec*1000,max*1000);
+  /* 记住这次要回的是哪一条，已读不回只作用在它身上 */
+  var _srcId=null;
+  try{var _lm=state.messages[state.messages.length-1];if(_lm&&_lm.from==="me")_srcId=_lm.id;}catch(e){}
   setTyping(true);
   const tid=setTimeout(()=>{
     replyTimers=replyTimers.filter(x=>x!==tid);
     if(markRead()){renderChat();save();}
     /* 已读不回概率：显示已读但不回复 */
     var _nrp=Math.min(100,Math.max(0,Number(state.settings.readNoReplyProb)||0));
-    if(_nrp>0&&Math.random()*100<_nrp){markNoReply();setTyping(false);save();renderChat();return;}
+    /* 冷却：三分钟内最多出现一次已读不回，避免连着发几条时密密麻麻全是「已读不回」 */
+    var _coolOk=(Date.now()-(window.__lastNoReplyTs||0))>180000;
+    if(_nrp>0&&_coolOk&&Math.random()*100<_nrp){
+      window.__lastNoReplyTs=Date.now();
+      markNoReply(_srcId);setTyping(false);save();renderChat();return;
+    }
     // 对方可能用"我"添加的表情包回复（图片消息）
     const eprob=Math.min(100,Math.max(0,Number(state.settings.emojiProb)||0));
     const emoPool=(state.partnerEmojis&&state.partnerEmojis.length)?state.partnerEmojis:[];
     if(emoPool.length&&eprob>0&&Math.random()*100<eprob){
-      clearNoReply();
+      clearNoReply(_srcId);
       const e=emoPool[Math.floor(Math.random()*emoPool.length)];
       pushMsg("partner","image","",{src:e.src,kind:"emoji"});
       renderChat();save();scroll();
@@ -6991,7 +7163,7 @@ function scheduleReply(){
       const myMine=state.messages.filter(m=>m.from==="me"&&!m.recalled&&!m.active&&(m.type==="text"||m.type==="image")).slice(-5);
       const qOn=!!state.settings.partnerQuote&&myMine.length>0;
       let delay=0;
-      clearNoReply();
+      clearNoReply(_srcId);
       picks.forEach(c=>{
         const qT=qOn?myMine[Math.floor(Math.random()*myMine.length)]:null;
         setTimeout(()=>{
@@ -7381,8 +7553,8 @@ function setCardKind(k){
   try{renderLetterTpl();}catch(e){}
   try{renderCards();}catch(e){}
 }
-function groupById(id){return state.groups.find(g=>g.id===id);}
-function cardsCountInGroup(gid){return state.cards.filter(function(c){return c.groupId===gid;}).length;}
+function groupById(id){return (state.groups||[]).find(g=>g.id===id);}
+function cardsCountInGroup(gid){return (state.cards||[]).filter(function(c){return c.groupId===gid;}).length;}
 function bindCardKindTabs(){
   var box=document.getElementById("card-kind-tabs");
   if(box&&!box._b){
@@ -9055,6 +9227,35 @@ function gCompress(d){return new Promise(function(res){var im=new Image();var do
   $("mu-av2").addEventListener("click",function(){pickAv("me");});
   ["mu-dist","mu-name1","mu-name2","mu-av1","mu-av2"].forEach(function(id){var el=$(id);if(el)el.style.cursor="pointer";});
 })();
+/* 系统播放卡片（锁屏 / 控制中心）显示当前歌曲的封面 */
+function __syncMediaSession(){
+  try{
+    if(!('mediaSession' in navigator))return;
+    var au=musicAudio();
+    var s=(state.musicCur>=0&&state.musicPlaylist[state.musicCur])?state.musicPlaylist[state.musicCur]:null;
+    if(!s)return;
+    var pic=state.musicCoverImg||s.cover||"";
+    var src="";
+    try{
+      if(pic&&pic.indexOf("data:")===0)src=__blobUrl(pic);
+      else if(pic)src=/^https?:/i.test(pic)?pic:new URL(pic,location.href).href;
+    }catch(e){}
+    var art=[];
+    if(src)art.push({src:src,sizes:"512x512",type:"image/png"});
+    try{art.push({src:location.origin+"/icon-512.png",sizes:"512x512",type:"image/png"});}catch(e){}
+    if(window.MediaMetadata){
+      navigator.mediaSession.metadata=new MediaMetadata({title:s.name||"一起听",artist:s.artist||"",album:"Eleven×11",artwork:art});
+    }
+    try{navigator.mediaSession.playbackState=au.paused?"paused":"playing";}catch(e){}
+    try{
+      navigator.mediaSession.setActionHandler("play",function(){try{musicAudio().play();}catch(e){}});
+      navigator.mediaSession.setActionHandler("pause",function(){try{musicAudio().pause();}catch(e){}});
+      navigator.mediaSession.setActionHandler("nexttrack",function(){try{$("m-next")&&$("m-next").click();}catch(e){}});
+      navigator.mediaSession.setActionHandler("previoustrack",function(){try{$("m-prev")&&$("m-prev").click();}catch(e){}});
+    }catch(e){}
+  }catch(e){}
+}
+window.__syncMediaSession=__syncMediaSession;
 function refreshMiniPlayer(){
   const mp=$("mini-player");
   const show=state.musicCur>=0&&!$("view-music").classList.contains("open");
@@ -9070,8 +9271,10 @@ function refreshMiniPlayer(){
   // 缩小唱片：封面优先用用户设置的歌曲封面
   const cov=state.musicCoverImg;
   const pic=cov||(s&&s.cover);
+  /* 站内小卡片恢复原样：暂停显示 ▶，播放时才转成封面唱片 */
   $("mp-disc").innerHTML=au.paused?'<span class="mp-dic" style="font-size:19px;">▶</span>':(pic?'<img src="'+pic+'" alt="">':'<span class="mp-dic">🎵</span>');
   $("mp-disc").classList.toggle("spin",!au.paused);
+  try{__syncMediaSession();}catch(e){}
   const d=au.duration||0;
   $("mp-fill").style.width=(d?Math.min(100,au.currentTime/d*100):0)+"%";
   $("mp-cur").textContent=fmtSec(au.currentTime);
@@ -10236,7 +10439,7 @@ var _163Warmed=false;
       else if(m.type==="voice")inner='<span class="vb" data-vid="'+m.id+'" style="cursor:pointer;">▷ 语音 '+ (m.dur||1) +'″</span>';
       else inner=esc(m.text||"");
       html+='<div class="msg-row '+(mine?"me":"partner")+'">'+
-        '<img class="msg-avatar" loading="lazy" decoding="async" src="'+mlRoomAv(m.from)+'" alt="">'+
+        '<img class="msg-avatar" decoding="async" src="'+mlRoomAv(m.from)+'" alt="">'+
         '<div class="msg-col"><div class="bubble'+(m.type==="image"?" imgb":"")+'">'+inner+'</div></div>'+
       '</div>';
     });
@@ -14224,7 +14427,7 @@ init();
    不使用 Service Worker（避免缓存接管导致打不开/黑屏），只用“对比构建号 + 换 URL”这一招。 */
 (function(){
   if(!/^https?:$/.test(location.protocol))return;
-  var BUILD="2026-11-11vk";
+  var BUILD="2026-11-11vx";
   var KEY="app_build_reloaded";
   var busy=false;
   function go(url){location.replace(url+"&skipabout=1");}
