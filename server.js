@@ -97,13 +97,25 @@ function touch(s) { s.updatedAt = Date.now(); persist(); }
 const NM_ORIGIN = "https://music.163.com";
 
 function nmHeaders(s, extra) {
+  /* Cookie 里已有的键（尤其 os / appver）优先，缺了才补默认值，
+     重复同名键会让网易云按第一个旧值判定，歌单接口就会返回空 */
+  const jar = {};
+  String(s.cookie || "").split(";").forEach((kv) => {
+    const i = kv.indexOf("=");
+    if (i <= 0) return;
+    const k = kv.slice(0, i).trim(), v = kv.slice(i + 1).trim();
+    if (k) jar[k] = v;
+  });
+  if (s.nmtid && !jar.NMTID) jar.NMTID = s.nmtid;
+  if (!jar.os) jar.os = "pc";
+  if (!jar.appver) jar.appver = "2.9.7";
   const h = {
     "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
     "Referer": "https://music.163.com/",
     "Origin": "https://music.163.com",
     "Accept": "*/*",
     "Accept-Language": "zh-CN,zh;q=0.9",
-    "Cookie": ["os=ios", "appver=9.1.0", s.nmtid ? "NMTID=" + s.nmtid : "", s.cookie].filter(Boolean).join("; "),
+    "Cookie": Object.keys(jar).map((k) => k + "=" + jar[k]).join("; "),
   };
   return Object.assign(h, extra || {});
 }
@@ -296,8 +308,16 @@ async function api(req, res, pathname) {
     if (!ck) return json(res, 400, { code: 400, msg: "没有收到 Cookie" });
     /* 允许只粘 MUSIC_U 的值，也允许整条 Cookie */
     if (!ck.includes("=")) ck = "MUSIC_U=" + ck;
-    ck = ck.split(";").map((x) => x.trim()).filter((x) => /^(MUSIC_U|__csrf|_ntes_nuid|_ntes_nnid|NMTID)=/.test(x)).join("; ");
+    /* 保留整条 Cookie：网易云很多接口（歌单、我喜欢的音乐）除了 MUSIC_U
+       还要 os / appver / __csrf 等键，只留 MUSIC_U 会出现「登录成功但歌单是空的」 */
+    ck = ck.split(";").map((x) => {
+      const i = x.indexOf("=");
+      if (i <= 0) return "";
+      return x.slice(0, i).trim() + "=" + x.slice(i + 1).trim();
+    }).filter((x) => /^[A-Za-z0-9_\-]+=\S/.test(x));
     if (!/MUSIC_U=[^;\s]+/.test(ck)) return json(res, 400, { code: 400, msg: "Cookie 里没有 MUSIC_U，请复制完整 Cookie" });
+    if (!/;?\s*os=/.test(ck)) ck += "; os=pc";
+    if (!/;?\s*appver=/.test(ck)) ck += "; appver=2.9.7";
     s.cookie = ck;
     s.qr = null;
     let profile = null;
@@ -314,27 +334,50 @@ async function api(req, res, pathname) {
 
   if (pathname === "/api/netease/playlists") {
     if (!loggedIn(s)) return json(res, 403, { code: 403, msg: "未登录" });
-    const prof = s.profile && s.profile.userId;
-    if (!prof) { try { await fetchProfile(s); } catch (_) {} }
+    if (!(s.profile && s.profile.userId)) { try { await fetchProfile(s); } catch (_) {} }
     const uid = s.profile && s.profile.userId;
-    if (!uid) return json(res, 502, { code: 502, msg: "账号信息不可用" });
-    const r = await nmFetch(s, "GET", "/api/user/playlist?uid=" + uid + "&limit=1000&offset=0&timestamp=" + Date.now());
-    const d = r.json || {};
-    if (d.code && d.code !== 200) return json(res, 502, { code: 502, msg: "歌单获取失败" });
+    if (!uid) return json(res, 502, { code: 502, msg: "账号信息不可用，请重新登录" });
+    const qs = "/api/user/playlist?uid=" + uid + "&limit=1000&offset=0&includeVideo=true&timestamp=" + Date.now();
+    let r = await nmFetch(s, "GET", qs);
+    let d = r.json || {};
+    /* 有些账号在 web 接口返回空列表，换老的 playlist 接口再取一次 */
+    if (!Array.isArray(d.playlist) || !d.playlist.length) {
+      const r2 = await nmFetch(s, "GET", "/api/user/playlist?uid=" + uid + "&limit=100&offset=0&timestamp=" + Date.now());
+      if (r2.json && Array.isArray(r2.json.playlist) && r2.json.playlist.length) { r = r2; d = r2.json; }
+    }
+    if (!r.json) return json(res, 502, { code: 502, msg: "网易云没有返回数据（HTTP " + r.status + "），稍后重试" });
+    if (d.code && d.code !== 200) return json(res, 502, { code: 502, msg: "歌单获取失败（code " + d.code + "）" });
     const list = (d.playlist || []).map((p) => ({
       id: String(p.id), name: p.name || "", cover: p.coverImgUrl || "", trackCount: p.trackCount || 0, creator: (p.creator && p.creator.nickname) || "",
     }));
-    return json(res, 200, { code: 200, playlists: list });
+    return json(res, 200, { code: 200, playlists: list, uid });
   }
 
   if (pathname === "/api/netease/playlist/tracks") {
     const body = await readBody(req);
     if (!body || !isDigits(String(body.id), 20)) return json(res, 400, { code: 400, msg: "歌单 ID 无效" });
     if (!loggedIn(s)) return json(res, 403, { code: 403, msg: "未登录" });
-    const r = await nmFetch(s, "GET", "/api/playlist/detail?id=" + body.id + "&timestamp=" + Date.now());
-    const d = r.json || {};
-    if (d.code && d.code !== 200) return json(res, 502, { code: 502, msg: "歌单读取失败" });
-    const pl = d.playlist || {};
+    /* v6 接口才会返回 tracks；老的 /api/playlist/detail 现在只回空数组，
+       之前「歌单是空的或读取失败」就是这个原因 */
+    let r = await nmFetch(s, "GET", "/api/v6/playlist/detail?id=" + body.id + "&n=1000&s=0&timestamp=" + Date.now());
+    let d = r.json || {};
+    let pl = d.playlist || {};
+    if (!Array.isArray(pl.tracks) || !pl.tracks.length) {
+      const r2 = await nmFetch(s, "GET", "/api/playlist/detail?id=" + body.id + "&timestamp=" + Date.now());
+      if (r2.json && r2.json.playlist && Array.isArray(r2.json.playlist.tracks) && r2.json.playlist.tracks.length) { r = r2; d = r2.json; pl = d.playlist; }
+    }
+    if ((!Array.isArray(pl.tracks) || !pl.tracks.length) && Array.isArray(pl.trackIds) && pl.trackIds.length) {
+      /* 只给了 trackIds 时，按每 200 首一批取详情 */
+      const ids = pl.trackIds.slice(0, 1000).map((x) => x.id || x);
+      const got = [];
+      for (let i = 0; i < ids.length; i += 200) {
+        const rr = await nmFetch(s, "GET", "/api/song/detail?ids=" + encodeURIComponent(JSON.stringify(ids.slice(i, i + 200))));
+        if (rr.json && Array.isArray(rr.json.songs)) got.push(...rr.json.songs);
+      }
+      if (got.length) pl.tracks = got;
+    }
+    if (!r.json) return json(res, 502, { code: 502, msg: "网易云没有返回数据（HTTP " + r.status + "）" });
+    if (d.code && d.code !== 200) return json(res, 502, { code: 502, msg: "歌单读取失败（code " + d.code + "）" });
     const tracks = (pl.tracks || []).map((t) => ({
       id: String(t.id),
       name: t.name || "",

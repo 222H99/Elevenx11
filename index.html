@@ -166,7 +166,9 @@ body.av-square .msg-avatar,body.av-square #top-avatar-partner{border-radius:8px 
 .bubble img.bimg{max-width:100%;max-height:min(300px,calc(var(--ep-h,74px) * 2.4));border-radius:10px;display:block;}
 .msg-photo{max-width:200px;max-height:260px;border-radius:14px;display:block;object-fit:cover;box-shadow:0 2px 10px rgba(0,0,0,.08);}
 .msg-row.me .msg-photo{margin-left:auto;}
-.sticker{width:min(260px,86%);background:none;border:none;}
+/* 表情气泡宽度跟着「表情包大小」缩：默认 74 → 约 260px，调小/调大同步生效 */
+/* 表情气泡宽度＝「表情包大小」设的像素值，最大不超过这一列的宽度 */
+.sticker{width:min(var(--em-px,260px),100%);background:none;border:none;}
 .sticker img{width:100%;height:auto;border-radius:12px;display:block;object-fit:contain;}
 .drawbox{width:min(240px,74%);border:1px dashed var(--line);border-radius:14px;padding:6px;background:var(--bg2);box-sizing:border-box;}
 .drawbox img{width:100%;border-radius:10px;display:block;}
@@ -1267,7 +1269,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-11xr">
+<meta name="app-build" content="2026-11-11zd">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -2841,7 +2843,7 @@ body.fs-4 .msg-more{font-size:calc(12px * var(--fs))}
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
       <div class="set-group"><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
-<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-11xr</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-11zd</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -2857,6 +2859,7 @@ body.fs-4 .msg-more{font-size:calc(12px * var(--fs))}
         </div>
                 <div class="set-row"><span class="set-label">头像大小<div class="set-sub">聊天里双方头像的尺寸</div></span><input type="range" id="set-chat-av" min="20" max="48" step="2" style="flex:1;max-width:140px;margin-left:auto;"><button class="small-btn ghost" id="reset-chat-av" style="font-size:12px;padding:6px 10px;flex:0 0 auto;">恢复默认</button></div>
         <div class="set-row"><span class="set-label">消息框大小<div class="set-sub">文字气泡的字号与内边距</div></span><input type="range" id="set-chat-bub" min="80" max="140" step="5" style="flex:1;max-width:140px;margin-left:auto;"><button class="small-btn ghost" id="reset-chat-bub" style="font-size:12px;padding:6px 10px;flex:0 0 auto;">恢复默认</button></div>
+        <div class="set-row"><span class="set-label">表情包大小<div class="set-sub">聊天里发出的表情包宽度（80~280 像素），面板格子不受影响</div></span><input type="range" id="set-emoji-size" min="80" max="280" step="4" style="flex:1;max-width:140px;margin-left:auto;"><button class="small-btn ghost" id="reset-emoji-size" style="font-size:12px;padding:6px 10px;flex:0 0 auto;">恢复默认</button></div>
         <div class="set-row" style="display:block;padding-top:4px;">
           <span class="set-label">效果预览<div class="set-sub">上面是对方、下面是你，拖动上面两个滑杆即时变化</div></span>
           <div id="chat-size-preview" style="margin-top:10px;border-radius:16px;padding:12px 4px;background:rgba(120,130,145,.08);border:1px solid rgba(255,255,255,.5);display:flex;flex-direction:column;gap:8px;overflow:hidden;">
@@ -4216,7 +4219,7 @@ function msgPreviewText(m){
 /* ===== 更新公告：换了新版本时弹一次，设置里也能随时再看 ===== */
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
-  ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||"2026-11-11xr";}catch(e){return "2026-11-11xr";}})(),
+  ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||"2026-11-11zd";}catch(e){return "2026-11-11zd";}})(),
   date:"2026-11-11",
   lead:"这次修的都是「用起来会硌手」的地方，打开就能感觉到。",
   items:[
@@ -4365,7 +4368,10 @@ try{
 function maybeShowIncomingPop(m,force){
   if(!force&&typeof window.__inDND==="function"&&window.__inDND()){var _p0=$("incoming-pop");if(_p0)_p0.classList.remove("show");return;}
   if(!force&&window.__suppressPop)return;
-  if(!m||m.from!=="partner"||m.type==="sys")return;
+  if(!m||m.from!=="partner")return;
+  /* 来信 / 留言 / 新动态 / 评论回复这些「系统提示」以前被一刀切掉，只能靠聊天里那行灰字，
+     所以 App 内根本没有通知。这里放行它们，同样弹顶部提示条 */
+  if(m.type==="sys"&&!/写了封信|来信|留了言|留言|发了新动态|发布了新动态|回复了你的动态|评论了你的动态|给你回信/.test(m.text||""))return;
   if(!force&&document.hidden){if(!m.__notified)notifySystem(m,{silent:m.type==="poke"});return;} // 滑出网站/后台 → 系统通知
   if(!force&&$("view-chat")&&$("view-chat").classList.contains("open"))return;
   const av=$("ip-av"),nm=$("ip-name"),tx=$("ip-text"),tm=$("ip-time");
@@ -6606,6 +6612,7 @@ function chatAppendRp(r){
     if(row){
       row.addEventListener("click",function(e){if(row._lp){row._lp=false;return;}e.stopPropagation();handleRedpacketTap(row.dataset.rp);});
       try{bindLongPress(row,"rp");}catch(e){}
+      __bindRpButtons(row);
     }
     try{_chatSig=_chatSigNow();}catch(e){}
     try{if(window.__renderedKeys&&window.__renderedKeys.length)window.__renderedKeys.push("r:"+String(r.id));}catch(e){}
@@ -6615,6 +6622,27 @@ function chatAppendRp(r){
     }
     return true;
   }catch(e){return false;}
+}
+/* 问卷卡里那颗「填写问卷 / 查看结果」按钮：整屏重绘时会绑，
+   增量追加和单行刷新路径以前漏绑，表现就是「问卷点不了、看不了结果」 */
+function __bindSurveyButtons(row){
+  try{
+    if(!row)return;
+    row.querySelectorAll("[data-act='survey']").forEach(function(b){
+      if(b.__sb)return;b.__sb=1;
+      b.addEventListener("click",function(e){e.stopPropagation();openSurveyAnswer(b.dataset.id||row.dataset.sq);});
+    });
+  }catch(e){}
+}
+/* 红包卡里那颗按钮同理，补一层直接绑定（气泡冒泡偶发被吞时也能点开） */
+function __bindRpButtons(row){
+  try{
+    if(!row)return;
+    row.querySelectorAll("button[data-rp]").forEach(function(b){
+      if(b.__rb)return;b.__rb=1;
+      b.addEventListener("click",function(e){e.stopPropagation();handleRedpacketTap(b.dataset.rp);});
+    });
+  }catch(e){}
 }
 /* 红包状态变了（领取/拒领）：只把那一张卡片就地换掉 */
 function __refreshRpRow(id){
@@ -6629,6 +6657,7 @@ function __refreshRpRow(id){
     row.parentNode.replaceChild(nr,row);
     nr.addEventListener("click",function(e){if(nr._lp){nr._lp=false;return;}e.stopPropagation();handleRedpacketTap(nr.dataset.rp);});
     try{bindLongPress(nr,"rp");}catch(e){}
+    __bindRpButtons(nr);
     try{_chatSig=_chatSigNow();}catch(e){}
     return true;
   }catch(e){return false;}
@@ -6651,6 +6680,7 @@ function __refreshSurveyRow(id){
       e.stopPropagation();openSurveyAnswer(nr.dataset.sq);
     });
     try{bindLongPress(nr,"sq");}catch(e){}
+    __bindSurveyButtons(nr);
     try{_chatSig=_chatSigNow();}catch(e){}
     return true;
   }catch(e){return false;}
@@ -6687,7 +6717,9 @@ function chatAppendTail(m){
             e.stopPropagation();openSurveyAnswer(row.dataset.sq);
           });
           try{bindLongPress(row,"sq");}catch(e){}
+          __bindSurveyButtons(row);
         }
+        try{__bindRpButtons(row);}catch(e){}
         try{_chatSig=_chatSigNow();}catch(e){}
         try{__bindInviteButtons(row);}catch(e){}
         try{if(window.__renderedKeys&&window.__renderedKeys.length)window.__renderedKeys.push("m:"+String(m.id));}catch(e){}
@@ -6825,7 +6857,17 @@ function pokeMyPartner(){
 }
 // 点击顶栏头像 → 拍一拍（拍一拍改为点头像触发）
 $("top-avatar-partner").addEventListener("click",function(e){e.stopPropagation();openPartnerProfile();});
+/* 这个函数原来在「每发一条消息」之后都会跑一遍（发图、发表情、发表情包、主动消息都调），
+   里面每个事件都各自掷一次概率 → 实际概率被叠加放大几十倍，邀请/拍一拍/来电多到不正常。
+   这里加一个按「主动消息间隔」计算的节流窗口：一个窗口内只掷一轮骰子。 */
+var __rpeLastRun=0;
 function randomPartnerEvents(){
+  try{
+    var now=Date.now();
+    var gap=Math.max(60000,(Number(state.settings.socialMsgMin)||1)*60000);
+    if(__rpeLastRun&&now-__rpeLastRun<gap)return;
+    __rpeLastRun=now;
+  }catch(e){}
   if(probPct("socialProbPat")){
     setTimeout(()=>{const _pl=(pokeLib().partner||[]);const _pt=_pl.length?_pl[Math.floor(Math.random()*_pl.length)]:"";var _pka=pushMsg("partner","poke",_pt);try{__appendChatMsg(_pka);}catch(e){renderChat();}save();},rand(1200,3200));
   }  if(probPct("socialProbCall")){
@@ -6979,8 +7021,12 @@ function catchUpSocial(){
   var now=Date.now();
   function hrsSince(t){return Math.max(0,(now-(Number(t)||now))/3600000);}
   function capFor(t,perHour){
+    /* 以前这里写死 Math.min(8, …)：不管「每小时上限」填多少、离开多久，一次最多只补 8 条，
+       设置里填 10、20 完全没用。现在按「每小时上限 × 离开小时数」算，只留 200 条作为防刷屏硬顶。 */
     var ph=Math.max(1,Math.min(200,Math.round(Number(perHour)||3)));
-    return Math.max(1,Math.min(8,Math.ceil(hrsSince(t)*ph)));
+    var hrs=Math.max(0,Math.ceil(hrsSince(t)*10)/10);
+    if(hrs<=0)return 0;
+    return Math.max(1,Math.min(200,Math.ceil(hrs*ph)));
   }
   function dueList(last, a, b, cap){
     var t0=Number(last)||0; if(!t0) return [];
@@ -7724,8 +7770,11 @@ window.__verifyEmojiSrc=__verifyEmojiSrc;
 function curEmojis(){if(emojiSide==="partner"){if(!Array.isArray(state.partnerEmojis))state.partnerEmojis=[];return state.partnerEmojis;}if(!Array.isArray(state.emojis))state.emojis=[];return state.emojis;}
 function setCurEmojis(arr){if(emojiSide==="partner")state.partnerEmojis=arr;else state.emojis=arr;}
 function applyEmojiSize(){
-  /* 表情大小设置已移除：统一用默认尺寸，不再读旧的 epSize */
-  document.documentElement.style.setProperty("--ep-h","74px");
+  /* 表情大小（面板格子 + 聊天里发出的表情都跟着这个值缩放） */
+  var px=Number(state.settings&&state.settings.emPx)||260;
+  px=Math.max(80,Math.min(280,Math.round(px)));
+  document.documentElement.style.setProperty("--em-px",px+"px");
+  var s=document.getElementById("set-emoji-size");if(s&&Number(s.value)!==px)s.value=px;
 }
 window.__setEmojiSize=function(n){state.settings.epSize=Math.max(48,Math.min(300,Math.round(Number(n)||74)));applyEmojiSize();};
 var __epSuppressClick=0,__epPv=null,__epPvCell=null;
@@ -9024,6 +9073,13 @@ window.__applyChatSizes=applyChatSizes;
       state.settings.avatarSize=30;state.settings.__ts=Date.now();
       try{__prefSave();}catch(e){}try{save();__flushSave();}catch(e){try{save();}catch(_){}}applyChatSizes();toast("头像大小已恢复默认");
     });}
+    var es=$("set-emoji-size");
+    if(es&&!es._esB){es._esB=1;es.value=(Number(state.settings&&state.settings.emPx)||260);
+      es.addEventListener("input",function(){state.settings.emPx=Math.max(80,Math.min(280,Math.round(Number(this.value)||260)));applyEmojiSize();});
+      es.addEventListener("change",function(){try{save();__flushSave();}catch(e){save();}});}
+    var res=$("reset-emoji-size");
+    if(res&&!res._esR){res._esR=1;res.addEventListener("click",function(){state.settings.emPx=260;applyEmojiSize();try{save();__flushSave();}catch(e){save();}toast("表情包大小已恢复默认");});}
+    try{applyEmojiSize();}catch(e){}
     var rb=$("reset-chat-bub");if(rb&&!rb._rb){rb._rb=1;rb.addEventListener("click",function(){
       state.settings.bubbleScale=100;state.settings.__ts=Date.now();
       try{__prefSave();}catch(e){}try{save();__flushSave();}catch(e){try{save();}catch(_){}}applyChatSizes();toast("消息框大小已恢复默认");
@@ -9295,7 +9351,15 @@ function updateNewBadge(){
   setBadge("badge-moments",newM);
   setBadge("badge-letter",newL);
   setBadge("badge-note",newN);
+  /* 应用图标红点：iOS/安卓支持 Badging API 时把未读总数同步到桌面图标；
+     不支持就静默跳过（老版本 Safari 没有这个接口） */
+  try{
+    var _tot=Math.max(0,Number(newR)||0)+Math.max(0,Number(newL)||0)+Math.max(0,Number(newM)||0)+Math.max(0,Number(newN)||0);
+    if(navigator.setAppBadge){if(_tot>0)navigator.setAppBadge(_tot);else if(navigator.clearAppBadge)navigator.clearAppBadge();}
+  }catch(e){}
 }
+/* 兜底：有些路径只改了数据没调 updateNewBadge，红点就会一直空着。定时对齐一次，成本极低 */
+try{if(!window.__badgeTimer)window.__badgeTimer=setInterval(function(){try{updateNewBadge();}catch(e){}},4000);}catch(e){}
 var _musicFrom="view-me";
 function resumeCallOnChat(){
   if(!call.on||call.status!=="active")return;
@@ -9543,7 +9607,10 @@ function musicInviteOpen(dir,type){
   }
 }
 function musicInviteClose(){$("music-invite").classList.remove("show");}
+var __musicInviteLastAt=0;
 function maybePartnerMusicInvite(){
+  /* 一起听同样是大事件：15 分钟内最多自动发起一次 */
+  if(Date.now()-(__musicInviteLastAt||0)<15*60000)return;
   const busy=$("view-music").classList.contains("open")||state.musicCur>=0;
   if(musicInviteShown||$("music-invite").classList.contains("show"))return;
   const p=Math.min(100,Math.max(0,Number(state.settings.socialProbMusic)));
@@ -9553,7 +9620,7 @@ function maybePartnerMusicInvite(){
       showView("view-music");
       const au=musicAudio();if(au.paused&&state.musicCur>=0)au.play().catch(()=>{});
     }else{
-      musicInviteShown=true;musicInviteOpen("partner","music");
+      musicInviteShown=true;__musicInviteLastAt=Date.now();musicInviteOpen("partner","music");
     }
   }
 }
@@ -10496,6 +10563,7 @@ var _163Warmed=false;
     '.ny-row .add{border:0;background:rgba(52,120,246,.10);color:#3478F6;border-radius:10px;padding:8px 12px;font-size:13px;font-weight:600;}',
     '.ny-back{border:0;background:none;color:#3478F6;font-size:13px;padding:8px 0;}',
     '.ny-empty{font-size:12.5px;color:#8E8E93;padding:18px 0;text-align:center;}',
+    '.ny-retry{display:block;margin:0 auto 12px;padding:8px 14px;border:0;border-radius:9px;background:#EDF1FF;color:#2A5BFF;font-size:13px;-webkit-appearance:none;}',
     '.ny-hint{font-size:11.5px;color:#8E8E93;line-height:1.7;margin-top:10px;}'
     ,'.ny-ck{margin-top:14px;border-top:1px solid rgba(0,0,0,.06);padding-top:12px;}'
     ,'.ny-ck textarea{width:100%;box-sizing:border-box;min-height:70px;border:1px solid rgba(0,0,0,.10);border-radius:10px;padding:9px;font-size:12.5px;color:#1c1c1e;background:#fff;resize:vertical;}'
@@ -10621,7 +10689,10 @@ var _163Warmed=false;
           logged=true;curQr=null;
           toast('网易云已登录：'+(d.profile.nickname||''));
           paintUser(d.profile,null);
-          call('/api/netease/playlists',{}).then(function(r){if(r&&r.playlists)paintUser(d.profile,r.playlists);}).catch(function(){});
+          call('/api/netease/playlists',{}).then(function(r){
+            if(r&&r.code===200)paintUser(d.profile,r.playlists||[]);
+            else paintUser(d.profile,[],(r&&r.msg)||'请稍后重试');
+          }).catch(function(e){paintUser(d.profile,[],(e&&e.message)||'连不上后端');});
         }else{
           ckMsg.textContent=(d&&d.msg)||'登录失败，Cookie 可能过期';
         }
@@ -10632,7 +10703,7 @@ var _163Warmed=false;
   }
   function stxt(t){var e=document.getElementById('ny-st'); if(e)e.textContent=t;}
 
-  function paintUser(profile,playlists){
+  function paintUser(profile,playlists,errMsg){
     body.innerHTML='';
     var me=document.createElement('div'); me.className='ny-me';
     var av=document.createElement('img'); av.src=(profile&&(profile.avatarUrl||profile.avatar))||'data:image/gif;base64,R0lGODlhAQABAAAAACw='; me.appendChild(av);
@@ -10647,11 +10718,23 @@ var _163Warmed=false;
     body.appendChild(backBtn);
     var list=document.createElement('div'); list.className='ny-list'; body.appendChild(list);
 
-    renderPlaylists(playlists||[]);
+    renderPlaylists(playlists||[],errMsg||'');
 
-    function renderPlaylists(pls){
+    function renderPlaylists(pls,errMsg){
       backBtn.style.display='none'; view='playlists'; list.innerHTML='';
-      if(!pls.length){var e=document.createElement('div');e.className='ny-empty';e.textContent='这个账号还没有歌单';list.appendChild(e);return;}
+      if(errMsg){
+        var e=document.createElement('div');e.className='ny-empty';e.textContent='歌单读取失败：'+errMsg;list.appendChild(e);
+        var rb=document.createElement('button');rb.className='ny-retry';rb.textContent='重新读取歌单';
+        rb.addEventListener('click',function(){
+          list.innerHTML='<div class="ny-empty">正在重新读取…</div>';
+          call('/api/netease/playlists',{}).then(function(d){
+            if(d&&d.code===200)renderPlaylists(d.playlists||[]);
+            else renderPlaylists([],(d&&d.msg)||'请稍后重试');
+          }).catch(function(e2){renderPlaylists([],((e2&&e2.message)||'连不上后端'));});
+        });
+        list.appendChild(rb);return;
+      }
+      if(!pls.length){var e2=document.createElement('div');e2.className='ny-empty';e2.textContent='这个账号还没有歌单';list.appendChild(e2);return;}
       pls.forEach(function(p){
         var row=document.createElement('div'); row.className='ny-row';
         var im=document.createElement('img'); im.src=p.cover||''; im.alt=''; row.appendChild(im);
@@ -10736,7 +10819,7 @@ var _163Warmed=false;
             call('/api/netease/playlists',{}).then(function(pl){
               paintUser(p,(pl&&pl.playlists)||[]);
               refreshAcctBtn(p);
-            }).catch(function(){paintUser(p,[]);refreshAcctBtn(p);});
+            }).catch(function(e){paintUser(p,[],(e&&e.message)||'连不上后端');refreshAcctBtn(p);});
           });
           return;
         }
@@ -10768,7 +10851,7 @@ var _163Warmed=false;
         logged=true;refreshAcctBtn(d.profile);
         call('/api/netease/playlists',{}).then(function(pl){
           paintUser(d.profile,(pl&&pl.playlists)||[]);
-        }).catch(function(){paintUser(d.profile,[]);});
+        }).catch(function(e){paintUser(d.profile,[],(e&&e.message)||'连不上后端');});
       }else{
         logged=false;
         var t=(btn&&/没有后端|未登录/.test(btn.textContent))?btn.textContent:'';
@@ -11550,7 +11633,10 @@ function sendDrawInvite(){
     }
   },socialDelay());
 }
+var __drawInviteLastAt=0;
 function maybePartnerDrawInvite(){
+  /* 画画属于「大事件」，概率再高也不该一分钟弹一次：15 分钟内最多自动发起一次 */
+  if(Date.now()-(__drawInviteLastAt||0)<15*60000)return;
   const busy=$("view-game").classList.contains("open");
   const pv=Number(state.settings.drawInviteProb);const p=Math.min(100,Math.max(0,isNaN(pv)?15:pv));
   if(Math.random()*100>=p)return;
@@ -11561,7 +11647,7 @@ function maybePartnerDrawInvite(){
     __appendChatMsg(_invitid);
     showView("view-game");initGameCanvas();
   }else{
-    drawInviteShown=true;drawInviteOpen("partner");
+    drawInviteShown=true;__drawInviteLastAt=Date.now();drawInviteOpen("partner");
   }
 }
 /* 画画邀请弹窗：先跳出邀请消息，接受才进入画面，拒绝停留聊天 */
@@ -12605,6 +12691,7 @@ function commitLetter(){
   renderLetters();
   try{closeWriteModal();}catch(e){}
   if(_replyTo){toast("回信已寄出");return;}
+  toast("信已寄出");
   // 对方从字卡里选取内容回信（回信概率/回信时间独立设置，字卡条数8~15条）
   if(!probPct("replyLetterProb"))return;
   const replyBody=joinCards(pickLetterCards(socialCardCount()));if(!replyBody)return; // 没有信件可用字卡就不回信
@@ -12734,7 +12821,7 @@ function addNote(){
   const t=$("note-text").value.trim();if(!t)return;
   state.guestbook.push({id:uid(),from:"me",text:t,time:Date.now()});
   $("note-text").value="";
-  save();renderGuestbook();scrollNotes();
+  save();renderGuestbook();scrollNotes();toast("留言已发送");
   // 对方从字卡选取内容回留言（字卡条数8~15条）
   if(!wantPartner())return;
   const _nMin=Math.max(1,Math.round(Number(state.settings.replyNoteNMin)||1));
@@ -12953,8 +13040,19 @@ function renderComments(m){
   }).join("")+'</div>';
 }
 
+/* 动态列表的重绘签名：只算「条数 + 文本长度」时，点赞/评论数量变了签名不变，
+   renderMoments 会直接 return → 点了赞心不亮、评论发完不显示（就是「主页无法点赞评论」） */
+function __sigMoments(arr){
+  var a=arr||[],s=String(a.length);
+  for(var i=0;i<a.length;i++){
+    var m=a[i]||{};var cm=m.comments||[];
+    s+="|"+(m.id||"")+":"+((m.text||"").length)+":"+(m.img?1:0)+":"+((m.likes||[]).length)+":"+cm.length;
+    for(var j=0;j<cm.length;j++){var c=cm[j]||{};s+=";"+((c.text||"").length)+":"+((c.likes||[]).length)+":"+((c.replies||[]).length);}
+  }
+  return s;
+}
 function renderMoments(){
-  var _s="mom|"+(mpSide||"me")+"|"+__sigOfList(state.moments);
+  var _s="mom|"+(mpSide||"me")+"|"+__sigMoments(state.moments);
   if(!window.__rSig)window.__rSig={};
   if(window.__rSig["mom"]===_s)return;
   window.__rSig["mom"]=_s;
@@ -13037,7 +13135,7 @@ function bindMomentFeed(){
     var lb=t.closest("[data-like]");
     if(lb){var m1=state.moments.find(function(x){return x.id===lb.dataset.like;});if(!m1)return;
       if(!m1.likes)m1.likes=[];var i1=m1.likes.indexOf("me");if(i1>-1)m1.likes.splice(i1,1);else m1.likes.push("me");
-      save();renderMoments();return;}
+      save();renderMoments();toast(i1>-1?"已取消点赞":"已点赞");return;}
     var db=t.closest("[data-mdel]");
     if(db){e.stopPropagation();if(!confirm("删除这条动态？"))return;
       state.moments=state.moments.filter(function(x){return x.id!==db.dataset.mdel;});save();renderMoments();toast("动态已删除");return;}
@@ -13070,7 +13168,7 @@ function bindMomentFeed(){
     if(cl){var card2=cardOf(cl);if(!card2)return;var m2=state.moments.find(function(x){return x.id===card2.dataset.id;});if(!m2)return;
       var target=findComment(m2,cl.dataset.clike);if(!target)return;
       if(!target.likes)target.likes=[];var i2=target.likes.indexOf("me");if(i2>-1)target.likes.splice(i2,1);else target.likes.push("me");
-      save();renderMoments();return;}
+      save();renderMoments();toast(i2>-1?"已取消点赞这条评论":"已点赞这条评论");return;}
     var sb=t.closest("[data-csend]");
     if(sb){var card3=cardOf(sb);var mid2=sb.dataset.csend;
       var ci3=card3?card3.querySelector('[data-ci="'+mid2+'"]'):null;
@@ -13090,7 +13188,7 @@ function bindMomentFeed(){
       }
       if(inp3)inp3.value="";momentDraft[mid2]="";momentFocusMid=null;
       try{if(window.__commentEmoji)window.__commentEmoji[mid2]="";var eb2=card3?card3.querySelector('[data-memoji="'+mid2+'"]'):null;if(eb2)eb2.textContent="😊";}catch(_){}
-      save();renderMoments();
+      save();renderMoments();toast(replyCtx&&replyCtx.commentId?"回复已发送":"评论已发送");
       var rn=Math.max(1,Math.round(rand(Number(state.settings.replyCommentNMin)||1,Number(state.settings.replyCommentNMax)||1)));
       state.pendingCommentReplies=state.pendingCommentReplies||[];
       for(var i3=0;i3<rn;i3++){
@@ -14965,7 +15063,7 @@ init();
    不使用 Service Worker（避免缓存接管导致打不开/黑屏），只用“对比构建号 + 换 URL”这一招。 */
 (function(){
   if(!/^https?:$/.test(location.protocol))return;
-  var BUILD="2026-11-11xr";
+  var BUILD="2026-11-11zd";
   var KEY="app_build_reloaded";
   var busy=false;
   function go(url){location.replace(url+"&skipabout=1");}
