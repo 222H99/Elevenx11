@@ -70,7 +70,8 @@ input,textarea{-webkit-user-select:text;user-select:text;}
 .top-namepill{display:inline-flex;align-items:center;gap:3px;background:color-mix(in srgb, var(--panel) 78%, transparent);border:none;border-radius:14px;padding:3px 9px;min-width:0;max-width:100%;cursor:pointer;}
 .top-name{font-size:13px;font-weight:600;line-height:1.3;white-space:nowrap;color:var(--ttext);}
 .top-caret{font-size:13px;color:#8E8E93;flex:0 0 auto;}
-.top-status{font-size:12px;color:#8E8E93;line-height:1.3;text-align:center;}
+.top-status{font-size:12px;color:#8E8E93;line-height:1.3;text-align:center;height:15px;overflow:hidden;visibility:hidden;}
+.top-status.on{visibility:visible;}
 .top-right{justify-self:end;display:flex;align-items:center;gap:2px;min-width:0;}
 .top-btn{
   width:40px;height:40px;min-height:40px;border:none;color:var(--accent);
@@ -457,8 +458,21 @@ body.av-square .msg-avatar,body.av-square #top-avatar-partner{border-radius:8px 
 .msg-steal .ms-ic{font-size:15px;}
 /* ===== 全屏视图 ===== */
 .view{position:absolute;inset:0;background:var(--bg);z-index:30;display:none;flex-direction:column;overflow:hidden;}
-#view-chat{background:transparent;}
+#view-chat{
+  /* 自己把壁纸画一遍：原来背景透明，靠底下那层 wall 撑，iOS 切页时会先画白底再补壁纸，看着就是闪一下 */
+  background-color:var(--wallbg,var(--bg));
+  background-image:var(--wallimg,none),linear-gradient(var(--walltint),var(--walltint));
+  background-position:center;
+  background-size:cover,auto;
+  background-repeat:no-repeat,repeat;
+}
 .view.open{display:flex;}
+/* 聊天页行数多，用 display:none 关掉再打开，iOS 每次都要重排几千行 → 切页闪一下。
+   改成「一直保持挂载、只是隐藏」，切回来瞬间就是现成的布局 */
+#view-chat.open{display:flex;}
+#view-chat:not(.open){display:flex;opacity:0;pointer-events:none;z-index:-1;transform:translateZ(0);}
+/* opacity:0 而不是 visibility:hidden：visibility 切换会让 iOS 把整层（几千行）重新光栅化，
+   切回来先画一帧白底；透明层则一直保留合成好的画面，切回来是现成的 */
 @keyframes viewFade{from{opacity:0}to{opacity:1}}
 .splash-on #view-me,
 .splash-on .wall{visibility:hidden;pointer-events:none;}
@@ -578,7 +592,9 @@ body.av-square .msg-avatar,body.av-square #top-avatar-partner{border-radius:8px 
 /* 来消息浮动弹窗（液态玻璃） */
 #incoming-pop{position:absolute;left:10px;right:10px;top:calc(8px + env(safe-area-inset-top));z-index:90;
   display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:18px;cursor:pointer;
-  background:var(--glass,rgba(255,255,255,.55));-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);
+  /* 这里原来用了 backdrop-filter 毛玻璃：iOS 上这块一出现/消失，要把底下整页重新合成一遍，
+     几千行聊天或整张壁纸都会跟着重画，看起来就是「有提示的时候屏幕闪一下」。改成实色半透明，不再模糊背景 */
+  background:rgba(255,255,255,.94);
   border:1px solid var(--glassborder,rgba(255,255,255,.7));box-shadow:inset 0 1px 0 var(--glassinner,rgba(255,255,255,.6)),0 10px 30px rgba(0,0,0,.14);
   opacity:0;transform:translateY(-14px);pointer-events:none;transition:.3s;}
 #incoming-pop.show{opacity:1;transform:translateY(0);pointer-events:auto;}
@@ -1251,7 +1267,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-11wd">
+<meta name="app-build" content="2026-11-11xr">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -2825,7 +2841,7 @@ body.fs-4 .msg-more{font-size:calc(12px * var(--fs))}
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
       <div class="set-group"><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
-<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-11wd</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-11xr</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -4084,15 +4100,43 @@ function msgPreviewText(m){
   }
   try{document.addEventListener("pointerdown",__primeSnd,{passive:true});}catch(e){}
   try{document.addEventListener("touchstart",__primeSnd,{passive:true});}catch(e){}
+  /* 常驻一个音频元素：iOS 只允许「用户点过一次之后」这个元素随时发声，
+     临时 new Audio() 在后台会被拦，等回到前台才响 → 通知和声音对不上 */
+  function __sndElGet(){
+    if(!__sndEl){
+      __sndEl=new Audio();
+      __sndEl.setAttribute("playsinline","");
+      __sndEl.preload="auto";
+      __sndEl.volume=0.9;
+    }
+    return __sndEl;
+  }
+  window.__primeSnd=function(){
+    try{
+      var e=__sndElGet();
+      if(e.__primed)return;
+      e.__primed=1;
+      /* 用一段极短的静音把元素「解锁」，之后后台也能直接 play */
+      e.src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAgD4AAIA+AAABAAgAZGF0YQAAAAA=";
+      e.muted=true;
+      var r=e.play();
+      if(r&&r.then)r.then(function(){try{e.pause();e.currentTime=0;e.muted=false;}catch(x){}}).catch(function(){});
+      else{e.pause();e.muted=false;}
+    }catch(x){}
+  };
+  try{
+    var _prOnce=function(){try{window.__primeSnd();}catch(e){};document.removeEventListener("pointerdown",_prOnce);document.removeEventListener("touchstart",_prOnce);};
+    document.addEventListener("pointerdown",_prOnce,{passive:true});
+    document.addEventListener("touchstart",_prOnce,{passive:true});
+  }catch(e){}
   function playData(d,vol){
     try{
       if(document.hidden&&!(state&&state.settings&&state.settings.bgSoundOn===true))return; /* 默认后台不出声，保持纯静音保活，避免播放卡片 */
-      if(document.hidden&&__sndEl){
-        try{__sndEl.muted=false;__sndEl.volume=(vol===undefined?0.9:vol);__sndEl.src=d;__sndEl.currentTime=0;}catch(e){}
-        var r=__sndEl.play();if(r&&r.catch)r.catch(function(){});
-        return;
-      }
-      var a=new Audio(d);a.volume=(vol===undefined?0.9:vol);a.play().catch(function(){});
+      /* 一律走同一个常驻元素，避免后台被拦、声音迟到 */
+      var e=__sndElGet();
+      try{e.muted=false;e.volume=(vol===undefined?0.9:vol);e.src=d;e.currentTime=0;}catch(x){}
+      var r=e.play();
+      if(r&&r.catch)r.catch(function(){});
     }catch(e){}
   }
   function synthSend(){
@@ -4172,7 +4216,7 @@ function msgPreviewText(m){
 /* ===== 更新公告：换了新版本时弹一次，设置里也能随时再看 ===== */
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
-  ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||"2026-11-11wd";}catch(e){return "2026-11-11wd";}})(),
+  ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||"2026-11-11xr";}catch(e){return "2026-11-11xr";}})(),
   date:"2026-11-11",
   lead:"这次修的都是「用起来会硌手」的地方，打开就能感觉到。",
   items:[
@@ -4185,7 +4229,9 @@ var ANNOUNCE={
     "对方撤回只改那一行，不再整屏重绘；发消息、收消息也都只追加新行，屏幕不会闪",
     "小播放卡片只在「播放状态或封面真的变了」时才重画，不再每 0.25 秒刷新一次图片",
     "换新版本时会先弹一次声明页，读完再弹这页更新公告；从设置里也能随时再看",
-    "声明页的文字校对过一遍：感谢名单、使用条款和隐私说明都按最新这版显示"
+    "声明页的文字校对过一遍：感谢名单、使用条款和隐私说明都按最新这版显示",
+    "切页面也不再闪：聊天页改成「一直挂着、只隐藏」，还自己把壁纸画一遍，不再靠底层壁纸透过来",
+    "系统通知和提示音一起到：提示音改用常驻的音频元素，第一次点屏幕时就先解锁好，不再等回到页面才响"
   ],
   foot:"有问题或建议，可以在小红书 @Eleven_（ID：5609831119）找我。谢谢你还在这里。"
 };
@@ -4323,8 +4369,17 @@ function maybeShowIncomingPop(m,force){
   if(!force&&document.hidden){if(!m.__notified)notifySystem(m,{silent:m.type==="poke"});return;} // 滑出网站/后台 → 系统通知
   if(!force&&$("view-chat")&&$("view-chat").classList.contains("open"))return;
   const av=$("ip-av"),nm=$("ip-name"),tx=$("ip-text"),tm=$("ip-time");
-  if(av)av.src=(state.partner&&state.partner.avatar)||avatarSvg("#5AC8FA");
-  if(nm)nm.textContent=(state.partner&&state.partner.name)||"对方";
+  /* 头像/名字只在真的变了才写：每次弹提示都重设 src 会让图重新解码一遍 */
+  try{
+    if(av){
+      var _avSrc=(state.partner&&state.partner.avatar)||avatarSvg("#5AC8FA");
+      if(av.getAttribute("src")!==_avSrc)av.setAttribute("src",_avSrc);
+    }
+    if(nm){
+      var _nmTxt=(state.partner&&state.partner.name)||"对方";
+      if(nm.textContent!==_nmTxt)nm.textContent=_nmTxt;
+    }
+  }catch(e){}
   if(tx){
     tx.textContent=msgPreviewText(m);
   }
@@ -4864,7 +4919,7 @@ try{if(typeof renderCouple==="function")renderCouple();}catch(e){}
     }
     aboutLoadStatus("正在渲染界面…");
     setTimeout(()=>{ window._dbReady=true;aboutLoadStatus("加载完成");}, 300);
-  }catch(e){window._dbReady=true;aboutLoadStatus("加载完成（离线模式）");try{renderAll();}catch(_e){}try{if(typeof showView==="function")showView("view-me");}catch(_e2){}}
+  }catch(e){window._dbReady=true;aboutLoadStatus("加载完成（离线模式）");try{renderAll();}catch(_e){}try{if(typeof showView==="function")showView("view-me");}catch(_e2){}try{setTimeout(function(){if(window.__prewarmChat)window.__prewarmChat();},260);}catch(_e3){}}
   try{setTimeout(function(){
     window.__idle(function(){
       try{if(typeof catchUpSocial==="function")catchUpSocial();}catch(e){}
@@ -5009,7 +5064,18 @@ function initKeyboardFix(){
     let use=kb>30?kb/k:0;
     const bb=document.querySelector(".bottombar");
     const np=document.getElementById("notify-prompt");
-    shiftFor(bb,use);shiftFor(np,use);
+    /* 聊天页：像微信那样整体往上顶——把键盘高度做成页面的下内边距，
+       顶部栏不动、列表和输入栏一起上移，最新消息始终露在键盘上方 */
+    const vc=document.getElementById("view-chat");
+    const chatOpen=!!(vc&&vc.classList.contains("open"));
+    if(chatOpen){
+      if(use)vc.style.paddingBottom=Math.round(use)+"px";else vc.style.paddingBottom="";
+      shiftFor(bb,0);
+    }else{
+      if(vc)vc.style.paddingBottom="";
+      shiftFor(bb,use);
+    }
+    shiftFor(np,use);
     /* 2) 兜底：直接用真实坐标校准——有些浏览器全屏时不缩布局视口，上面的差值算不出来，
        这里按"底部栏底边超出可视区多少"再补一次；用输入框焦点状态判断是否在打字 */
     try{
@@ -5025,7 +5091,14 @@ function initKeyboardFix(){
         if(o2>0){shiftFor(np,use+o2/k);}
       }
       const ml=document.querySelector(".view.open .msglist");
-      if(ml)ml.style.paddingBottom=use?Math.round(use)+"px":"";
+      if(ml&&!chatOpen)ml.style.paddingBottom=use?Math.round(use)+"px":"";
+      if(chatOpen&&use){
+        /* 键盘弹起时贴着最新一条，和微信一样不用自己往下拨 */
+        window.__kbScrollT=window.__kbScrollT||0;
+        if(!window.__kbScrollT){
+          window.__kbScrollT=setTimeout(function(){window.__kbScrollT=0;try{var ll=document.getElementById("msglist");if(ll)ll.scrollTop=ll.scrollHeight;}catch(e){}},80);
+        }
+      }
     }catch(_){}
   };
   var __kbRaf=0;
@@ -5042,6 +5115,8 @@ function initKeyboardFix(){
       if(np)np.style.transform="";
       const ml=document.querySelector(".view.open .msglist");
       if(ml)ml.style.paddingBottom="";
+      const vc=document.getElementById("view-chat");
+      if(vc)vc.style.paddingBottom="";
     }catch(_){}
   }
   window.__resetKbShift=resetKbShift;
@@ -5253,11 +5328,20 @@ function applySkin(){
 let typing=false;
 function setTyping(v){typing=v;renderTopStatus();}
 function renderTopStatus(){
+  /* 只在内容真的变了才写：发送消息时会调用到这里，
+     每次都重设头像 src / 名字文本会让顶部栏重新排版，看起来像闪一下 */
   const s=$("top-status-partner");
-  s.textContent=typing?"对方正在输入…":"";
-  s.style.display=typing?"block":"none";
-  $("top-name-partner").textContent=state.partner.name||"对方";
-  $("top-avatar-partner").src=state.partner.avatar||avatarSvg("#5AC8FA");
+  var _st=typing?"对方正在输入…":"";
+  if(s&&s.textContent!==_st)s.textContent=_st;
+  /* 用固定高度的显隐代替 display:none：否则「对方正在输入…」出现/消失会把
+     名字和头像整体上下推一下，每次发消息都看到顶部跳一下 */
+  if(s)s.classList.toggle("on",!!typing);
+  var _nm=state.partner.name||"对方";
+  var _n=$("top-name-partner");
+  if(_n&&_n.textContent!==_nm)_n.textContent=_nm;
+  var _av=state.partner.avatar||avatarSvg("#5AC8FA");
+  var _a=$("top-avatar-partner");
+  if(_a&&_a.getAttribute("src")!==_av)_a.setAttribute("src",_av);
 }
 function msgById(id){return state.messages.find(m=>m.id===id);}
 function quoteBlock(m){
@@ -5280,7 +5364,14 @@ function _chatSigNow(){
     var rec=0,rd=0,extra=0;
     for(var i=0;i<m.length;i++){var x=m[i];if(x.recalled)rec++;if(x.read)rd++;extra+=(x.text||"").length;}
     var st=state.settings||{};
-    return m.length+"/"+r.length+"/"+rec+"/"+rd+"/"+extra+"/"+(st.readReceipt?1:0)+((st.showActiveTag!==false)?1:0)+((st.showReadNoreply!==false)?1:0)+"/"+(last?(last.id+"|"+((last.text||"").length)):"")+"/"+((state.seq||0))+"/"+((window.__chatRev||0));
+    /* 只看「真正会影响聊天画面」的东西：条数、撤回数、已读数、已读不回/已回复标记、
+      红包状态、相关开关、最后一条。以前把 save() 的全局版本号也算进去，
+      于是随便存一次（切页、改别的设置）就会签名变化 → 整屏重绘 → 一闪一闪 */
+    var nr=0,ans=0;
+    for(var i2=0;i2<m.length;i2++){var y=m[i2];if(y.from==="me"){if(y.noReply)nr++;if(y.answered)ans++;}}
+    var rpHash=0;
+    for(var i3=0;i3<r.length;i3++){var rr=r[i3];rpHash=(rpHash*31+((rr.status||"").length)+((rr.amount||"").length))%100000007;}
+    return m.length+"/"+r.length+"/"+rec+"/"+rd+"/"+nr+"/"+ans+"/"+extra+"/"+(st.readReceipt?1:0)+((st.showActiveTag!==false)?1:0)+((st.showReadNoreply!==false)?1:0)+"/"+(last?(last.id+"|"+((last.text||"").length)):"")+"/"+((state.seq||0))+"/"+rpHash;
   }catch(e){return "x";}
 }
 /* 单条消息转 HTML（列表重建和“发消息只追加一条”共用同一套，保证样式完全一致） */
@@ -5431,6 +5522,31 @@ function maybePartnerRecall(mid){
   },1800+Math.random()*2500);
 }
 /* 撤回时只就地替换这一行的气泡，不整屏重绘（整屏重绘在 iOS 上就是那一下闪屏） */
+/* 邀请卡片上的「接受/拒绝/取消」：单行刷新，不整屏重绘 */
+function __bindInviteButtons(row){
+  try{
+    if(!row||!row.querySelectorAll)return;
+    row.querySelectorAll("[data-inv-ok]").forEach(function(b){b.addEventListener("click",function(e){
+      e.stopPropagation();var m=msgById(b.getAttribute("data-inv-ok"));if(!m)return;
+      m.status="accepted";save();try{__refreshRecallRow(m.id);}catch(_){}
+      if(m.inv==="music"){var au=musicAudio();if(au.paused&&state.musicCur>=0)au.play().catch(function(){});toast("你们开始一起听歌了");showView("view-music");}
+      else{game.agreed=true;showView("view-game");initGameCanvas();toast("接受邀请，一起画吧");}
+    });});
+    row.querySelectorAll("[data-inv-no]").forEach(function(b){b.addEventListener("click",function(e){
+      e.stopPropagation();var m=msgById(b.getAttribute("data-inv-no"));if(!m)return;
+      m.status="declined";save();try{__refreshRecallRow(m.id);}catch(_){}
+      var _s=pushMsg("me","sys",m.inv==="music"?"你拒绝了听歌邀请":"你拒绝了画画邀请");try{__appendChatMsg(_s);}catch(_){renderChat();}
+      save();toast("已拒绝");
+    });});
+    row.querySelectorAll("[data-inv-cancel]").forEach(function(b){b.addEventListener("click",function(e){
+      e.stopPropagation();var m=msgById(b.getAttribute("data-inv-cancel"));if(!m)return;
+      m.status="cancelled";save();
+      try{if(m.inv==="music"){musicInviteShown=false;pendingMusicInvId=null;musicInviteClose();clearTimeout(musicAutoAccept);}else{drawInviteShown=false;pendingDrawInvId=null;drawInviteClose();clearTimeout(drawAutoAccept);}}catch(_){}
+      try{__refreshRecallRow(m.id);}catch(_){}
+      save();toast("已取消邀请");
+    });});
+  }catch(e){}
+}
 function __refreshRecallRow(mid){
   try{
     var row=document.querySelector('#msglist [data-id="'+mid+'"]');
@@ -5442,10 +5558,39 @@ function __refreshRecallRow(mid){
     if(!nr)return false;
     row.parentNode.replaceChild(nr,row);
     try{bindChatRow(nr);}catch(e){}
+    try{__bindInviteButtons(nr);}catch(e){}
+    try{if(typeof _chatSigNow==="function")_chatSig=_chatSigNow();}catch(e){}
     return true;
   }catch(e){return false;}
 }
 /* 对方回复后，把已经显示成「已读不回」的那几行就地改成「已读」 */
+function __refreshReadState(ids){
+  /* 把指定「我」的消息行的时间旁标签就地改成 已读/已读不回/已送达，
+     不再为了一个标签把整屏几十条重建一遍 */
+  try{
+    (ids||[]).forEach(function(id){
+      var m=null;try{m=(state.messages||[]).filter(function(x){return x&&x.id===id;})[0];}catch(e){}
+      if(!m||m.from!=="me")return;
+      var row=document.querySelector('#msglist [data-id="'+id+'"]');
+      if(!row)return;
+      var meta=row.querySelector('.msg-time');
+      if(!meta)return;
+      var wantNoreply=!!(m.read&&!m.answered&&state.settings.showReadNoreply!==false);
+      var oldTag=meta.querySelector('.msg-noreply')||meta.querySelector('.msg-read');
+      if(wantNoreply){
+        if(oldTag&&oldTag.className==="msg-noreply")return;
+        var sp=document.createElement('span');sp.className='msg-noreply';sp.textContent='已读不回';
+        if(oldTag)meta.replaceChild(sp,oldTag);else meta.appendChild(sp);
+      }else{
+        var txt=m.read?"已读":"已送达";
+        if(oldTag&&oldTag.className==="msg-read"&&oldTag.textContent===txt)return;
+        var sp2=document.createElement('span');sp2.className='msg-read';sp2.textContent=txt;
+        if(oldTag)meta.replaceChild(sp2,oldTag);else meta.appendChild(sp2);
+      }
+    });
+    try{_chatSig=_chatSigNow();}catch(e){}
+  }catch(e){}
+}
 function __refreshReadMarks(ids){
   try{
     if(!ids||!ids.length)return;
@@ -5460,6 +5605,7 @@ function __refreshReadMarks(ids){
       sp.className='msg-read';sp.textContent='已读';
       meta.replaceChild(sp,tag);
     });
+    try{if(typeof _chatSigNow==="function")_chatSig=_chatSigNow();}catch(e){}
   }catch(e){}
 }
 /* 把还没铺出来的历史消息从顶部一段段补上（补完就停，不影响滚动位置） */
@@ -5530,14 +5676,10 @@ function renderChat(force){
   }
   /* 记录很多时先画最近 600 条，剩下的在下一帧之后从顶部逐段补上：
      打开得快，而且一条都没少，往上滑照样能翻到第一条 */
+  /* 一次性铺完：以前是「先画 600 条，再从顶部一段段补」，
+     每补一段都要插入+改滚动位置，iOS 上就是进聊天时的那几下闪。现在一次成图，只画一帧 */
   var __lazyFill=null;
-  if(!window.__chatWin&&__shown.length>1200){
-    var _tail=__shown.slice(__shown.length-600);
-    html+=__rowsHTML(_tail);
-    __lazyFill={all:__shown,from:__shown.length-600};
-  }else{
-    html+=__rowsHTML(__shown);
-  }
+  html+=__rowsHTML(__shown);
   if(!entries.length)html='<div class="empty-hint">还没有消息，发一条开启私密对话吧。</div>';
   /* 增量追加：只有「末尾多了几条、其余完全没变、同一天、没触发 60 条窗口」时才只插新行，
      避免每条来消息都把整屏 60 行删掉重画（iOS 上那一下就是闪屏） */
@@ -5572,7 +5714,8 @@ function renderChat(force){
   }
   window.__renderedKeys=_keys;
   try{if(__shown.length)window.__chatLastDay=dayKey(__shown[__shown.length-1].t);}catch(e){}
-  if(__lazyFill){try{setTimeout(function(){__fillOlderRows(__lazyFill.all,__lazyFill.from);},16);}catch(e){}}
+  /* 只在「整块重绘」时才补历史。增量追加那一次如果也补，会把刚追加的尾部再插一遍 → 行数暴涨、看起来一直闪 */
+  if(__lazyFill&&!_appended){try{setTimeout(function(){__fillOlderRows(__lazyFill.all,__lazyFill.from);},16);}catch(e){}}
   
   /* 新消息气泡入场动效：只让这次新出现的行播，重绘旧消息不会再弹一次 */
   try{
@@ -5837,7 +5980,9 @@ $("survey-create-send").addEventListener("click",()=>{
   for(const q of surveyDraft){if(!q.text.trim()){toast("每个问题都要有文字");return;}
     const k=q.kind||"single";if(k!=="custom"){const filled=(q.options||[]).map(o=>o&&o.trim()).filter(Boolean);if(filled.length<2){toast("单选/多选题至少填写 2 个选项");return;}}}
   const s={title:$("survey-title").value.trim()||"问卷",questions:surveyDraft.map(q=>{const k=q.kind||"single";return {text:q.text.trim(),kind:k,options:(k==="custom"?[]:(q.options||[]).map(o=>o.trim()).filter(Boolean)),customCount:k==="custom"?(q.customCount||1):0,id:uid()};}),answeredBy:null};
-  const mid=pushMsg("me","survey",JSON.stringify(s));renderChat();save();
+  const mid=pushMsg("me","survey",JSON.stringify(s));
+  try{if(!__appendChatMsg(mid))renderChat();}catch(e){renderChat();}
+  save();
   /* 可选：把这次的题一起放进题库，让对方面向以后的问卷也能用到 */
   try{
     var _imp=$("survey-import-bank");
@@ -6065,7 +6210,9 @@ $("survey-answer-submit").addEventListener("click",()=>{
   for(const q of s.questions){const k=q.kind||(q.mode==="custom"?"custom":q.type||"single");if(k==="custom"){if(!q.custom){toast("自定义题需要填写答案");return;}}else if(!q.picks.length){toast("每题都要作答");return;}}
   s.answeredBy="me";m.text=JSON.stringify(s);
   $("survey-answer-overlay").classList.remove("show");
-  save();renderChat();toast("问卷已提交");
+  save();
+  if(!__refreshSurveyRow(m.id)){try{renderChat();}catch(e){}}
+  toast("问卷已提交");
 });
 function partnerAnswerSurvey(id){
   const m=msgById(id);if(!m)return;let s={};try{s=JSON.parse(m.text);}catch(e){return;}
@@ -6083,7 +6230,9 @@ function partnerAnswerSurvey(id){
     else if(k==="multi"){const n=1+Math.floor(Math.random()*Math.min(2,q.options.length));q.picks=shuffle(q.options.slice()).slice(0,n);q.custom="";}
     else{q.picks=[q.options[Math.floor(Math.random()*q.options.length)]];q.custom="";}
   }
-  s.answeredBy="partner";m.text=JSON.stringify(s);save();renderChat();toast("对方填写了问卷");
+  s.answeredBy="partner";m.text=JSON.stringify(s);save();
+  if(!__refreshSurveyRow(m.id)){try{renderChat();}catch(e){}}
+  toast("对方填写了问卷");
 }
 /* 对方主动发问卷：只从我导入的题库 + 我问过/发送过的问卷里出题，绝不用字卡兜底 */
 function maybePartnerSurvey(){
@@ -6103,13 +6252,14 @@ function maybePartnerSurvey(){
     }
   }
   if(!qs.length)return;
-  pushMsg("partner","survey",JSON.stringify({title:"来答一份小问卷吧",questions:qs,answeredBy:null}));
-  renderChat();save();toast("对方给你发了一份问卷");
+  var _svid=pushMsg("partner","survey",JSON.stringify({title:"来答一份小问卷吧",questions:qs,answeredBy:null}));
+  try{if(!__appendChatMsg(_svid))renderChat();}catch(e){renderChat();}
+  save();toast("对方给你发了一份问卷");
 }
 
 /* —— 红包中心（不在聊天框里，独立视图）—— */
 function renderRedpackets(){
-  var _s=("rp")+"|"+(state.redpackets).length+"|"+((window.__chatRev||0));
+  var _s="rp|"+__sigOfList(state.redpackets);
   if(!window.__rSig)window.__rSig={};
   if(window.__rSig["rp"]===_s)return;
   window.__rSig["rp"]=_s;
@@ -6151,8 +6301,12 @@ $("rp-send").addEventListener("click",()=>{
   state.redpackets.unshift({id:uid(),dir:"out",amount:amt,note:note,status:"pending",time:Date.now()});
   $("rp-amount").value="";$("rp-note").value="";
   $("redpacket-overlay").classList.remove("show");
-  save();renderRedpackets();renderChat();toast("已转账 ¥"+fmtAmt(amt));
-  schedulePartnerDecision(state.redpackets[0].id);
+  save();renderRedpackets();
+  var _rpn=state.redpackets[0];
+  var _rpok=false;try{_rpok=chatAppendRp(_rpn);}catch(e){}
+  if(!_rpok)renderChat();else try{_chatSig=_chatSigNow();}catch(e){}
+  toast("已转账 ¥"+fmtAmt(amt));
+  schedulePartnerDecision(_rpn.id);
 });
 function schedulePartnerDecision(id){
   setTimeout(()=>{
@@ -6267,14 +6421,18 @@ $("rp-claim-take").addEventListener("click",()=>{
   if(!r||r.status!=="pending")return;
   r.status="claimed";save();$("rp-claim-overlay").classList.remove("show");
   newR=0;updateNewBadge();
-  renderRedpackets();renderChat();toast("已领取 ¥"+fmtAmt(r.amount));
+  renderRedpackets();
+  if(!__refreshRpRow(r.id)){try{renderChat();}catch(e){}}
+  toast("已领取 ¥"+fmtAmt(r.amount));
 });
 $("rp-claim-refuse").addEventListener("click",()=>{
   const id=$("rp-claim-overlay")._id;const r=state.redpackets.find(x=>x.id===id);
   if(!r||r.status!=="pending")return;
   r.status="declined";save();$("rp-claim-overlay").classList.remove("show");
   newR=0;updateNewBadge();
-  renderRedpackets();renderChat();toast("已拒领退还");
+  renderRedpackets();
+  if(!__refreshRpRow(r.id)){try{renderChat();}catch(e){}}
+  toast("已拒领退还");
 });
 
 /* ===== 发送 & 自动回复 ===== */
@@ -6297,7 +6455,7 @@ function pushMsg(from,type,text,opts){
     if(!_q||_q.recalled)opts.quoteId=null;
   }
   const id="m"+(++state.seq);
-  const m={id:id,from:from,type:type,text:text,src:opts.src||"",dur:opts.dur||0,sched:!!opts.sched,time:Date.now(),quoteId:opts.quoteId||null,kind:opts.kind||"",active:!!opts.active,read:from!=="me",recalled:false};
+  const m={id:id,from:from,type:type,text:text,src:opts.src||"",dur:opts.dur||0,sched:!!opts.sched,time:Date.now(),quoteId:opts.quoteId||null,kind:opts.kind||"",active:!!opts.active,catchup:!!opts.catchup,read:from!=="me",recalled:false};
   state.messages.push(m);
   try{
     if(type!=="sys"&&type!=="poke"&&!opts.quiet){
@@ -6316,7 +6474,7 @@ function pushMsg(from,type,text,opts){
   }
   /* 对方真的发来一条回复：把这条之前「我」的消息都记成已回复（用于区分「已读」和「已读不回」） */
   try{
-    if(from==="partner"&&(type==="text"||type==="image")&&!m.active){
+    if(from==="partner"&&(type==="text"||type==="image")&&!m.active&&!m.catchup){
       var _flipped=[];
       for(var _ai=state.messages.length-2;_ai>=0;_ai--){
         var _am=state.messages[_ai];
@@ -6369,6 +6527,12 @@ function clearNoReply(mid){
 }
 function sendMyText(){
   const inp=$("msg-input");const t=inp.value.trim();if(!t)return;
+  /* 同一句话 400ms 内只发一次：双击发送键/回车被重复触发时不至于出现两条 */
+  try{
+    var _now=Date.now();
+    if(window.__lastSendTxt===t&&(_now-(window.__lastSendAt||0))<400)return;
+    window.__lastSendTxt=t;window.__lastSendAt=_now;
+  }catch(e){}
   const _id=pushMsg("me","text",t,{quoteId:quoteTarget});
   inp.value="";clearQuote();
   try{window.__syncTapVeil&&window.__syncTapVeil();}catch(e){}
@@ -6377,24 +6541,191 @@ function sendMyText(){
   try{const _lm=state.messages[state.messages.length-1];if(_lm&&_lm.id===_id)_ok=chatAppendTail(_lm);}catch(e){}
   if(!_ok)renderChat();
   save();if(!window.__schedSending)scheduleReply();randomPartnerEvents();
-  try{if(typeof scroll==="function")scroll();}catch(e){}
+  /* 和微信一样：发出去就贴在最新一条。已经很靠近底部时做一次很短的平滑跟随，
+     不直接改 scrollTop 硬跳，避免那一瞬间的跳动感 */
+  try{
+    var _l=$("msglist");
+    if(_l){
+      var _gap=_l.scrollHeight-_l.scrollTop-_l.clientHeight;
+      if(_gap<420){
+        try{_l.scrollTo({top:_l.scrollHeight,behavior:"smooth"});}catch(e){_l.scrollTop=_l.scrollHeight;}
+      }
+    }
+  }catch(e){}
+}
+/* 系统提示（来信/留言/动态/回信/通话等）也走单条追加，避免整屏重绘带来的一下闪 */
+function __appendChatMsg(mid){
+  try{
+    var all=state.messages||[];
+    var m=mid?(all.filter(function(x){return x&&x.id===mid;})[0]||all[all.length-1]):all[all.length-1];
+    if(m&&chatAppendTail(m)){
+      /* 图片是「解码完才真正插入」，这里先把签名同步成最新，
+         免得紧接着切到聊天页时判定为「有变化」又整屏重画一次 */
+      try{_chatSig=_chatSigNow();}catch(e){}
+      return true;
+    }
+  }catch(e){}
+  try{renderChat();}catch(e){}
+  return false;
+}
+window.__appendChatMsg=__appendChatMsg;
+/* 对方来一条消息时的统一收尾：和「我发出去」走同一条增量路径，不整屏重绘 */
+function __chatAppendPartner(mid){
+  var m=null,ok=false;
+  try{
+    var all=state.messages||[];
+    m=mid?(all.filter(function(x){return x&&x.id===mid;})[0]||all[all.length-1]):all[all.length-1];
+    if(m)ok=chatAppendTail(m);
+  }catch(e){ok=false;}
+  if(!ok)renderChat();
+  save();
+  try{
+    var l=$("msglist");
+    if(l){
+      var gap=l.scrollHeight-l.scrollTop-l.clientHeight;
+      /* 人已经在最底下附近才跟随；正在往上翻历史就不打断 */
+      if(gap<420){try{l.scrollTo({top:l.scrollHeight,behavior:"smooth"});}catch(e){l.scrollTop=l.scrollHeight;}}
+    }
+  }catch(e){}
 }
 /* 单条追加：列表末尾内容未变、也没跨天时，直接把这一条拼到末尾 */
+/* 红包/问卷这类「独立卡片行」也走增量：发红包不再整屏重绘（那一下就是闪） */
+function chatAppendRp(r){
+  try{
+    var list=$("msglist");
+    if(!list||!list.children.length)return false;
+    if(list.querySelector(".empty-hint"))return false;
+    if(document.getElementById("msg-more-btn"))return false;
+    var _gap=list.scrollHeight-list.scrollTop-list.clientHeight;
+    var _day=false;
+    if(window.__chatLastDay&&dayKey(r.time)!==window.__chatLastDay)_day=true;
+    var h=(_day?'<div class="msg-day"><span>'+dayLabel(r.time)+'</span></div>':'')+redpacketRowHTML(r);
+    list.insertAdjacentHTML("beforeend",h);
+    if(_day)window.__chatLastDay=dayKey(r.time);
+    var row=list.lastElementChild;
+    if(row){
+      row.addEventListener("click",function(e){if(row._lp){row._lp=false;return;}e.stopPropagation();handleRedpacketTap(row.dataset.rp);});
+      try{bindLongPress(row,"rp");}catch(e){}
+    }
+    try{_chatSig=_chatSigNow();}catch(e){}
+    try{if(window.__renderedKeys&&window.__renderedKeys.length)window.__renderedKeys.push("r:"+String(r.id));}catch(e){}
+    if(_gap<480){
+      var _stick=function(){try{var ll=document.getElementById("msglist");if(!ll)return;if(ll.scrollHeight-ll.scrollTop-ll.clientHeight>2)ll.scrollTop=ll.scrollHeight;}catch(e){}};
+      _stick();try{requestAnimationFrame(_stick);}catch(e){};setTimeout(_stick,150);
+    }
+    return true;
+  }catch(e){return false;}
+}
+/* 红包状态变了（领取/拒领）：只把那一张卡片就地换掉 */
+function __refreshRpRow(id){
+  try{
+    var row=document.querySelector('#msglist [data-rp="'+id+'"]');
+    var r=(state.redpackets||[]).filter(function(x){return x.id===id;})[0];
+    if(!row||!r)return false;
+    var tmp=document.createElement("div");
+    tmp.innerHTML=redpacketRowHTML(r);
+    var nr=tmp.firstElementChild;
+    if(!nr)return false;
+    row.parentNode.replaceChild(nr,row);
+    nr.addEventListener("click",function(e){if(nr._lp){nr._lp=false;return;}e.stopPropagation();handleRedpacketTap(nr.dataset.rp);});
+    try{bindLongPress(nr,"rp");}catch(e){}
+    try{_chatSig=_chatSigNow();}catch(e){}
+    return true;
+  }catch(e){return false;}
+}
+/* 问卷卡片：状态/答案变了只换这一张，不整屏重绘 */
+function __refreshSurveyRow(id){
+  try{
+    var row=document.querySelector('#msglist [data-sq="'+id+'"]');
+    var m=msgById(id);
+    if(!row||!m)return false;
+    var tmp=document.createElement("div");
+    tmp.innerHTML=surveyRowHTML(m);
+    var nr=tmp.firstElementChild;
+    if(!nr)return false;
+    row.parentNode.replaceChild(nr,row);
+    nr.addEventListener("click",function(e){
+      if(nr._lp){nr._lp=false;return;}
+      var _b=e.target&&e.target.closest?e.target.closest("[data-act='survey']"):null;
+      if(_b)return;
+      e.stopPropagation();openSurveyAnswer(nr.dataset.sq);
+    });
+    try{bindLongPress(nr,"sq");}catch(e){}
+    try{_chatSig=_chatSigNow();}catch(e){}
+    return true;
+  }catch(e){return false;}
+}
 function chatAppendTail(m){
   try{
     var list=$("msglist");
     if(!list||!list.children.length)return false;
     if(list.querySelector(".empty-hint"))return false;
     if(document.getElementById("msg-more-btn"))return false;
-    if(window.__chatLastDay&&dayKey(m.time)!==window.__chatLastDay)return false;
-    list.insertAdjacentHTML("beforeend",msgRowHTML(m));
-    var row=list.lastElementChild;
-
-    if(row&&!row.dataset.rp&&!row.dataset.sq){
-      row.addEventListener("click",function(e){if(row._lp){row._lp=false;return;}e.stopPropagation();openActions(row.dataset.id);});
-      try{bindLongPress(row);}catch(e){}
+    /* 跨天：以前这里直接 return false → 触发整屏重绘（那天第一条消息会闪一下）。
+       现在自己补一个日期分隔行再追加，仍然只动末尾 */
+    var _dayChange=false;
+    if(window.__chatLastDay&&dayKey(m.time)!==window.__chatLastDay)_dayChange=true;
+    /* 已经画过这条就别再画：补发路径可能被触发两次，同一条会“出现两遍” */
+    var _lastRow=list.lastElementChild;
+    if(_lastRow&&_lastRow.getAttribute&&_lastRow.getAttribute("data-id")===String(m.id))return true;
+    var _insert=function(){
+      try{
+        if(_dayChange){
+          list.insertAdjacentHTML("beforeend",'<div class="msg-day"><span>'+dayLabel(m.time)+'</span></div>');
+          window.__chatLastDay=dayKey(m.time);
+        }
+        list.insertAdjacentHTML("beforeend",msgRowHTML(m));
+        var row=list.lastElementChild;
+        if(row&&!row.dataset.rp&&!row.dataset.sq){
+          row.addEventListener("click",function(e){if(row._lp){row._lp=false;return;}e.stopPropagation();openActions(row.dataset.id);});
+          try{bindLongPress(row);}catch(e){}
+        }else if(row&&row.dataset&&row.dataset.sq){
+          row.addEventListener("click",function(e){
+            if(row._lp){row._lp=false;return;}
+            var _b=e.target&&e.target.closest?e.target.closest("[data-act='survey']"):null;
+            if(_b)return;
+            e.stopPropagation();openSurveyAnswer(row.dataset.sq);
+          });
+          try{bindLongPress(row,"sq");}catch(e){}
+        }
+        try{_chatSig=_chatSigNow();}catch(e){}
+        try{__bindInviteButtons(row);}catch(e){}
+        try{if(window.__renderedKeys&&window.__renderedKeys.length)window.__renderedKeys.push("m:"+String(m.id));}catch(e){}
+        try{
+          var l2=list;
+          if(l2&&(_gapAfter<480)){
+            /* 表情包/图片可能很高，插入后列表高度一下子变大：这里直接把列表贴到最新，
+               并在下一帧、以及稍后再校正一次，保证整张表情包都露出来（不被输入栏/键盘压住半截） */
+            var _stick=function(){try{var ll=document.getElementById("msglist");if(!ll)return;
+              if(ll.scrollHeight-ll.scrollTop-ll.clientHeight>2)ll.scrollTop=ll.scrollHeight;}catch(e){}};
+            _stick();
+            try{requestAnimationFrame(_stick);}catch(e){}
+            setTimeout(_stick,140);
+            setTimeout(_stick,600);
+          }
+        }catch(e){}
+      }catch(e){}
+    };
+    var _gapAfter=list.scrollHeight-list.scrollTop-list.clientHeight;
+    /* 表情包/图片：先把图解码好再插进来，否则先插一个空白气泡、图到了再撑开，
+       就是发表情时那一下“闪”/“抖” */
+    if(m&&m.type==="image"&&m.src){
+      window.__decodedSrcCache=window.__decodedSrcCache||{};
+      if(window.__decodedSrcCache[m.src]){_insert();return true;}
+      var _done=false;
+      var _once=function(){if(_done)return;_done=true;try{window.__decodedSrcCache[m.src]=1;_insert();}catch(e){}};
+      try{
+        var _im=new Image();
+        _im.onload=function(){try{if(_im.decode)_im.decode().then(_once).catch(_once);else _once();}catch(e){_once();}};
+        _im.onerror=_once;
+        _im.src=m.src;
+        if(_im.complete)_once();
+        /* 网络图很慢也别让消息不出现：最多等 500ms 先插进来 */
+        setTimeout(_once,500);
+      }catch(e){_insert();}
+      return true;
     }
-    try{_chatSig=_chatSigNow();}catch(e){}
+    _insert();
     return true;
   }catch(e){return false;}
 }
@@ -6418,10 +6749,30 @@ if(!window.__stickerTapBound){window.__stickerTapBound=true;document.addEventLis
 },true);}
 function sendMyEmoji(src){
   const id=pushMsg("me","image","",{src:src,quoteId:quoteTarget,kind:"emoji"});
-  /* 偷表情的提示要显示在我这颗表情包下面，所以先发消息、再插提示 */
+  clearQuote();
+  /* 先收面板再追加：面板开着时列表可视高度和收起后不一样，
+     先追加再收面板会让刚贴好的位置偏掉半截 */
+  try{toggleEmojiPanel(false);}catch(e){}
+  /* 和文字消息一样：只把这一条表情追加到末尾，不整屏重绘（整屏重绘就是发图/收图时的那一下闪） */
+  var _ok=false;
+  try{var _lm=state.messages[state.messages.length-1];if(_lm&&_lm.id===id)_ok=chatAppendTail(_lm);}catch(e){}
+  if(!_ok)renderChat();
+  /* 偷表情的提示要显示在我这颗表情包下面，所以先发消息、再插提示，提示也走追加 */
   try{maybePartnerStealEmoji(src);}catch(e){}
-  clearQuote();renderChat();save();scheduleReply();randomPartnerEvents();
-  toggleEmojiPanel(false);
+  try{
+    var _lm2=state.messages[state.messages.length-1];
+    if(_lm2&&_lm2.id!==id)chatAppendTail(_lm2);
+  }catch(e){}
+  save();scheduleReply();randomPartnerEvents();
+  /* 表情包很高，平滑滚动会让人看到列表「滑一下」：这里改成直接贴上，
+     并在下一帧再校一次，避免收起面板后差半截 */
+  try{
+    var l=$("msglist");
+    if(l){
+      var _stickEmo=function(){try{var ll=document.getElementById("msglist");if(!ll)return;if(ll.scrollHeight-ll.scrollTop-ll.clientHeight>2)ll.scrollTop=ll.scrollHeight;}catch(e){}};
+      _stickEmo();try{requestAnimationFrame(_stickEmo);}catch(e){};setTimeout(_stickEmo,150);
+    }
+  }catch(e){}
   return id;
 }
 function maybePartnerStealEmoji(src){
@@ -6447,11 +6798,11 @@ function renderPokeLib(){
     const txt=list[Number(el.getAttribute("data-poke-use"))];
     $("poke-overlay").classList.remove("show");
     if(pokeSide==="mine"){
-      pushMsg("me","poke",txt);renderChat();save();scroll();
-      if(probPct("socialProbPat")){clearTimeout(pokeTimer);pokeTimer=setTimeout(()=>{const t=(pokeLib().partner||[])[Math.floor(Math.random()*(pokeLib().partner.length||1))]||"";pushMsg("partner","poke",t);renderChat();save();scroll();},800+Math.random()*1500);}
+      var _pk=pushMsg("me","poke",txt);try{__appendChatMsg(_pk);}catch(e){renderChat();}save();
+      if(probPct("socialProbPat")){clearTimeout(pokeTimer);pokeTimer=setTimeout(()=>{const t=(pokeLib().partner||[])[Math.floor(Math.random()*(pokeLib().partner.length||1))]||"";var _pk2=pushMsg("partner","poke",t);try{__appendChatMsg(_pk2);}catch(e){renderChat();}save();},800+Math.random()*1500);}
       toast("拍了拍对方");
     }else{
-      pushMsg("partner","poke",txt);renderChat();save();scroll();toast("对方拍了拍你");
+      var _pk3=pushMsg("partner","poke",txt);try{__appendChatMsg(_pk3);}catch(e){renderChat();}save();toast("对方拍了拍你");
     }
   }));
   box.querySelectorAll("[data-poke-del]").forEach(el=>el.addEventListener("click",()=>{
@@ -6460,15 +6811,15 @@ function renderPokeLib(){
 }
 function pokeMyPartner(){
   const _ml=(pokeLib().mine||[]);const _mt=_ml.length?_ml[Math.floor(Math.random()*_ml.length)]:"";
-  pushMsg("me","poke",_mt);
-  renderChat();save();scroll();
+  var _pkm=pushMsg("me","poke",_mt);
+  try{__appendChatMsg(_pkm);}catch(e){renderChat();}save();
   // 对方以"回拍概率"设置回拍
   if(probPct("socialProbPat")){
     clearTimeout(pokeTimer);
     pokeTimer=setTimeout(()=>{
       const _rl=(pokeLib().partner||[]);const _rt=_rl.length?_rl[Math.floor(Math.random()*_rl.length)]:"";
-      pushMsg("partner","poke",_rt);
-      renderChat();save();scroll();
+      var _pkp=pushMsg("partner","poke",_rt);
+      try{__appendChatMsg(_pkp);}catch(e){renderChat();}save();
     },800+Math.random()*1500);
   }
 }
@@ -6476,7 +6827,7 @@ function pokeMyPartner(){
 $("top-avatar-partner").addEventListener("click",function(e){e.stopPropagation();openPartnerProfile();});
 function randomPartnerEvents(){
   if(probPct("socialProbPat")){
-    setTimeout(()=>{const _pl=(pokeLib().partner||[]);const _pt=_pl.length?_pl[Math.floor(Math.random()*_pl.length)]:"";pushMsg("partner","poke",_pt);renderChat();save();scroll();},rand(1200,3200));
+    setTimeout(()=>{const _pl=(pokeLib().partner||[]);const _pt=_pl.length?_pl[Math.floor(Math.random()*_pl.length)]:"";var _pka=pushMsg("partner","poke",_pt);try{__appendChatMsg(_pka);}catch(e){renderChat();}save();},rand(1200,3200));
   }  if(probPct("socialProbCall")){
     setTimeout(incomingCall,rand(2500,6000));
   }
@@ -6513,8 +6864,18 @@ function scheduleActiveMsg(){
   const tick=()=>{
     const n=1+Math.floor(Math.random()*2); // 补发 1~2 条
     let got=false;
-    for(let i=0;i<n;i++){const t=partnerActiveMsgText();if(t){got=true;pushMsg("partner","text",t,{active:true});}}
-    if(got){renderChat();save();if(typeof scroll==="function")scroll();}
+    const _ids=[];
+    for(let i=0;i<n;i++){const t=partnerActiveMsgText();if(t){got=true;const _aid=pushMsg("partner","text",t,{active:true});_ids.push(_aid);}}
+    /* 主动消息只往末尾追加这几条，不整屏重绘、也不硬跳滚动条：
+       它不算「回复」，不能挤占我发消息换来的 1:1 回复，也不该把正在翻历史的人拽回底部 */
+    if(got){
+      _ids.forEach(function(id){try{__appendChatMsg(id);}catch(e){}});
+      save();
+      try{
+        var _l=$("msglist");
+        if(_l&&_l.scrollHeight-_l.scrollTop-_l.clientHeight<420){_l.scrollTop=_l.scrollHeight;}
+      }catch(e){}
+    }
     lastActiveMsgTime=Date.now();
     try{state.settings.lastActiveTime=lastActiveMsgTime;save();}catch(e){}
     // 按设定时间必发一条主动内容：留言 / 来信 / 发动态（随机一种），不受是否打开网站/页面影响
@@ -6608,7 +6969,7 @@ function _deliverLetterReply(p,when){
   state.letters.push({id:uid(),from:"partner",subject:"",body:partnerLetterBody(p.body||""),time:when||Date.now(),replyTo:p.letterId,paperBg:_bs&&_bs.paperBg,envBg:_bs&&_bs.envBg});
   try{newL++;updateNewBadge();}catch(e){}
   try{renderLetters();}catch(e){}
-  try{pushMsg("partner","sys","📮 对方给你回信了");renderChat();}catch(e){}
+  try{var _lrid=pushMsg("partner","sys","📮 对方给你回信了");__appendChatMsg(_lrid);}catch(e){}
   save();
 }
 function catchUpSocial(){
@@ -6714,7 +7075,7 @@ function catchUpMissed(){
     if(sent){
       state.settings.lastLetterTime=lastDue;
       newL+=sent;updateNewBadge();renderLetters();
-      pushMsg("partner","sys","📮 对方给你写了封信");renderChat();save();
+      var _newlid=pushMsg("partner","sys","📮 对方给你写了封信");__appendChatMsg(_newlid);save();
     }
   }catch(e){}
 }
@@ -6831,11 +7192,13 @@ document.addEventListener("visibilitychange",()=>{
 function bgCatchUpChat(away){
   try{
     if(!(Number(away)>=5000))return;
+    /* visibilitychange 和 pageshow 会在回前台时先后各触发一次，8 秒内只补一次，否则会“连续冒出两遍” */
+    try{var _now=Date.now();if(window.__lastCatchUpAt&&(_now-window.__lastCatchUpAt)<8000)return;window.__lastCatchUpAt=_now;}catch(e){}
     var _mx=Math.max(0,Number(state.settings.socialMsgMax)||0);
     if(!(_mx>0))return;
     var _n=1+Math.floor(Math.random()*2), _got=false;
     /* 补发的消息也按正常来消息走：页面开着就弹顶部提示并响收到音，在后台就弹系统通知 */
-    for(var _i=0;_i<_n;_i++){var _t=partnerActiveMsgText();if(_t){_got=true;pushMsg("partner","text",_t,{active:true});}}
+    for(var _i=0;_i<_n;_i++){var _t=partnerActiveMsgText();if(_t){_got=true;pushMsg("partner","text",_t,{catchup:true});}}
     if(_got){
       lastActiveMsgTime=Date.now();
       /* 只把新增的几条追加到列表末尾，不做整块重绘（重绘会让画面闪一下） */
@@ -6844,7 +7207,7 @@ function bgCatchUpChat(away){
         for(var _j=0;_j<state.messages.length;_j++){}
         var _last=state.messages.slice(-_n);
         _last.forEach(function(mm){ if(!(window.chatAppendTail&&window.chatAppendTail(mm))) _tail=false; });
-        if(!_tail) renderChat(); else try{if(window.__renderedKeys&&_last.length)window.__renderedKeys.push('m'+_last[_last.length-1].id);}catch(e){}
+        if(!_tail) renderChat();
       }catch(e){ renderChat(); }
       save();if(typeof scroll==="function")scroll();
     }
@@ -6991,7 +7354,7 @@ function endCall(){
     tip="未接来电";
   }
   toast(tip);
-  if(log){pushMsg("partner","sys",log);save();renderChat();}
+  if(log){var _callid=pushMsg("partner","sys",log);save();__appendChatMsg(_callid);}
   call.on=false;call._ended=true;
   persistCallState();
 }
@@ -7162,14 +7525,16 @@ function scheduleReply(){
   setTyping(true);
   const tid=setTimeout(()=>{
     replyTimers=replyTimers.filter(x=>x!==tid);
-    if(markRead()){renderChat();save();}
+    var _unreadIds=[];
+    try{state.messages.forEach(function(x){if(x.from==="me"&&x.read!==true&&!x.recalled)_unreadIds.push(x.id);});}catch(e){}
+    if(markRead()){__refreshReadState(_unreadIds);save();}
     /* 已读不回概率：显示已读但不回复 */
     var _nrp=Math.min(100,Math.max(0,Number(state.settings.readNoReplyProb)||0));
     /* 冷却：三分钟内最多出现一次已读不回，避免连着发几条时密密麻麻全是「已读不回」 */
     var _coolOk=(Date.now()-(window.__lastNoReplyTs||0))>180000;
     if(_nrp>0&&_coolOk&&Math.random()*100<_nrp){
       window.__lastNoReplyTs=Date.now();
-      markNoReply(_srcId);setTyping(false);save();renderChat();return;
+      markNoReply(_srcId);setTyping(false);__refreshReadState([_srcId]);save();return;
     }
     // 对方可能用"我"添加的表情包回复（图片消息）
     const eprob=Math.min(100,Math.max(0,Number(state.settings.emojiProb)||0));
@@ -7177,8 +7542,8 @@ function scheduleReply(){
     if(emoPool.length&&eprob>0&&Math.random()*100<eprob){
       clearNoReply(_srcId);
       const e=emoPool[Math.floor(Math.random()*emoPool.length)];
-      pushMsg("partner","image","",{src:e.src,kind:"emoji"});
-      renderChat();save();scroll();
+      var _eid=pushMsg("partner","image","",{src:e.src,kind:"emoji"});
+      __chatAppendPartner(_eid);
       if(replyTimers.length===0)setTyping(false);
       return;
     }
@@ -7198,7 +7563,7 @@ function scheduleReply(){
         setTimeout(()=>{
           var qq=qT?msgById(qT.id):null;
           var _mid=pushMsg("partner","text",c.text,(qq&&!qq.recalled)?{quoteId:qq.id}:{});
-          renderChat();save();scroll();
+          __chatAppendPartner(_mid);
           try{maybePartnerRecall(_mid);}catch(e){}
         },delay);
         delay+=1200+Math.random()*1500;
@@ -7239,7 +7604,9 @@ function recallMsg(id,kind){
   if(kind==="rp"){
     const r=state.redpackets.find(x=>x.id===id);if(!r)return;
     state.redpackets=state.redpackets.filter(x=>x.id!==id);
-    pushMsg("me","sys","你撤回了一个红包");renderChat();save();toast("已撤回红包");
+    try{var _rr=document.querySelector('#msglist [data-rp="'+id+'"]');if(_rr&&_rr.parentNode)_rr.parentNode.removeChild(_rr);}catch(e){}
+    var _sysr=pushMsg("me","sys","你撤回了一个红包");try{__appendChatMsg(_sysr);}catch(e){renderChat();}
+    save();toast("已撤回红包");
     return;
   }
   const m=msgById(id);if(!m||m.recalled)return;
@@ -7247,15 +7614,25 @@ function recallMsg(id,kind){
   /* 已经引用过这条的（包括对方引用我）全部摘掉引用关系，避免出现"对方引用了我撤回的消息" */
   state.messages.forEach(function(x){if(x&&x.quoteId===id){x.quoteId=null;}});
   if(quoteTarget===id)clearQuote();
-  save();try{__flushSave();}catch(e){};renderChat();toast("已撤回一条消息");
+  save();try{__flushSave();}catch(e){}
+  /* 撤回只换这一行，不整屏重绘（重绘那一下就是闪） */
+  if(!__refreshRecallRow(id)){try{renderChat();}catch(e){}}
+  toast("已撤回一条消息");
 }
 $("act-edit").addEventListener("click",()=>{if(actMsgId)openEdit(actMsgId);closeActions();});
 $("act-del").addEventListener("click",()=>{
   if(!actMsgId||actKind==="rp"){closeActions();return;}
-  const i=state.messages.findIndex(m=>m.id===actMsgId);
+  var _delId=actMsgId;             /* closeActions() 会把 actMsgId 清空，先记下来 */
+  const i=state.messages.findIndex(m=>m.id===_delId);
   if(i>-1)state.messages.splice(i,1);
-  if(quoteTarget===actMsgId)clearQuote();
-  closeActions();renderChat();save();toast("消息已删除");
+  if(quoteTarget===_delId)clearQuote();
+  closeActions();
+  /* 删掉这一行即可，不整屏重绘 */
+  var _removed=false;
+  try{var _dr=document.querySelector('#msglist [data-id="'+_delId+'"]');if(_dr&&_dr.parentNode){_dr.parentNode.removeChild(_dr);_removed=true;}}catch(e){}
+  if(!_removed)renderChat();
+  try{_chatSig=_chatSigNow();}catch(e){}
+  save();toast("消息已删除");
 });
 $("overlay").addEventListener("click",e=>{if(e.target.id==="overlay")closeActions();});
 
@@ -7272,7 +7649,7 @@ function saveEdit(){
   const t=$("edit-text").value.trim();
   if(!t){toast("消息不能为空");return;}
   const m=msgById(editMsgId);
-  if(m){m.text=t;save();renderChat();toast("消息已更新");}
+  if(m){m.text=t;save();if(!__refreshRecallRow(m.id)){try{renderChat();}catch(e){}}toast("消息已更新");}
   closeEdit();
 }
 $("edit-cancel").addEventListener("click",closeEdit);
@@ -7396,6 +7773,19 @@ function __epHidePreview(){var d=__epPvEl();d.style.display="none";__epPvCell=nu
   var _epAll=list,h="";
   for(var _ei=0;_ei<_epAll.length;_ei++)h+=cellHTML(_epAll[_ei]);
   g.innerHTML=h;
+  /* 面板一打开就在后台把每张表情解码一次：发送时图已就绪，直接一次插入，
+     不会先插空白再撑开（发表情包时那一下抖动就是它） */
+  try{
+    window.__decodedSrcCache=window.__decodedSrcCache||{};
+    var _preD=list.map(function(e){return e.src||e.url||"";}).filter(Boolean).slice(0,120);
+    _preD.forEach(function(u){
+      if(window.__decodedSrcCache[u])return;
+      var im=new Image();
+      im.onload=function(){try{(im.decode?im.decode():Promise.resolve()).then(function(){window.__decodedSrcCache[u]=1;}).catch(function(){window.__decodedSrcCache[u]=1;});}catch(e){window.__decodedSrcCache[u]=1;}};
+      im.onerror=function(){};
+      im.src=u;
+    });
+  }catch(e){}
   g.querySelectorAll(".emoji-cell").forEach(cell=>{
     cell.addEventListener("click",()=>{
       const id=cell.dataset.id;
@@ -7509,19 +7899,9 @@ function toggleEmojiPanel(force){
   $("btn-emoji").classList.toggle("active",open);
   if(open)renderEmojis();
 }
-/* 回车发送（桌面浏览器 / 外接键盘） */
-try{
-  var _mi=document.getElementById("msg-input");
-  if(_mi&&!_mi.__enterSend){
-    _mi.__enterSend=1;
-    _mi.addEventListener("keydown",function(e){
-      if(e.key==="Enter"&&!e.shiftKey&&!e.isComposing){
-        e.preventDefault();
-        try{if(e.target&&e.target.value&&e.target.value.trim())sendMyText();}catch(err){}
-      }
-    });
-  }
-}catch(e){}
+/* 回车发送只保留下面那一处（带输入法组词与 250ms 防抖）：
+   这里以前还有一份 keydown 监听，一次回车会同时触发两次 sendMyText，
+   你发的一条消息就会「出现两遍」 */
 $("btn-emoji").addEventListener("click",()=>toggleEmojiPanel());
 $("btn-emoji-close").addEventListener("click",()=>{
   if(emojiEdit){emojiEdit=false;emojiSel.clear();renderEmojis();} // 退出管理模式
@@ -8924,6 +9304,26 @@ function resumeCallOnChat(){
   else{$("call-overlay").classList.add("show");$("call-mini").classList.add("hidden");}
   setCallAvatar();applyCallMode();persistCallState();
 }
+/* 启动后预先把聊天列表画好（此时聊天页是隐藏的）：之后点进聊天只是把隐藏层显示出来 */
+function __prewarmChat(){
+  try{
+    var vc=document.getElementById("view-chat");
+    if(!vc||vc.classList.contains("open"))return;
+    if(!window.__chatPrewarmed||window.__chatDirty){
+      window.__chatDirty=false;
+      renderChat();
+      window.__chatPrewarmed=1;
+    }
+  }catch(e){}
+}
+window.__prewarmChat=__prewarmChat;
+try{
+  var _pw=function(){
+    var _try=function(){try{__prewarmChat();}catch(e){}};
+    setTimeout(_try,700);setTimeout(_try,1600);
+  };
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",_pw);else _pw();
+}catch(e){}
 function showView(id){
   if(id==="view-settings"){try{renderPartnerStyleUI();}catch(e){}}
   /* 切页面/从后台回来先把通话计时刷成真实用时，避免看到停住的旧数字 */
@@ -8935,6 +9335,18 @@ function showView(id){
     if(_was&&_was!==id&&$(_was))$(_was).classList.remove("open");
     if(!window.__viewInit){window.__viewInit=1;["view-chat","view-me","view-cards","view-settings","view-letters","view-guestbook","view-moments","view-redpacket","view-game","view-music","view-couple"].forEach(function(v){if(v!==id&&$(v))$(v).classList.remove("open");});}
     $(id).classList.add("open");window.__curView=id;
+    /* 离开聊天页后，趁它已经藏着的时候把「有变化但还没重画」的列表补画好，
+       这样下次点进聊天是现成的，不会在可见状态下重建（那一下就是返回聊天时的闪） */
+    try{
+      if(_was==="view-chat"&&id!=="view-chat"){
+        setTimeout(function(){
+          try{
+            var vc=$("view-chat");
+            if(vc&&!vc.classList.contains("open")&&typeof _chatSigNow==="function"&&_chatSigNow()!==_chatSig)renderChat();
+          }catch(e){}
+        },0);
+      }
+    }catch(e){}
   }catch(e){  ["view-chat","view-me","view-cards","view-settings","view-letters","view-guestbook","view-moments","view-redpacket","view-game","view-music","view-couple"].forEach(v=>$(v).classList.toggle("open",v===id));}
   if(id==="view-cards"){renderCards();try{renderLetterTpl();}catch(e){}}
   if(id==="view-settings"){bindSetting();try{if(window.__applyChatSizes)window.__applyChatSizes();}catch(e){}if($("set-lockpwd"))$("set-lockpwd").value=state.settings.entryPwd||LOCK_DEFAULT;if(typeof renderStorageInfo==="function")setTimeout(renderStorageInfo,150);}
@@ -8960,10 +9372,16 @@ function showView(id){
     renderChat();
     /* 每次进入聊天页都定位到最新一条：刚渲染完、下一帧、补历史继续插入后再各校正一次 */
     try{
-      scroll();
-      requestAnimationFrame(function(){try{scroll();}catch(e){}});
-      setTimeout(function(){try{if($("msglist"))scroll();}catch(e){}},260);
-      setTimeout(function(){try{if($("msglist"))scroll();}catch(e){}},900);
+      var _toBottom=function(){
+        try{var l=$("msglist");if(!l)return;
+          /* 已经贴在底部就不再重复滚动：反复设 scrollTop 在 iOS 上会跳一下，看起来像闪 */
+          if(l.scrollHeight-l.scrollTop-l.clientHeight>8)scroll();
+        }catch(e){}
+      };
+      _toBottom();
+      requestAnimationFrame(_toBottom);
+      setTimeout(_toBottom,260);
+      setTimeout(_toBottom,900);
     }catch(e){}
   }
   /* 通话：进聊天页恢复计时并还原成小弹窗/通话页；离开聊天页暂停计时但仍留小弹窗 */
@@ -9047,8 +9465,13 @@ function manualActiveMsg(){
   setTimeout(()=>{
     const n=1+Math.floor(Math.random()*2);
     let got=false;
-    for(let i=0;i<n;i++){const t=partnerActiveMsgText();if(t){got=true;pushMsg("partner","text",t,{active:true});}}
-    if(got){renderChat();save();if(typeof scroll==="function")scroll();}
+    const _ids=[];
+    for(let i=0;i<n;i++){const t=partnerActiveMsgText();if(t){got=true;const _aid=pushMsg("partner","text",t,{active:true});_ids.push(_aid);}}
+    if(got){
+      _ids.forEach(function(id){try{__appendChatMsg(id);}catch(e){}});
+      save();
+      try{var l=$("msglist");if(l&&l.scrollHeight-l.scrollTop-l.clientHeight<420)l.scrollTop=l.scrollHeight;}catch(e){}
+    }
     setTyping(false);
   },delay);
 }
@@ -9061,7 +9484,7 @@ $("plus-active").addEventListener("click",()=>{closePlus();manualActiveMsg();});
 $("file-chat-img").addEventListener("change",e=>{
   const f=e.target.files[0];if(!f)return;
   const r=new FileReader();
-  r.onload=()=>{gCompress(r.result).then(d=>{pushMsg("me","image","",{src:d});renderChat();save();if(typeof scroll==="function")scroll();toast("图片已发送");try{scheduleReply();randomPartnerEvents();}catch(e){}});};
+  r.onload=()=>{gCompress(r.result).then(d=>{var _imed=pushMsg("me","image","",{src:d});try{__appendChatMsg(_imed);}catch(e){renderChat();}save();toast("图片已发送");try{scheduleReply();randomPartnerEvents();}catch(e){}});};
   r.readAsDataURL(f);e.target.value="";
 });
 
@@ -9088,7 +9511,8 @@ function musicInviteOpen(dir,type){
   ov.dataset.dir=fromMe?"me":"partner";
   ov.dataset.type=type;
   ov.classList.add("show");
-  renderChat();
+  /* 邀请卡片只追加这一行，不整屏重绘 */
+  try{__appendChatMsg(pendingMusicInvId);}catch(e){}
   // 我邀请对方：隐藏"接受✓"（接受由对方自动判定，无需我点勾）；只保留✕取消
   $("mvi-yes").style.display=fromMe?"none":"";
   $("mvi-no").style.display=fromMe?"":"";
@@ -9138,19 +9562,20 @@ $("mvi-yes").addEventListener("click",()=>{
   const type=$("music-invite").dataset.type||"music";
   const m=pendingMusicInvId?msgById(pendingMusicInvId):null;
   if(m)m.status="accepted";
+  var _invIdAcc=pendingMusicInvId;
   musicInviteShown=false;pendingMusicInvId=null;musicInviteClose();
   if(m)save();
   if(type==="draw"){
-    if(!fromMe)pushMsg("me","sys","你接受了画画邀请");
-    renderChat();
+    if(!fromMe){var _sysAcc=pushMsg("me","sys","你接受了画画邀请");__appendChatMsg(_sysAcc);}
+    if(_invIdAcc)__refreshRecallRow(_invIdAcc);
     state.drawSession=true;save(); // 达成画画邀请，点接力画画直接进入画画页，直到发到聊天才完结
     game.agreed=true;
     showView("view-game");initGameCanvas();toast("接受邀请，一起画吧");
     return;
   }
   musicSession=true;state.musicSession=true;try{save();}catch(e){} // 双方达成听歌邀请，之后点一起听直接进入页面
-  if(!fromMe)pushMsg("me","sys","你接受了听歌邀请");
-  renderChat();
+  if(!fromMe){var _sysAcc2=pushMsg("me","sys","你接受了听歌邀请");__appendChatMsg(_sysAcc2);}
+  if(_invIdAcc)__refreshRecallRow(_invIdAcc);
   const au=musicAudio();
   if(fromMe){
     toast("邀请已发出，对方同意了");
@@ -9168,9 +9593,11 @@ $("mvi-no").addEventListener("click",()=>{
   const type=$("music-invite").dataset.type||"music";
   const m=pendingMusicInvId?msgById(pendingMusicInvId):null;
   if(m)m.status=fromMe?"cancelled":"declined";
+  var _invIdNo=pendingMusicInvId;
   musicInviteShown=false;pendingMusicInvId=null;musicInviteClose();
   if(m)save();
-  renderChat();save();
+  if(_invIdNo)__refreshRecallRow(_invIdNo);
+  save();
   if(type==="draw"){toast(fromMe?"已取消邀请":"已拒绝画画邀请");return;}
   toast(fromMe?"已取消邀请":"已婉拒对方的听歌邀请");
 });
@@ -9274,18 +9701,15 @@ function __syncMediaSession(){
     var au=musicAudio();
     var s=(state.musicCur>=0&&state.musicPlaylist[state.musicCur])?state.musicPlaylist[state.musicCur]:null;
     if(!s)return;
-    var pic=state.musicCoverImg||s.cover||"";
-    var src="";
-    try{
-      if(pic&&pic.indexOf("data:")===0)src=__blobUrl(pic);
-      else if(pic)src=/^https?:/i.test(pic)?pic:new URL(pic,location.href).href;
-    }catch(e){}
-    var art=[];
-    if(src)art.push({src:src,sizes:"512x512",type:"image/png"});
-    try{art.push({src:location.origin+"/icon-512.png",sizes:"512x512",type:"image/png"});}catch(e){}
-    if(window.MediaMetadata){
-      navigator.mediaSession.metadata=new MediaMetadata({title:s.name||"一起听",artist:s.artist||"",album:"Eleven×11",artwork:art});
-    }
+    /* 锁屏/控制中心优先用「唱片中心背景」，没有再退到歌曲封面 */
+    __discArtURL(function(src){
+      var art=[];
+      if(src)art.push({src:src,sizes:"512x512",type:"image/png"});
+      try{art.push({src:location.origin+"/icon-512.png",sizes:"512x512",type:"image/png"});}catch(e){}
+      if(window.MediaMetadata){
+        navigator.mediaSession.metadata=new MediaMetadata({title:s.name||"一起听",artist:s.artist||"",album:"Eleven×11",artwork:art});
+      }
+    });
     try{navigator.mediaSession.playbackState=au.paused?"paused":"playing";}catch(e){}
     try{
       navigator.mediaSession.setActionHandler("play",function(){try{musicAudio().play();}catch(e){}});
@@ -9562,20 +9986,54 @@ function playMusic(i){
   renderMusicList();
   try{if("mediaSession" in navigator){refreshMusicMedia();navigator.mediaSession.setActionHandler("play",()=>au.play());navigator.mediaSession.setActionHandler("pause",()=>au.pause());navigator.mediaSession.setActionHandler("nexttrack",()=>nextMusic(1));navigator.mediaSession.setActionHandler("previoustrack",()=>nextMusic(-1));}}catch(_){}
 }
+/* 系统卡片 artwork：iOS 不认 data: 图片，这里把图统一转成 512×512 的 PNG blob 地址 */
+var __discArtCache={};
+function __discArtURL(cb){
+  var src="";
+  try{src=(state.musicDiscInnerImg||state.musicCoverImg||(((state.musicPlaylist||[])[state.musicCur]||{}).cover)||"");}catch(e){}
+  if(!src){cb("");return;}
+  if(/^https?:/i.test(src)){cb(src);return;}
+  if(__discArtCache[src]){cb(__discArtCache[src]);return;}
+  try{
+    var img=new Image();
+    img.onload=function(){
+      try{
+        var c=document.createElement("canvas");c.width=512;c.height=512;
+        var x=c.getContext("2d");
+        var r=Math.max(512/(img.width||512),512/(img.height||512));
+        var w=(img.width||512)*r,h=(img.height||512)*r;
+        x.drawImage(img,(512-w)/2,(512-h)/2,w,h);
+        c.toBlob(function(bl){
+          var u=bl?URL.createObjectURL(bl):src;
+          __discArtCache[src]=u;cb(u);
+        },"image/png");
+      }catch(e){cb(src);}
+    };
+    img.onerror=function(){cb(src);};
+    img.src=src;
+  }catch(e){cb(src);}
+}
 /* 系统播放卡片(锁屏/通知栏)封面：跟随一起听当前封面/歌曲封面，而不是固定 App 图标 */
 function refreshMusicMedia(){
   try{
     if(!("mediaSession" in navigator)||!window.MediaMetadata)return;
     var pl=(state&&state.musicPlaylist)||[];
     var s=(state.musicCur>=0)?pl[state.musicCur]:null;
-    var art=(state&&state.musicCoverImg)||(s&&s.cover)||"";
     var cur=navigator.mediaSession.metadata;
     var title=(s&&s.name)||(cur&&cur.title)||"一起听";
     var artist=(s&&s.artist)||"一起听 · ECHO SETTLE";
-    var opts={title:title,artist:artist,album:"私密空间"};
-    if(art)opts.artwork=[{src:art,sizes:"512x512",type:"image/png"}];
-    navigator.mediaSession.metadata=new MediaMetadata(opts);
-    try{var _a=document.getElementById("music-audio");if(_a)navigator.mediaSession.playbackState=_a.paused?"paused":"playing";}catch(e){}
+    var _apply=function(artSrc){
+      try{
+        var opts={title:title,artist:artist,album:"私密空间"};
+        var art=[];
+        if(artSrc)art.push({src:artSrc,sizes:"512x512",type:"image/png"});
+        try{art.push({src:location.origin+"/icon-512.png",sizes:"512x512",type:"image/png"});}catch(e){}
+        if(art.length)opts.artwork=art;
+        navigator.mediaSession.metadata=new MediaMetadata(opts);
+        try{var _a=document.getElementById("music-audio");if(_a)navigator.mediaSession.playbackState=_a.paused?"paused":"playing";}catch(e){}
+      }catch(e){}
+    };
+    __discArtURL(_apply);
   }catch(e){}
 }
 function nextMusic(d){
@@ -11061,27 +11519,33 @@ function sendDrawingToChat(){
   if(!game.strokes.length){toast("先画一点再发送吧");return;}
   const cv=$("game-canvas");
   const url=cv.toDataURL("image/png");
-  pushMsg("me","image","",{src:url,kind:"draw"});
-  save();renderChat();
+  var _did=pushMsg("me","image","",{src:url,kind:"draw"});
+  save();
+  /* 只追加这一张画，不整屏重绘；然后进聊天页把它贴到最新（和发文字/表情一样自动往上弹） */
+  try{__appendChatMsg(_did);}catch(e){renderChat();}
   // 画作已发送到聊天页：本轮完结，下一轮需重新邀请
   state.drawSession=false;save();
   game.strokes=[];game.turn="me";game.passing=false;game.lastPartnerColor=null;
   showView("view-chat");
+  try{
+    var _stickDr=function(){try{var l=document.getElementById("msglist");if(l&&l.scrollHeight-l.scrollTop-l.clientHeight>2)l.scrollTop=l.scrollHeight;}catch(e){}};
+    _stickDr();requestAnimationFrame(_stickDr);setTimeout(_stickDr,150);setTimeout(_stickDr,600);
+  }catch(e){}
   toast("画已发送到聊天");
 }
 function sendDrawInvite(){
   const id=pushMsg("me","invite","",{inv:"draw"});
   const m=msgById(id);if(m){m.inv="draw";m.status="pending";}
-  save();renderChat();
+  save();try{__appendChatMsg(id);}catch(e){renderChat();}
   toast("已向对方发出画画邀请");
   setTimeout(()=>{
     if(m&&m.status==="pending"){
       const dv=Number(state.settings.drawDeclineProb);const decl=Math.min(100,Math.max(0,isNaN(dv)?40:dv));
       if(Math.random()*100>=decl){
-        m.status="accepted";save();renderChat();state.drawSession=true;save();game.agreed=true;showView("view-game");initGameCanvas();toast("对方接受了画画邀请，可以开始画了");
+        m.status="accepted";save();try{__refreshRecallRow(id);}catch(e){}state.drawSession=true;save();game.agreed=true;showView("view-game");initGameCanvas();toast("对方接受了画画邀请，可以开始画了");
       }else{
-        m.status="declined";save();renderChat();
-        pushMsg("partner","sys","对方拒绝了画画邀请");renderChat();save();toast("对方拒绝了画画邀请");
+        m.status="declined";save();try{__refreshRecallRow(id);}catch(e){}
+        var _drwid=pushMsg("partner","sys","对方拒绝了画画邀请");__appendChatMsg(_drwid);save();toast("对方拒绝了画画邀请");
       }
     }
   },socialDelay());
@@ -11093,8 +11557,8 @@ function maybePartnerDrawInvite(){
   if(drawInviteShown||$("draw-invite").classList.contains("show"))return;
   if(busy){
     // 正在接力画画：对方再发起 → 直接进入画画，不再弹邀请确认
-    pushMsg("partner","sys","来一起画画呀");
-    renderChat();
+    var _invitid=pushMsg("partner","sys","来一起画画呀");
+    __appendChatMsg(_invitid);
     showView("view-game");initGameCanvas();
   }else{
     drawInviteShown=true;drawInviteOpen("partner");
@@ -11309,8 +11773,18 @@ function lettersReadTick(silent){
   }
 }
 try{setTimeout(lettersReadTick,600);setInterval(function(){if(!document.hidden)lettersReadTick();},30000);}catch(e){}
+/* 列表重绘签名：只看内容本身，不再掺全局保存计数器（一保存就变→整页重绘→闪） */
+function __sigOfList(arr){
+  var a=arr||[];
+  var out=String(a.length);
+  for(var i=0;i<a.length;i++){
+    var x=a[i]||{};
+    out+="|"+(x.id||"")+":"+(x.time||0)+":"+(x.read?1:0)+":"+(x.noReply?1:0)+":"+(x.replyTo||"")+":"+(x.from||"")+":"+(x.text?String(x.text).length:0);
+  }
+  return out;
+}
 function renderLetters(){
-  var _s=("letters")+"|"+(state.letters).length+"|"+((window.__chatRev||0));
+  var _s="letters|"+__sigOfList(state.letters);
   if(!window.__rSig)window.__rSig={};
   if(window.__rSig["letters"]===_s)return;
   window.__rSig["letters"]=_s;
@@ -12154,7 +12628,7 @@ var _lsBtn=$("letter-send");if(_lsBtn)_lsBtn.addEventListener("click",function()
 
 /* ===== 留言板 ===== */
 function renderGuestbook(){
-  var _s=("guest")+"|"+(state.guestbook).length+"|"+((window.__chatRev||0));
+  var _s="guest|"+__sigOfList(state.guestbook);
   if(!window.__rSig)window.__rSig={};
   if(window.__rSig["guest"]===_s)return;
   window.__rSig["guest"]=_s;
@@ -12480,7 +12954,7 @@ function renderComments(m){
 }
 
 function renderMoments(){
-  var _s=("mom")+"|"+(mpSide||"me")+"|"+(state.moments).length+"|"+((window.__chatRev||0));
+  var _s="mom|"+(mpSide||"me")+"|"+__sigOfList(state.moments);
   if(!window.__rSig)window.__rSig={};
   if(window.__rSig["mom"]===_s)return;
   window.__rSig["mom"]=_s;
@@ -12712,7 +13186,7 @@ $("post-send").addEventListener("click",()=>{
         state.moments.push({id:uid(),from:"partner",text:card,likes:[],comments:[],time:Date.now(),unread:true,unreadKind:"post"});
         newM++;updateNewBadge();
         save();renderMoments();toast("对方发了新动态");
-        pushMsg("partner","sys","📷 对方发了一条新动态");renderChat();save();
+        var _momid=pushMsg("partner","sys","📷 对方发了一条新动态");__appendChatMsg(_momid);save();
       },socialDelay());
     }
   }
@@ -12893,7 +13367,7 @@ function maybePartnerMomentPost(force){
       var _nid=uid();
       state.moments.push({id:_nid,from:"partner",text:text,likes:[],comments:[],time:Date.now(),unread:true,unreadKind:"post"});
       newM++;updateNewBadge();
-      try{pushMsg("partner","sys","📷 对方发了一条新动态");renderChat();}catch(e){}
+      try{var _momid2=pushMsg("partner","sys","📷 对方发了一条新动态");__appendChatMsg(_momid2);}catch(e){}
       save();renderMoments();
       toast("对方发了新动态");save();
     },1200+i*rand(3000,8000));
@@ -12958,7 +13432,7 @@ function maybePartnerNote(force){
       state.guestbook.push({id:pid,from:"partner",text:card,time:Date.now()});
       gbUnread.push(pid);
       newN++;updateNewBadge();
-      try{pushMsg("partner","sys","💬 对方给你留言了");renderChat();}catch(e){}
+      try{var _noteid=pushMsg("partner","sys","💬 对方给你留言了");__appendChatMsg(_noteid);}catch(e){}
       save();renderGuestbook();scrollNotes();toast("对方给你留言了");save();
     },d0+i*rand(3000,8000));
   }
@@ -14491,7 +14965,7 @@ init();
    不使用 Service Worker（避免缓存接管导致打不开/黑屏），只用“对比构建号 + 换 URL”这一招。 */
 (function(){
   if(!/^https?:$/.test(location.protocol))return;
-  var BUILD="2026-11-11wd";
+  var BUILD="2026-11-11xr";
   var KEY="app_build_reloaded";
   var busy=false;
   function go(url){location.replace(url+"&skipabout=1");}
@@ -14926,8 +15400,10 @@ try{
     var fr=new FileReader();
     fr.onerror=function(){toast("语音保存失败，再试一次");};
     fr.onload=function(){
-      pushMsg("me","voice","",{src:fr.result,dur:Math.max(1,Math.round(ms/1000))});
-      save();try{renderChat();var ml=document.getElementById("msglist");if(ml)ml.scrollTop=ml.scrollHeight;}catch(e){}
+      var _vmid=pushMsg("me","voice","",{src:fr.result,dur:Math.max(1,Math.round(ms/1000))});
+      save();
+      var _vok=false;try{_vok=__appendChatMsg(_vmid);}catch(e){}
+      if(!_vok){try{renderChat();}catch(e){}}
       try{if(typeof scheduleReply==="function")scheduleReply();}catch(e){}
       try{window.__playMsgSound&&window.__playMsgSound("send");}catch(e){}
     };
