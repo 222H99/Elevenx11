@@ -1,5 +1,5 @@
 /* Eleven×11 Service Worker —— 点开即最新 + 有缓存可秒开/离线 */
-var CACHE = 'e11-shell-v2';
+var CACHE = 'e11-shell-v3';
 var SHELL = './index.html';
 var META = './__shell_meta';
 
@@ -25,7 +25,7 @@ function buildOf(txt) {
   return m ? m[1] : '';
 }
 
-/* 把首页和它的校验信息（ETag / Last-Modified / 长度）一起存起来 */
+/* 把首页和它的校验信息（版本号 / ETag / Last-Modified / 长度）一起存起来 */
 function storeShell(res) {
   return caches.open(CACHE).then(function (c) {
     var meta = {
@@ -50,7 +50,25 @@ function readMeta() {
   });
 }
 
-/* 只发一个 HEAD：拿到服务器当前首页的 ETag/Last-Modified，判断有没有换版本 */
+/* 只取首页开头一小段，读出里面的 app-build 版本号：
+   比 HEAD 靠 ETag 判断更可靠——服务器头不稳、或 CDN 头看不出版本时也能判准 */
+function remoteVersion() {
+  return fetch(new Request(SHELL, {
+    cache: 'no-store',
+    headers: { 'Range': 'bytes=0-2047' }
+  })).then(function (r) {
+    if (!r || !r.ok) return null;
+    var len = Number(r.headers.get('content-length') || 0);
+    /* 服务器不认 Range、想整份塞给我们就放弃，别为了判版本白下载 1MB */
+    if (r.status !== 206 && len > 4096) return null;
+    return r.text().then(function (txt) {
+      var v = buildOf(txt);
+      return v || null;
+    }).catch(function () { return null; });
+  }).catch(function () { return null; });
+}
+
+/* 拿不到版本号时退回保守办法：HEAD 的 ETag / Last-Modified / 长度 */
 function headChanged() {
   return fetch(new Request(SHELL, { method: 'HEAD', cache: 'no-store' }))
     .then(function (r) {
@@ -69,6 +87,19 @@ function headChanged() {
       });
     })
     .catch(function () { return null; });
+}
+
+/* 判断服务器上是不是已经换了新版本 */
+function shellChanged() {
+  return readMeta().then(function (old) {
+    return remoteVersion().then(function (rv) {
+      if (rv) {
+        if (!old || !old.ver) return true;
+        return rv !== old.ver;
+      }
+      return headChanged();
+    });
+  }).catch(function () { return headChanged(); });
 }
 
 function fetchFresh() {
@@ -109,11 +140,11 @@ self.addEventListener('fetch', function (e) {
       if (!hit) {
         return fetchFresh().catch(function () { return fetch(req); });
       }
-      /* 有缓存：用一个很快的 HEAD 确认服务器上有没有新版；
-         有新版就直接给新版（点开即最新），没变 / 超时 / 判断不了就先给缓存（秒开），后台再补 */
+      /* 有缓存：先核对服务器上的版本号（只读开头 2KB）；
+         换版就直接给新版，没变 / 超时 / 判不了就先给缓存（秒开），后台再补 */
       var probe = Promise.race([
-        headChanged(),
-        new Promise(function (res) { setTimeout(function () { res(null); }, 600); })
+        shellChanged(),
+        new Promise(function (res) { setTimeout(function () { res(null); }, 1200); })
       ]);
       return probe.then(function (changed) {
         if (changed === true) {
