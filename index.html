@@ -1576,7 +1576,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-14n">
+<meta name="app-build" content="2026-11-14o">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4607,16 +4607,16 @@ function msgPreviewText(m){
 /* ===== 更新公告：换了新版本时弹一次，设置里也能随时再看 ===== */
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
-  ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||"2026-11-14n";}catch(e){return "2026-11-14n";}})(),
+  ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||"2026-11-14o";}catch(e){return "2026-11-14o";}})(),
   date:"2026-11-13",
-  lead:"这版修一起听接受后返回聊天、再点加号又重复弹邀请的问题，并保留聊天页防闪。",
+  lead:"这版改问卷的取消：点叉或取消直接关掉，不再弹确认框。",
   items:[
-    "接受一起听后返回聊天，再点加号「一起听」直接回到一起听页面，不再重复弹邀请",
-    "只有点掉迷你播放器的「✕」退出听歌，或小弹窗被叉掉后，才会重新发起邀请",
-    "邀请小弹窗点背景仍不会关闭，只有「✕」才会复位邀请状态",
-    "聊天页继续固定同一合成层，切进切出只变透明度，不切换 z-index、不重建整层",
-    "全页面回归：主页、聊天、设置、字卡、信箱、留言、动态、红包、画画、音乐、主页切换均无报错",
-    "发消息、双击贴表情、面板内编辑删除表情、日记保存、对方字卡数设置均正常"
+    "填写问卷时点右上角「×」或底部「取消」，立即关闭填写页，不再弹「放弃这次填写？」",
+    "取消时会把这次打开后选过、但没提交的选项还原，不会偷偷存进问卷",
+    "改选过再取消，问卷仍保持原来的未作答状态；重新打开还是干净的",
+    "创建问卷弹窗的「×」和「取消」保持直接关闭，不发送问卷",
+    "一起听接受后直接回页面、聊天页固定合成层等上一版修复全部保留",
+    "全页面切换、发消息、贴表情编辑删除、日记保存和字卡数设置继续正常"
   ],
   foot:"有问题或建议：小红书 @Eleven_（ID：5609831119）。"
 };
@@ -6771,8 +6771,9 @@ function __closeSurveyAnswer(){
   }catch(e){}
   $("survey-answer-overlay").classList.remove("show");
 }
-$("survey-answer-cancel").addEventListener("click",()=>{if(window.saDirty&&window.saDirty()){if(!confirm('放弃这次填写？'))return;}__closeSurveyAnswer();});
-$("survey-answer-x").addEventListener("click",()=>{if(window.saDirty&&window.saDirty()){if(!confirm('放弃这次填写？'))return;}__closeSurveyAnswer();});
+/* 点叉或取消：直接取消这次填写，不再弹 confirm；打开时选过但没提交的内容会还原 */
+$("survey-answer-cancel").addEventListener("click",()=>{__closeSurveyAnswer();});
+$("survey-answer-x").addEventListener("click",()=>{__closeSurveyAnswer();});
 $("survey-answer-submit").addEventListener("click",()=>{
   const m=msgById($("survey-answer-body")._qid);if(!m)return;let s=JSON.parse(m.text);
   const rows=$("survey-answer-body").querySelectorAll(".sq-q");
@@ -16325,7 +16326,7 @@ setTimeout(function(){
    不使用 Service Worker（避免缓存接管导致打不开/黑屏），只用“对比构建号 + 换 URL”这一招。 */
 (function(){
   if(!/^https?:$/.test(location.protocol))return;
-  var BUILD="2026-11-14n";
+  var BUILD="2026-11-14o";
   var KEY="app_build_reloaded";
   var busy=false;
   function go(url){location.replace(url+"&skipabout=1");}
