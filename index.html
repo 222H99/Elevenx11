@@ -184,18 +184,27 @@ body.av-square .msg-avatar,body.av-square #top-avatar-partner{border-radius:8px 
 .fav-tx{font-size:14px;line-height:1.4;word-break:break-word;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .fav-tm{font-size:10px;color:#8E8E93;margin-top:4px;}
 .msg-col{position:relative;}
-.tapback{position:absolute;top:-13px;z-index:5;min-width:30px;height:30px;padding:0 6px;border-radius:15px;
-  display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1;
-  background:var(--panel,#fff);box-shadow:0 2px 8px rgba(0,0,0,.16);border:1px solid rgba(0,0,0,.06);}
+.tapback{position:absolute;top:-10px;z-index:5;min-width:22px;height:22px;padding:0 4px;border-radius:11px;
+  display:flex;align-items:center;justify-content:center;font-size:12px;line-height:1;
+  background:var(--panel,#fff);box-shadow:0 1px 5px rgba(0,0,0,.14);border:1px solid rgba(0,0,0,.06);}
 .tapback.me{right:6px;}
 .tapback.partner{left:6px;}
 #tapback-panel{position:fixed;z-index:99998;display:none;background:rgba(32,32,34,.93);backdrop-filter:blur(18px);
-  -webkit-backdrop-filter:blur(18px);border-radius:26px;padding:8px 10px;box-shadow:0 10px 30px rgba(0,0,0,.35);}
-#tapback-panel.show{display:flex;gap:8px;align-items:center;}
-.tb-item{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-size:21px;background:rgba(255,255,255,.12);border:none;color:#fff;cursor:pointer;padding:0;}
+  -webkit-backdrop-filter:blur(18px);border-radius:20px;padding:6px 8px;box-shadow:0 8px 24px rgba(0,0,0,.32);}
+#tapback-panel.show{display:flex;gap:6px;align-items:center;max-width:calc(100vw - 20px);overflow-x:auto;}
+.tb-item{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:17px;background:rgba(255,255,255,.12);border:none;color:#fff;cursor:pointer;padding:0;}
 .tb-item.on{background:rgba(255,255,255,.34);}
-.tb-add{font-size:20px;color:rgba(255,255,255,.85);}
+.tb-add{font-size:16px;color:rgba(255,255,255,.85);}
+.tb-del{width:auto;padding:0 8px;height:28px;border-radius:14px;font-size:12px;color:#FF6B6B;}
+.tb-edit{width:auto;padding:0 8px;height:28px;border-radius:14px;font-size:12px;color:rgba(255,255,255,.75);}
+#tapback-panel.editing .tb-item[data-tbe]{box-shadow:inset 0 0 0 2px rgba(255,255,255,.4);}
+.tb-edit-box{display:flex;align-items:center;gap:6px;}
+.tb-edit-input{width:82px;height:30px;border-radius:15px;border:none;outline:none;background:rgba(255,255,255,.16);
+  color:#fff;padding:0 9px;font-size:14px;line-height:30px;}
+.tb-mini{width:auto;height:28px;padding:0 9px;border-radius:14px;border:none;font-size:12px;color:#fff;
+  background:rgba(255,255,255,.16);cursor:pointer;white-space:nowrap;}
+.tb-mini.danger{color:#FF6B6B;}
 .msg-time{font-size:10px;opacity:.55;margin-top:3px;line-height:1;display:flex;align-items:center;gap:4px;color:#8E8E93;}
 .mc-flash{background:rgba(0,122,255,.10)!important;border-radius:12px;transition:background .3s;}
 .msg-active{display:inline-block;font-size:10px;padding:1px 6px;border-radius:8px;background:rgba(0,0,0,.07);color:#8E8E93;}
@@ -492,12 +501,17 @@ body.av-square .msg-avatar,body.av-square #top-avatar-partner{border-radius:8px 
   background-position:center;
   background-size:cover,auto;
   background-repeat:no-repeat,repeat;
+  /* 固定成合成层：打开/隐藏时不再新增或拆除图层，只变透明度，切页那一帧不会重画整屏 */
+  transform:translateZ(0);
+  will-change:opacity;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
 }
 .view.open{display:flex;}
 /* 聊天页行数多，用 display:none 关掉再打开，iOS 每次都要重排几千行 → 切页闪一下。
    改成「一直保持挂载、只是隐藏」，切回来瞬间就是现成的布局 */
 #view-chat.open{display:flex;}
-#view-chat:not(.open){display:flex;opacity:.001;pointer-events:none;z-index:-1;transform:translateZ(0);will-change:opacity,transform;}
+#view-chat:not(.open){display:flex;opacity:.001;pointer-events:none;z-index:30;}
 /* opacity:0 而不是 visibility:hidden：visibility 切换会让 iOS 把整层（几千行）重新光栅化，
    切回来先画一帧白底；透明层则一直保留合成好的画面，切回来是现成的 */
 @keyframes viewFade{from{opacity:0}to{opacity:1}}
@@ -599,6 +613,7 @@ body.av-square .msg-avatar,body.av-square #top-avatar-partner{border-radius:8px 
 }
 .sheet-grip{width:40px;height:4px;border-radius:2px;background:#D1D1D6;margin:6px auto 10px;}
 /* ➕ 菜单仿微信：图标网格 */
+#plus-sheet{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:var(--field);}
 .plus-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 6px;padding:6px 14px 12px;}
 .plus-item{display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:none;padding:0;cursor:pointer;}
 .pi-ic{position:relative;width:52px;height:52px;border-radius:50%;background:var(--card,#fff);display:flex;align-items:center;justify-content:center;color:var(--ttext);box-shadow:0 1px 3px rgba(0,0,0,.07);}
@@ -1561,7 +1576,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-14e">
+<meta name="app-build" content="2026-11-14n">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3164,6 +3179,7 @@ body.fs-4 .msg-more{font-size:calc(12px * var(--fs))}
           </div>
         </div>
                 <div class="set-row"><span class="set-label">日记：TA 套用我的内页<div class="set-sub">3% 概率，TA 那半页会用你设置的内页图片；关掉后永远用自己的纸</div></span><button class="switch on" id="sw-diary-skin"></button></div>
+                <div class="set-row"><span class="set-label">日记：对方每页字卡数<div class="set-sub">TA 写一页时随机抽几句，1–50 句</div></span><input class="set-input" id="set-diary-cards" type="number" min="1" max="50" value="11"></div>
         <div class="set-row"><span class="set-label">头像大小<div class="set-sub">聊天里双方头像的尺寸</div></span><input type="range" id="set-chat-av" min="20" max="48" step="2" style="flex:1;max-width:140px;margin-left:auto;"><button class="small-btn ghost" id="reset-chat-av" style="font-size:12px;padding:6px 10px;flex:0 0 auto;">恢复默认</button></div>
         <div class="set-row"><span class="set-label">消息框大小<div class="set-sub">文字气泡的字号与内边距</div></span><input type="range" id="set-chat-bub" min="80" max="140" step="5" style="flex:1;max-width:140px;margin-left:auto;"><button class="small-btn ghost" id="reset-chat-bub" style="font-size:12px;padding:6px 10px;flex:0 0 auto;">恢复默认</button></div>
         <div class="set-row"><span class="set-label">表情包大小<div class="set-sub">聊天里发出的表情包宽度（80~280 像素），面板格子不受影响</div></span><input type="range" id="set-emoji-size" min="80" max="280" step="4" style="flex:1;max-width:140px;margin-left:auto;"><button class="small-btn ghost" id="reset-emoji-size" style="font-size:12px;padding:6px 10px;flex:0 0 auto;">恢复默认</button></div>
@@ -4591,16 +4607,16 @@ function msgPreviewText(m){
 /* ===== 更新公告：换了新版本时弹一次，设置里也能随时再看 ===== */
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
-  ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||"2026-11-14e";}catch(e){return "2026-11-14e";}})(),
+  ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||"2026-11-14n";}catch(e){return "2026-11-14n";}})(),
   date:"2026-11-13",
-  lead:"这版集中修“点不动、会闪、滑得慢”：聊天、设置页和后台计算都做了调整。",
+  lead:"这版修一起听接受后返回聊天、再点加号又重复弹邀请的问题，并保留聊天页防闪。",
   items:[
-    "聊天顶部「对方名字 ›」和对方头像现在可以点，进入 TA 的主页，返回还是回到聊天",
-    "进入聊天前先在隐藏状态把消息画好并贴到最新一条，隐藏层保持预渲染，不再先闪出上面的旧记录",
-    "设置页点「聊天 / 社交 / 外观」标签即时切页，不再慢慢滑过去；手指滑动时临时关掉大块毛玻璃，停下自动恢复",
-    "红点计数在后台暂停，回到页面立刻补算；红点数字没变就不重复改页面，减少固定间隔的小卡顿",
-    "主页有弹层或正在滑动时，不再重复计算布局和底部圆点位置",
-    "收藏分组、完整聊天记录、对方接受邀请提示等已有功能全部保留"
+    "接受一起听后返回聊天，再点加号「一起听」直接回到一起听页面，不再重复弹邀请",
+    "只有点掉迷你播放器的「✕」退出听歌，或小弹窗被叉掉后，才会重新发起邀请",
+    "邀请小弹窗点背景仍不会关闭，只有「✕」才会复位邀请状态",
+    "聊天页继续固定同一合成层，切进切出只变透明度，不切换 z-index、不重建整层",
+    "全页面回归：主页、聊天、设置、字卡、信箱、留言、动态、红包、画画、音乐、主页切换均无报错",
+    "发消息、双击贴表情、面板内编辑删除表情、日记保存、对方字卡数设置均正常"
   ],
   foot:"有问题或建议：小红书 @Eleven_（ID：5609831119）。"
 };
@@ -5084,6 +5100,7 @@ function migrate(s){
   }catch(e){}
   s.settings.autoReply=true;
   if(s.settings.readReceipt===undefined)s.settings.readReceipt=true;
+  if(s.settings.diaryCards===undefined)s.settings.diaryCards=11;
   if(s.settings.replyProb===undefined)s.settings.replyProb=100;
   if(s.settings.emojiProb===undefined)s.settings.emojiProb=20;
   if(s.settings.cardJoinSymbol===undefined)s.settings.cardJoinSymbol=true;
@@ -5168,7 +5185,10 @@ function migrate(s){
   if(s.settings.partnerRecallProb===undefined)s.settings.partnerRecallProb=5;
   if(s.settings.tapbackProb===undefined)s.settings.tapbackProb=35;
   if(s.settings.tapbackOn===undefined)s.settings.tapbackOn=true;
-  if(!Array.isArray(s.tapbacksLib))s.tapbacksLib=["❤️","👍","👎","😂","‼️","❓"];
+  if(!Array.isArray(s.tapbacksLib))s.tapbacksLib=["❤️","👍","😂","‼️","❓"];
+  /* 下指不再提供；旧版本存过的 👎 自动清掉 */
+  s.tapbacksLib=s.tapbacksLib.filter(function(x){return x!=="👎";});
+  if(!s.tapbacksLib.length)s.tapbacksLib=["❤️","👍","😂","‼️","❓"];
   var __defTags=["甜","吵架","截图","约定","日常"];
   if(!Array.isArray(s.favTags))s.favTags=[];
   if(s.favTags.length===__defTags.length&&s.favTags.every(function(t,i){return t===__defTags[i];})&&!(s.favorites||[]).some(function(f){return __defTags.indexOf(f.tag)>=0;}))s.favTags=[];
@@ -6049,7 +6069,7 @@ function __bindInviteButtons(row){
     row.querySelectorAll("[data-inv-ok]").forEach(function(b){b.addEventListener("click",function(e){
       e.stopPropagation();var m=msgById(b.getAttribute("data-inv-ok"));if(!m)return;
       m.status="accepted";save();try{__refreshRecallRow(m.id);}catch(_){}
-      if(m.inv==="music"){var au=musicAudio();if(au.paused&&state.musicCur>=0)au.play().catch(function(){});toast("你们开始一起听歌了");showView("view-music");}
+      if(m.inv==="music"){musicSession=true;state.musicSession=true;try{save();}catch(_){};try{musicInviteShown=false;pendingMusicInvId=null;musicInviteClose();}catch(_){};var au=musicAudio();if(au.paused&&state.musicCur>=0)au.play().catch(function(){});toast("你们开始一起听歌了");showView("view-music");}
       else{game.agreed=true;showView("view-game");initGameCanvas();toast("接受邀请，一起画吧");}
     });});
     row.querySelectorAll("[data-inv-no]").forEach(function(b){b.addEventListener("click",function(e){
@@ -6317,6 +6337,8 @@ function renderChat(force){
     e.stopPropagation();const m=msgById(b.dataset.invOk);if(!m)return;
     m.status="accepted";save();renderChat();
     if(m.inv==="music"){
+      musicSession=true;state.musicSession=true;try{save();}catch(_){}
+      try{musicInviteShown=false;pendingMusicInvId=null;musicInviteClose();}catch(_){}
       const au=musicAudio();if(au.paused&&state.musicCur>=0)au.play().catch(()=>{});
       toast("你们开始一起听歌了");showView("view-music");
     }else{
@@ -6399,7 +6421,7 @@ function bindChatRow(row){
     row.querySelectorAll("[data-inv-ok]").forEach(function(b){b.addEventListener("click",function(e){
       e.stopPropagation();var m=msgById(b.dataset.invOk);if(!m)return;
       m.status="accepted";save();renderChat();
-      if(m.inv==="music"){var au=musicAudio();if(au.paused&&state.musicCur>=0)au.play().catch(function(){});toast("你们开始一起听歌了");showView("view-music");}
+      if(m.inv==="music"){musicSession=true;state.musicSession=true;try{save();}catch(_){};try{musicInviteShown=false;pendingMusicInvId=null;musicInviteClose();}catch(_){};var au=musicAudio();if(au.paused&&state.musicCur>=0)au.play().catch(function(){});toast("你们开始一起听歌了");showView("view-music");}
       else{game.agreed=true;showView("view-game");initGameCanvas();toast("接受邀请，一起画吧");}
     });});
     row.querySelectorAll("[data-inv-no]").forEach(function(b){b.addEventListener("click",function(e){
@@ -9274,6 +9296,7 @@ function bindSetting(){
   $("set-survey-max-sec").value=Math.round((state.settings.surveyMaxSec||0)/60);
   $("set-draw-decline").value=state.settings.drawDeclineProb;
   $("set-draw-invite").value=state.settings.drawInviteProb;
+  $("set-diary-cards").value=Math.min(50,Math.max(1,Math.round(Number(state.settings.diaryCards)||11)));
   $("set-max-sec").value=state.settings.maxDelaySec;
   $("set-min-sec").value=state.settings.minDelaySec;
   $("sw-auto").classList.toggle("on",state.settings.autoReply);
@@ -9525,6 +9548,7 @@ $("set-emoji-prob").addEventListener("change",e=>{state.settings.emojiProb=Math.
 $("set-social-min-sec").addEventListener("change",e=>{state.settings.socialMinSec=Math.max(0,Math.round(Number(e.target.value)||0))*60;e.target.value=Math.round(state.settings.socialMinSec/60);save();});
 $("set-draw-decline").addEventListener("change",e=>{state.settings.drawDeclineProb=Math.min(100,Math.max(0,Number(e.target.value)||0));e.target.value=state.settings.drawDeclineProb;save();toast("拒绝画画邀请概率已设为 "+state.settings.drawDeclineProb+"%");});
 $("set-draw-invite").addEventListener("change",e=>{state.settings.drawInviteProb=Math.min(100,Math.max(0,Number(e.target.value)||0));e.target.value=state.settings.drawInviteProb;save();toast("主动邀请画画概率已设为 "+state.settings.drawInviteProb+"%");});
+$("set-diary-cards").addEventListener("change",e=>{state.settings.diaryCards=Math.min(50,Math.max(1,Math.round(Number(e.target.value)||11)));e.target.value=state.settings.diaryCards;save();toast("对方每页字卡数已设为 "+state.settings.diaryCards+" 句");});
 /* 设置页最后一行：网易云登录 */
 (function(){
   var btn=document.getElementById("btn-ny-login");if(!btn)return;
@@ -10387,8 +10411,8 @@ try{
   var _tav=document.getElementById("top-avatar-partner");if(_tav)_tav.addEventListener("click",_openPartnerHome);
 }catch(e){}
 $("plus-cards").addEventListener("click",()=>{closePlus();showView("view-cards");});
-$("plus-game").addEventListener("click",()=>{closePlus();if(state.drawSession||$("view-game").classList.contains("open")||drawInviteShown||pendingDrawInvId){showView("view-game");return;}drawInviteShown=true;drawInviteOpen("me");});
-$("plus-music").addEventListener("click",()=>{closePlus();if($("view-music").classList.contains("open")){return;}if(musicSession||(state&&state.musicSession)){musicSession=true;showView("view-music");return;}musicInviteShown=false;pendingMusicInvId=null;musicInviteShown=true;musicInviteOpen("me","music");});
+$("plus-game").addEventListener("click",()=>{closePlus();if($("view-game").classList.contains("open"))return;/* 我邀请：总是先弹邀请确认，不再被旧 session 标记拦住 */drawInviteShown=false;pendingDrawInvId=null;drawInviteShown=true;drawInviteOpen("me");});
+$("plus-music").addEventListener("click",()=>{closePlus();if($("view-music").classList.contains("open")){return;}/* 已经达成一起听：直接回页面，不再反复邀请；只有叉掉小弹窗或退出听歌后才重新邀请 */if(musicSession||state.musicSession){showView("view-music");var _au=musicAudio();if(_au.paused&&state.musicCur>=0)_au.play().catch(function(){});return;}musicInviteShown=false;pendingMusicInvId=null;musicInviteShown=true;musicInviteOpen("me","music");});
 $("plus-image").addEventListener("click",()=>{closePlus();$("file-chat-img").click();});
 /* 加号里"主动来消息"：点击只主动发消息（不触发来信/留言/动态） */
 function manualActiveMsg(){
@@ -10479,7 +10503,12 @@ function musicInviteOpen(dir,type){
     },1800);
   }
 }
-function musicInviteClose(){$("music-invite").classList.remove("show");}
+function musicInviteClose(){
+  $("music-invite").classList.remove("show");
+  /* 关键是复位：只点背景关掉时也必须允许下一次邀请再弹，否则会永远不再弹 */
+  musicInviteShown=false;
+  try{clearTimeout(musicAutoAccept);}catch(_){}
+}
 var __musicInviteLastAt=0;
 function maybePartnerMusicInvite(){
   /* 一起听同样是大事件：15 分钟内最多自动发起一次 */
@@ -10541,7 +10570,7 @@ $("mvi-no").addEventListener("click",()=>{
   if(type==="draw"){toast(fromMe?"已取消邀请":"已拒绝画画邀请");return;}
   toast(fromMe?"已取消邀请":"已婉拒对方的听歌邀请");
 });
-$("music-invite").addEventListener("click",e=>{if(e.target===e.currentTarget)musicInviteClose();});
+/* 只有点叉（mvi-no）才关闭并允许重新邀请；点背景不再关闭，避免误触后又反复弹 */
 
 /* ===== 一起听（网易云 INS 玻璃） ===== */
 const MUSIC_BG=[
@@ -12699,7 +12728,11 @@ function drawInviteOpen(dir){
     },1800);
   }
 }
-function drawInviteClose(){$("draw-invite").classList.remove("show");}
+function drawInviteClose(){
+  $("draw-invite").classList.remove("show");
+  drawInviteShown=false;
+  try{clearTimeout(drawAutoAccept);}catch(_){}
+}
 $("dvi-yes").addEventListener("click",()=>{
   const fromMe=$("draw-invite").dataset.dir==="me";
   const m=pendingDrawInvId?msgById(pendingDrawInvId):null;
@@ -16292,7 +16325,7 @@ setTimeout(function(){
    不使用 Service Worker（避免缓存接管导致打不开/黑屏），只用“对比构建号 + 换 URL”这一招。 */
 (function(){
   if(!/^https?:$/.test(location.protocol))return;
-  var BUILD="2026-11-14e";
+  var BUILD="2026-11-14n";
   var KEY="app_build_reloaded";
   var busy=false;
   function go(url){location.replace(url+"&skipabout=1");}
@@ -17433,7 +17466,9 @@ try{
 
 /* ================= 双击贴表情（Tapback） ================= */
 function __tbLib(){
-  if(!Array.isArray(state.tapbacksLib)||!state.tapbacksLib.length)state.tapbacksLib=["❤️","👍","👎","😂","‼️","❓"];
+  if(!Array.isArray(state.tapbacksLib)||!state.tapbacksLib.length)state.tapbacksLib=["❤️","👍","😂","‼️","❓"];
+  state.tapbacksLib=state.tapbacksLib.filter(function(x){return x!=="👎";});
+  if(!state.tapbacksLib.length)state.tapbacksLib=["❤️","👍","😂","‼️","❓"];
   return state.tapbacksLib;
 }
 function __tbSet(id,e){
@@ -17454,11 +17489,13 @@ function __tbRepaint(id){
 }
 window.__tbClose=function(){
   var p=document.getElementById("tapback-panel");if(p)p.classList.remove("show");
-  window.__tbPanelOpen=0;window.__tbMsgId=null;
+  window.__tbPanelOpen=0;window.__tbMsgId=null;window.__tbEdit=0;
+  if(p)p.classList.remove("editing");
 };
 function __tbClose(){
   var p=document.getElementById("tapback-panel");if(p)p.classList.remove("show");
-  window.__tbPanelOpen=0;window.__tbMsgId=null;
+  window.__tbPanelOpen=0;window.__tbMsgId=null;window.__tbEdit=0;
+  if(p)p.classList.remove("editing");
 }
 function __tbPlace(row){
   var p=document.getElementById("tapback-panel");if(!p)return;
@@ -17477,29 +17514,82 @@ function __tbOpen(id,row){
   window.__tbMsgId=id;
   var p=document.getElementById("tapback-panel"),box=document.getElementById("tb-row");
   if(!p||!box)return;
-  var cur=(msgById(id)&&msgById(id).react&&msgById(id).react.from==="me")?msgById(id).react.e:null;
+  var _curM=msgById(id),cur=(_curM&&_curM.react)?_curM.react.e:null;
   box.innerHTML=__tbLib().map(function(e){
     return '<button class="tb-item'+(cur===e?" on":"")+'" data-tbe="'+esc(e)+'">'+esc(e)+'</button>';
-  }).join("")+'<button class="tb-item tb-add" id="tb-add-btn" title="添加表情">＋</button>';
+  }).join("")+'<button class="tb-item tb-add" id="tb-add-btn" title="添加表情">＋</button><button class="tb-item tb-edit" id="tb-edit-btn">'+(window.__tbEdit?"完成":"编辑")+'</button>'+(cur?'<button class="tb-item tb-del" id="tb-del-btn">删除</button>':'');
   p.classList.add("show");window.__tbPanelOpen=1;
   __tbPlace(row);
   try{__tbBindPanel();}catch(e){}
+}
+function __tbEditForm(target){
+  var box=document.getElementById("tb-row");if(!box)return;
+  window.__tbEditTarget=target||"";
+  box.innerHTML='<div class="tb-edit-box"><input class="tb-edit-input" id="tb-edit-input" maxlength="8" placeholder="输入表情" value="'+esc(target||"")+'"><button class="tb-mini" id="tb-edit-save">保存</button>'+(target?'<button class="tb-mini danger" id="tb-edit-del">删除</button>':'')+'<button class="tb-mini" id="tb-edit-cancel">取消</button></div>';
+  var p=document.getElementById("tapback-panel");if(p){p.classList.add("editing-item");var _r=document.querySelector('#msglist .msg-row[data-id="'+window.__tbMsgId+'"]');if(_r)__tbPlace(_r);}
+  var inp=document.getElementById("tb-edit-input");
+  if(inp){try{inp.focus();inp.setSelectionRange(inp.value.length,inp.value.length);}catch(_){};setTimeout(function(){try{inp.focus();}catch(_){}},80);}
 }
 function __tbBindPanel(){
   var p=document.getElementById("tapback-panel");
   if(!p||p.__bound)return;p.__bound=1;
   p.addEventListener("click",function(e){
     e.stopPropagation();
+    if(e.target.closest("#tb-edit-btn")){
+      window.__tbEdit=window.__tbEdit?0:1;
+      var _eb=document.getElementById("tb-edit-btn");if(_eb)_eb.textContent=window.__tbEdit?"完成":"编辑";
+      p.classList.toggle("editing",!!window.__tbEdit);
+      if(window.__tbEdit)toast("点一个表情改它，留空就删除");
+      return;
+    }
     var b=e.target.closest?e.target.closest("[data-tbe]"):null;
+    if(b&&window.__tbEdit){
+      __tbEditForm(b.getAttribute("data-tbe"));
+      return;
+    }
     if(b){__tbSet(window.__tbMsgId,b.getAttribute("data-tbe"));return;}
+    if(e.target.closest("#tb-del-btn")){
+      var _dm=msgById(window.__tbMsgId);if(_dm){_dm.react=null;try{save();}catch(_){};try{__tbRepaint(_dm.id);}catch(_){};try{__tbClose();}catch(_){};toast("已删除表情");}
+      return;
+    }
     if(e.target.closest("#tb-add-btn")){
-      var v=prompt("输入一个表情（比如 🥰、🔥、✨）","");
-      if(v===null)return;
-      v=String(v).trim().slice(0,8);
-      if(!v)return;
-      if(__tbLib().indexOf(v)<0){state.tapbacksLib.push(v);try{save();}catch(_){}}
-      var row=document.querySelector('#msglist .msg-row[data-id="'+window.__tbMsgId+'"]');
-      if(row)__tbOpen(window.__tbMsgId,row);
+      __tbEditForm("");
+      return;
+    }
+    if(e.target.closest("#tb-edit-cancel")){
+      var _cr=document.querySelector('#msglist .msg-row[data-id="'+window.__tbMsgId+'"]');
+      if(_cr)__tbOpen(window.__tbMsgId,_cr);
+      return;
+    }
+    if(e.target.closest("#tb-edit-del")){
+      var _oldD=window.__tbEditTarget||"";
+      var _libD=__tbLib().filter(function(x){return x!==_oldD;});
+      state.tapbacksLib=_libD.length?_libD:["❤️","👍","😂","‼️","❓"];
+      try{save();}catch(_){}
+      toast("已删除这个表情");
+      var _dr=document.querySelector('#msglist .msg-row[data-id="'+window.__tbMsgId+'"]');
+      if(_dr)__tbOpen(window.__tbMsgId,_dr);
+      return;
+    }
+    if(e.target.closest("#tb-edit-save")){
+      var _inp=document.getElementById("tb-edit-input");
+      var v=String((_inp&&_inp.value)||"").trim().slice(0,8);
+      if(!v){toast("先输入一个表情");return;}
+      var _oldS=window.__tbEditTarget||"";
+      var lib=__tbLib();
+      if(_oldS){
+        if(v!==_oldS){
+          if(lib.indexOf(v)>=0){toast("已经有这个表情了");return;}
+          var idx=lib.indexOf(_oldS);if(idx>=0)lib[idx]=v;
+        }
+      }else{
+        if(lib.indexOf(v)>=0){toast("已经有这个表情了");return;}
+        lib.push(v);
+      }
+      try{save();}catch(_){}
+      toast(_oldS?"表情已修改":"表情已添加");
+      var _sr=document.querySelector('#msglist .msg-row[data-id="'+window.__tbMsgId+'"]');
+      if(_sr)__tbOpen(window.__tbMsgId,_sr);
     }
   });
   document.addEventListener("pointerdown",function(e){
@@ -17529,6 +17619,18 @@ window.maybePartnerTapback=function(id){
     },1100+Math.random()*2800);
   }catch(e){}
 };
+/* 点已经贴在气泡上的表情 = 打开表情面板，可以换一个或删除 */
+document.addEventListener("click",function(e){
+  try{
+    var tb=e.target&&e.target.closest?e.target.closest("#msglist .tapback"):null;
+    if(!tb)return;
+    var row=tb.closest(".msg-row");if(!row)return;
+    e.preventDefault();e.stopPropagation();
+    var id=row.getAttribute("data-id"),m=msgById(id);
+    if(!m||!m.react)return;
+    try{__tbOpen(id,row);}catch(_){}
+  }catch(_){}
+},true);
 /* 双击识别：先按住单击 360ms，等到有第二下就改成贴表情 */
 (function(){
   var ml=document.getElementById("msglist");
@@ -17614,8 +17716,7 @@ try{
       <button class="dc-style-chip" id="diary-paper-pick">换内页图片</button>
       <button class="dc-style-chip" id="diary-paper-clear">还原纸色</button>
       <button class="dc-style-chip" id="diary-photo">贴照片</button>
-      <button class="dc-style-chip" id="diary-stk-import">表情包</button>
-      <button class="dc-style-chip" id="diary-stk-undo">撤回贴纸</button>
+          <button class="dc-style-chip" id="diary-stk-undo">撤回贴纸</button>
     </div>
     <div class="diary-actions">
       <button id="diary-save" class="primary">保存这一页</button>
@@ -17661,6 +17762,19 @@ try{
   <input type="file" id="dce-file" accept="image/*" hidden>
 </div>
 
+<style>
+/* 写日记时：去掉左右留白，纸页占满整屏，正文输入区撑满整页 */
+#diary-view.writing{padding-left:0;padding-right:0;}
+#diary-view.writing .diary-head,#diary-view.writing .diary-nav,#diary-view.writing .diary-tools{padding-left:12px;padding-right:12px;}
+#diary-view.writing .diary-book{width:100%;height:calc(100vh - 290px);max-height:none;}
+#diary-view.writing .diary-tools .dce-row{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;}
+#diary-view.writing .diary-tools{padding-bottom:calc(10px + env(safe-area-inset-bottom));}
+#diary-view.writing .diary-book{height:calc(100vh - 290px - env(safe-area-inset-bottom));}
+#diary-view.writing .diary-paper{border-radius:0;}
+#diary-view.writing .dp-mine{flex:1;display:flex;flex-direction:column;min-height:0;}
+#diary-view.writing .dp-mine textarea{flex:1;height:auto;min-height:150px;}
+#diary-view.writing .dp-partner{flex:0 1 auto;}
+</style>
 <script>
 /* ================= 日记本（封面 DIY / 3D 翻页 / 心情 / 贴纸 / 对方 11 句） ================= */
 (function(){
@@ -17746,19 +17860,19 @@ try{
       if(lockedP){
         var unlockT=new Date(Number(pg.unlockAt)).getTime();
         var hh=Math.max(1,Math.ceil((unlockT-Date.now())/3600000));
-        bodyHtml='<div class="dp-lockcard"><div class="dpl-ic">🔒</div><div class="dpl-t">TA 先写了一页</div><div class="dpl-s">写完啦，明天才解锁 · 还有 '+hh+' 小时</div><div class="dpl-blur">'+esc(String((pg.partner&&pg.partner.text)||"").slice(0,40))+'</div></div>';
+        bodyHtml='<div class="dp-lockcard"><div class="dpl-ic">🔒</div><div class="dpl-t">TA 先写了一页</div><div class="dpl-s">写完啦，明天解锁</div><div class="dpl-blur">'+esc(String((pg.partner&&pg.partner.text)||"").slice(0,40))+'</div></div>';
       }else{
-        bodyHtml='<div class="dp-full"><div class="dpp-txt">'+esc((pg.partner&&pg.partner.text)||"")+'</div><div class="dp-sign">TA 写的 · 11 句 · '+ (pg.partner&&pg.partner.lines?pg.partner.lines:11) +' 行</div></div>';
+        bodyHtml='<div class="dp-full"><div class="dpp-txt">'+esc((pg.partner&&pg.partner.text)||"")+'</div><div class="dp-sign">TA 写的 · '+ (pg.partner&&pg.partner.lines?pg.partner.lines:11) +' 句</div></div>';
       }
     }else{
       var partnerHtml="";
       if(!String(pg.mine.text||"").trim()){
-        partnerHtml='<div class="dp-partner locked">你先写完这一页，TA 6 小时后会在下一页动笔</div>';
+        partnerHtml='';
       }else if(pg.partner&&pg.partner.text){
         var pm=moodOf(pg.partner.mood||"");
-        partnerHtml='<div class="dp-partner'+(pg.partner.skin?" skin":"")+'"><div class="dpp-h"><span>'+pm.e+'</span><span>'+esc(pm.n)+'</span><span style="opacity:.55;margin-left:auto;">TA 写的 · 11 句</span></div><div class="dpp-txt">'+esc(pg.partner.text)+'</div></div>';
+        partnerHtml='<div class="dp-partner'+(pg.partner.skin?" skin":"")+'"><div class="dpp-h"><span>'+pm.e+'</span><span>'+esc(pm.n)+'</span><span style="opacity:.55;margin-left:auto;">TA 写的 · '+ (pg.partner.lines||11) +' 句</span></div><div class="dpp-txt">'+esc(pg.partner.text)+'</div></div>';
       }else{
-        partnerHtml='<div class="dp-partner locked">TA 会在 6 小时后写下一页，明天可以解锁</div>';
+        partnerHtml='';
       }
       bodyHtml='<div class="dp-mine"><textarea id="diary-mine" placeholder="今天想写点什么…">'+esc(pg.mine.text||"")+'</textarea><div class="dp-tip">'+(String(pg.mine.text||"").trim()?'已经保存好，TA 会接着写下一页':'写完点「保存这一页」')+'</div></div>'+partnerHtml;
     }
@@ -17796,7 +17910,7 @@ try{
     var _pstki=el("diary-stk-import"),_pund=el("diary-stk-undo");
     if(_pstki)_pstki.disabled=isP;if(_pund)_pund.disabled=isP;
     var saveBtn=el("diary-save");
-    if(saveBtn){saveBtn.disabled=isP;saveBtn.textContent=isP?(lockedP?"明天解锁":"TA 的一页"):"保存这一页";}
+    if(saveBtn){saveBtn.disabled=false;saveBtn.textContent=isP?(lockedP?"TA 的页 · 明天解锁":"TA 的一页"):"保存这一页";}
 
     /* 心情 chips */
     var mb=el("diary-moods");
@@ -17888,12 +18002,13 @@ try{
       dD.pages[pk]=page;dD.partnerFirstDate=tk;dD.pfCount=(dD.pfCount||0)+1;save();
     }catch(_){}
   }
-  /* ---------- 对方：从字卡随机抽 11 句 ---------- */
+  /* ---------- 对方：从字卡随机抽 N 句（N 在设置里调） ---------- */
   function makePartner(){
     var texts=(state.cards||[]).filter(function(c){return c&&c.text&&!c.disabled;}).map(function(c){return String(c.text).replace(/\s+/g," ").trim();}).filter(Boolean);
+    var N=Math.min(50,Math.max(1,Math.round(Number((state.settings||{}).diaryCards)||11)));
     var pool=texts.slice(),out=[];
-    while(out.length<11&&pool.length){out.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);}
-    while(out.length<11){out.push(texts.length?texts[Math.floor(Math.random()*texts.length)]:FILL[Math.floor(Math.random()*FILL.length)]);}
+    while(out.length<N&&pool.length){out.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);}
+    while(out.length<N){out.push(texts.length?texts[Math.floor(Math.random()*texts.length)]:FILL[Math.floor(Math.random()*FILL.length)]);}
     var mood=MOODS[Math.floor(Math.random()*MOODS.length)];
     var skin=!((state.settings||{}).diarySkin===false)&&Math.random()<0.03;
     return {text:out.join("\n"),mood:mood.e,time:Date.now(),lines:out.length,skin:skin};
@@ -17938,13 +18053,15 @@ try{
     var tk=todayKey();curIdx=ks.indexOf(tk);if(curIdx<0)curIdx=ks.length-1;curKey=ks[curIdx];
     stkSel="";
     el("diary-view").classList.add("show");
-    if(D().cover.done!==true)opened=false;
+    opened=false;
+    el("diary-view").classList.remove("writing");
     el("diary-cover").classList.toggle("open",opened);
     el("diary-view").classList.toggle("cover-closed",!opened);
     renderPage();
-    if(!opened)paintCover();
+    /* 每次都画保存过的封面：图片/底色/英文名都按上次设置来 */
+    paintCover();
   };
-  function closeDiary(){el("diary-view").classList.remove("show");if(writingTimer){clearTimeout(writingTimer);writingTimer=null;}}
+  function closeDiary(){el("diary-view").classList.remove("show");el("diary-view").classList.remove("writing");if(writingTimer){clearTimeout(writingTimer);writingTimer=null;}}
 
   try{
     var _dsc=el("ds-close"),_dsm=el("diary-summary");
@@ -18014,6 +18131,7 @@ try{
       if(D().cover.done!==true){e.stopPropagation();toast("先把封面做好，点下面按钮");openCoverEdit();return;}
       opened=true;
       el("diary-view").classList.remove("cover-closed");
+      el("diary-view").classList.add("writing");
       el("diary-cover").classList.add("open");
       setTimeout(function(){renderPage();},420);
     });
@@ -18032,12 +18150,17 @@ try{
       flipTo(function(){curIdx=i;curKey=ks[i];stkSel="";renderPage();});
     });
     el("diary-save").addEventListener("click",function(){
-      var ta=el("diary-mine");if(ta)pageOf(curKey).mine.text=ta.value;
-      var p=pageOf(curKey);p.mine.time=Date.now();
+      var p=pageOf(curKey);
+      /* TA 的页不能改；点保存给明确提示，而不是一个点了没反应的灰按钮 */
+      if(p.author==="partner"){toast("这是 TA 的一页，点「回到今天」写你的");return;}
+      var ta=el("diary-mine");if(ta)p.mine.text=ta.value;
+      p.mine.time=Date.now();
       if(!String(p.mine.text||"").trim()){toast("写两句再保存吧");return;}
       schedulePartnerReply(curKey);
-      save();renderPage();
-      toast("这一页保存好了 · TA 会在 6 小时后写下一页，明天解锁");
+      try{save();}catch(_){}
+      renderPage();
+      var btn=el("diary-save");if(btn){btn.textContent="已保存 ✓";setTimeout(function(){try{btn.textContent="保存这一页";}catch(_){}},1200);}
+      toast("这一页保存好了 · TA 会接着写下一页");
       try{maybeMonthSummary(curKey);}catch(_){}
     });
   }catch(e){}
@@ -18177,6 +18300,7 @@ try{
       paintCover();
       opened=true;el("diary-cover").classList.add("open");
       el("diary-view").classList.remove("cover-closed");
+      el("diary-view").classList.add("writing");
       setTimeout(function(){renderPage();},420);
       toast("封面做好了，开始写吧");
     });
