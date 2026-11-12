@@ -61,7 +61,7 @@ input,textarea{-webkit-user-select:text;user-select:text;}
   padding-top:calc(8px + env(safe-area-inset-top));z-index:20;
 }
 .top-left{justify-self:start;min-width:0;}
-.top-center{justify-self:center;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;max-width:80%;}
+.top-center{justify-self:center;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;max-width:96%;}
 .top-center .avatar{width:38px;height:38px;}
 /* 聊天顶部头像跟随「头像大小」设置（顶部栏高度不会因此撑破） */
 #top-avatar-partner{width:var(--msgav,30px) !important;height:var(--msgav,30px) !important;max-width:none !important;min-width:0 !important;flex:0 0 auto !important;}
@@ -70,7 +70,7 @@ input,textarea{-webkit-user-select:text;user-select:text;}
 .top-namepill{display:inline-flex;align-items:center;gap:3px;background:color-mix(in srgb, var(--panel) 78%, transparent);border:none;border-radius:14px;padding:3px 9px;min-width:0;max-width:100%;cursor:pointer;}
 .top-name{font-size:13px;font-weight:600;line-height:1.3;white-space:nowrap;color:var(--ttext);}
 .top-caret{font-size:13px;color:#8E8E93;flex:0 0 auto;}
-.top-status{font-size:12px;color:#8E8E93;line-height:1.3;text-align:center;height:15px;overflow:hidden;visibility:hidden;}
+.top-status{font-size:12px;color:#8E8E93;line-height:1.3;text-align:center;height:15px;overflow:hidden;visibility:hidden;width:max-content;max-width:calc(100vw - 120px);white-space:nowrap;}
 .top-status.on{visibility:visible;}
 .top-right{justify-self:end;display:flex;align-items:center;gap:2px;min-width:0;}
 .top-btn{
@@ -363,7 +363,7 @@ body.av-square .msg-avatar,body.av-square #top-avatar-partner{border-radius:8px 
 .mlc-list .msg-avatar{width:28px;height:28px;}
 .mlc-list .bubble.imgb{padding:2px;background:transparent !important;box-shadow:none !important;}
 .mlc-tip{font-size:11px;color:#8E8E93;text-align:center;padding:4px 0;}
-.mlc-typing{display:none;font-size:11px;color:#8E8E93;padding:0 16px 2px;}
+.mlc-typing{display:none;flex:0 0 auto;min-height:16px;line-height:16px;font-size:11px;color:#8E8E93;padding:0 16px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .mlc-typing.on{display:block;}
 .mlc-bar{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:8px 12px calc(58px + env(safe-area-inset-bottom));}
 .mlc-field{flex:1;min-width:0;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.82);border:1px solid rgba(0,0,0,.06);border-radius:20px;padding:7px 10px;box-shadow:0 2px 8px rgba(0,0,0,.05);}
@@ -1270,7 +1270,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-11zv">
+<meta name="app-build" content="2026-11-12f">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -2844,7 +2844,7 @@ body.fs-4 .msg-more{font-size:calc(12px * var(--fs))}
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
       <div class="set-group"><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
-<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-11zv</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-12e</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -2917,11 +2917,14 @@ body.fs-4 .msg-more{font-size:calc(12px * var(--fs))}
           <select class="sel" id="set-bubblestyle"></select></div>
         <div class="set-row" style="flex-direction:column;align-items:stretch;">
           <div class="set-label" style="margin-bottom:8px;">导入自定义气泡CSS<div class="set-sub">粘贴CSS规则，可覆盖气泡外观（渐变、圆角、阴影、贴图边框等）。支持 .bubble / .msg-row .bubble，也兼容 .message-sent（我）/ .message-received（对方）</div></div>
-          <textarea class="batch-area" id="custom-bubble-css" placeholder=".msg-row.me .bubble { background: linear-gradient(135deg,#6EE7B7,#3B82F6); }&#10;.msg-row.partner .bubble { border-radius: 22px; box-shadow: 0 4px 12px rgba(0,0,0,.15); }"></textarea>
-          <div style="display:flex;gap:8px;margin-top:8px;">
+          <!-- 按钮放在输入框上方：手机上键盘弹起来时不会把「应用」挡住 -->
+          <div style="display:flex;gap:8px;margin-bottom:8px;">
+            <button class="small-btn" id="btn-css-file" style="flex:1;">导入 CSS 文件</button>
             <button class="small-btn" id="btn-css-apply" style="flex:1;">应用CSS</button>
-            <button class="small-btn ghost" id="btn-css-clear" style="flex:1;">清除</button>
+            <button class="small-btn ghost" id="btn-css-clear" style="flex:0 0 auto;padding:8px 14px;">清除</button>
           </div>
+          <textarea class="batch-area" id="custom-bubble-css" rows="6" placeholder=".msg-row.me .bubble { background: linear-gradient(135deg,#6EE7B7,#3B82F6); }&#10;.msg-row.partner .bubble { border-radius: 22px; box-shadow: 0 4px 12px rgba(0,0,0,.15); }"></textarea>
+          <input type="file" id="file-css" accept=".css,.txt,text/css,text/plain" hidden>
         </div>
         <div class="set-row"><span class="set-label">顶栏背景（默认白）</span><input class="color-input" type="color" id="skin-topbar"></div>
         <div class="set-row"><span class="set-label">底栏背景（默认白）</span><input class="color-input" type="color" id="skin-bottombar"></div>
@@ -2964,6 +2967,7 @@ body.fs-4 .msg-more{font-size:calc(12px * var(--fs))}
       <button class="small-btn" id="btn-letter-write" style="font-size:13px;">写信</button>
     </div>
     <div class="v-body">
+      <div class="gb-newbar hidden" id="lt-newbar"></div>
       <div class="lt-list" id="letter-list"></div>
       <div class="empty-hint hidden" id="letter-empty">还没有信件，给对方写一封吧。</div>
     </div>
@@ -4220,8 +4224,8 @@ function msgPreviewText(m){
 /* ===== 更新公告：换了新版本时弹一次，设置里也能随时再看 ===== */
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
-  ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||"2026-11-11zv";}catch(e){return "2026-11-11zv";}})(),
-  date:"2026-11-11",
+  ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||"2026-11-12f";}catch(e){return "2026-11-12f";}})(),
+  date:"2026-11-12",
   lead:"这一版主要是让打开更快、更新更省心。",
   items:[
     "点开更快：先读本地缓存立刻出内容，同时后台把新版本下好",
@@ -4366,7 +4370,7 @@ function maybeShowIncomingPop(m,force){
   if(!m||m.from!=="partner")return;
   /* 来信 / 留言 / 新动态 / 评论回复这些「系统提示」以前被一刀切掉，只能靠聊天里那行灰字，
      所以 App 内根本没有通知。这里放行它们，同样弹顶部提示条 */
-  if(m.type==="sys"&&!/写了封信|来信|留了言|留言|发了新动态|发布了新动态|回复了你的动态|评论了你的动态|给你回信/.test(m.text||""))return;
+  if(m.type==="sys"&&!/写了封信|写了一封信|来信|留了言|留言|新动态|评论|回信/.test(m.text||""))return;
   if(!force&&document.hidden){if(!m.__notified)notifySystem(m,{silent:m.type==="poke"});return;} // 滑出网站/后台 → 系统通知
   if(!force&&$("view-chat")&&$("view-chat").classList.contains("open"))return;
   const av=$("ip-av"),nm=$("ip-name"),tx=$("ip-text"),tm=$("ip-time");
@@ -4830,7 +4834,8 @@ function preloadCp2Images(){
     var u=[p.cpPhoto,p.cpPhotoCard,p.cpPhotoSub,p.cpRecord,p.cpMeAvatar,p.cpPartnerAvatar,p.cpChatMe?null:null];
     for(var i=0;i<6;i++){
       var s=[p.cpPhoto,p.cpPhotoCard,p.cpPhotoSub,p.cpRecord,p.cpMeAvatar,p.cpPartnerAvatar][i];
-      if(s&&String(s).indexOf("data:")===0){var im=new Image();im.src=s;if(im.decode)try{im.decode();}catch(_){}}
+      /* 用缓存里的 blob 地址预解码：和真正画到页面上的地址一致，点进主页就是现成的 */
+      if(s){var im=new Image();im.src=wallUrl(String(s));if(im.decode)try{im.decode();}catch(_){}}
     }
   }catch(e){}
 }
@@ -4897,7 +4902,7 @@ async function init(){
       var _lp=(state&&state.profile)||{};var _sp=(s.profile)||{};
       var _pics=["cpPhoto","cpPhotoCard","cpPhotoSub","cpRecord","cpMeAvatar","cpPartnerAvatar"];
       for(var _i=0;_i<_pics.length;_i++){var _k=_pics[_i];if(!_sp[_k]&&_lp[_k]){_sp[_k]=_lp[_k];}}
-      state=migrate(s);try{__ltReadApply();}catch(e){}try{__prefApply();}catch(e){}applySkin();renderAll();try{updateNewBadge();}catch(e){}
+      state=migrate(s);try{__ltReadApply();}catch(e){}try{__prefApply();}catch(e){}applySkin();renderAll();try{if(typeof renderMe==="function")renderMe();}catch(e){}try{updateNewBadge();}catch(e){}
       /* 主库里可能是旧的设置（存盘被跳过/写失败），偏好键里才是用户最后调的值 → 以偏好键为准 */
       try{
         var _pp=null;try{_pp=JSON.parse(localStorage.getItem("uiPrefs.v1")||"null");}catch(e){}
@@ -5180,20 +5185,35 @@ const GB_PRESETS=[
   {n:"蜜桃",g:"linear-gradient(180deg,#ffdcc9,#ffe9ef)"}
 ];
 function wallUrl(u){
-  // 把 base64 聊天背景转成 blob URL：Image 与 CSS background 共享同一缓存，避免每次重新解码导致开屏/返回闪现
+  /* 任意皮肤图（背景/主页照片/画画背景…）都转成 blob URL 并缓存：
+     - 同一张图在多个位置复用同一个 URL，浏览器只解码一次
+     - 返回后立即可用，不用每次重绘都重新解析几 MB 的 base64
+     最多缓存 8 张，超了丢最早的，避免 blob 越积越多 */
   if(!u)return "";
   if(!/^data:/.test(u))return u;
-  if(window._wallBlobSrc===u&&window._wallBlobUrl)return window._wallBlobUrl;
+  window.__imgUrlMap=window.__imgUrlMap||{};
+  window.__imgUrlOrder=window.__imgUrlOrder||[];
+  var m=window.__imgUrlMap;
+  if(m[u]){
+    /* 命中就把这条挪到队尾：按“最久没用”淘汰，避免还在页面上显示的图被误释放 */
+    var _i=window.__imgUrlOrder.indexOf(u);
+    if(_i>-1){window.__imgUrlOrder.splice(_i,1);window.__imgUrlOrder.push(u);}
+    return m[u];
+  }
   try{
     const comma=u.indexOf(",");const head=u.slice(0,comma);
     if(!/;base64/.test(head))return u;
     const mime=(head.match(/:(.*?);/)||[])[1]||"image/jpeg";
     const bin=atob(u.slice(comma+1));
     const n=bin.length;const arr=new Uint8Array(n);for(let i=0;i<n;i++)arr[i]=bin.charCodeAt(i);
-    const blob=new Blob([arr],{type:mime});
-    if(window._wallBlobUrl){try{URL.revokeObjectURL(window._wallBlobUrl);}catch(e){}}
-    window._wallBlobUrl=URL.createObjectURL(blob);window._wallBlobSrc=u;
-    return window._wallBlobUrl;
+    const url=URL.createObjectURL(new Blob([arr],{type:mime}));
+    m[u]=url;window.__imgUrlOrder.push(u);
+    while(window.__imgUrlOrder.length>24){
+      var old=window.__imgUrlOrder.shift();
+      try{URL.revokeObjectURL(m[old]);}catch(e){}
+      delete m[old];
+    }
+    return url;
   }catch(e){return u;}
 }
 /* 背景图入库压缩：先在界面上瞬间生效，再异步压到安全体积后覆盖并重新落盘，避免大图导致保存失败、刷新后丢失 */
@@ -5252,10 +5272,10 @@ function applySkin(){
   document.querySelectorAll(".mom-bg").forEach(el=>el.style.background=s.momImage?('url("'+s.momImage+'") center/cover no-repeat'):('var(--mom-bg)'));
   let gameGrad=(s.gameBg>0&&GB_PRESETS[s.gameBg]&&GB_PRESETS[s.gameBg].g?GB_PRESETS[s.gameBg].g:grad);
   r.setProperty("--game-bg",gameGrad);
-  document.querySelectorAll(".game-bg").forEach(el=>el.style.background=s.gameImage?('url("'+s.gameImage+'") center/cover no-repeat'):('var(--game-bg)'));
+  document.querySelectorAll(".game-bg").forEach(el=>el.style.background=s.gameImage?('url("'+wallUrl(s.gameImage)+'") center/cover no-repeat'):('var(--game-bg)'));
   let meGrad=(s.meBg>0&&GB_PRESETS[s.meBg]&&GB_PRESETS[s.meBg].g?GB_PRESETS[s.meBg].g:grad);
   r.setProperty("--me-bg",meGrad);
-  document.querySelectorAll(".me-bg").forEach(el=>el.style.background=s.meImage?('url("'+s.meImage+'") center/cover no-repeat'):('var(--me-bg)'));
+  document.querySelectorAll(".me-bg").forEach(el=>el.style.background=s.meImage?('url("'+wallUrl(s.meImage)+'") center/cover no-repeat'):('var(--me-bg)'));
   const tc=document.querySelector('meta[name="theme-color"]');
   if(tc)tc.setAttribute("content",s.dark?"#000000":"#ffffff");
   r.setProperty("--wallimg",s.bgImage?'url("'+wallUrl(s.bgImage)+'")':"none");
@@ -5927,7 +5947,7 @@ function renderMsgBody(m){
     const qs=s.questions||[];
     const status=s.answeredBy?(s.answeredBy==="me"?"我已填写":"对方已填写"):"待填写";
     const btnCls=s.answeredBy?"done":"";
-    const btnTxt=s.answeredBy?"查看结果":"填写问卷";
+    const btnTxt=s.answeredBy?"查看结果":(m.from==="me"?"等待对方填写":"去填写");
     return '<div class="sq-card"><div class="sq-title">📋 '+(esc(s.title)||"问卷")+'</div>'
       +'<div class="sq-sub">共 '+qs.length+' 题 · '+qs.map(q=>q.kind==="custom"?"自定义":(q.kind==="multi"||q.type==="multi"?"多选":"单选")).join(" / ")+'</div>'
       +'<div class="sq-sub" style="margin-top:2px;">状态：'+status+'</div>'
@@ -7207,6 +7227,35 @@ document.addEventListener("pointerdown",function(){
   if(state&&state.settings&&state.settings.keepAlive)_keepArm();
 },{passive:true,capture:true});
 
+/* 皮肤照片预解码：主页桌面照片、背景、来信/留言/画画背景都在空闲时先解码好，
+   用户点进主页那一刻直接有图，不再“先空白再蹦出来” */
+window.__preloadSkinImages=function(){
+  try{
+    var sk=(state&&state.skin)||{};
+    var todo=[];
+    /* 先放最要紧的：主页顶部照片、桌面照片框第一张，进主页前必须已经解码好 */
+    try{var pf=(state&&state.profile)||{};["cpPhotoCard","meTopImage","cpPhotoSub","cpPhoto","cpRecord"].forEach(function(k){
+      if(k==="meTopImage"){if(sk.meTopImage)todo.push(sk.meTopImage);}else if(pf[k])todo.push(pf[k]);
+    });}catch(e){}
+    var keys=["meImage","bgImage","gbImage","ltImage","momImage","gameImage"];
+    for(var i=0;i<keys.length;i++){if(sk[keys[i]]&&todo.indexOf(sk[keys[i]])<0)todo.push(sk[keys[i]]);}
+    var go=function(k){
+      if(k>=todo.length)return;
+      try{
+        var im=new Image();
+        im.onload=function(){try{if(im.decode)im.decode().then(function(){},function(){});}catch(e){}setTimeout(function(){go(k+1);},0);};
+        im.onerror=function(){setTimeout(function(){go(k+1);},0);};
+        im.src=wallUrl(todo[k]);
+      }catch(e){go(k+1);}
+    };
+    go(0);
+  }catch(e){}
+};
+try{
+  /* 立刻开跑：只解码最前面几张（主页顶部照片/桌面照片），随后空闲时再补齐其余 */
+  setTimeout(function(){try{window.__preloadSkinImages();}catch(e){}},0);
+}catch(e){}
+
 /* 后台保活：回到前台时重排定时，并补发后台期间错过的一条主动消息 */
 let _hidAt=0;
 document.addEventListener("visibilitychange",()=>{
@@ -7230,7 +7279,8 @@ document.addEventListener("visibilitychange",()=>{
 /* 聊天补发：切后台回来 / 从后台被系统回收后重新打开（pageshow）都走这里 */
 function bgCatchUpChat(away){
   try{
-    if(!(Number(away)>=5000))return;
+    /* 只在后台待满 120 秒才补发：切出去几十秒就回来的不补，避免一来一回就冒消息 */
+    if(!(Number(away)>=120000))return;
     /* visibilitychange 和 pageshow 会在回前台时先后各触发一次，8 秒内只补一次，否则会“连续冒出两遍” */
     try{var _now=Date.now();if(window.__lastCatchUpAt&&(_now-window.__lastCatchUpAt)<8000)return;window.__lastCatchUpAt=_now;}catch(e){}
     var _mx=Math.max(0,Number(state.settings.socialMsgMax)||0);
@@ -8996,6 +9046,21 @@ $("btn-css-clear").addEventListener("click",()=>{
   state.skin.customBubbleCSS="";$("custom-bubble-css").value="";
   applyCustomBubbleCSS();save();toast("已清除自定义气泡CSS");
 });
+/* 直接导入 .css / .txt 文件，省得在手机上长按粘贴 */
+if($("btn-css-file"))$("btn-css-file").addEventListener("click",()=>$("file-css").click());
+if($("file-css"))$("file-css").addEventListener("change",function(e){
+  var f=e.target.files&&e.target.files[0];if(!f)return;
+  var rd=new FileReader();
+  rd.onload=function(){
+    var txt=String(rd.result||"").trim();
+    $("custom-bubble-css").value=txt;
+    state.skin.customBubbleCSS=txt;
+    applyCustomBubbleCSS();save();
+    toast(txt?("已导入 "+Math.round(txt.length/1024)+"KB CSS 并应用"):"这个文件是空的");
+  };
+  rd.readAsText(f,"utf-8");
+  e.target.value="";
+});
 
 /* ===== 聊天背景图片（从相册导入）===== */
 $("btn-bgimg").addEventListener("click",()=>$("file-bgimg").click());
@@ -9425,7 +9490,10 @@ function showView(id){
     },0);});}catch(e){try{bindSetting();}catch(_){}}
     if(typeof renderStorageInfo==="function")setTimeout(renderStorageInfo,150);
   }
-  if(id==="view-letters"){updateNewBadge();renderLetters();fillLetterComposer();maybePartnerLetter();}
+  if(id==="view-letters"){
+    /* 进信箱先保留未读，让顶部的 🔔 提示条告诉你有几封新信；点提示条或「全部已读」才真正标已读 */
+    updateNewBadge();renderLetters();fillLetterComposer();maybePartnerLetter();
+  }
   if(id==="view-me"){try{__ltReadApply();updateNewBadge();}catch(e){}}
   if(id==="view-guestbook"){newN=0;updateNewBadge();renderGuestbook();maybePartnerNote();$("gb-avatar").src=state.partner.avatar||avatarSvg("#5AC8FA");$("gb-name").textContent="@"+(state.profile.partnerMpName||state.partner.name||"对方");$("gb-prompt").textContent=state.settings.gbPrompt||"你说 我在听";}
   if(id==="view-me"){renderMe();var _pg=$("me-pager");
@@ -9434,7 +9502,26 @@ function showView(id){
     /* 进主页当下就把整页比例算好并套上：同一帧内完成，第一次画出来就是缩好的，不会先大后缩 */
     try{if(window.__fitCompute)window.__fitCompute(true);}catch(e){}
 
-  if(id==="view-moments"){newM=0;updateNewBadge();renderMoments();maybePartnerMoments();}
+  if(id==="view-moments"){
+    newM=0;updateNewBadge();
+    /* 红点点的是「对方发了新动态」，但默认这一页画的是我自己的主页，所以看着像“点进去没有”。
+       有未读的对方动态就直接切到对方主页并滚到最新那条。 */
+    var _ups=[];
+    try{_ups=momUnreadPost();}catch(e){}
+    if(_ups.length){
+      var _np=_ups.slice().sort(function(a,b){return b.time-a.time;})[0];
+      mpSide="partner";_momentsFrom="view-moments";
+      window._momentFocusId=_np.id;
+      /* 未读先留着：顶部要能看到「🔔 你的特别关注发布了…」；点了提示条才清 */
+      renderMoments();
+      try{updateMomBell();}catch(e){}
+      setTimeout(function(){try{focusMomentCard(_np.id);}catch(e){}},260);
+    }else{
+      renderMoments();
+      try{updateMomBell();}catch(e){}
+    }
+    maybePartnerMoments();
+  }
   if(id==="view-redpacket"){newR=0;updateNewBadge();renderRedpackets();}
   if(id==="view-game"){fillGamePlayers();try{game.stamp=null;window.__gSig="";}catch(e){}initGameCanvas();}
   if(id==="view-music"){renderMusicList();setTimeout(maybePartnerMusicInvite,1200);try{if(typeof warm163==="function")warm163();}catch(e){};try{if(typeof prefetchSongUrls==="function")setTimeout(function(){prefetchSongUrls(4);},60);}catch(e){}
@@ -9811,8 +9898,8 @@ function refreshMiniPlayer(){
   $("mp-artist").textContent=s?(s.artist||""):"";
   setSvgUse("mp-play-use",au.paused?"#i-mplay":"#i-mpause");
   // 缩小唱片：封面优先用用户设置的歌曲封面
-  const cov=state.musicCoverImg;
-  const pic=cov||(s&&s.cover);
+  /* 优先我设置的照片：唱片中心图 → 自己换的封面 → 歌曲封面 */
+  const pic=state.musicDiscInnerImg||state.musicCoverImg||(s&&s.cover);
   /* 站内小卡片恢复原样：暂停显示 ▶，播放时才转成封面唱片
      注意：只在「播放状态/封面」真的变了才重建 innerHTML——timeupdate 每 250ms 调一次，
      每次都换 <img> 会重新加载图片，画面就会一闪一闪 */
@@ -10387,38 +10474,155 @@ var _163Warmed=false;
   });
 
   /* ===== 本地歌识别：用文件名/歌名去网易云查同名歌曲，认到就回填 neteaseId（歌词可用） ===== */
+  /* 提速三件事：
+     1) 同源后端和第三方接口同时发，谁先返回有效结果就用谁（以前只等一个，慢的那次就卡住）
+     2) 每个请求都带 3.5 秒超时，网络不好立刻放弃，不再无限转圈
+     3) 搜索结果按歌名缓存 24 小时，第二次打开同一首歌是瞬时的 */
   var _s163Cache={};
-  function __search163(q,cb){
+  function __s163Cached(q){
+    try{
+      var raw=localStorage.getItem("s163q:"+q);
+      if(!raw)return undefined;
+      var o=JSON.parse(raw);
+      if(!o||!o.t||Date.now()-o.t>86400000)return undefined;
+      return o.list;
+    }catch(e){return undefined;}
+  }
+  function __s163Store(q,list){
+    try{localStorage.setItem("s163q:"+q,JSON.stringify({t:Date.now(),list:list||[]}));}catch(e){}
+  }
+  function __s163BackendBase(cb){
+    try{
+      if(typeof backendAddr==="function"){backendAddr(function(b){cb(b||location.origin);});return;}
+    }catch(e){}
+    cb(location.origin);
+  }
+  function __search163(q,cb,deadline,artist){
     q=String(q||"").trim();
     if(!q)return cb(null);
     if(_s163Cache[q]!==undefined)return cb(_s163Cache[q]);
-    fetch(_163api+"/search?keywords="+encodeURIComponent(q)+"&limit=5").then(r=>r.json()).then(function(d){
-      var list=(d&&d.result&&d.result.songs)||[];
-      _s163Cache[q]=list;
-      cb(list);
-    }).catch(function(){_s163Cache[q]=[];cb([]);});
-  }
-  function __normName(x){return String(x||"").toLowerCase().replace(/[\s\-_()[（）：:.,·]/g,"");}
-  function recognizeLocalSong(item){
-    if(!item)return;
-    if(item.neteaseId){return;}
-    var q=((item.artist?item.artist+" ":"")+(item.name||"")).trim();
-    __search163(q,function(list){
-      var want=__normName(item.name);
-      for(var i=0;i<list.length;i++){
-        var sg=list[i];if(!sg||!sg.id)continue;
-        var title=__normName(sg.name);
-        var okTitle=!want||title===want||title.indexOf(want)===0||want.indexOf(title)===0;
-        if(!okTitle)continue;
-        item.neteaseId=String(sg.id);
-        if(sg.ar&&sg.ar[0]&&sg.ar[0].name&&!item.artist)item.artist=sg.ar[0].name;
-        if(!item.cover&&sg.al&&sg.al.picUrl)item.cover=sg.al.picUrl;
-        try{save();renderMusicList();}catch(e){}
-        return;
-      }
+    var _c=__s163Cached(q);
+    if(_c!==undefined){_s163Cache[q]=_c;return cb(_c);}
+    var done=false,timer=null;
+    function finish(list){
+      if(done)return;done=true;
+      if(timer)clearTimeout(timer);
+      _s163Cache[q]=list||[];
+      __s163Store(q,_s163Cache[q]);
+      cb(_s163Cache[q]);
+    }
+    var _budget=function(){var left=(deadline?deadline-Date.now():2600);return Math.max(600,Math.min(2600,left));};
+    function timed(url,opt){
+      try{
+        var ctl=new AbortController();
+        var t=setTimeout(function(){try{ctl.abort();}catch(e){}},3200);
+        return fetch(url,Object.assign({signal:ctl.signal},opt||{})).then(function(r){clearTimeout(t);return r.json();});
+      }catch(e){return Promise.reject(e);}
+    }
+    /* 总预算：到点必给结论，不再让用户干等 */
+    var _total=deadline?Math.max(700,deadline-Date.now()):2800;
+    timer=setTimeout(function(){finish([]);},_total);
+    /* A. 同源后端的搜索（返回 {songs:[{id,name,artist,cover}]}） */
+    __s163BackendBase(function(base){
+      if(!base||done)return;
+      var hdr={"Content-Type":"application/json","x-wns-client":"1"};
+      try{var sid=localStorage.getItem("wnsSid");if(sid)hdr["x-wns-sid"]=sid;}catch(e){}
+      timed(base+"/api/netease/search",{method:"POST",mode:"cors",credentials:"omit",headers:hdr,body:JSON.stringify({keywords:q,q:q,limit:10})})
+        .then(function(d){
+          var arr=(d&&d.songs)||[];
+          if(!arr.length)return;
+          finish(arr.map(function(t){
+            return {id:t.id,name:t.name,ar:[{name:t.artist||""}],al:{picUrl:t.cover||""}};
+          }));
+        }).catch(function(){});
     });
+    /* B. 第三方公开接口（后端没登录/没部署时的兜底） */
+    timed(_163api+"/search?keywords="+encodeURIComponent(q)+"&limit=5")
+      .then(function(d){
+        var list=(d&&d.result&&d.result.songs)||[];
+        if(list.length)finish(list);
+      }).catch(function(){});
+    /* C. vkeys 公开接口：这个源一般 1.5~2 秒就回，和 B 一起赛跑，谁先给有效结果用谁 */
+    timed("https://api.vkeys.cn/v2/music/netease?word="+encodeURIComponent(q))
+      .then(function(d){
+        var arr=(d&&d.data)||[];
+        if(!arr.length)return;
+        var mapped=arr.map(function(t){
+          return {id:t.id,name:t.song||t.name||"",ar:[{name:t.singer||""}],al:{picUrl:t.cover||""}};
+        });
+        /* 带歌手信息时只收歌手对得上的结果：这个源常把翻唱/同名前缀排在前面，
+           不过滤会把别人的版本当成她的歌，歌词就全错了 */
+        if(artist){
+          var na=__normName(artist);
+          mapped=mapped.filter(function(x){
+            var h=__normName((x.ar[0]&&x.ar[0].name)||"");
+            return h&&(h.indexOf(na)===0||na.indexOf(h)===0||h.indexOf(na)>=0);
+          });
+          if(!mapped.length)return;
+        }
+        finish(mapped);
+      }).catch(function(){});
+  }
+  function __normName(x){return String(x||"").toLowerCase().replace(/[\s\-_()[（）：:.,·【】\[\]]/g,"");}
+  function __pickSong(item,list){
+    var want=__normName(item.name),na=__normName(item.artist||"");
+    var best=null,score=-99;
+    for(var i=0;i<(list||[]).length;i++){
+      var sg=list[i];if(!sg||!sg.id)continue;
+      var raw=String(sg.name||"");
+      var title=__normName(raw);
+      /* 只认同名：不再拿“晴天”去套“晴天(原唱…)”或“等晴天”，那都是别人的版本 */
+      if(want&&title!==want&&title!==__normName((item.artist||"")+" "+(item.name||""))&&title!==__normName((item.name||"")+" "+(item.artist||"")))continue;
+      var ha=__normName((sg.ar&&sg.ar[0]&&sg.ar[0].name)||"");
+      var artistOk=!!(na&&ha&&(ha.indexOf(na)>=0||na.indexOf(ha)>=0));
+      /* 知道歌手就必须对得上：宁可“没找到”，也不给别人的翻唱配错歌词 */
+      if(na&&!artistOk)continue;
+      var sc=0;
+      if(/[（(]/.test(raw))sc-=2;
+      if(/live|伴奏|翻唱|片段|demo|版/i.test(raw))sc-=3;
+      if(artistOk)sc+=2;
+      if(title===want)sc+=2;
+      if(sc>score){score=sc;best=sg;}
+    }
+    return best;
+  }
+  function recognizeLocalSong(item,cb){
+    if(!item){if(cb)cb(false);return;}
+    if(item.neteaseId){if(cb)cb(true);return;}
+    var full=((item.artist?item.artist+" ":"")+(item.name||"")).trim();
+    var nameOnly=String(item.name||"").trim();
+    var triedSecond=false;
+    var _dl=Date.now()+3600;   /* 两次查询共用同一个总预算，最坏也就 3.6 秒给结论 */
+    __search163(full,function(list){
+      var hit=__pickSong(item,list);
+      if(!hit&&nameOnly&&full!==nameOnly&&!triedSecond&&Date.now()<_dl-500){triedSecond=true;__search163(nameOnly,function(l2){apply(__pickSong(item,l2));},_dl,item.artist);return;}
+      apply(hit);
+    },_dl,item.artist);
+    function apply(hit){
+      if(hit){
+        item.neteaseId=String(hit.id);
+        if(hit.ar&&hit.ar[0]&&hit.ar[0].name&&!item.artist)item.artist=hit.ar[0].name;
+        if(!item.cover&&hit.al&&hit.al.picUrl)item.cover=hit.al.picUrl;
+        try{save();renderMusicList();}catch(e){}
+        if(cb)cb(true);
+      }else if(cb)cb(false);
+    }
   }
   window.__recognizeLocalSong=recognizeLocalSong;
+  /* 打开网站就把歌单里还没认过的本地歌先悄悄认一遍（只认前 4 首），
+     这样点开唱片看歌词时不用再等“正在识别” */
+  setTimeout(function(){
+    try{
+      var list=(state&&state.musicPlaylist)||[],n=0;
+      for(var i=0;i<list.length&&n<4;i++){
+        var it=list[i];
+        if(!it||it.neteaseId)continue;
+        if(!(it.local||/^data:/.test(String(it.url||""))))continue;
+        n++;
+        (function(song,k){setTimeout(function(){try{recognizeLocalSong(song);}catch(e){}},k*900);})(it,n);
+      }
+    }catch(e){}
+  },1600);
 
   // ===== 本地音乐导入 =====
   $("m-import-local").addEventListener("click",()=>$("file-music-local").click());
@@ -10953,26 +11157,24 @@ var _163Warmed=false;
     _mlSongId=_sid||null;
     if(song.lrcText){_mlLrc[String(_mlSongId)]=mlParse(song.lrcText);mlRender(_mlLrc[String(_mlSongId)]);return;}
     if(_mlLrc[String(_mlSongId)]&&_mlLrc[String(_mlSongId)].length){mlRender(_mlLrc[String(_mlSongId)]);mlHighlight();return;}
-    if(!song.neteaseId){mlRender(null,"本地/链接歌曲没有歌词");return;}
-    if(song.neteaseId){mlLoadLyric(song.neteaseId);}
-    else{
-      mlRender(null,"正在识别这首歌…");
-      var __q=((song.artist?song.artist+" ":"")+(song.name||"")).trim();
-      __search163(__q,function(list){
-        var want=__normName(song.name);var hit=null;
-        for(var i=0;i<list.length;i++){var sg=list[i];if(!sg||!sg.id)continue;var t=__normName(sg.name);
-          if(!want||t===want||t.indexOf(want)===0||want.indexOf(t)===0){hit=sg;break;}}
-        if(hit){
-          song.neteaseId=String(hit.id);
-          if(hit.ar&&hit.ar[0]&&!song.artist)song.artist=hit.ar[0].name;
-          if(!song.cover&&hit.al&&hit.al.picUrl)song.cover=hit.al.picUrl;
-          try{save();renderMusicList();}catch(e){}
-          _mlSongId=song.neteaseId;mlLoadLyric(song.neteaseId);
+    if(song.neteaseId){mlLoadLyric(song.neteaseId);return;}
+    /* 本地/链接歌曲还没认到网易云 ID：先提示识别中，认到就立刻接上歌词，不再显示“没有歌词”然后干等 */
+    mlRender(null,"正在识别这首歌…");
+    recognizeLocalSong(song,function(ok){
+      try{
+        if(!sheet.classList.contains("show"))return;
+        if(state.musicCur>=0&&state.musicPlaylist[state.musicCur]!==song)return;
+        var _cur=state.musicCur;
+        var _s=state.musicPlaylist[_cur]||song;
+        if(_s.neteaseId){
+          _mlSongId=_s.neteaseId;
+          if(_s.lrcText){_mlLrc[String(_mlSongId)]=mlParse(_s.lrcText);mlRender(_mlLrc[String(_mlSongId)]);return;}
+          mlLoadLyric(_mlSongId);
         }else{
           mlRender(null,"这首歌在网易云没找到同名版本，暂时没有歌词");
         }
-      });
-    }
+      }catch(e){}
+    });
   }
   window.__openMusicLyric=openLyric;
   // 唱片中心：点击看歌词
@@ -11895,6 +12097,7 @@ function renderLetters(){
   const le=$("letter-empty");if(le)le.classList.toggle("hidden",state.letters.length>0);
   // 只有"顶层信件"（非回信，即 replyTo 为空）作为主卡；带 replyTo 的作为其回信线程
   // 越早写的放越下面：最新在上、最早在下
+  try{__ltNewbar();}catch(e){}
   const tops=state.letters.filter(l=>!l.replyTo).slice().reverse();
   const avatarP=state.partner.avatar||avatarSvg("#5AC8FA");
   const avatarM=state.me.avatar||avatarSvg("#34C759");
@@ -11975,6 +12178,21 @@ function __ltReadApply(){
 }
 window.__ltReadApply=__ltReadApply;
 function unreadLetters(){return (state.letters||[]).filter(l=>l.from==="partner"&&!l.read).length;}
+/* 信箱顶部提示条：和留言的「🔔 有新留言」一致，点一下才把这批信标成已读 */
+function __ltNewbar(){
+  var el=document.getElementById("lt-newbar");if(!el)return;
+  var un=(state.letters||[]).filter(function(l){return l&&l.from==="partner"&&!l.read;});
+  if(!un.length){el.classList.add("hidden");el.textContent="";el.onclick=null;return;}
+  el.classList.remove("hidden");
+  el.textContent="🔔 有 "+(un.length>1?un.length+" 封新来信":"一封新来信")+" · 点击查看";
+  el.onclick=function(){
+    try{un.forEach(function(l){l.read=true;l.readAt=Date.now();});newL=0;save();__ltReadRemember(un.map(function(id){return id.id;}));}catch(e){}
+    try{window.__rSig&&(window.__rSig["letters"]=null);}catch(e){}
+    try{renderLetters();updateNewBadge();}catch(e){}
+    try{var first=un[0];if(first&&typeof openLetterView==="function")openLetterView(first.id);}catch(e){}
+  };
+}
+window.__ltNewbar=__ltNewbar;
 function openLetterView(id){
   let l=(state.letters||[]).filter(x=>x.id===id)[0];
   if(!l)return;
@@ -13502,6 +13720,7 @@ function partnerReplyComment(postId,targetCid,whenTs){
   // 对方回复我的评论：主页顶部 🔔“有新回复（N）· 点击查看”，点击时才定位到对应动态
   m.unread=true;m.unreadKind="reply";
   newM++;updateNewBadge();
+  try{var _crid=pushMsg("partner","sys","💬 对方回复了你的评论");__appendChatMsg(_crid);}catch(e){}
   save();if(!__refreshMomentCard(postId))renderMoments();toast("对方回复了你的评论");save();
   setTimeout(function(){__flashMomentComment(postId,_newRid||targetCid);},60);
 }
@@ -13523,6 +13742,7 @@ function partnerComment(postId){
   // 对方主动评论：🔔“有新评论（N）· 点击查看”，点击时才定位
   m.unread=true;m.unreadKind="comment";
   newM++;updateNewBadge();
+  try{var _ccid=pushMsg("partner","sys","💬 对方评论了你的动态");__appendChatMsg(_ccid);}catch(e){}
   save();if(!__refreshMomentCard(postId))renderMoments();toast("对方评论了你的动态");save();
 }
 function maybePartnerMomentPost(force){
@@ -13586,6 +13806,7 @@ function maybePartnerLetter(force){
       state.letters.push({id:uid(),from:"partner",subject:"",body:partnerLetterBody(body),time:Date.now(),paperBg:_bs3&&_bs3.paperBg,envBg:_bs3&&_bs3.envBg});
       try{state.settings.lastLetterTime=Date.now();}catch(e){}
       newL++;updateNewBadge();
+      try{var _lid=pushMsg("partner","sys","✉️ 对方给你写了一封信");__appendChatMsg(_lid);}catch(e){}
       save();renderLetters();toast("对方给你来信了");save();
     },d0+i*rand(3000,8000));
   }
@@ -13920,7 +14141,7 @@ function renderMe(){
   $("me-region-txt").textContent=p.region||"未知地区";
   // 卡片上半背景可更换（照片/色块/默认玻璃）
   const wt=$("me-wtop-bg");
-  if(state.skin.meTopImage){wt.style.background='url("'+state.skin.meTopImage+'") center/cover no-repeat';}
+  if(state.skin.meTopImage){wt.style.background='url("'+wallUrl(state.skin.meTopImage)+'") center/cover no-repeat';}
   else if(state.skin.meTopBg>0&&GB_PRESETS[state.skin.meTopBg]&&GB_PRESETS[state.skin.meTopBg].g){wt.style.background=GB_PRESETS[state.skin.meTopBg].g;}
   else{wt.style.background="";}
   renderMeCardSwatches();
@@ -13977,7 +14198,15 @@ $("me-nav-letter").addEventListener("click",()=>showView("view-letters"));
 $("me-nav-note").addEventListener("click",()=>showView("view-guestbook"));
 $("me-nav-settings").addEventListener("click",()=>{_settingsFrom="view-me";showView("view-settings");});
 $("me-nav-music").addEventListener("click",()=>{musicInviteShown=true;showView("view-music");});
-function setImg(id,url){var el=$(id);if(!el)return null;if(el.getAttribute("data-u")===url)return el;el.setAttribute("data-u",url);if(el.tagName==="IMG"){el.src=url;}else{el.style.backgroundImage=url?('url("'+url+'")'):"";}return el;}
+function setImg(id,url){
+  var el=$(id);if(!el)return null;
+  if(el.getAttribute("data-u")===url)return el;
+  el.setAttribute("data-u",url);
+  /* 大图统一换成缓存的 blob 地址：同一张照片只解码一次，进主页不用等 */
+  var src=url?wallUrl(url):"";
+  if(el.tagName==="IMG"){el.src=src;}else{el.style.backgroundImage=src?('url("'+src+'")'):"";}
+  return el;
+}
 function renderCouple(){
   var mn=state.profile.cpMeName||"kk";
   var pn=state.profile.cpPartnerName||"11";
@@ -15132,7 +15361,7 @@ init();
    不使用 Service Worker（避免缓存接管导致打不开/黑屏），只用“对比构建号 + 换 URL”这一招。 */
 (function(){
   if(!/^https?:$/.test(location.protocol))return;
-  var BUILD="2026-11-11zv";
+  var BUILD="2026-11-12f";
   var KEY="app_build_reloaded";
   var busy=false;
   function go(url){location.replace(url+"&skipabout=1");}
