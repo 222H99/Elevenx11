@@ -183,6 +183,10 @@ body.av-square .msg-avatar,body.av-square #top-avatar-partner{border-radius:8px 
 .fav-nm{font-size:12px;color:#8E8E93;margin-bottom:2px;}
 .fav-tx{font-size:14px;line-height:1.4;word-break:break-word;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .fav-tm{font-size:10px;color:#8E8E93;margin-top:4px;}
+.fav-x{width:27px;height:27px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--danger,#FF3B30);font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;padding:0;flex:0 0 auto;}
+.fav-voice{display:flex;align-items:center;gap:8px;-webkit-line-clamp:unset;overflow:visible;}
+.fv-play{width:29px;height:29px;border-radius:50%;border:none;background:var(--accent,#3478F6);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;padding:0;flex:0 0 auto;}
+.fv-play.playing{background:var(--mybubble,#3478F6);box-shadow:0 0 0 2px rgba(52,120,246,.18);}
 .msg-col{position:relative;}
 .tapback{position:absolute;top:-10px;z-index:5;min-width:22px;height:22px;padding:0 4px;border-radius:11px;
   display:flex;align-items:center;justify-content:center;font-size:12px;line-height:1;
@@ -1582,7 +1586,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-14af">
+<meta name="app-build" content="2026-11-14al">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -2550,7 +2554,6 @@ body.fs-4 .msg-more{font-size:calc(12px * var(--fs))}
       <button class="msb-btn" id="msb-all">全选</button>
       <span class="msb-count" id="msb-count">已选 0</span>
       <button class="msb-btn" id="msb-long">生成长图</button>
-      <button class="msb-btn" id="msb-save">保存图片</button>
       <button class="msb-btn danger" id="msb-del">删除</button>
       <button class="msb-btn" id="msb-cancel">取消</button>
     </div>
@@ -3170,7 +3173,7 @@ body.fs-4 .msg-more{font-size:calc(12px * var(--fs))}
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
       <div class="set-group"><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
-<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-14af</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-14al</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -3706,7 +3709,7 @@ body.fs-4 .msg-more{font-size:calc(12px * var(--fs))}
   <div class="overlay" id="overlay">
     <div class="sheet" id="sheet">
       <div class="sheet-grip"></div>
-      <div class="sheet-item" id="act-multi"><svg class="icon" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px"><use xlink:href="#i-trash"/></svg>多选消息（批量删除 / 存图）</div>
+      <div class="sheet-item" id="act-multi"><svg class="icon" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px"><use xlink:href="#i-trash"/></svg>多选消息（批量删除 / 生成长图）</div>
       <div class="sheet-item" id="act-fav"><svg class="icon" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px"><use xlink:href="#i-card"/></svg><span id="act-fav-txt">收藏这条消息</span></div>
       <div class="sheet-item" id="act-reply"><svg class="icon" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px"><use xlink:href="#i-reply"/></svg>引用这条消息</div>
       <div class="sheet-item hidden" id="act-recall"><svg class="icon" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px"><use xlink:href="#i-undo"/></svg>撤回这条消息</div>
@@ -4613,16 +4616,18 @@ function msgPreviewText(m){
 /* ===== 更新公告：换了新版本时弹一次，设置里也能随时再看 ===== */
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
-  ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||"2026-11-14af";}catch(e){return "2026-11-14af";}})(),
+  ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||"2026-11-14al";}catch(e){return "2026-11-14al";}})(),
   date:"2026-11-13",
-  lead:"「检查更新」之前会被旧缓存或相对地址拦住，这版改成直接取当前页面地址，并让检查请求绕过 Service Worker 缓存。",
+  lead:"语音气泡再次点击可以重新播放；收藏夹里的每条消息都能单独点 × 删除，收藏的语音也能直接播放。",
   items:[
-    "设置里的版本号继续自动读取真实构建号，不再显示旧的 2026-11-12e",
-    "检查更新改为读取当前页面地址，不再依赖 ./index.html 的相对路径",
-    "检查请求带 __bust 参数时绕过旧缓存，直接向服务器要版本号",
-    "带 v 参数更新跳转时也强制走网络，不再被旧首页缓存拦下",
-    "启动顺序、第二页一起加载、红包状态、每小时上限填 0 全部保留",
-    "所有板块重新回归，无报错"
+    "聊天语音：点一次播放，再点一次从头重新播放，不再点不动",
+    "收藏消息：每条右侧有 ×，点一下就删除这一条",
+    "收藏语音：显示语音时长和播放按钮，点▶就能播放，原消息删了也能播",
+    "收藏语音播放时会自动停下正在播的聊天语音",
+    "多选长图直接分享进相册、语音气泡、移除保存图片按钮全部保留",
+    "语音气泡单独处理触摸和点击，播放时不会再误弹撤回菜单",
+    "语音播放改为 Blob 音频地址，并加 WebAudio 解码兜底，点播放不再没声音",
+    "修复「聊天页提示来信但信箱里没有信」：没有信件时自动清掉残留的来信提示"
   ],
   foot:"有问题或建议：小红书 @Eleven_（ID：5609831119）。"
 };
@@ -6224,7 +6229,23 @@ function __fillOlderRows(all,from){
     if(start>0)setTimeout(function(){__fillOlderRows(all,start);},16);
   }catch(e){}
 }
+function __cleanStaleLetterSys(){
+  try{
+    if(!state||(state.letters||[]).length)return false;
+    var ms=state.messages||[],had=false;
+    for(var i=ms.length-1;i>=0;i--){
+      var m=ms[i];
+      if(m&&m.type==="sys"&&/对方给你写了(?:一)?封信|对方给你回信了/.test(m.text||"")){
+        ms.splice(i,1);had=true;
+      }
+    }
+    if(had){save();try{__flushSave();}catch(e){}}
+    return had;
+  }catch(e){return false;}
+}
+window.__cleanStaleLetterSys=__cleanStaleLetterSys;
 function renderChat(force){
+  try{__cleanStaleLetterSys();}catch(e){}
   var _isFullRebuild=false; /* 本次是否整块重绘（是→旧消息不播动效） */
   const list=$("msglist");
   /* 记住滚动位置：用户往上翻历史时，新消息进来不要把他拽回底部（这就是「乱滑」的根源） */
@@ -6373,12 +6394,7 @@ function renderChat(force){
     bindLongPress(row,"sq");
   });
   // 语音条：点击播放
-  list.querySelectorAll("[data-voice]").forEach(function(b){
-    b.addEventListener("click",function(e){
-      e.stopPropagation();
-      try{playVoiceMsg(b.getAttribute("data-voice"),b);}catch(_){}
-    });
-  });
+  list.querySelectorAll("[data-voice]").forEach(function(b){__bindVoiceTap(b);});
   // 点击对方头像 → 拍一拍
   list.querySelectorAll(".msg-row.partner .msg-avatar").forEach(img=>{
     img.addEventListener("click",function(e){e.stopPropagation();pokeMyPartner();});
@@ -6442,7 +6458,7 @@ function bindChatRow(row){
       });
       bindLongPress(row,"sq");
     }
-    row.querySelectorAll("[data-voice]").forEach(function(b){b.addEventListener("click",function(e){e.stopPropagation();try{playVoiceMsg(b.getAttribute("data-voice"),b);}catch(_){}});});
+    row.querySelectorAll("[data-voice]").forEach(function(b){__bindVoiceTap(b);});
     row.querySelectorAll(".msg-avatar").forEach(function(img){img.addEventListener("click",function(e){e.stopPropagation();pokeMyPartner();});});
     row.querySelectorAll("[data-act='survey']").forEach(function(b){b.addEventListener("click",function(e){e.stopPropagation();openSurveyAnswer(b.dataset.id);});});
     /* 接受/拒绝/取消统一走 __bindInviteButtons，避免旧绑定只改状态不刷新卡片 */
@@ -8277,6 +8293,10 @@ function scheduleReply(){
 /* ===== 操作浮层（回复/删除/撤回）===== */
 let actMsgId=null,actKind="msg";
 function openActions(id,kind){
+  try{
+    var _vg=window.__voiceGuard;
+    if(_vg&&_vg.id===id&&Date.now()<_vg.until)return;
+  }catch(e){}
   try{window.__tbClose&&window.__tbClose();}catch(e){}
   actMsgId=id;actKind=kind||"msg";
   /* 收藏入口：菜单里跟着当前这条显示「收藏 / 取消收藏」 */
@@ -8350,14 +8370,14 @@ $("act-del").addEventListener("click",()=>{
 });
 $("overlay").addEventListener("click",e=>{if(e.target.id==="overlay")closeActions();});
 
-/* ===== 聊天多选：批量删除 / 批量保存图片 ===== */
+/* ===== 聊天多选：批量删除 / 生成长图 ===== */
 var __msgSelOn=false,__msgSelIds=[];
 function __msgSelMsg(id){return state.messages.filter(function(m){return m.id===id;})[0]||null;}
 function __msgSelPaint(){
   var n=__msgSelIds.length;
   var cnt=$("msb-count");if(cnt)cnt.textContent="已选 "+n;
-  var del=$("msb-del"),sv=$("msb-save");
-  if(del)del.disabled=!n;if(sv)sv.disabled=!n;
+  var del=$("msb-del");
+  if(del)del.disabled=!n;
   try{
     Array.prototype.forEach.call(document.querySelectorAll("#msglist .msg-row,#msglist .msg-sys"),function(el){
       var id=el.getAttribute("data-id")||el.getAttribute("data-sq")||el.getAttribute("data-rp");
@@ -8375,7 +8395,7 @@ function __msgSelEnter(){
   __msgSelOn=true;__msgSelIds=[];
   document.body.classList.add("msgsel-on");
   __msgSelPaint();
-  toast("点消息勾选，可批量删除或存图");
+  toast("点消息勾选，可批量删除或生成长图");
 }
 function __msgSelExit(){
   __msgSelOn=false;__msgSelIds=[];
@@ -8385,7 +8405,7 @@ function __msgSelExit(){
 try{window.__msgSelEnter=__msgSelEnter;window.__msgSelExit=__msgSelExit;}catch(e){}
 (function(){
   var mn=$("act-multi");if(mn)mn.addEventListener("click",function(){__msgSelEnter();});
-  var all=$("msb-all"),cc=$("msb-cancel"),dd=$("msb-del"),sv=$("msb-save"),bar=$("msgsel-bar");
+  var all=$("msb-all"),cc=$("msb-cancel"),dd=$("msb-del"),bar=$("msgsel-bar");
   if(!bar)return;
   if(cc)cc.addEventListener("click",__msgSelExit);
   if(all)all.addEventListener("click",function(){
@@ -8404,53 +8424,8 @@ try{window.__msgSelEnter=__msgSelEnter;window.__msgSelExit=__msgSelExit;}catch(e
     save();__msgSelExit();try{renderChat(true);}catch(e){}
     toast("已删除 "+n+" 条消息");
   });
-  if(sv)sv.addEventListener("click",function(){
-    var pics=[];
-    __msgSelIds.map(__msgSelMsg).forEach(function(m){
-      if(!m||m.recalled||m.type!=="image")return;
-      var arr=((m.srcs&&m.srcs.length)?m.srcs:[m.src]).filter(Boolean);
-      arr.forEach(function(u,i){pics.push({url:u,time:m.time,i:i,n:arr.length});});
-    });
-    if(!pics.length){toast("选中的消息里没有可以保存的图片");return;}
-    __msgSelSaveImages(pics);
-  });
 })();
 /* 逐张保存：优先走系统分享（iOS 能直接存进相册），不支持时用下载 */
-function __msgSelSaveImages(pics){
-  var idx=0,ok=0,fail=0;
-  toast("正在保存 "+pics.length+" 张图片…");
-  function next(){
-    if(idx>=pics.length){
-      __msgSelExit();
-      toast("已保存 "+ok+" 张"+(fail?("，失败 "+fail+" 张"):""));
-      return;
-    }
-    var p=pics[idx++];
-    var url="";
-    try{url=wallUrl(p.url)||p.url;}catch(e){url=p.url;}
-    var ext=/^data:image\/png/i.test(url)?"png":"jpg";
-    var name="Eleven11_"+(p.time?String(p.time).replace(/[^0-9]/g,"").slice(0,14):Date.now())+"_"+idx+"."+ext;
-    var done=function(good){
-      if(good)ok++;else fail++;
-      setTimeout(next,320);
-    };
-    try{
-      fetch(url,{cache:"force-cache"}).then(function(r){return r.blob();}).then(function(bl){
-        var f=null;
-        try{f=new File([bl],name,{type:bl.type||"image/jpeg"});}catch(e){}
-        if(f&&navigator.canShare&&navigator.canShare({files:[f]})&&navigator.share){
-          navigator.share({files:[f]}).then(function(){done(true);}).catch(function(){done(false);});
-        }else{
-          var a=document.createElement("a");
-          a.href=URL.createObjectURL(bl);a.download=name;document.body.appendChild(a);a.click();
-          setTimeout(function(){try{URL.revokeObjectURL(a.href);a.remove();}catch(e){}},1000);
-          done(true);
-        }
-      }).catch(function(){done(false);});
-    }catch(e){done(false);}
-  }
-  next();
-}
 /* 多选模式下点消息只做勾选，不触发打开图片/语音等原来的动作 */
 (function(){
   var ml=document.getElementById("msglist");if(!ml)return;
@@ -12083,7 +12058,13 @@ var _163Warmed=false;
   function mlRoomPlay(id){
     var m=mlRoomList().filter(function(x){return x.id===id;})[0];
     if(!m||!m.src){toast("这条语音没数据");return;}
-    try{var au=new Audio(m.src);au.play().catch(function(){toast("再点一次试试");});}catch(e){}
+    try{
+      var au=document.createElement("audio");
+      au.setAttribute("playsinline","true");au.preload="auto";au.src=(window.__voiceSrcURL?window.__voiceSrcURL(m.src):m.src);
+      au.style.cssText="position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0;";
+      document.body.appendChild(au);au.onended=function(){try{au.remove();}catch(e){}};
+      au.play().catch(function(){toast("再点一次试试");});
+    }catch(e){}
   }
   window.__mlRoomPlay=mlRoomPlay;
   function renderRoom(){
@@ -12991,13 +12972,7 @@ function renderLetters(){
   setTimeout(function(){try{lettersReadTick(true);}catch(e){}},0);
   /* 一封信都没有时，顺手清掉聊天里残留的来信提示，避免“没有信件却提示有消息” */
   try{
-    if((state.letters||[]).length===0){
-      var _ms=state.messages||[],had=false;
-      for(var _i=_ms.length-1;_i>=0;_i--){
-        if(_ms[_i]&&_ms[_i].type==="sys"&&/对方给你写了封信/.test(_ms[_i].text||"")){_ms.splice(_i,1);had=true;}
-      }
-      if(had){save();try{__flushSave();}catch(e){};try{renderChat();}catch(e){}}
-    }
+    if(__cleanStaleLetterSys()){try{renderChat();}catch(e){}}
   }catch(e){}
   try{newL=unreadLetters();updateNewBadge();}catch(e){}
 }
@@ -16430,7 +16405,7 @@ setTimeout(function(){
    不使用 Service Worker（避免缓存接管导致打不开/黑屏），只用“对比构建号 + 换 URL”这一招。 */
 (function(){
   if(!/^https?:$/.test(location.protocol))return;
-  var BUILD="2026-11-14af";
+  var BUILD="2026-11-14al";
   var KEY="app_build_reloaded";
   var busy=false;
   function go(url){location.replace(url+"&skipabout=1");}
@@ -16979,18 +16954,93 @@ try{
     var r=pad.getBoundingClientRect();
     return x>=r.left-6&&x<=r.right+6&&y>=r.top-10&&y<=r.bottom+10;
   }
+  var __voiceURLs={};
+  function __voiceSrcURL(src){
+    try{
+      if(!src||!/^data:/i.test(src))return src||"";
+      if(__voiceURLs[src])return __voiceURLs[src];
+      var mm=/^data:([^;,]+)?(;base64)?,/i.exec(src);
+      if(!mm||!mm[2])return src;
+      var mime=mm[1]||"audio/mp4";
+      var b64=src.slice(mm[0].length);
+      var bin=atob(b64),arr=new Uint8Array(bin.length);
+      for(var i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);
+      var blob=new Blob([arr],{type:mime});
+      var u=URL.createObjectURL(blob);__voiceURLs[src]=u;return u;
+    }catch(e){return src||"";}
+  }
+  function __stopVoiceAudio(){
+    try{
+      if(window.__voiceAudio){
+        try{window.__voiceAudio.pause();}catch(e){}
+        try{window.__voiceAudio.remove&&window.__voiceAudio.remove();}catch(e){}
+        window.__voiceAudio=null;
+      }
+    }catch(e){}
+  }
+  function __voiceFallback(src,onEnd,onFail){
+    try{
+      var AC=window.AudioContext||window.webkitAudioContext;
+      if(!AC)return false;
+      var ctx=window.__voiceCtx||(window.__voiceCtx=new AC());
+      if(ctx.state==="suspended"){try{ctx.resume();}catch(e){}}
+      fetch(src).then(function(r){return r.arrayBuffer();}).then(function(ab){
+        return new Promise(function(res,rej){ctx.decodeAudioData(ab,res,rej);});
+      }).then(function(buf){
+        var node=ctx.createBufferSource();node.buffer=buf;node.connect(ctx.destination);
+        node.onended=function(){onEnd&&onEnd();};
+        window.__voiceNode=node;node.start(0);
+      }).catch(function(){onFail&&onFail();});
+      return true;
+    }catch(e){return false;}
+  }
+  window.__voiceSrcURL=__voiceSrcURL;
+  window.__stopVoiceAudio=__stopVoiceAudio;
+  window.__voiceFallback=__voiceFallback;
+  function __bindVoiceTap(b){
+    if(!b||b.__vbTap)return;b.__vbTap=1;
+    ["touchstart","pointerdown","mousedown"].forEach(function(ev){
+      b.addEventListener(ev,function(e){e.stopPropagation();},{passive:true});
+    });
+    b.addEventListener("click",function(e){
+      e.preventDefault();e.stopPropagation();
+      try{playVoiceMsg(b.getAttribute("data-voice"),b);}catch(_){}
+    });
+  }
+  window.__bindVoiceTap=__bindVoiceTap;
   window.playVoiceMsg=function(id,bubble){
     try{
-      if(window.__voiceAudio&&!window.__voiceAudio.paused){
-        window.__voiceAudio.pause();window.__voiceAudio=null;
-        document.querySelectorAll(".voice-bubble.playing").forEach(function(b){b.classList.remove("playing");});
-      }
+      __stopVoiceAudio();
+      document.querySelectorAll(".voice-bubble.playing").forEach(function(b){b.classList.remove("playing");});
+      document.querySelectorAll(".fv-play.playing").forEach(function(b){b.classList.remove("playing");});
       var m=(state.messages||[]).filter(function(x){return x.id===id;})[0];
       if(!m||!m.src){toast("这条语音没有数据");return;}
-      var au=new Audio(m.src);window.__voiceAudio=au;
-      au.onended=function(){bubble&&bubble.classList.remove("playing");};
-      au.onerror=function(){toast("这段语音播放失败了");};
-      au.play().then(function(){bubble&&bubble.classList.add("playing");}).catch(function(){toast("再点一次试试播放");});
+      window.__voiceGuard={id:id,until:Date.now()+1000};
+      var src=__voiceSrcURL(m.src);
+      var au=document.createElement("audio");
+      au.setAttribute("playsinline","true");au.preload="auto";au.src=src;
+      au.style.cssText="position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0;";
+      document.body.appendChild(au);window.__voiceAudio=au;window.__voiceId=id;
+      au.onended=function(){
+        if(bubble)bubble.classList.remove("playing");
+        try{au.remove();}catch(e){}
+        if(window.__voiceAudio===au){window.__voiceAudio=null;window.__voiceId=null;}
+      };
+      au.onerror=function(){
+        if(__voiceFallback(src,function(){bubble&&bubble.classList.remove("playing");},function(){toast("这段语音播放失败了");})){
+          if(bubble)bubble.classList.add("playing");
+        }else toast("这段语音播放失败了");
+      };
+      try{au.currentTime=0;}catch(e){}
+      var pr=au.play();
+      if(pr&&pr.then){
+        pr.then(function(){bubble&&bubble.classList.add("playing");}).catch(function(){
+          /* 音频元素被系统拦下时，改用 WebAudio 解码再播一次 */
+          if(__voiceFallback(src,function(){bubble&&bubble.classList.remove("playing");},function(){toast("这段语音播放失败了");})){
+            if(bubble)bubble.classList.add("playing");
+          }else toast("再点一次试试播放");
+        });
+      }
     }catch(e){}
   };
   (function(){
@@ -17166,7 +17216,7 @@ function __partName(){try{return (state.partner&&state.partner.name)||"对方";}
 function __favArr(){if(!Array.isArray(state.favorites))state.favorites=[];return state.favorites;}
 function __favHas(id){return __favArr().some(function(x){return x.id===id;});}
 function __favSnap(m){
-  return {id:m.id,from:m.from,type:m.type||"text",text:m.text||"",src:m.src||"",kind:m.kind||"",time:Number(m.time)||Date.now()};
+  return {id:m.id,from:m.from,type:m.type||"text",text:m.text||"",src:m.src||"",kind:m.kind||"",dur:m.dur||1,time:Number(m.time)||Date.now()};
 }
 function __favToggle(id){
   var m=msgById(id);if(!m){toast("这条消息已经不在了");return;}
@@ -17184,6 +17234,35 @@ function __favFilter(){return window.__favTag||"";}
 function __favSearch(){
   var el=document.getElementById("fav-search");
   return (el&&el.value||"").trim().toLowerCase();
+}
+function __favPlayVoice(x,btn){
+  try{
+    if(!x||!x.src){toast("这条语音没有数据");return;}
+    (window.__stopVoiceAudio||function(){})();
+    document.querySelectorAll(".voice-bubble.playing").forEach(function(b){b.classList.remove("playing");});
+    document.querySelectorAll(".fv-play.playing").forEach(function(b){if(b!==btn)b.classList.remove("playing");});
+    var src=(window.__voiceSrcURL?window.__voiceSrcURL(x.src):x.src);
+    var au=document.createElement("audio");
+    au.setAttribute("playsinline","true");au.preload="auto";au.src=src;
+    au.style.cssText="position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0;";
+    document.body.appendChild(au);window.__voiceAudio=au;
+    au.onended=function(){
+      if(btn)btn.classList.remove("playing");
+      try{au.remove();}catch(e){}
+      if(window.__voiceAudio===au)window.__voiceAudio=null;
+    };
+    au.onerror=function(){
+      if(window.__voiceFallback&&window.__voiceFallback(src,function(){if(btn)btn.classList.remove("playing");},function(){toast("这段语音播放失败了");})){
+        if(btn)btn.classList.add("playing");
+      }else toast("这段语音播放失败了");
+    };
+    try{au.currentTime=0;}catch(e){}
+    au.play().then(function(){if(btn)btn.classList.add("playing");}).catch(function(){
+      if(window.__voiceFallback&&window.__voiceFallback(src,function(){if(btn)btn.classList.remove("playing");},function(){toast("这段语音播放失败了");})){
+        if(btn)btn.classList.add("playing");
+      }else toast("再点一次试试播放");
+    });
+  }catch(e){toast("这段语音播放失败了");}
 }
 function __favPaint(){
   var box=document.getElementById("fav-list");if(!box)return;
@@ -17222,17 +17301,27 @@ function __favPaint(){
   box.innerHTML=shown.map(function(x){
     var idx=all.indexOf(x);
     var nm=x.from==="me"?__meName():__partName();
+    var isVoice=x.type==="voice";
     var pv=x.type==="image"?(x.kind==="emoji"?"[表情]":"[图片]"):String(x.text||"").slice(0,60);
+    var pvHtml=isVoice?'<button class="fv-play" data-fplay="'+idx+'" aria-label="播放语音">▶</button><span>语音 '+Math.max(1,Math.round(Number(x.dur)||1))+'"</span>':esc(pv);
     var d=new Date(Number(x.time)||0),p=function(n){return ("0"+n).slice(-2);};
     var tm=(d.getMonth()+1)+"-"+p(d.getDate())+" "+p(d.getHours())+":"+p(d.getMinutes());
     var tagHtml=x.tag?'<span class="fv-chip on" style="font-size:11px;padding:3px 8px;">'+esc(x.tag)+'</span>':'';
-    return '<div class="fav-row" data-fi="'+idx+'"><div class="fav-main"><div class="fav-nm">'+esc(nm)+' '+tagHtml+'</div><div class="fav-tx">'+esc(pv)+'</div><div class="fav-tm">'+tm+'</div></div><div style="display:flex;flex-direction:column;gap:6px;"><button class="small-btn" data-ftag="'+idx+'">分组</button><button class="small-btn" data-fdel="'+idx+'">取消</button></div></div>';
+    return '<div class="fav-row" data-fi="'+idx+'"><div class="fav-main"><div class="fav-nm">'+esc(nm)+' '+tagHtml+'</div><div class="fav-tx'+(isVoice?" fav-voice":"")+'">'+pvHtml+'</div><div class="fav-tm">'+tm+'</div></div><div style="display:flex;flex-direction:column;gap:6px;"><button class="small-btn" data-ftag="'+idx+'">分组</button><button class="fav-x" data-fdel="'+idx+'" title="删除这条收藏">×</button></div></div>';
   }).join("");
   box.querySelectorAll("[data-fdel]").forEach(function(b){
     b.addEventListener("click",function(e){
       e.stopPropagation();
       var i=Number(b.getAttribute("data-fdel"));
-      __favArr().splice(i,1);save();__favPaint();toast("已取消收藏");
+      __favArr().splice(i,1);save();__favPaint();toast("已删除这条收藏");
+    });
+  });
+  box.querySelectorAll("[data-fplay]").forEach(function(b){
+    b.addEventListener("click",function(e){
+      e.stopPropagation();
+      var i=Number(b.getAttribute("data-fplay"));
+      var x=__favArr()[i];
+      __favPlayVoice(x,b);
     });
   });
   box.querySelectorAll("[data-ftag]").forEach(function(b){
@@ -17473,6 +17562,11 @@ window.__makeLongImage=function(items){
             blocks.push({kind:"img",im:im,iw:iw,ih:ih,bw:iw,bh:ih,from:from,showName:showName,i:i});
             return;
           }
+          if(m.type==="voice"){
+            var dur=Math.max(1,Math.round(Number(m.dur)||1));
+            blocks.push({kind:"voice",dur:dur,bw:Math.max(148,Math.min(220,104+dur*5)),bh:62,from:from,showName:showName,i:i});
+            return;
+          }
           ctx.font=TF;
           var lines=__liWrap(ctx,String(m.text||""),maxW);
           var tw=0;lines.forEach(function(l){tw=Math.max(tw,ctx.measureText(l).width);});
@@ -17504,6 +17598,19 @@ window.__makeLongImage=function(items){
           if(b.kind==="img"){
             __liRound(ctx,bx,py,b.bw,b.bh,20);ctx.fill();
             try{ctx.save();__liRound(ctx,bx,py,b.bw,b.bh,20);ctx.clip();ctx.drawImage(b.im,bx,py,b.bw,b.bh);ctx.restore();}catch(e){}
+          }else if(b.kind==="voice"){
+            __liRound(ctx,bx,py,b.bw,b.bh,24);ctx.fill();
+            ctx.fillStyle=isMe?c.myT:c.paT;
+            var _vx=bx+18,_vy=py+b.bh/2;
+            for(var _vi=0;_vi<5;_vi++){
+              var _vh=[10,17,24,15,8][_vi];
+              ctx.globalAlpha=.9;
+              ctx.fillRect(_vx+_vi*7,_vy-_vh/2,3.5,_vh);
+            }
+            ctx.globalAlpha=1;
+            ctx.font="22px -apple-system,'PingFang SC',sans-serif";
+            ctx.textAlign="right";ctx.textBaseline="middle";
+            ctx.fillText(b.dur+'"',bx+b.bw-16,_vy);
           }else{
             __liRound(ctx,bx,py,b.bw,b.bh,24);ctx.fill();
             ctx.fillStyle=isMe?c.myT:c.paT;ctx.font=TF;ctx.textBaseline="middle";ctx.textAlign="left";
@@ -17528,13 +17635,30 @@ window.__makeLongImage=function(items){
 function __longDownload(cv,name){
   if(!cv){toast("没有可导出的内容");return;}
   cv.toBlob(function(bl){
+    var d=new Date(),p=function(n){return ("0"+n).slice(-2);};
+    var fn=(name||"字卡长图")+"_"+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+"_"+p(d.getHours())+p(d.getMinutes())+".png";
+    var file=null;
+    try{file=new File([bl],fn,{type:"image/png"});}catch(e){}
+    function fallback(){
+      try{
+        var a=document.createElement("a");
+        a.download=fn;a.href=URL.createObjectURL(bl);document.body.appendChild(a);a.click();a.remove();
+        setTimeout(function(){try{URL.revokeObjectURL(a.href);}catch(e){}},1200);
+        toast("长图已生成，去下载里看");
+      }catch(e){toast("导出失败，请重试");}
+    }
     try{
-      var a=document.createElement("a"),d=new Date(),p=function(n){return ("0"+n).slice(-2);};
-      a.download=(name||"字卡长图")+"_"+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+"_"+p(d.getHours())+p(d.getMinutes())+".png";
-      a.href=URL.createObjectURL(bl);document.body.appendChild(a);a.click();a.remove();
-      setTimeout(function(){URL.revokeObjectURL(a.href);},1200);
-      toast("长图已生成，去相册/下载里看");
-    }catch(e){toast("导出失败，请重试");}
+      if(file&&navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+        navigator.share({files:[file],title:(name||"聊天长图")}).then(function(){
+          toast("长图已生成，可在分享页选择「存储图像」");
+        }).catch(function(err){
+          if(err&&err.name==="AbortError")return;
+          fallback();
+        });
+        return;
+      }
+    }catch(e){}
+    fallback();
   },"image/png");
 }
 function __longFromSelection(){
