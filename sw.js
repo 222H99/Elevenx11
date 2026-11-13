@@ -1,5 +1,5 @@
 /* Eleven×11 Service Worker —— 点开即最新 + 有缓存可秒开/离线 */
-var CACHE = 'e11-shell-v3';
+var CACHE = 'e11-shell-v4';
 var SHELL = './index.html';
 var META = './__shell_meta';
 
@@ -129,6 +129,16 @@ self.addEventListener('fetch', function (e) {
   var url;
   try { url = new URL(req.url); } catch (err) { return; }
   if (url.origin !== self.location.origin) return;
+
+  /* 检查更新 / 带版本跳转：绕过旧缓存，直接取网络版本 */
+  var forceFresh = url.searchParams.has('__bust') || url.searchParams.has('v') || url.searchParams.has('__refresh');
+  if (forceFresh) {
+    e.respondWith(
+      fetchFresh().then(function (r) { return (r && r.ok) ? r : caches.match(SHELL); })
+        .catch(function () { return caches.match(SHELL); })
+    );
+    return;
+  }
 
   var isPage = req.mode === 'navigate' ||
     /\/$/.test(url.pathname) ||
