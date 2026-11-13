@@ -97,6 +97,9 @@ input,textarea{-webkit-user-select:text;user-select:text;}
   .bubble{padding:6px 12px;font-size:14px;}
 }
 /* ===== 消息列表 ===== */
+.chat-new-pill{position:fixed;left:50%;bottom:calc(74px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:6px;padding:7px 14px;border:none;border-radius:999px;background:rgba(29,29,31,.72);color:#fff;font-size:13px;font-weight:500;letter-spacing:.2px;backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%);box-shadow:0 6px 20px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.18);cursor:pointer;}
+.chat-new-pill[hidden]{display:none;}
+.chat-new-pill:active{opacity:.8;}
 .msglist{flex:1;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;padding:14px 12px 12px;display:flex;flex-direction:column;gap:4px;background:transparent;-webkit-overflow-scrolling:touch;}
 .msg-day{text-align:center;font-size:12px;color:#8E8E93;margin:10px 0 8px;cursor:pointer;}
 .msg-day:active{opacity:.6;}
@@ -112,10 +115,13 @@ body.fs-1 .msg-sys.msg-recall,body.fs-2 .msg-sys.msg-recall,body.fs-3 .msg-sys.m
 .msg-row.wxs-anim-out,.msg-row.wxs-anim-in{will-change:transform,opacity;backface-visibility:hidden;-webkit-backface-visibility:hidden;}
 .msg-row.wxs-anim-out{animation:wxsPopOut .22s cubic-bezier(.25,.8,.35,1) both;transform-origin:right bottom;}
 .msg-row.wxs-anim-in{animation:wxsPopIn .22s cubic-bezier(.25,.8,.35,1) both;transform-origin:left bottom;}
+/* 微信式：收发消息都不做气泡弹入/位移，列表只做即时贴底，避免发送时那一下动效 */
+.msg-row.wxs-anim-out,.msg-row.wxs-anim-in{animation:none!important;transform:none!important;will-change:auto!important;}
 @keyframes wxsFade{0%{opacity:0}100%{opacity:1}}
 /* 开了“减弱动态效果”的手机：不做位移/缩放，只留一个很轻的淡入，别让动效彻底消失 */
 @media (prefers-reduced-motion:reduce){
-  .msg-row.wxs-anim-out,.msg-row.wxs-anim-in{animation:wxsFade .16s ease-out both!important;transform:none!important;}
+  /* 减弱动态效果时也完全不做聊天气泡动画 */
+  .msg-row.wxs-anim-out,.msg-row.wxs-anim-in{animation:none!important;transform:none!important;}
 }
 .msg-row.me{justify-content:flex-end;}
 .msg-row.partner{justify-content:flex-start;}
@@ -1613,7 +1619,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-14bp">
+<meta name="app-build" content="2026-11-14bp11">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -2577,6 +2583,7 @@ body.fs-4 .msg-more{font-size:calc(12px * var(--fs))}
       </div>
     </div>
     <div class="msglist" id="msglist"></div>
+    <button class="chat-new-pill" id="chat-new-pill" hidden>有新消息 ↓</button>
     <div id="msgsel-bar">
       <button class="msb-btn" id="msb-all">全选</button>
       <span class="msb-count" id="msb-count">已选 0</span>
@@ -3202,7 +3209,7 @@ body.fs-4 .msg-more{font-size:calc(12px * var(--fs))}
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
       <div class="set-group"><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
-<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-14bp</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-14bp11</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -3334,7 +3341,7 @@ body.fs-4 .msg-more{font-size:calc(12px * var(--fs))}
     <div class="v-body">
       <div class="gb-newbar hidden" id="lt-newbar"></div>
       <div class="lt-list" id="letter-list"></div>
-      <div class="empty-hint hidden" id="letter-empty">还没有信件，给对方写一封吧。</div>
+      <div class="empty-hint hidden" id="letter-empty">暂时没有收到的信</div>
     </div>
   </div>
 
@@ -4660,10 +4667,36 @@ function msgPreviewText(m){
 /* ===== 更新公告：换了新版本时弹一次，设置里也能随时再看 ===== */
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
-  ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||"2026-11-14bp";}catch(e){return "2026-11-14bp";}})(),
-  date:"2026-11-13",
-  lead:"语音气泡再次点击可以重新播放；收藏夹里的每条消息都能单独点 × 删除，收藏的语音也能直接播放。",
+  ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||"2026-11-14bp11";}catch(e){return "2026-11-14bp11";}})(),
+  date:"2026-11-14",
+  lead:"聊天改成按需渲染：默认只画最近 120 条，上滑再补更早的；几百条记录不再一次铺满 DOM，进聊天和按钮都更跟手，而且一条都不会少。",
   items:[
+    "修复少数情况下进聊天只剩一两行、或回来时整页重铺：读状态更新不再在旧消息没画出来时提前把聊天签名改成最新",
+    "保存合并窗口从 320ms 放宽到 620ms：连续点按钮时只在手停下来写一次盘，减少大图库反复写入的卡顿",
+    "打字时不再每次都序列化整库保存：草稿只写一个几十字节的小键，输入过程更跟手，草稿也不会丢",
+    "大图库保存判重从逐字符哈希改成字符串直接比较，后台空闲写盘少十几毫秒",
+    "搜索/收藏定位到老消息后，对方来新消息不再把你拽回最新：底部出现「有新消息」，点一下才回到底部",
+    "聊天记录默认只渲染最近 120 条，往上滑到顶自动补更早的 80 条，一直能翻到第一条",
+    "几百条历史不再一次性全铺进页面，进聊天、来消息、滚动都更轻，行数少了但内容完整",
+    "页面二（情侣页）延迟到开屏结束后空闲时再渲染；你滑过去会立即渲染，不会看到空白",
+    "去掉启动时重复的聊天预热和免打扰重绑定时器，少做重复工作",
+    "设置里切「已读回执 / 主动标注 / 已读不回」只更新每条消息下面的小标签，不再把整页聊天记录重建一遍",
+    "关掉「对方撤回」不再无意义地重绘整页聊天",
+    "按钮里的保存不再同步序列化整库，改为合并到空闲时写盘；只有切后台/关页面才立即保存",
+    "去掉每次点击后都重新绑定免打扰开关的全局兜底监听，少一次无用的延时任务",
+    "修复从动态/评论/信件/留言提示点进聊天时闪一下：以前离开聊天页 10 秒就清空隐藏的聊天列表，再回来要整页重铺、图片重新解码；现在切页面不再释放，只有 App 真正退到后台才释放",
+    "对方在你不看聊天页时贴表情/撤回消息，也直接改隐藏列表里的那一行，不再让下次进聊天整页重绘",
+    "修复图片/表情包“闪一下”：拍一拍、偷表情提示这类行以前没带消息 id，会让下一条消息被误判漏行，触发整页重绘、所有图片重新解码",
+    "现在每一条系统提示/拍一拍/问卷都带自己的消息 id，追加下一条只补一行，不再重铺整个聊天记录",
+    "取消收发消息的气泡入场/位移动画，发送后列表不再滑一下，直接贴到最新一条",
+    "点开聊天框（输入框）自动把聊天记录顶上来，键盘弹起后仍停在最新消息上",
+    "不点输入框时也显示最新聊天记录；从主页或其他页面进聊天直接到底，不再先看到旧位置",
+    "收起输入框/键盘后回到最新记录，不会把页面停在半截",
+    "一起听：已经在播放时点「一起听」直接进音乐页，不再重复发出邀请",
+    "发表情包：等表情真正进了列表再插「对方偷了你的表情包」，提示不再被吞、也不再整页重绘",
+    "对方没写信时不再出现任何「写信」提示：空信件页只显示「暂时没有收到的信」",
+    "日记贴纸选中后整张纸都能点：纸中间是输入框也不会再吃掉点击，贴完自动退出贴纸模式",
+    "只有我写过信、对方没写时，也会清掉聊天里残留的「对方给你写了一封信」",
     "聊天语音：点一次播放，再点一次从头重新播放，不再点不动",
     "收藏消息：每条右侧有 ×，点一下就删除这一条",
     "收藏语音：显示语音时长和播放按钮，点▶就能播放，原消息删了也能播",
@@ -5014,21 +5047,23 @@ function __stateBig(){
   }catch(e){return false;}
 }
 function __stateSig(){
+  /* 直接用「去掉大图 base64 后的 JSON 字符串」做判重，不再逐字符算 FNV。
+     字符串相等比较是引擎内部 memcmp，比在 JS 里跑几十万次 charCodeAt 快一个数量级；
+     图片 dataURL 仍然只保留长度+前缀，不会把几 MB 的 base64 留在内存里比较。 */
   try{
-    var js=JSON.stringify(state,function(k,v){
+    return JSON.stringify(state,function(k,v){
       if(typeof v==="string"&&v.length>300&&v.charCodeAt(0)===100&&v.slice(0,5)==="data:")return "@"+v.length+":"+v.slice(5,29);
       return v;
     })||"";
-    /* FNV-1a 32bit + 长度，够区分任何一处设置改动 */
-    var h=2166136261;
-    for(var i=0;i<js.length;i++){h^=js.charCodeAt(i);h=(h*16777619)>>>0;}
-    return js.length+":"+h;
   }catch(e){return "err:"+Date.now();}
 }
-function __flushSave(){
+function __flushSave(immediate){
+  /* 按钮里常见的 save();__flushSave(); 不再同步整库序列化。
+     能看见页面时合并到 save() 的 320ms 空闲写盘；只有切后台/关页面才立即写。 */
+  if(!immediate&&!document.hidden){try{save();}catch(e){}return;}
   trimSocial();try{_emojiBackup();}catch(e){}
   if(__stateBig()){
-    /* 大图库模式：不再整库序列化，用廉价签名判重，落盘交给 IndexedDB 的结构化克隆 */
+    /* 大图库模式：不再整库序列化，用「去图后的 JSON 字符串」判重，落盘交给 IndexedDB 的结构化克隆 */
     /* 签名覆盖「整个 state」的所有设置与数据（不只条数）：配色/外观/字体/信件/日记/音乐/字卡/动态/红包/
        页面二布局/各种开关与恢复默认……任何一处改动都要能写盘，否则刷新就回退。
        图片类 dataURL 只记长度（不参与比较内容），整串再取一个轻量哈希，避免每次都比几百 KB 的字符串。 */
@@ -5143,16 +5178,16 @@ function save(){
       if(window.requestIdleCallback){
         if(window.__saveIdlePending)return;
         window.__saveIdlePending=1;
-        requestIdleCallback(function(){window.__saveIdlePending=0;try{__flushSave();}catch(e){}},{timeout:1100});
-      }else __flushSave();
-    }catch(e){try{__flushSave();}catch(_){}}
-  },320);
+        requestIdleCallback(function(){window.__saveIdlePending=0;try{__flushSave(true);}catch(e){}},{timeout:1100});
+      }else __flushSave(true);
+    }catch(e){try{__flushSave(true);}catch(_){}}
+  },620);
 }
 /* 退出/切后台前把偏好再写一遍（有些手机滑杆只在松手时触发 change，早写一次更保险） */
 (function(){
   function flushPref(){try{__prefSave();}catch(e){}}
-  try{document.addEventListener("visibilitychange",function(){if(document.visibilityState==="hidden"){flushPref();try{__flushSave();}catch(e){}}});}catch(e){}
-  try{window.addEventListener("pagehide",function(){flushPref();try{__flushSave();}catch(e){}});}catch(e){}
+  try{document.addEventListener("visibilitychange",function(){if(document.visibilityState==="hidden"){flushPref();try{__flushSave(true);}catch(e){}}});}catch(e){}
+  try{window.addEventListener("pagehide",function(){flushPref();try{__flushSave(true);}catch(e){}});}catch(e){}
   try{window.addEventListener("beforeunload",flushPref);}catch(e){}
 })();
 
@@ -5462,7 +5497,7 @@ async function init(){
   /* 开屏遮罩还在时先把主页资料铺一遍：之后真正露出主页就不用再付第一次布局成本 */
   try{if(typeof renderMe==="function")renderMe();}catch(e){}
   /* 第二页也在开屏期间铺好，进入主页时两页图片都已在加载/解码，不再等滑过去才加载 */
-  try{window.__cp2Ready=1;if(typeof renderCouple==="function")renderCouple();}catch(e){}
+  try{window.__cp2Ready=0;window.__scheduleCp2Render&&window.__scheduleCp2Render();}catch(e){}
   try{if(typeof applyChatSizes==="function"||typeof window.__applyChatSizes==="function")window.__applyChatSizes();}catch(e){}
   /* 缩放比例：同屏同尺寸直接复用上次记住的结果，不重算 */
   try{if(window.__fitRestore)window.__fitRestore();}catch(e){}
@@ -5499,7 +5534,7 @@ async function init(){
           }catch(e){}
         }).catch(function(){});
       }catch(e){}
-try{if(typeof renderCouple==="function")renderCouple();}catch(e){}
+try{window.__scheduleCp2Render&&window.__scheduleCp2Render();}catch(e){}
       /* 页面二图片预热放到空闲时做，别和首屏渲染抢主线程 */
       try{if(window.__idle){window.__idle(function(){try{preloadCp2Images();}catch(e){}});}else{setTimeout(function(){try{preloadCp2Images();}catch(e){}},120);}}catch(e){}setTimeout(function(){if(window.optimizeCp2Images)window.optimizeCp2Images();},5400);
       setTimeout(function(){try{window.__fitCompute(false);}catch(e){}},150);
@@ -5684,8 +5719,9 @@ function initKeyboardFix(){
       if(chatOpen&&use){
         /* 键盘弹起时贴着最新一条，和微信一样不用自己往下拨 */
         window.__kbScrollT=window.__kbScrollT||0;
+        try{__chatPinNow();}catch(e){}
         if(!window.__kbScrollT){
-          window.__kbScrollT=setTimeout(function(){window.__kbScrollT=0;try{var ll=document.getElementById("msglist");if(ll)ll.scrollTop=ll.scrollHeight;}catch(e){}},80);
+          window.__kbScrollT=setTimeout(function(){window.__kbScrollT=0;try{__chatPinNow();}catch(e){}},80);
         }
       }
     }catch(_){}
@@ -6039,13 +6075,14 @@ function __msgRowRaw(m){
         return html;
       }
     if(m.type==="poke"){
-      if(m.from==="me"){html+='<div class="msg-sys">我'+esc(m.text||"拍了拍对方")+'</div>';}
-      else if(m.text){html+='<div class="msg-sys">'+esc(state.partner.name||"对方")+esc(m.text)+'</div>';}
-      else{html+='<div class="msg-sys">对方拍了拍我</div>';}
+      /* 每一行都带 data-id：少一条带 id 的行，下一条消息追加时就会被误判“列表漏行”而整页重绘 */
+      if(m.from==="me"){html+='<div class="msg-sys" data-id="'+m.id+'">我'+esc(m.text||"拍了拍对方")+'</div>';}
+      else if(m.text){html+='<div class="msg-sys" data-id="'+m.id+'">'+esc(state.partner.name||"对方")+esc(m.text)+'</div>';}
+      else{html+='<div class="msg-sys" data-id="'+m.id+'">对方拍了拍我</div>';}
       return html;
     }
     if(m.type==="sys"){
-      if(m.kind==="steal"){html+='<div class="msg-steal"><div class="ms-box"><span class="ms-ic">🫳</span><span>'+esc(m.text)+'</span></div></div>';return html;}
+      if(m.kind==="steal"){html+='<div class="msg-steal" data-id="'+m.id+'"><div class="ms-box"><span class="ms-ic">🫳</span><span>'+esc(m.text)+'</span></div></div>';return html;}
       var _mAttr=m.momentId?(' data-mom="'+esc(m.momentId)+'" data-mcm="'+esc(m.commentId||"")+'" style="cursor:pointer"'):'';
       html+='<div class="msg-sys" data-id="'+m.id+'"'+_mAttr+'>'+esc(m.text)+'</div>';return html;
     }
@@ -6168,8 +6205,8 @@ function maybePartnerRecall(mid){
       if(_vc&&_vc.classList.contains("open")){
         if(!__refreshRecallRow(mid))renderChat();
         try{if(state.settings.recallOn!==false)window.__chatDirty=false;}catch(e){}
-      }else{
-        window.__chatDirty=true;
+      }else if(!__refreshRecallRow(mid)){
+        if(!__chatIsBeforeWindow(mid))window.__chatDirty=true;
       }
     }catch(e){}
   },1800+Math.random()*2500);
@@ -6221,11 +6258,12 @@ function __refreshReadState(ids){
   /* 把指定「我」的消息行的时间旁标签就地改成 已读/已读不回/已送达，
      不再为了一个标签把整屏几十条重建一遍 */
   try{
+    var _allRows=true;
     (ids||[]).forEach(function(id){
       var m=null;try{m=(state.messages||[]).filter(function(x){return x&&x.id===id;})[0];}catch(e){}
       if(!m||m.from!=="me")return;
       var row=document.querySelector('#msglist [data-id="'+id+'"]');
-      if(!row)return;
+      if(!row){_allRows=false;return;}
       var meta=row.querySelector('.msg-time');
       if(!meta)return;
       var wantNoreply=!!(m.read&&!m.answered&&state.settings.showReadNoreply!==false);
@@ -6241,15 +6279,19 @@ function __refreshReadState(ids){
         if(oldTag)meta.replaceChild(sp2,oldTag);else meta.appendChild(sp2);
       }
     });
-    try{_chatSig=_chatSigNow();}catch(e){}
+    /* 只有这些行真的都在当前窗口里、并且已经改完，才同步签名。
+       否则（比如窗口里只画了最新 120 条，旧消息没在 DOM）提前把签名改成最新，
+       下次进聊天会误以为已经画好而跳过渲染，只剩旧的一两行。 */
+    if(_allRows){try{_chatSig=_chatSigNow();}catch(e){}}
   }catch(e){}
 }
 function __refreshReadMarks(ids){
   try{
     if(!ids||!ids.length)return;
+    var _allRows=true;
     ids.forEach(function(id){
       var row=document.querySelector('#msglist [data-id="'+id+'"]');
-      if(!row)return;
+      if(!row){_allRows=false;return;}
       var meta=row.querySelector('.msg-time');
       if(!meta)return;
       var tag=meta.querySelector('.msg-noreply');
@@ -6258,7 +6300,7 @@ function __refreshReadMarks(ids){
       sp.className='msg-read';sp.textContent='已读';
       meta.replaceChild(sp,tag);
     });
-    try{if(typeof _chatSigNow==="function")_chatSig=_chatSigNow();}catch(e){}
+    if(_allRows){try{if(typeof _chatSigNow==="function")_chatSig=_chatSigNow();}catch(e){}}
   }catch(e){}
 }
 /* 把还没铺出来的历史消息从顶部一段段补上（补完就停，不影响滚动位置） */
@@ -6286,7 +6328,10 @@ function __fillOlderRows(all,from){
 }
 function __cleanStaleLetterSys(){
   try{
-    if(!state||(state.letters||[]).length)return false;
+    if(!state)return false;
+    /* 只有我写过信、对方根本没写，也要清掉残留的“对方给你写了一封信” */
+    var _hasPartner=(state.letters||[]).some(function(l){return l&&l.from==="partner";});
+    if(_hasPartner)return false;
     var ms=state.messages||[],had=false;
     for(var i=ms.length-1;i>=0;i--){
       var m=ms[i];
@@ -6299,6 +6344,23 @@ function __cleanStaleLetterSys(){
   }catch(e){return false;}
 }
 window.__cleanStaleLetterSys=__cleanStaleLetterSys;
+function __chatBuildEntries(){
+  var entries=[];
+  (state.messages||[]).forEach(function(m){entries.push({k:"m",t:m.time,m:m});});
+  (state.redpackets||[]).forEach(function(r){entries.push({k:"r",t:r.time,r:r});});
+  entries.sort(function(a,b){return a.t-b.t;});
+  return entries;
+}
+function __chatRowsHTML(seg,initDay){
+  var out="",ld=initDay||"";
+  seg.forEach(function(en){
+    var dk=dayKey(en.t);
+    if(dk!==ld){out+='<div class="msg-day" data-day="'+dk+'"><span>'+dayLabel(en.t)+'</span></div>';ld=dk;}
+    if(en.k==="r"){out+=redpacketRowHTML(en.r);return;}
+    out+=msgRowHTML(en.m);
+  });
+  return out;
+}
 function renderChat(force){
   try{__cleanStaleLetterSys();}catch(e){}
   var _isFullRebuild=false; /* 本次是否整块重绘（是→旧消息不播动效） */
@@ -6309,23 +6371,21 @@ function renderChat(force){
   /* 没有任何变化就不再整块重建（切视图/重复调用时省掉一次全量重绘） */
   try{
     var sig=_chatSigNow();
-    if(!force&&sig===_chatSig&&list&&list.childNodes.length){
+    var _wantFocus=window.__chatFocusId;
+    if(!force&&!_wantFocus&&sig===_chatSig&&list&&list.childNodes.length){
       /* 签名一样也要确认最后一条真的画出来了，并且页面上消息条数没有少：
          否则状态里有、页面上没有，就会“吞消息” */
       var _stLast=state.messages&&state.messages.length?state.messages[state.messages.length-1]:null;
       var _stN=state.messages?state.messages.length:0;
       var _winN=Number(window.__chatWin)||0;
       var _expectN=_winN?Math.min(_stN,_winN):_stN;
-      var _rowsN=list.querySelectorAll('[data-id]').length;
+      var _rowsN=list.querySelectorAll('[data-id],[data-rp],[data-sq]').length;
       if((!_stLast||list.querySelector('[data-id="'+_stLast.id+'"]'))&&_rowsN>=_expectN)return;
     }
     _chatSig=sig;
   }catch(e){}
   let html="",lastDay="";
-  const entries=[];
-  state.messages.forEach(m=>entries.push({k:"m",t:m.time,m:m}));
-  state.redpackets.forEach(r=>entries.push({k:"r",t:r.time,r:r}));
-  entries.sort((a,b)=>a.t-b.t);
+  const entries=__chatBuildEntries();
   /* 有没有新消息进来：最后一条变了就算新消息，此时把最新一条顶到眼前 */
   try{
     var _lk=entries.length?String(entries[entries.length-1].t)+"#"+(entries[entries.length-1].m?entries[entries.length-1].m.id:entries[entries.length-1].r.id):"";
@@ -6333,36 +6393,46 @@ function renderChat(force){
     window.__chatLastKey=_lk;
     window.__chatNewMsg=!!_isNew;
   }catch(e){}
-  /* 聊天记录完整展示：不再按「最近 N 条」截断，也不再有「查看更早」跳过任何消息 */
-  window.__chatWin=0;
-  const __total=entries.length;
-  const __shown=entries;
-  function __rowsHTML(seg){
-    var out="",ld="";
-    seg.forEach(function(en){
-      var dk=dayKey(en.t);
-      if(dk!==ld){out+='<div class="msg-day" data-day="'+dayKey(en.t)+'"><span>'+dayLabel(en.t)+'</span></div>';ld=dk;}
-      if(en.k==="r"){out+=redpacketRowHTML(en.r);return;}
-      out+=msgRowHTML(en.m);
-    });
-    return out;
+  /* 默认只画最近 120 条：几百条记录不再一次性全铺进 DOM，进聊天更快、滚动更轻。
+     往上翻到顶会自动补更早的 80 条，一条都不会少。 */
+  const CHAT_PAGE=120,CHAT_CHUNK=80;
+  const __idxFocus=_wantFocus?entries.findIndex(function(en){return (en.m&&en.m.id===_wantFocus)||(en.r&&en.r.id===_wantFocus);}):-1;
+  var __start=0,__end=entries.length;
+  if(__idxFocus>=0){
+    __start=Math.max(0,__idxFocus-40);
+    __end=Math.min(entries.length,__start+CHAT_PAGE);
+    if(__end<=__idxFocus)__end=Math.min(entries.length,__idxFocus+40);
+    window.__chatFocusId="";
+  }else{
+    /* 已经有一个贴着末尾的窗口就保留起点：来一条新消息只往后加一行，
+       不要每次追加都因为起点前移而整块重绘 */
+    var _prevTotal=Number(window.__chatTotal)||0;
+    var _winEnd=Number(window.__chatRenderEnd);
+    var _keepWin=!force&&window.__chatRenderStart!=null&&window.__renderedKeys&&window.__renderedKeys.length&&_prevTotal>0&&_winEnd>=_prevTotal;
+    __start=_keepWin?(Number(window.__chatRenderStart)||0):Math.max(0,entries.length-CHAT_PAGE);
   }
+  const __total=entries.length;
+  const __shown=entries.slice(__start,__end);
+  window.__chatWin=__shown.length;
+  window.__chatRenderStart=__start;
+  window.__chatRenderEnd=__end;
   /* 记录很多时先画最近 600 条，剩下的在下一帧之后从顶部逐段补上：
      打开得快，而且一条都没少，往上滑照样能翻到第一条 */
   /* 一次性铺完：以前是「先画 600 条，再从顶部一段段补」，
      每补一段都要插入+改滚动位置，iOS 上就是进聊天时的那几下闪。现在一次成图，只画一帧 */
   var __lazyFill=null;
-  html+=__rowsHTML(__shown);
+  html+=__chatRowsHTML(__shown,"");
   if(!entries.length)html='<div class="empty-hint">还没有消息，发一条开启私密对话吧。</div>';
   /* 增量追加：只有「末尾多了几条、其余完全没变、同一天、没触发 60 条窗口」时才只插新行，
      避免每条来消息都把整屏 60 行删掉重画（iOS 上那一下就是闪屏） */
   var _keys=[];
-  try{entries.forEach(function(en){_keys.push(String(en.k)+":"+(en.m?en.m.id:en.r.id));});}catch(e){}
+  try{__shown.forEach(function(en){_keys.push(String(en.k)+":"+(en.m?en.m.id:en.r.id));});}catch(e){}
   var _appendFrom=0,_appended=false;
   try{
     var _prevKeys=window.__renderedKeys;
     var _rowEls=list?list.querySelectorAll("[data-id],[data-rp],[data-sq]"):[];
     if(list&&_prevKeys&&_prevKeys.length&&_rowEls.length===_prevKeys.length&&_keys.length>_prevKeys.length
+       &&Number(window.__chatRenderEnd)>=entries.length
        &&!list.querySelector(".empty-hint")&&!document.getElementById("msg-more-btn")){
       var _same=true;
       for(var _i=0;_i<_prevKeys.length;_i++){if(_keys[_i]!==_prevKeys[_i]){_same=false;break;}}
@@ -6385,6 +6455,9 @@ function renderChat(force){
     _isFullRebuild=true; /* 整块重绘：旧消息一律不播入场动效，避免切页时整屏闪 */
   }
   window.__renderedKeys=_keys;
+  window.__chatRenderStart=__start;window.__chatRenderEnd=__end;window.__chatWin=__shown.length;
+  window.__chatTotal=entries.length;
+  try{if(__end>=entries.length){window.__chatNewBelow=0;__chatHideNewPill();}}catch(e){}
   try{if(__shown.length)window.__chatLastDay=dayKey(__shown[__shown.length-1].t);}catch(e){}
   /* 只在「整块重绘」时才补历史。增量追加那一次如果也补，会把刚追加的尾部再插一遍 → 行数暴涨、看起来一直闪 */
   if(__lazyFill&&!_appended){try{setTimeout(function(){__fillOlderRows(__lazyFill.all,__lazyFill.from);},16);}catch(e){}}
@@ -6424,12 +6497,6 @@ function renderChat(force){
     }
     window.__chatAnimAfter=_maxT;
   }catch(e){}
-  var _moreBtn=document.getElementById("msg-more-btn");
-  if(_moreBtn)_moreBtn.addEventListener("click",function(){
-    window.__chatWin=(Number(window.__chatWin)||80)+400;
-    _chatSig="";renderChat();
-    try{var ml=document.getElementById("msglist");if(ml)ml.scrollTop=ml.scrollHeight-600;}catch(e){}
-  });
   if(!_appended){
   // 普通消息行：点击 → 操作，长按 → 编辑（红包/问卷独立卡除外）
   list.querySelectorAll(".msg-row:not([data-rp]):not([data-sq])").forEach(row=>{
@@ -6497,6 +6564,51 @@ function renderChat(force){
     }catch(e){}
   }
 }
+/* 上滑补更早的聊天记录：每次补 80 条，插到顶部并保持当前视口不动 */
+function __chatLoadOlder(){
+  try{
+    if(window.__chatLoadingOlder)return;
+    var list=document.getElementById("msglist");
+    if(!list)return;
+    var start=Number(window.__chatRenderStart)||0;
+    if(start<=0)return;
+    var entries=__chatBuildEntries();
+    var newStart=Math.max(0,start-80);
+    if(newStart>=start)return;
+    window.__chatLoadingOlder=1;
+    var prevH=list.scrollHeight,prevTop=list.scrollTop;
+    var oldFirst=list.firstElementChild;
+    list.insertAdjacentHTML("afterbegin",__chatRowsHTML(entries.slice(newStart,start),""));
+    /* 补进来的最后一天和原来顶部的日期相同：去掉原来那条重复日期头 */
+    try{
+      if(oldFirst&&oldFirst.classList&&oldFirst.classList.contains("msg-day")){
+        if(oldFirst.getAttribute("data-day")===dayKey(entries[start-1].t))oldFirst.remove();
+      }
+    }catch(e){}
+    var n=list.firstElementChild,guard=0;
+    while(n&&n!==oldFirst&&guard++<2000){try{bindChatRow(n);}catch(e){}n=n.nextElementSibling;}
+    var keys=[];
+    var end=Math.min(entries.length,Number(window.__chatRenderEnd)||entries.length);
+    for(var i=newStart;i<end;i++){var en=entries[i];keys.push(String(en.k)+":"+(en.m?en.m.id:en.r.id));}
+    window.__renderedKeys=keys;
+    window.__chatRenderStart=newStart;
+    window.__chatWin=(Number(window.__chatWin)||0)+(start-newStart);
+    var delta=list.scrollHeight-prevH;
+    if(delta>0)list.scrollTop=prevTop+delta;
+    window.__chatLoadingOlder=0;
+  }catch(e){window.__chatLoadingOlder=0;}
+}
+window.__chatLoadOlder=__chatLoadOlder;
+/* 这条消息是否在窗口更早的位置（没画出来）。这种后台变化不用 dirty：
+   状态已经改了，等用户上滑补历史时自然会带上 */
+function __chatIsBeforeWindow(id){
+  try{
+    var s=Number(window.__chatRenderStart)||0;
+    if(!s)return false;
+    var idx=__chatBuildEntries().findIndex(function(en){return en.m&&en.m.id===id;});
+    return idx>=0&&idx<s;
+  }catch(e){return false;}
+}
 function bindChatRow(row){
   if(!row||!row.querySelectorAll)return;
   try{
@@ -6517,7 +6629,7 @@ function bindChatRow(row){
       bindLongPress(row,"sq");
     }
     row.querySelectorAll("[data-voice]").forEach(function(b){__bindVoiceTap(b);});
-    row.querySelectorAll(".msg-avatar").forEach(function(img){img.addEventListener("click",function(e){e.stopPropagation();pokeMyPartner();});});
+    row.querySelectorAll(".msg-row.partner .msg-avatar").forEach(function(img){img.addEventListener("click",function(e){e.stopPropagation();pokeMyPartner();});});
     row.querySelectorAll("[data-act='survey']").forEach(function(b){b.addEventListener("click",function(e){e.stopPropagation();openSurveyAnswer(b.dataset.id);});});
     /* 接受/拒绝/取消统一走 __bindInviteButtons，避免旧绑定只改状态不刷新卡片 */
     __bindInviteButtons(row);
@@ -6541,6 +6653,55 @@ function bindLongPress(row,kind){
   row.addEventListener("touchcancel",clear);
 }
 function scroll(){const l=$("msglist");l.scrollTop=l.scrollHeight;}
+/* 已读/主动/已读不回这些只影响气泡下面的小标签：
+   设置页切开关时只改这些 .msg-time，不把几百条聊天记录整页重建 */
+function __refreshChatMeta(){
+  try{
+    var list=document.getElementById("msglist");if(!list)return;
+    var st=state.settings||{};
+    list.querySelectorAll(".msg-row[data-id]").forEach(function(row){
+      var m=msgById(row.getAttribute("data-id"));if(!m)return;
+      var tm=row.querySelector(".msg-col .msg-time");if(!tm)return;
+      var meta="";
+      if(m.active&&m.from==="partner"&&st.showActiveTag!==false)meta+='<span class="msg-active">主动</span>';
+      if(m.from==="me"&&st.readReceipt){
+        if(m.read&&!m.answered&&st.showReadNoreply!==false)meta+='<span class="msg-noreply">已读不回</span>';
+        else meta+='<span class="msg-read">'+(m.read?"已读":"已送达")+'</span>';
+      }
+      meta+=fmtTime(m.time);
+      tm.innerHTML=meta;
+    });
+  }catch(e){}
+}
+window.__refreshChatMeta=__refreshChatMeta;
+/* 微信式贴底：直接跳，不做平滑滚动，避免“发送动画”和键盘弹起时的滑动 */
+function __chatPinNow(){
+  try{var l=document.getElementById("msglist");if(l)l.scrollTop=l.scrollHeight;}catch(e){}
+}
+window.__chatPinNow=__chatPinNow;
+function __chatTailDetached(){return Number(window.__chatRenderEnd||0)<Number(window.__chatTotal||0);}
+function __chatShowNewPill(){
+  try{
+    var p=document.getElementById("chat-new-pill");if(!p)return;
+    var n=Number(window.__chatNewBelow)||1;
+    p.textContent=(n>1?(n+" 条新消息"):"有新消息")+" ↓";
+    p.hidden=false;
+  }catch(e){}
+}
+function __chatHideNewPill(){
+  try{var p=document.getElementById("chat-new-pill");if(p)p.hidden=true;}catch(e){}
+}
+(function(){
+  try{
+    var p=document.getElementById("chat-new-pill");
+    if(p)p.addEventListener("click",function(){
+      window.__chatNewBelow=0;__chatHideNewPill();
+      window.__chatFocusId="";_chatSig="";
+      renderChat(true);
+      setTimeout(__chatPinNow,0);
+    });
+  }catch(e){}
+})();
 /* 记录「用户正在手动往上滑历史」的时间点，避免新消息把他拽回底部 */
 (function(){
   try{
@@ -6553,6 +6714,7 @@ function scroll(){const l=$("msglist");l.scrollTop=l.scrollHeight;}
     l.addEventListener("touchmove",mark,{passive:true});
     l.addEventListener("wheel",mark,{passive:true});
     l.addEventListener("mousedown",mark,{passive:true});
+    if(!l.__olderBound){l.__olderBound=1;l.addEventListener("scroll",function(){if(l.scrollTop<70)__chatLoadOlder();},{passive:true});}
   }catch(e){}
 })();
 
@@ -7051,7 +7213,7 @@ function surveyRowHTML(m){
       else meta+='<span class="msg-read">'+(m.read?"已读":"已送达")+'</span>';
     }
   meta+=fmtTime(m.time)+'</div>';
-  return '<div class="msg-row '+side+'" data-sq="'+m.id+'"><img class="msg-avatar" loading="lazy" decoding="async" src="'+__blobUrl(av)+'" alt="">'
+  return '<div class="msg-row '+side+'" data-sq="'+m.id+'" data-id="'+m.id+'"><img class="msg-avatar" loading="lazy" decoding="async" src="'+__blobUrl(av)+'" alt="">'
     +'<div class="msg-col"><div class="survey-shell">'
     +'<div class="sq-head"><img class="sq-hav" loading="lazy" src="'+__blobUrl(av)+'"><span class="sq-hname">'+esc(nm)+'</span><span class="sq-time">'+fmtTime(m.time)+'</span></div>'
     +'<div class="sq-card"><div class="sq-title">📋 '+(esc(s.title)||"问卷")+'</div>'
@@ -7216,17 +7378,8 @@ function sendMyText(){
   try{const _lm=state.messages[state.messages.length-1];if(_lm&&_lm.id===_id)_ok=chatAppendTail(_lm);}catch(e){}
   if(!_ok)renderChat();
   save();if(!window.__schedSending)scheduleReply();randomPartnerEvents();
-  /* 和微信一样：发出去就贴在最新一条。已经很靠近底部时做一次很短的平滑跟随，
-     不直接改 scrollTop 硬跳，避免那一瞬间的跳动感 */
-  try{
-    var _l=$("msglist");
-    if(_l){
-      var _gap=_l.scrollHeight-_l.scrollTop-_l.clientHeight;
-      if(_gap<420){
-        try{_l.scrollTo({top:_l.scrollHeight,behavior:"smooth"});}catch(e){_l.scrollTop=_l.scrollHeight;}
-      }
-    }
-  }catch(e){}
+  /* 和微信一样：发出去就直接贴到最新一条，不做平滑滚动/气泡动画 */
+  try{__chatPinNow();requestAnimationFrame(__chatPinNow);}catch(e){}
 }
 /* 系统提示（来信/留言/动态/回信/通话等）也走单条追加，避免整屏重绘带来的一下闪 */
 function __appendChatMsg(mid){
@@ -7234,6 +7387,12 @@ function __appendChatMsg(mid){
     var all=state.messages||[];
     var m=mid?(all.filter(function(x){return x&&x.id===mid;})[0]||null):all[all.length-1];
     if(mid&&!m){try{renderChat();}catch(e){}return false;}
+    if(m&&m.from==="partner"&&__chatTailDetached()){
+      window.__chatNewBelow=(Number(window.__chatNewBelow)||0)+1;
+      try{_chatSig=_chatSigNow();}catch(e){}
+      __chatShowNewPill();
+      return true;
+    }
     if(m&&chatAppendTail(m)){
       /* 图片是「解码完才真正插入」：插入前不能先把签名同步成最新，
          否则图片还没进 DOM，签名却显示已同步，后面重绘会被直接跳过 → 图片被吞掉 */
@@ -7252,6 +7411,12 @@ function __chatAppendPartner(mid){
     var all=state.messages||[];
     m=mid?(all.filter(function(x){return x&&x.id===mid;})[0]||null):all[all.length-1];
     if(mid&&!m){try{renderChat();}catch(e){}return;}
+    if(m&&__chatTailDetached()){
+      window.__chatNewBelow=(Number(window.__chatNewBelow)||0)+1;
+      try{_chatSig=_chatSigNow();}catch(e){}
+      __chatShowNewPill();save();
+      return;
+    }
     if(m)ok=chatAppendTail(m);
   }catch(e){ok=false;}
   if(!ok)renderChat();
@@ -7260,8 +7425,8 @@ function __chatAppendPartner(mid){
     var l=$("msglist");
     if(l){
       var gap=l.scrollHeight-l.scrollTop-l.clientHeight;
-      /* 人已经在最底下附近才跟随；正在往上翻历史就不打断 */
-      if(gap<420){try{l.scrollTo({top:l.scrollHeight,behavior:"smooth"});}catch(e){l.scrollTop=l.scrollHeight;}}
+      /* 人已经在最底下附近才跟随；正在往上翻历史就不打断。直接贴底，不做滑动动画 */
+      if(gap<420)__chatPinNow();
     }
   }catch(e){}
 }
@@ -7272,7 +7437,7 @@ function chatAppendRp(r){
     var list=$("msglist");
     if(!list||!list.children.length)return false;
     if(list.querySelector(".empty-hint"))return false;
-    if(document.getElementById("msg-more-btn"))return false;
+    try{if(Number(window.__chatRenderEnd||0)<Number(window.__chatTotal||0))return false;}catch(e){}
     var _gap=list.scrollHeight-list.scrollTop-list.clientHeight;
     var _day=false;
     if(window.__chatLastDay&&dayKey(r.time)!==window.__chatLastDay)_day=true;
@@ -7286,7 +7451,7 @@ function chatAppendRp(r){
       __bindRpButtons(row);
     }
     try{_chatSig=_chatSigNow();}catch(e){}
-    try{if(window.__renderedKeys&&window.__renderedKeys.length)window.__renderedKeys.push("r:"+String(r.id));}catch(e){}
+    try{if(window.__renderedKeys&&window.__renderedKeys.length)window.__renderedKeys.push("r:"+String(r.id));window.__chatWin=(Number(window.__chatWin)||0)+1;window.__chatRenderEnd=(Number(window.__chatRenderEnd)||0)+1;window.__chatTotal=(Number(window.__chatTotal)||0)+1;}catch(e){}
     if(_gap<480){
       var _stick=function(){try{var ll=document.getElementById("msglist");if(!ll)return;if(ll.scrollHeight-ll.scrollTop-ll.clientHeight>2)ll.scrollTop=ll.scrollHeight;}catch(e){}};
       _stick();try{requestAnimationFrame(_stick);}catch(e){};setTimeout(_stick,150);
@@ -7361,14 +7526,16 @@ function chatAppendTail(m){
     var list=$("msglist");
     if(!list||!list.children.length)return false;
     if(list.querySelector(".empty-hint"))return false;
-    if(document.getElementById("msg-more-btn"))return false;
+    /* 搜索结果窗口不贴着最新时不能硬追加，交给整块重绘回到最新 */
+    /* 搜索跳转窗口没贴着末尾时不要硬追加；正常窗口的 end 就等于已渲染总数 */
+    try{if(Number(window.__chatRenderEnd||0)<Number(window.__chatTotal||0))return false;}catch(e){}
     /* 只允许追加「当前最后一条」：如果状态里已经又多了消息，直接整块重绘，避免顺序错/漏消息 */
     var _all=state.messages||[];
     if(!m||!_all.length||_all[_all.length-1].id!==m.id)return false;
     /* 页面上的消息条数已经少于“状态里应画出的条数-1”，说明中间有漏行：整块重绘 */
     var _winN=Number(window.__chatWin)||0;
-    var _expectN=(_winN?Math.min(_all.length,_winN):_all.length);
-    if(list.querySelectorAll('[data-id]').length<_expectN-1)return false;
+    var _rowsN=list.querySelectorAll('[data-id],[data-rp],[data-sq]').length;
+    if(_winN&&_rowsN<_winN-1)return false;
     /* 上一条如果根本没画出来，说明列表已经落后于状态：不能继续硬追加，直接整块重绘 */
     var _prev=_all.length>1?_all[_all.length-2]:null;
     if(_prev&&!list.querySelector('[data-id="'+_prev.id+'"]'))return false;
@@ -7407,7 +7574,7 @@ function chatAppendTail(m){
         try{__bindRpButtons(row);}catch(e){}
         try{_chatSig=_chatSigNow();}catch(e){}
         try{__bindInviteButtons(row);}catch(e){}
-        try{if(window.__renderedKeys&&window.__renderedKeys.length)window.__renderedKeys.push("m:"+String(m.id));}catch(e){}
+        try{if(window.__renderedKeys&&window.__renderedKeys.length)window.__renderedKeys.push("m:"+String(m.id));window.__chatWin=(Number(window.__chatWin)||0)+1;window.__chatRenderEnd=(Number(window.__chatRenderEnd)||0)+1;window.__chatTotal=(Number(window.__chatTotal)||0)+1;}catch(e){}
         try{
           var l2=list;
           if(l2&&(_gapAfter<480)){
@@ -7474,11 +7641,24 @@ function sendMyEmoji(src){
   var _ok=false;
   try{var _lm=state.messages[state.messages.length-1];if(_lm&&_lm.id===id)_ok=chatAppendTail(_lm);}catch(e){}
   if(!_ok)renderChat();
-  /* 偷表情的提示要显示在我这颗表情包下面，所以先发消息、再插提示，提示也走追加 */
-  try{maybePartnerStealEmoji(src);}catch(e){}
+  /* 偷表情的提示要显示在我这颗表情包下面；但必须等图片真的进了列表再决定，
+     否则“提示先到、图片后到”会让图片插入时发现自己不在末尾，又触发整页重绘 */
   try{
-    var _lm2=state.messages[state.messages.length-1];
-    if(_lm2&&_lm2.id!==id)chatAppendTail(_lm2);
+    var _tries=0;
+    var _trySteal=function(){
+      try{
+        if(!document.querySelector('#msglist [data-id="'+id+'"]')){
+          if(++_tries<=20){setTimeout(_trySteal,80);return;}
+          maybePartnerStealEmoji(src);
+          renderChat();
+          return;
+        }
+        maybePartnerStealEmoji(src);
+        var _tip=state.messages[state.messages.length-1];
+        if(_tip&&_tip.id!==id&&!chatAppendTail(_tip))renderChat();
+      }catch(e){try{renderChat();}catch(_){}}
+    };
+    _trySteal();
   }catch(e){}
   save();scheduleReply();randomPartnerEvents();
   /* 表情包很高，平滑滚动会让人看到列表「滑一下」：这里改成直接贴上，
@@ -9584,7 +9764,7 @@ $("sw-recall")&&$("sw-recall").addEventListener("click",function(e){
   var on=state.settings.recallOn!==false;
   e.target.classList.toggle("on",on);
   if($("set-prob-recall")){ $("set-prob-recall").disabled=!on; $("set-prob-recall").style.opacity=on?"":"0.4"; }
-  save();renderChat(true);
+  save();
   toast(on?"对方可以撤回消息":"已关闭撤回，对方不会再撤回消息");
 });
 bindProbInput("set-prob-read-noreply","readNoReplyProb","对方已读不回概率");
@@ -9702,12 +9882,12 @@ $("set-min-sec").addEventListener("change",e=>{state.settings.minDelaySec=Math.m
 $("set-reply-group").addEventListener("change",e=>{state.settings.replyGroupId=e.target.value||null;save();});
 $("sw-auto").addEventListener("click",e=>{state.settings.autoReply=true;e.target.classList.add("on");save();toast("自动回复保持开启");});
 $("sw-chat-avatar")&&$("sw-chat-avatar").addEventListener("click",function(e){state.settings.showChatAvatar=(state.settings.showChatAvatar===false);e.target.classList.toggle("on",state.settings.showChatAvatar!==false);try{__prefSave();}catch(_){}save();try{applyChatAvatarVis();}catch(_){}toast(state.settings.showChatAvatar!==false?"聊天页显示头像已开启":"聊天页头像已隐藏，长图也不显示头像");});
-$("sw-read").addEventListener("click",e=>{state.settings.readReceipt=!state.settings.readReceipt;e.target.classList.toggle("on",state.settings.readReceipt);save();renderChat(true);});
-$("sw-read-noreply-tag")&&$("sw-read-noreply-tag").addEventListener("click",function(e){state.settings.showReadNoreply=(state.settings.showReadNoreply===false);e.target.classList.toggle("on",state.settings.showReadNoreply!==false);save();renderChat(true);toast(state.settings.showReadNoreply!==false?"已读不回提示已开启":"已读不回提示已关闭");});
+$("sw-read").addEventListener("click",e=>{state.settings.readReceipt=!state.settings.readReceipt;e.target.classList.toggle("on",state.settings.readReceipt);save();__refreshChatMeta();});
+$("sw-read-noreply-tag")&&$("sw-read-noreply-tag").addEventListener("click",function(e){state.settings.showReadNoreply=(state.settings.showReadNoreply===false);e.target.classList.toggle("on",state.settings.showReadNoreply!==false);save();__refreshChatMeta();toast(state.settings.showReadNoreply!==false?"已读不回提示已开启":"已读不回提示已关闭");});
 $("sw-partner-quote").addEventListener("click",e=>{state.settings.partnerQuote=!state.settings.partnerQuote;e.target.classList.toggle("on",state.settings.partnerQuote);save();toast(state.settings.partnerQuote?"对方引用我的消息已开启":"对方引用我的消息已关闭");});
 $("sw-card-join-sym")&&$("sw-card-join-sym").addEventListener("click",function(){state.settings.cardJoinSymbol=(state.settings.cardJoinSymbol===false);save();bindSetting();toast(state.settings.cardJoinSymbol!==false?"标点符号已开启":"已关闭标点，改为直接拼接");});
 $("sw-emoji-steal")&&$("sw-emoji-steal").addEventListener("click",function(e){state.settings.emojiSteal=(state.settings.emojiSteal===false);e.target.classList.toggle("on",state.settings.emojiSteal!==false);save();toast(state.settings.emojiSteal!==false?"偷表情玩法已开启":"偷表情玩法已关闭");});
-$("sw-active-tag").addEventListener("click",e=>{state.settings.showActiveTag=(state.settings.showActiveTag===false);e.target.classList.toggle("on",state.settings.showActiveTag!==false);save();renderChat(true);toast(state.settings.showActiveTag!==false?"主动消息标注已开启":"主动消息标注已关闭");});
+$("sw-active-tag").addEventListener("click",e=>{state.settings.showActiveTag=(state.settings.showActiveTag===false);e.target.classList.toggle("on",state.settings.showActiveTag!==false);save();__refreshChatMeta();toast(state.settings.showActiveTag!==false?"主动消息标注已开启":"主动消息标注已关闭");});
 
 /* ===== 收发提示音设置：开关 / 试听 / 上传自定义音频 ===== */
 (function(){
@@ -10204,6 +10384,17 @@ $("btn-save-lockpwd").addEventListener("click",function(){
 });
 
 /* ===== 主输入 ===== */
+/* 点开聊天框就先把最新记录顶上来，键盘弹起后再贴一次；不做平滑滚动 */
+(function(){
+  var inp=$("msg-input");if(!inp)return;
+  var pin=function(){try{__chatPinNow();}catch(e){}};
+  var pinSoon=function(){pin();requestAnimationFrame(pin);setTimeout(pin,60);setTimeout(pin,180);};
+  inp.addEventListener("focus",pinSoon);
+  inp.addEventListener("pointerdown",pinSoon);
+  inp.addEventListener("click",pinSoon);
+  /* 收起输入框/键盘后回到最新记录，不把页面停在半截 */
+  inp.addEventListener("blur",function(){setTimeout(pin,120);});
+})();
 $("btn-send").addEventListener("click",sendMyText);
 /* 回车发送：兼容中文输入法组词，组词确认后自动发出，避免要按两次才发出 */
 (function(){
@@ -10288,7 +10479,7 @@ function __prewarmChat(){
   try{
     var vc=document.getElementById("view-chat");
     if(!vc||vc.classList.contains("open"))return;
-    try{if((state.messages||[]).length>600)return;}catch(e){} /* 记录特别多时不预热：留给真正点开聊天时一次铺，省掉启动期的一次大任务 */
+    /* 现在只预铺最近 120 条，记录再多也不会在启动时铺整屏，可以放心预热 */
     if(!window.__chatPrewarmed||window.__chatDirty){
       window.__chatDirty=false;
       renderChat();
@@ -10307,7 +10498,7 @@ try{
         else setTimeout(_try,2200);
       }catch(e){setTimeout(_try,2200);}
     };
-    setTimeout(_idle,600);setTimeout(_idle,1500);
+    setTimeout(_idle,600);
   };
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",_pw);else _pw();
 }catch(e){}
@@ -10340,6 +10531,10 @@ function showView(id){
     if(_was&&_was!==id&&$(_was))$(_was).classList.remove("open");
     if(!window.__viewInit){window.__viewInit=1;["view-chat","view-me","view-cards","view-settings","view-letters","view-guestbook","view-moments","view-redpacket","view-game","view-music","view-couple"].forEach(function(v){if(v!==id&&$(v))$(v).classList.remove("open");});}
     $(id).classList.add("open");window.__curView=id;
+    if(id==="view-chat"){
+      /* 不点输入框时也直接看到最新聊天记录：显示后再即时贴底一次（无动画） */
+      try{__chatPinNow();requestAnimationFrame(__chatPinNow);setTimeout(__chatPinNow,60);}catch(e){}
+    }
     /* 离开聊天页后，趁它已经藏着的时候把「有变化但还没重画」的列表补画好，
        这样下次点进聊天是现成的，不会在可见状态下重建（那一下就是返回聊天时的闪） */
     try{
@@ -10349,7 +10544,9 @@ function showView(id){
           window.__chatReleaseTimer=setTimeout(function(){
             try{
               var _vc=document.getElementById("view-chat");
-              if(_vc&&!_vc.classList.contains("open")){
+              /* 只在这个 App 真的退到后台时才释放聊天列表；普通切到动态/信件/留言页不释放。
+                 以前 10 秒后就把列表清空，回来要整页重铺，图片会被重新解码，看起来就是进聊天闪一下 */
+              if(_vc&&!_vc.classList.contains("open")&&document.hidden){
                 var _ml=document.getElementById("msglist");
                 if(_ml)_ml.innerHTML="";
                 window.__chatPrewarmed=0;window.__renderedKeys=[];window.__chatReleased=1;
@@ -10522,7 +10719,17 @@ try{
 }catch(e){}
 $("plus-cards").addEventListener("click",()=>{closePlus();showView("view-cards");});
 $("plus-game").addEventListener("click",()=>{closePlus();if($("view-game").classList.contains("open"))return;/* 我邀请：总是先弹邀请确认，不再被旧 session 标记拦住 */drawInviteShown=false;pendingDrawInvId=null;drawInviteShown=true;drawInviteOpen("me");});
-$("plus-music").addEventListener("click",()=>{closePlus();if($("view-music").classList.contains("open")){return;}/* 已经达成一起听：直接回页面，不再反复邀请；只有叉掉小弹窗或退出听歌后才重新邀请 */if(musicSession||state.musicSession){showView("view-music");var _au=musicAudio();if(_au.paused&&state.musicCur>=0)_au.play().catch(function(){});return;}musicInviteShown=false;pendingMusicInvId=null;musicInviteShown=true;musicInviteOpen("me","music");});
+$("plus-music").addEventListener("click",()=>{closePlus();if($("view-music").classList.contains("open")){return;}
+  /* 已经在听歌（不管有没有走过邀请流程）都不再发邀请；只有真的暂停/退出后才重新邀请 */
+  var _au=musicAudio();
+  if(musicSession||state.musicSession||(!_au.paused&&state.musicCur>=0)){
+    musicSession=true;state.musicSession=true;try{save();}catch(e){}
+    showView("view-music");
+    if(_au.paused&&state.musicCur>=0)_au.play().catch(function(){});
+    return;
+  }
+  musicInviteShown=false;pendingMusicInvId=null;musicInviteShown=true;musicInviteOpen("me","music");
+});
 $("plus-image").addEventListener("click",()=>{closePlus();$("file-chat-img").click();});
 /* 加号里"主动来消息"：点击只主动发消息（不触发来信/留言/动态） */
 function manualActiveMsg(){
@@ -13067,8 +13274,7 @@ function renderLetters(){
     const replyForm='';
     return '<div class="'+(isSub?'lt-sub':'lt-card')+'">'+del+head+subj+body+thread+replyForm+'</div>';
   };
-  list.innerHTML=tops.map(l=>card(l,false)).join("")
-    + (state.letters.length===0?'<div class="empty-hint">还没有信件，给对方写一封吧。</div>':"");
+  list.innerHTML=tops.map(l=>card(l,false)).join("");
   list.querySelectorAll("[data-lopen]").forEach(el=>el.addEventListener("click",(ev)=>{
     ev.stopPropagation();
     openEnvelope(el.dataset.lopen);
@@ -15362,6 +15568,22 @@ function setImg(id,url){
   if(el.tagName==="IMG"){el.src=src;}else{el.style.backgroundImage=src?('url("'+src+'")'):"";}
   return el;
 }
+/* 页面二（情侣页）不在首屏，先不渲染：开屏和主页先轻装上阵。
+   用户滑到第二页会立刻渲染；没滑过去就在开屏结束后空闲时补渲染，不会看到空白 */
+window.__cp2Rendered=0;
+window.__scheduleCp2Render=function(){
+  if(window.__cp2Scheduled||window.__cp2Rendered)return;
+  window.__cp2Scheduled=1;
+  var run=function(){
+    window.__cp2Scheduled=0;
+    if(window.__cp2Rendered)return;
+    window.__cp2Rendered=1;window.__cp2Ready=1;
+    try{renderCouple();}catch(e){}
+  };
+  setTimeout(function(){
+    try{if(window.requestIdleCallback)requestIdleCallback(run,{timeout:2200});else run();}catch(e){run();}
+  },5200);
+};
 function renderCouple(){
   var mn=state.profile.cpMeName||"kk";
   var pn=state.profile.cpPartnerName||"11";
@@ -16195,7 +16417,7 @@ setInterval(function(){try{
   window.addEventListener("load",goHome);
   function updDots(){var w=pager.offsetWidth||320;var p=Math.round(pager.scrollLeft/w);window.__mePage=p;
     document.querySelectorAll("#me-dots span").forEach(function(s,i){s.style.opacity=i===p?1:.4;});
-    if(p===1)renderCouple();
+    if(p===1){renderCouple();window.__cp2Rendered=1;window.__cp2Ready=1;}
   }
   pager.addEventListener("scroll",function(){window.__meScrollTs=Date.now();if(pager._raf)return;pager._raf=requestAnimationFrame(function(){pager._raf=0;updDots();});},{passive:true});
   document.querySelectorAll("#me-dots span").forEach(function(s){s.addEventListener("click",function(){
@@ -16596,7 +16818,7 @@ setTimeout(function(){
    不使用 Service Worker（避免缓存接管导致打不开/黑屏），只用“对比构建号 + 换 URL”这一招。 */
 (function(){
   if(!/^https?:$/.test(location.protocol))return;
-  var BUILD="2026-11-14bp";
+  var BUILD="2026-11-14bp11";
   var KEY="app_build_reloaded";
   var busy=false;
   function go(url){location.replace(url+"&skipabout=1");}
@@ -16927,7 +17149,7 @@ try{
           try{
             var sel='[data-id="'+x.id+'"]';
             var node=document.querySelector(sel);
-            if(!node&&x.k==="chat"){node=document.querySelector(sel);if(!node){try{window.__chatWin=0;_chatSig="";renderChat(true);}catch(e){}node=document.querySelector(sel);}}
+            if(!node&&x.k==="chat"){node=document.querySelector(sel);if(!node){try{window.__chatFocusId=x.id;_chatSig="";renderChat(true);}catch(e){}node=document.querySelector(sel);}}
             if(node){
               window.__chatHoldBottomUntil=Date.now()+2400;
               node.scrollIntoView({block:"center",behavior:"smooth"});
@@ -17360,8 +17582,6 @@ try{
     try{bindDND();}catch(e){}
   }
   setTimeout(bindAll,1500);
-  setTimeout(bindAll,2600);
-  document.addEventListener("click",function(){setTimeout(bindAll,60);},true);
 
 })();
 
@@ -17635,6 +17855,7 @@ function __favPaint(){
       try{showView("view-chat");}catch(e){}
       setTimeout(function(){
         var node=document.querySelector('#msglist [data-id="'+x.id+'"]');
+        if(!node&&x.favKind==="msg"){try{window.__chatFocusId=x.id;_chatSig="";renderChat(true);}catch(e){}node=document.querySelector('#msglist [data-id="'+x.id+'"]');}
         if(node){node.scrollIntoView({block:"center"});node.classList.add("sr-item");
           node.style.transition="background .5s";node.style.background="rgba(255,214,102,.85)";
           setTimeout(function(){node.style.background="";node.classList.remove("sr-item");},1400);
@@ -17770,8 +17991,11 @@ try{
       t=setTimeout(function(){
         try{
           state.draftText=inp.value;
-          try{localStorage.setItem("draft.v1",inp.value||"");}catch(_){}
-          save();
+          /* 草稿单独写一个几十字节的小键就够了，不再顺带序列化整库（几百条记录+图片时这一下很重）。
+             只有小键写失败（存储不可用）才退回整库保存，保证草稿不丢。 */
+          var _draftOk=false;
+          try{localStorage.setItem("draft.v1",inp.value||"");_draftOk=true;}catch(_){}
+          if(!_draftOk)save();
         }catch(e){}
       },260);
     });
@@ -18278,11 +18502,12 @@ function __tbSet(id,e){
 }
 function __tbRepaint(id){
   var row=document.querySelector('#msglist .msg-row[data-id="'+id+'"]');
-  if(!row){window.__chatDirty=true;return;}
-  var col=row.querySelector(".msg-col");if(!col)return;
+  if(!row){window.__chatDirty=true;return false;}
+  var col=row.querySelector(".msg-col");if(!col)return false;
   var old=col.querySelector(".tapback");if(old)old.remove();
   var m=msgById(id);
   if(m&&m.react&&m.react.e)col.insertAdjacentHTML("afterbegin",__tapBadge(m.react,m.from));
+  return true;
 }
 window.__tbClose=function(){
   var p=document.getElementById("tapback-panel");if(p)p.classList.remove("show");
@@ -18410,8 +18635,11 @@ window.maybePartnerTapback=function(id){
         m.react={e:lib[Math.floor(Math.random()*lib.length)],from:"partner",t:Date.now()};
         save();
         var vc=document.getElementById("view-chat");
+        /* 聊天页开着就就地贴表情；不在聊天页也直接改隐藏列表里的那一行，
+           不要再记 dirty——否则下次从动态/评论/信件提示进聊天会整页重铺一次 */
         if(vc&&vc.classList.contains("open"))__tbRepaint(id);
-        else window.__chatDirty=true;
+        else if(__chatIsBeforeWindow(id)){} /* 更早的、没画出来的行：状态已改，等补历史时带上 */
+        else if(!__tbRepaint(id))window.__chatDirty=true;
       }catch(e){}
     },1100+Math.random()*2800);
   }catch(e){}
@@ -18792,17 +19020,33 @@ try{
       pageOf(curKey).mine.text=ta.value;
       clearTimeout(ta.__sv);ta.__sv=setTimeout(function(){save();},400);
     });
-    /* 点纸面贴贴纸 */
-    paper.onclick=function(e){
-      if(paper.__lp)return;
-      if(!stkSel||isP)return;
-      if(e.target&&(e.target.id==="diary-mine"||e.target.tagName==="TEXTAREA"))return;
+    /* 点纸面贴贴纸：选中贴纸后整张纸进入贴纸模式，点输入框区域也能贴 */
+    function __diaryPlaceSticker(e){
+      if(paper.__lp)return false;
+      if(!stkSel||isP)return false;
       var r=paper.getBoundingClientRect();
+      if(!r.width||!r.height)return false;
       var x=Math.max(.04,Math.min(.96,(e.clientX-r.left)/r.width));
       var y=Math.max(.04,Math.min(.96,(e.clientY-r.top)/r.height));
-      var p=pageOf(curKey);p.stickers=p.stickers||[];p.stickers.push({e:stkSel,x:x,y:y,s:26,rot:Math.round(Math.random()*36-18)});
-      save();renderPage();
+      var p=pageOf(curKey);p.stickers=p.stickers||[];
+      p.stickers.push({e:stkSel,x:x,y:y,s:26,rot:Math.round(Math.random()*36-18)});
+      stkSel="";
+      save();renderPage();toast("贴纸已贴上");
+      return true;
+    }
+    paper.onclick=function(e){
+      if(e.target&&e.target.id==="dp-stick-zone")return;
+      __diaryPlaceSticker(e);
     };
+    /* 透明贴纸层盖住整张纸：避免纸中间是输入框，点击被输入框吃掉；
+       只选中贴纸时存在，贴完立即移除，不影响正常写字 */
+    if(stkSel&&!isP&&!lockedP){
+      var _sz=document.createElement("div");
+      _sz.id="dp-stick-zone";
+      _sz.style.cssText="position:absolute;inset:0;z-index:60;background:transparent;cursor:crosshair;touch-action:manipulation;";
+      _sz.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();__diaryPlaceSticker(e);});
+      paper.appendChild(_sz);
+    }
     if(writingTimer){clearTimeout(writingTimer);writingTimer=null;}
     paintCover();
   }
