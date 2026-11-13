@@ -1127,7 +1127,8 @@ body.av-square .msg-avatar,body.av-square #top-avatar-partner{border-radius:8px 
 .mc-like.on{color:var(--danger);}
 .mc-like.on svg{fill:var(--danger);}
 .mc-text{font-size:13px;color:var(--ttext);line-height:1.4;word-break:break-word;margin-top:1px;}
-.mc-sub{margin-top:2px;}
+.mc-sub{margin-top:2px;display:flex;align-items:center;gap:8px;}
+.mc-del{border:none;background:none;color:#A6A6AB;font-size:10px;padding:0;cursor:pointer;}
 .mc-emoji{height:auto;width:min(var(--em-px,210px),72%);max-width:min(var(--em-px,210px),72%);max-height:320px;object-fit:contain;display:block;margin:6px 0 2px;border-radius:10px;}
 #sticker-view{position:absolute;inset:0;background:rgba(0,0,0,.92);z-index:80;display:none;align-items:center;justify-content:center;}
 #sticker-view.show{display:flex;}
@@ -1142,6 +1143,7 @@ body.av-square .msg-avatar,body.av-square #top-avatar-partner{border-radius:8px 
 .mc-emoji-sheet .mce-cell img{width:100%;height:100%;object-fit:cover;}
 .mc-emoji-sheet .mce-close{margin-top:12px;border:none;border-radius:12px;padding:10px;background:rgba(255,255,255,.14);color:#fff;font-size:14px;}
 .mc-reply{border:none;background:none;color:#8E8E93;font-size:11px;padding:0;cursor:pointer;}
+.qa-adel{border:none;background:none;color:#B0B0B5;font-size:10px;padding:0 0 0 10px;cursor:pointer;}
 .mc-replies{border-left:2px solid rgba(0,0,0,.20);margin-left:34px;padding-left:58px;margin-top:4px;}
 .mc-even{margin-left:30px;border-left:1px solid rgba(0,0,0,.10);padding-left:15px;margin-top:2px;}
 .mc-even .mc-row{padding:6px 0;}
@@ -1338,6 +1340,10 @@ body.vrec-on .bottombar{opacity:0;pointer-events:none;}
   transform-origin:left center;transition:transform .8s cubic-bezier(.3,.9,.25,1),opacity .5s .25s;cursor:pointer;}
 .diary-cover.open{transform:rotateY(-168deg);opacity:0;pointer-events:none;}
 .diary-cover .dc-img{position:absolute;inset:0;background-size:cover;background-position:center;}
+/* 封面关着时把正文层彻底藏掉：封面有任何透明、翻页或过渡，都不会把日记内容透到封面上 */
+#diary-view.cover-closed .diary-paper{opacity:0!important;visibility:hidden!important;pointer-events:none!important;}
+/* 封面关着时不要从透明淡入，重开日记直接就是完整封面 */
+#diary-view.cover-closed .diary-cover{transition:none!important;}
 .diary-cover .dc-doodle{display:none!important;}
 .diary-cover .dc-t{position:relative;z-index:2;font-family:Georgia,"Songti SC",serif;font-size:26px;color:#5C4433;letter-spacing:.12em;text-shadow:0 1px 0 rgba(255,255,255,.5);}
 .diary-cover .dc-sub{position:relative;z-index:2;font-size:12px;color:#8A7157;letter-spacing:.14em;}
@@ -1576,7 +1582,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-14o">
+<meta name="app-build" content="2026-11-14ad">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3102,11 +3108,11 @@ body.fs-4 .msg-more{font-size:calc(12px * var(--fs))}
       <!-- 主动发动态 -->
       <div class="set-sec-title">主动发动态</div>
       <div class="set-group"></div>
-      <div class="set-group"><div class="set-row"><span class="set-label">主动发动态概率（%）<div class="set-sub">他主动发新动态</div></span><input class="set-input" id="set-prob-moments" type="number" min="0" max="100" value="15"></div><div class="set-row"><span class="set-label">动态最快间隔（分钟）</span><input class="set-input" id="set-moments-min-min" type="number" min="1" max="1440" step="1" value="1"></div><div class="set-row"><span class="set-label">动态最慢间隔（分钟）</span><input class="set-input" id="set-moments-max-min" type="number" min="1" max="1440" step="1" value="5"></div><div class="set-row"><span class="set-label">动态 · 字卡数最少<div class="set-sub">每条动态用几张字卡</div></span><input class="set-input" id="set-active-moments-count-min" type="number" min="1" max="20" value="1"></div><div class="set-row"><span class="set-label">动态 · 字卡数最多</span><input class="set-input" id="set-active-moments-count-max" type="number" min="1" max="20" value="3"></div><div class="set-row"><span class="set-label">动态 · 条数最少<div class="set-sub">一次触发发几条动态</div></span><input class="set-input" id="set-moment-burst-min" type="number" min="1" value="1"></div><div class="set-row"><span class="set-label">动态 · 条数最多<div class="set-sub">填多少就发多少，不设上限</div></span><input class="set-input" id="set-moment-burst-max" type="number" min="1" value="1"></div><div class="set-row"><span class="set-label">离开补发 · 每小时上限<div class="set-sub">离开/切后台回来，动态每小时最多补几条</div></span><input class="set-input" id="set-catch-moments-per-hour" type="number" min="1" max="60" value="3"></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">主动发动态概率（%）<div class="set-sub">他主动发新动态</div></span><input class="set-input" id="set-prob-moments" type="number" min="0" max="100" value="15"></div><div class="set-row"><span class="set-label">动态最快间隔（分钟）</span><input class="set-input" id="set-moments-min-min" type="number" min="1" max="1440" step="1" value="1"></div><div class="set-row"><span class="set-label">动态最慢间隔（分钟）</span><input class="set-input" id="set-moments-max-min" type="number" min="1" max="1440" step="1" value="5"></div><div class="set-row"><span class="set-label">动态 · 字卡数最少<div class="set-sub">每条动态用几张字卡</div></span><input class="set-input" id="set-active-moments-count-min" type="number" min="1" max="20" value="1"></div><div class="set-row"><span class="set-label">动态 · 字卡数最多</span><input class="set-input" id="set-active-moments-count-max" type="number" min="1" max="20" value="3"></div><div class="set-row"><span class="set-label">动态 · 条数最少<div class="set-sub">一次触发发几条动态</div></span><input class="set-input" id="set-moment-burst-min" type="number" min="1" value="1"></div><div class="set-row"><span class="set-label">动态 · 条数最多<div class="set-sub">填多少就发多少，不设上限</div></span><input class="set-input" id="set-moment-burst-max" type="number" min="1" value="1"></div><div class="set-row"><span class="set-label">离开补发 · 每小时上限<div class="set-sub">离开/切后台回来，动态每小时最多补几条；填 0 表示不补发</div></span><input class="set-input" id="set-catch-moments-per-hour" type="number" min="0" max="60" value="3"></div>
       </div>
       <!-- 主动评论 -->
       <div class="set-sec-title">主动评论</div>
-      <div class="set-group"><div class="set-row"><span class="set-label">主动评论概率（%）<div class="set-sub">他主动评论动态</div></span><input class="set-input" id="set-prob-moment-comment" type="number" min="0" max="100" value="15"></div><div class="set-row"><span class="set-label">文字+表情评论概率（%）<div class="set-sub">他评论时附带一个表情包</div></span><input class="set-input" id="set-prob-emoji-comment" type="number" min="0" max="100" value="25"></div><div class="set-row"><span class="set-label">评论最快时长（分钟）<div class="set-sub">多久着手上一条</div></span><input class="set-input" id="set-comment-min-min" type="number" min="1" max="1440" step="1" value="1"></div><div class="set-row"><span class="set-label">评论最慢时长（分钟）</span><input class="set-input" id="set-comment-max-min" type="number" min="1" max="1440" step="1" value="5"></div><div class="set-row"><span class="set-label">字卡数最少<div class="set-sub">每条评论用几张字卡</div></span><input class="set-input" id="set-comment-card-min" type="number" min="1" max="20" value="1"></div><div class="set-row"><span class="set-label">字卡数最多</span><input class="set-input" id="set-comment-card-max" type="number" min="1" max="20" value="2"></div><div class="set-row"><span class="set-label">条数最少<div class="set-sub">一次触发发几条评论</div></span><input class="set-input" id="set-comment-n-min" type="number" min="1" max="20" value="1"></div><div class="set-row"><span class="set-label">条数最多</span><input class="set-input" id="set-comment-n-max" type="number" min="1" max="20" value="3"></div><div class="set-row"><span class="set-label">随机评论最新动态 · 最少<div class="set-sub">从最新几条动态里挑，默认 2 条</div></span><input class="set-input" id="set-comment-pick-min" type="number" min="1" max="3" value="2"></div><div class="set-row"><span class="set-label">随机评论最新动态 · 最多</span><input class="set-input" id="set-comment-pick-max" type="number" min="1" max="3" value="3"></div><div class="set-row"><span class="set-label">每条动态主动评论上限<div class="set-sub">同一条动态上他最多留几条评论</div></span><input class="set-input" id="set-comment-per-post-max" type="number" min="1" max="20" value="3"></div><div class="set-row"><span class="set-label">离开补发 · 每小时上限<div class="set-sub">离开/切后台回来，评论每小时最多补几条</div></span><input class="set-input" id="set-catch-comment-per-hour" type="number" min="1" max="60" value="3"></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">主动评论概率（%）<div class="set-sub">他主动评论动态</div></span><input class="set-input" id="set-prob-moment-comment" type="number" min="0" max="100" value="15"></div><div class="set-row"><span class="set-label">文字+表情评论概率（%）<div class="set-sub">他评论时附带一个表情包</div></span><input class="set-input" id="set-prob-emoji-comment" type="number" min="0" max="100" value="25"></div><div class="set-row"><span class="set-label">评论最快时长（分钟）<div class="set-sub">多久着手上一条</div></span><input class="set-input" id="set-comment-min-min" type="number" min="1" max="1440" step="1" value="1"></div><div class="set-row"><span class="set-label">评论最慢时长（分钟）</span><input class="set-input" id="set-comment-max-min" type="number" min="1" max="1440" step="1" value="5"></div><div class="set-row"><span class="set-label">字卡数最少<div class="set-sub">每条评论用几张字卡</div></span><input class="set-input" id="set-comment-card-min" type="number" min="1" max="20" value="1"></div><div class="set-row"><span class="set-label">字卡数最多</span><input class="set-input" id="set-comment-card-max" type="number" min="1" max="20" value="2"></div><div class="set-row"><span class="set-label">条数最少<div class="set-sub">一次触发发几条评论</div></span><input class="set-input" id="set-comment-n-min" type="number" min="1" max="20" value="1"></div><div class="set-row"><span class="set-label">条数最多</span><input class="set-input" id="set-comment-n-max" type="number" min="1" max="20" value="3"></div><div class="set-row"><span class="set-label">随机评论最新动态 · 最少<div class="set-sub">从最新几条动态里挑，默认 2 条</div></span><input class="set-input" id="set-comment-pick-min" type="number" min="1" max="3" value="2"></div><div class="set-row"><span class="set-label">随机评论最新动态 · 最多</span><input class="set-input" id="set-comment-pick-max" type="number" min="1" max="3" value="3"></div><div class="set-row"><span class="set-label">每条动态主动评论上限<div class="set-sub">同一条动态上他最多留几条评论</div></span><input class="set-input" id="set-comment-per-post-max" type="number" min="1" max="20" value="3"></div><div class="set-row"><span class="set-label">离开补发 · 每小时上限<div class="set-sub">离开/切后台回来，评论每小时最多补几条；填 0 表示不补发</div></span><input class="set-input" id="set-catch-comment-per-hour" type="number" min="0" max="60" value="3"></div>
       </div>
       <!-- 留言回复 -->
       <div class="set-sec-title">留言回复</div>
@@ -3114,7 +3120,7 @@ body.fs-4 .msg-more{font-size:calc(12px * var(--fs))}
       </div>
       <!-- 主动发留言 -->
       <div class="set-sec-title">主动发留言</div>
-      <div class="set-group"><div class="set-row"><span class="set-label">主动留言概率（%）</span><input class="set-input" id="set-prob-note" type="number" min="0" max="100" value="15"></div><div class="set-row"><span class="set-label">留言最快时长（分钟）</span><input class="set-input" id="set-note-min-min" type="number" min="1" max="1440" step="1" value="1"></div><div class="set-row"><span class="set-label">留言最慢时长（分钟）</span><input class="set-input" id="set-note-max-min" type="number" min="1" max="1440" step="1" value="5"></div><div class="set-row"><span class="set-label">留言 · 字卡数最少<div class="set-sub">每条留言用几张字卡</div></span><input class="set-input" id="set-active-note-count-min" type="number" min="1" max="20" value="1"></div><div class="set-row"><span class="set-label">留言 · 字卡数最多</span><input class="set-input" id="set-active-note-count-max" type="number" min="1" max="20" value="3"></div><div class="set-row"><span class="set-label">留言 · 条数最少<div class="set-sub">一次触发发几条留言</div></span><input class="set-input" id="set-note-burst-min" type="number" min="1" value="1"></div><div class="set-row"><span class="set-label">留言 · 条数最多<div class="set-sub">填多少就发多少，不设上限</div></span><input class="set-input" id="set-note-burst-max" type="number" min="1" value="1"></div><div class="set-row"><span class="set-label">离开补发 · 每小时上限<div class="set-sub">离开/切后台回来，留言每小时最多补几条</div></span><input class="set-input" id="set-catch-note-per-hour" type="number" min="1" max="60" value="3"></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">主动留言概率（%）</span><input class="set-input" id="set-prob-note" type="number" min="0" max="100" value="15"></div><div class="set-row"><span class="set-label">留言最快时长（分钟）</span><input class="set-input" id="set-note-min-min" type="number" min="1" max="1440" step="1" value="1"></div><div class="set-row"><span class="set-label">留言最慢时长（分钟）</span><input class="set-input" id="set-note-max-min" type="number" min="1" max="1440" step="1" value="5"></div><div class="set-row"><span class="set-label">留言 · 字卡数最少<div class="set-sub">每条留言用几张字卡</div></span><input class="set-input" id="set-active-note-count-min" type="number" min="1" max="20" value="1"></div><div class="set-row"><span class="set-label">留言 · 字卡数最多</span><input class="set-input" id="set-active-note-count-max" type="number" min="1" max="20" value="3"></div><div class="set-row"><span class="set-label">留言 · 条数最少<div class="set-sub">一次触发发几条留言</div></span><input class="set-input" id="set-note-burst-min" type="number" min="1" value="1"></div><div class="set-row"><span class="set-label">留言 · 条数最多<div class="set-sub">填多少就发多少，不设上限</div></span><input class="set-input" id="set-note-burst-max" type="number" min="1" value="1"></div><div class="set-row"><span class="set-label">离开补发 · 每小时上限<div class="set-sub">离开/切后台回来，留言每小时最多补几条；填 0 表示不补发</div></span><input class="set-input" id="set-catch-note-per-hour" type="number" min="0" max="60" value="3"></div>
       </div>
       <!-- 信件回复 -->
       <div class="set-sec-title">信件回复</div>
@@ -4607,16 +4613,16 @@ function msgPreviewText(m){
 /* ===== 更新公告：换了新版本时弹一次，设置里也能随时再看 ===== */
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
-  ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||"2026-11-14o";}catch(e){return "2026-11-14o";}})(),
+  ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||"2026-11-14ad";}catch(e){return "2026-11-14ad";}})(),
   date:"2026-11-13",
-  lead:"这版改问卷的取消：点叉或取消直接关掉，不再弹确认框。",
+  lead:"这版把启动顺序改成：先看关于声明，再弹更新公告，关掉公告后才进入主页/锁屏。",
   items:[
-    "填写问卷时点右上角「×」或底部「取消」，立即关闭填写页，不再弹「放弃这次填写？」",
-    "取消时会把这次打开后选过、但没提交的选项还原，不会偷偷存进问卷",
-    "改选过再取消，问卷仍保持原来的未作答状态；重新打开还是干净的",
-    "创建问卷弹窗的「×」和「取消」保持直接关闭，不发送问卷",
-    "一起听接受后直接回页面、聊天页固定合成层等上一版修复全部保留",
-    "全页面切换、发消息、贴表情编辑删除、日记保存和字卡数设置继续正常"
+    "启动时先显示关于声明；同意后先弹更新公告，不再先进主页再盖一层公告",
+    "更新公告关闭后才进入锁屏或主页，最后一步才露出内容",
+    "已经读过关于声明时，也会先弹未读更新公告，再进入",
+    "第二页仍然和主页一起加载，滑过去不用等",
+    "红包领取 / 拒领状态显示、每小时上限填 0、主页速度优化全部保留",
+    "所有板块重新回归，无报错"
   ],
   foot:"有问题或建议：小红书 @Eleven_（ID：5609831119）。"
 };
@@ -4633,6 +4639,22 @@ function showAnnounce(){
 function closeAnnounce(){
   try{document.getElementById("announce-screen").classList.remove("show");}catch(e){}
   try{localStorage.setItem("__announceAck",ANNOUNCE.ver);}catch(e){}
+  /* 启动时公告是进入前的最后一关：关掉后再进锁屏/主页 */
+  try{
+    var cb=window.__afterAnnounceEnter;
+    if(cb){window.__afterAnnounceEnter=null;cb();}
+  }catch(e){}
+}
+/* 启动入口：有未读更新公告就先弹公告，关掉才进锁屏/主页；否则直接进入 */
+function __entryStart(){
+  try{
+    if(localStorage.getItem("__announceAck")!==ANNOUNCE.ver){
+      window.__afterAnnounceEnter=function(){try{initLock();}catch(e){}};
+      showAnnounce();
+      return;
+    }
+  }catch(e){}
+  try{initLock();}catch(e){}
 }
 function maybeAnnounce(){
   try{
@@ -5302,14 +5324,25 @@ function migrate(s){
   return s;
 }
 function preloadCp2Images(){
+  /* 第二页图片和主页一起预热；仍然一张一张解码，避免 6 张一起抢主线程 */
   try{
     var p=(state&&state.profile)||{};
-    var u=[p.cpPhoto,p.cpPhotoCard,p.cpPhotoSub,p.cpRecord,p.cpMeAvatar,p.cpPartnerAvatar,p.cpChatMe?null:null];
-    for(var i=0;i<6;i++){
-      var s=[p.cpPhoto,p.cpPhotoCard,p.cpPhotoSub,p.cpRecord,p.cpMeAvatar,p.cpPartnerAvatar][i];
-      /* 用缓存里的 blob 地址预解码：和真正画到页面上的地址一致，点进主页就是现成的 */
-      if(s){var im=new Image();im.src=wallUrl(String(s));if(im.decode)try{im.decode();}catch(_){}}
+    var list=[p.cpPhoto,p.cpPhotoCard,p.cpPhotoSub,p.cpRecord,p.cpMeAvatar,p.cpPartnerAvatar];
+    /* 同一批图只预热一次，避免开屏、首屏、数据库同步各触发一遍 */
+    var _sig=list.map(function(x){return x?String(x).length:0;}).join("-");
+    if(window.__cp2PreSig===_sig)return;
+    window.__cp2PreSig=_sig;
+    var i=0;
+    /* 一次只预热一张，间隔让出主线程：6 张大图同时 atob/解码会正好卡在进主页那一下 */
+    function next(){
+      try{
+        if(i>=list.length)return;
+        var s=list[i++];
+        if(s){var im=new Image();im.src=wallUrl(String(s));if(im.decode)try{im.decode();}catch(_){}}
+      }catch(e){}
+      setTimeout(next,70);
     }
+    next();
   }catch(e){}
 }
 function aboutLoadStatus(t){var el=document.getElementById("about-load-status");if(el)el.textContent=t;}
@@ -5355,6 +5388,10 @@ async function init(){
   try{__prefApply();}catch(e){}
   /* 首屏只做皮肤和顶栏：完整渲染等 IndexedDB 读完再做一次，避免启动时同一套界面渲染两遍 */
   try{applySkin();}catch(e){}
+  /* 开屏遮罩还在时先把主页资料铺一遍：之后真正露出主页就不用再付第一次布局成本 */
+  try{if(typeof renderMe==="function")renderMe();}catch(e){}
+  /* 第二页也在开屏期间铺好，进入主页时两页图片都已在加载/解码，不再等滑过去才加载 */
+  try{window.__cp2Ready=1;if(typeof renderCouple==="function")renderCouple();}catch(e){}
   try{if(typeof applyChatSizes==="function"||typeof window.__applyChatSizes==="function")window.__applyChatSizes();}catch(e){}
   /* 缩放比例：同屏同尺寸直接复用上次记住的结果，不重算 */
   try{if(window.__fitRestore)window.__fitRestore();}catch(e){}
@@ -5362,6 +5399,7 @@ async function init(){
   try{if(typeof renderTopStatus==="function")renderTopStatus();}catch(e){}
   try{if(window.__idle){window.__idle(function(){try{preloadCp2Images();}catch(e){}});}else{setTimeout(function(){try{preloadCp2Images();}catch(e){}},120);}}catch(e){}
   try{if(typeof showView==="function"&&!document.getElementById("opening"))showView("view-me");}catch(e){}
+  try{if(typeof preloadCp2Images==="function")setTimeout(preloadCp2Images,180);}catch(e){}
   try{if(window.__cp2Reapply)window.__cp2Reapply();}catch(e){}
   try{initAbout();}catch(e){}
   try{initKeyboardFix();}catch(e){}
@@ -5918,6 +5956,10 @@ function __blobUrl(src){
     return url;
   }catch(e){return src;}
 }
+function __photoDeckHTML(m){
+  var src=(m&&m.src)||(m&&m.srcs&&m.srcs[0])||"";
+  return '<img class="msg-photo" src="'+esc(src)+'" alt="" loading="lazy" decoding="async">';
+}
 function __msgRowRaw(m){
   let html="";
       if(m.recalled){
@@ -5966,7 +6008,7 @@ function __msgRowRaw(m){
     meta+=fmtTime(m.time)+'</div>';
     if(m.type==="image"&&m.kind!=="emoji"&&m.kind!=="draw"){
       // 普通图片：不包裹气泡，直接显示图片
-      html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" loading="lazy" decoding="async" src="'+__blobUrl(av)+'" alt=""><div class="msg-col"><img class="msg-photo" src="'+m.src+'" alt="" loading="lazy" decoding="async">'+meta+'</div></div>';
+      html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" loading="lazy" decoding="async" src="'+__blobUrl(av)+'" alt=""><div class="msg-col">'+__photoDeckHTML(m)+meta+'</div></div>';
       return html;
     }
     if(m.type==="image"&&(m.kind==="emoji"||m.kind==="draw")){
@@ -6066,19 +6108,19 @@ function maybePartnerRecall(mid){
 function __bindInviteButtons(row){
   try{
     if(!row||!row.querySelectorAll)return;
-    row.querySelectorAll("[data-inv-ok]").forEach(function(b){b.addEventListener("click",function(e){
+    row.querySelectorAll("[data-inv-ok]").forEach(function(b){if(b.__ib)return;b.__ib=1;b.addEventListener("click",function(e){
       e.stopPropagation();var m=msgById(b.getAttribute("data-inv-ok"));if(!m)return;
       m.status="accepted";save();try{__refreshRecallRow(m.id);}catch(_){}
       if(m.inv==="music"){musicSession=true;state.musicSession=true;try{save();}catch(_){};try{musicInviteShown=false;pendingMusicInvId=null;musicInviteClose();}catch(_){};var au=musicAudio();if(au.paused&&state.musicCur>=0)au.play().catch(function(){});toast("你们开始一起听歌了");showView("view-music");}
       else{game.agreed=true;showView("view-game");initGameCanvas();toast("接受邀请，一起画吧");}
     });});
-    row.querySelectorAll("[data-inv-no]").forEach(function(b){b.addEventListener("click",function(e){
+    row.querySelectorAll("[data-inv-no]").forEach(function(b){if(b.__ib)return;b.__ib=1;b.addEventListener("click",function(e){
       e.stopPropagation();var m=msgById(b.getAttribute("data-inv-no"));if(!m)return;
       m.status="declined";save();try{__refreshRecallRow(m.id);}catch(_){}
       var _s=pushMsg("me","sys",m.inv==="music"?"你拒绝了听歌邀请":"你拒绝了画画邀请");try{__appendChatMsg(_s);}catch(_){renderChat();}
       save();toast("已拒绝");
     });});
-    row.querySelectorAll("[data-inv-cancel]").forEach(function(b){b.addEventListener("click",function(e){
+    row.querySelectorAll("[data-inv-cancel]").forEach(function(b){if(b.__ib)return;b.__ib=1;b.addEventListener("click",function(e){
       e.stopPropagation();var m=msgById(b.getAttribute("data-inv-cancel"));if(!m)return;
       m.status="cancelled";save();
       try{if(m.inv==="music"){musicInviteShown=false;pendingMusicInvId=null;musicInviteClose();clearTimeout(musicAutoAccept);}else{drawInviteShown=false;pendingDrawInvId=null;drawInviteClose();clearTimeout(drawAutoAccept);}}catch(_){}
@@ -6332,34 +6374,8 @@ function renderChat(force){
   });
   // 问卷卡片点击
   list.querySelectorAll("[data-act='survey']").forEach(b=>b.addEventListener("click",e=>{e.stopPropagation();openSurveyAnswer(b.dataset.id);}));
-  // 画画/听歌邀请：接受 / 拒绝
-  list.querySelectorAll("[data-inv-ok]").forEach(b=>b.addEventListener("click",e=>{
-    e.stopPropagation();const m=msgById(b.dataset.invOk);if(!m)return;
-    m.status="accepted";save();renderChat();
-    if(m.inv==="music"){
-      musicSession=true;state.musicSession=true;try{save();}catch(_){}
-      try{musicInviteShown=false;pendingMusicInvId=null;musicInviteClose();}catch(_){}
-      const au=musicAudio();if(au.paused&&state.musicCur>=0)au.play().catch(()=>{});
-      toast("你们开始一起听歌了");showView("view-music");
-    }else{
-      game.agreed=true;
-      showView("view-game");initGameCanvas();toast("接受邀请，一起画吧");
-    }
-  }));
-  list.querySelectorAll("[data-inv-no]").forEach(b=>b.addEventListener("click",e=>{
-    e.stopPropagation();const m=msgById(b.dataset.invNo);if(!m)return;
-    m.status="declined";save();renderChat();
-    pushMsg("me","sys",m.inv==="music"?"你拒绝了听歌邀请":"你拒绝了画画邀请");renderChat();save();toast("已拒绝");
-  }));
-  list.querySelectorAll("[data-inv-cancel]").forEach(b=>b.addEventListener("click",e=>{
-    e.stopPropagation();const m=msgById(b.dataset.invCancel);if(!m)return;
-    m.status="cancelled";save();
-    try{
-      if(m.inv==="music"){musicInviteShown=false;pendingMusicInvId=null;musicInviteClose();clearTimeout(musicAutoAccept);}
-      else{drawInviteShown=false;pendingDrawInvId=null;drawInviteClose();clearTimeout(drawAutoAccept);}
-    }catch(_){}
-    renderChat();save();toast("已取消邀请");
-  }));
+  // 画画/听歌邀请：接受 / 拒绝 / 取消
+  __bindInviteButtons(list);
   }
   /* 重建后恢复位置：原来贴底 → 继续贴底；原来在上方看历史 → 补偿高度差，画面不动 */
   try{
@@ -6418,22 +6434,8 @@ function bindChatRow(row){
     row.querySelectorAll("[data-voice]").forEach(function(b){b.addEventListener("click",function(e){e.stopPropagation();try{playVoiceMsg(b.getAttribute("data-voice"),b);}catch(_){}});});
     row.querySelectorAll(".msg-avatar").forEach(function(img){img.addEventListener("click",function(e){e.stopPropagation();pokeMyPartner();});});
     row.querySelectorAll("[data-act='survey']").forEach(function(b){b.addEventListener("click",function(e){e.stopPropagation();openSurveyAnswer(b.dataset.id);});});
-    row.querySelectorAll("[data-inv-ok]").forEach(function(b){b.addEventListener("click",function(e){
-      e.stopPropagation();var m=msgById(b.dataset.invOk);if(!m)return;
-      m.status="accepted";save();renderChat();
-      if(m.inv==="music"){musicSession=true;state.musicSession=true;try{save();}catch(_){};try{musicInviteShown=false;pendingMusicInvId=null;musicInviteClose();}catch(_){};var au=musicAudio();if(au.paused&&state.musicCur>=0)au.play().catch(function(){});toast("你们开始一起听歌了");showView("view-music");}
-      else{game.agreed=true;showView("view-game");initGameCanvas();toast("接受邀请，一起画吧");}
-    });});
-    row.querySelectorAll("[data-inv-no]").forEach(function(b){b.addEventListener("click",function(e){
-      e.stopPropagation();var m=msgById(b.dataset.invNo);if(!m)return;
-      m.status="declined";save();renderChat();pushMsg("me","sys",m.inv==="music"?"你拒绝了听歌邀请":"你拒绝了画画邀请");renderChat();save();toast("已拒绝");
-    });});
-    row.querySelectorAll("[data-inv-cancel]").forEach(function(b){b.addEventListener("click",function(e){
-      e.stopPropagation();var m=msgById(b.dataset.invCancel);if(!m)return;
-      m.status="cancelled";save();
-      try{if(m.inv==="music"){musicInviteShown=false;pendingMusicInvId=null;musicInviteClose();clearTimeout(musicAutoAccept);}else{drawInviteShown=false;pendingDrawInvId=null;drawInviteClose();clearTimeout(drawAutoAccept);}}catch(_){}
-      renderChat();save();toast("已取消邀请");
-    });});
+    /* 接受/拒绝/取消统一走 __bindInviteButtons，避免旧绑定只改状态不刷新卡片 */
+    __bindInviteButtons(row);
   }catch(e){}
 }
 function bindLongPress(row,kind){
@@ -7598,12 +7600,14 @@ function catchUpSocial(){
   var now=Date.now();
   function hrsSince(t){return Math.max(0,(now-(Number(t)||now))/3600000);}
   function capFor(t,perHour){
-    /* 以前这里写死 Math.min(8, …)：不管「每小时上限」填多少、离开多久，一次最多只补 8 条，
-       设置里填 10、20 完全没用。现在按「每小时上限 × 离开小时数」算，只留 200 条作为防刷屏硬顶。 */
-    var ph=Math.max(1,Math.min(200,Math.round(Number(perHour)||3)));
+    /* 按「每小时上限 × 离开小时数」补，最多 200 条防刷屏；上限填 0 表示这类内容不补发 */
+    var n=Number(perHour);
+    if(!isFinite(n)||n<0)n=3;
+    var ph=Math.min(200,Math.round(n));
+    if(ph<=0)return 0;
     var hrs=Math.max(0,Math.ceil(hrsSince(t)*10)/10);
     if(hrs<=0)return 0;
-    return Math.max(1,Math.min(200,Math.ceil(hrs*ph)));
+    return Math.min(200,Math.ceil(hrs*ph));
   }
   function dueList(last, a, b, cap){
     var t0=Number(last)||0; if(!t0) return [];
@@ -8390,7 +8394,12 @@ try{window.__msgSelEnter=__msgSelEnter;window.__msgSelExit=__msgSelExit;}catch(e
     toast("已删除 "+n+" 条消息");
   });
   if(sv)sv.addEventListener("click",function(){
-    var pics=__msgSelIds.map(__msgSelMsg).filter(function(m){return m&&!m.recalled&&m.type==="image"&&m.text;});
+    var pics=[];
+    __msgSelIds.map(__msgSelMsg).forEach(function(m){
+      if(!m||m.recalled||m.type!=="image")return;
+      var arr=((m.srcs&&m.srcs.length)?m.srcs:[m.src]).filter(Boolean);
+      arr.forEach(function(u,i){pics.push({url:u,time:m.time,i:i,n:arr.length});});
+    });
     if(!pics.length){toast("选中的消息里没有可以保存的图片");return;}
     __msgSelSaveImages(pics);
   });
@@ -8405,11 +8414,11 @@ function __msgSelSaveImages(pics){
       toast("已保存 "+ok+" 张"+(fail?("，失败 "+fail+" 张"):""));
       return;
     }
-    var m=pics[idx++];
+    var p=pics[idx++];
     var url="";
-    try{url=wallUrl(m.text)||m.text;}catch(e){url=m.text;}
-    var ext=/^data:image\/png/i.test(m.text)?"png":"jpg";
-    var name="Eleven11_"+(m.time?String(m.time).replace(/[^0-9]/g,"").slice(0,14):Date.now())+"_"+idx+"."+ext;
+    try{url=wallUrl(p.url)||p.url;}catch(e){url=p.url;}
+    var ext=/^data:image\/png/i.test(url)?"png":"jpg";
+    var name="Eleven11_"+(p.time?String(p.time).replace(/[^0-9]/g,"").slice(0,14):Date.now())+"_"+idx+"."+ext;
     var done=function(good){
       if(good)ok++;else fail++;
       setTimeout(next,320);
@@ -9532,8 +9541,10 @@ $("set-active-moments-count-max").addEventListener("change",e=>{state.settings.a
 [["set-comment-card-min","commentCardMin"],["set-comment-card-max","commentCardMax"],["set-comment-n-min","commentNMin"],["set-comment-n-max","commentNMax"],["set-comment-pick-min","commentPickMin"],["set-comment-pick-max","commentPickMax"],["set-comment-per-post-max","commentPerPostMax"],["set-catch-moments-per-hour","catchMomentsPerHour"],["set-catch-comment-per-hour","catchCommentPerHour"],["set-catch-note-per-hour","catchNotePerHour"],["set-comment-min-min","commentMinMin"],["set-comment-max-min","commentMaxMin"],["set-replyc-card-min","replyCommentCardMin"],["set-replyc-card-max","replyCommentCardMax"],["set-replyc-n-min","replyCommentNMin"],["set-replyc-n-max","replyCommentNMax"],["set-replyc-min-min","replyCommentMinMin"],["set-replyc-max-min","replyCommentMaxMin"],["set-note-burst-min","noteBurstMin"],["set-note-burst-max","noteBurstMax"],["set-moment-burst-min","momentBurstMin"],["set-moment-burst-max","momentBurstMax"],["set-letter-burst-min","letterBurstMin"],["set-letter-burst-max","letterBurstMax"]].forEach(function(p){
   var el=$(p[0]);if(!el)return;
   el.addEventListener("change",function(){
-    var v=Math.round(Number(el.value)||1);
-    v=Math.max(1,Math.min(99999,v));
+    var _catch=(p[1]==="catchMomentsPerHour"||p[1]==="catchCommentPerHour"||p[1]==="catchNotePerHour");
+    var _n=Number(el.value);
+    var v=Math.round(isFinite(_n)?_n:0);
+    v=_catch?Math.max(0,Math.min(99999,v)):Math.max(1,Math.min(99999,v));
     state.settings[p[1]]=v;el.value=v;save();
     if(typeof scheduleMomentComment==="function")scheduleMomentComment();
   });
@@ -10441,10 +10452,11 @@ $("poke-tab-me").addEventListener("click",()=>{pokeSide="mine";$("poke-tab-me").
 $("poke-tab-partner").addEventListener("click",()=>{pokeSide="partner";$("poke-tab-partner").classList.add("on");$("poke-tab-me").classList.remove("on");renderPokeLib();});
 $("poke-add").addEventListener("click",()=>{const t=($("poke-new").value||"").trim();if(!t)return;pokeLib()[pokeSide].push(t);$("poke-new").value="";save();renderPokeLib();toast("已添加");});
 $("plus-active").addEventListener("click",()=>{closePlus();manualActiveMsg();});
+/* 发图片：一次一张，保持原来的大图消息 */
 $("file-chat-img").addEventListener("change",e=>{
   const f=e.target.files[0];if(!f)return;
   const r=new FileReader();
-  r.onload=()=>{gCompress(r.result).then(d=>{var _imed=pushMsg("me","image","",{src:d});try{__appendChatMsg(_imed);}catch(e){renderChat();}save();toast("图片已发送");try{scheduleReply();randomPartnerEvents();}catch(e){}});};
+  r.onload=()=>{gCompress(r.result,640,0.66).then(d=>{var _imed=pushMsg("me","image","",{src:d});try{__appendChatMsg(_imed);}catch(err){renderChat();}save();toast("图片已发送");try{scheduleReply();randomPartnerEvents();}catch(err){}});};
   r.readAsDataURL(f);e.target.value="";
 });
 
@@ -10610,7 +10622,7 @@ function renderMusicBg(){
     grid.appendChild(c);
   });
 }
-function gCompress(d){return new Promise(function(res){var im=new Image();var done=false;var to=setTimeout(function(){if(!done){done=true;res(d);}},5000);im.onload=function(){if(done)return;done=true;clearTimeout(to);try{var m=Math.max(im.width,im.height);if(m<=720){res(d);return;}var s=720/m,cw=Math.round(im.width*s),ch=Math.round(im.height*s);var cv=document.createElement("canvas");cv.width=cw;cv.height=ch;var cx=cv.getContext("2d");cx.clearRect(0,0,cw,ch);cx.drawImage(im,0,0,cw,ch);res(__imgDataURL(cv,0.72));}catch(err){res(d);}};im.onerror=function(){if(done)return;done=true;clearTimeout(to);res(d);};im.src=d;});}
+function gCompress(d,max,q){max=max||720;q=q||0.72;return new Promise(function(res){var im=new Image();var done=false;var to=setTimeout(function(){if(!done){done=true;res(d);}},5000);im.onload=function(){if(done)return;done=true;clearTimeout(to);try{var m=Math.max(im.width,im.height);if(m<=max){res(d);return;}var s=max/m,cw=Math.round(im.width*s),ch=Math.round(im.height*s);var cv=document.createElement("canvas");cv.width=cw;cv.height=ch;var cx=cv.getContext("2d");cx.clearRect(0,0,cw,ch);cx.drawImage(im,0,0,cw,ch);res(__imgDataURL(cv,q));}catch(err){res(d);}};im.onerror=function(){if(done)return;done=true;clearTimeout(to);res(d);};im.src=d;});}
 // 一起听 · 距离/时长/头像/名字 点击编辑（应用内弹层）
 (function(){
   var mode=null;
@@ -12740,6 +12752,7 @@ $("dvi-yes").addEventListener("click",()=>{
   if(m)m.status="accepted";
   drawInviteShown=false;pendingDrawInvId=null;drawInviteClose();
   if(m)save();
+  if(m){try{__refreshRecallRow(m.id);}catch(_){}}
   if(!fromMe)pushMsg("me","sys","你接受了画画邀请");
   renderChat();
   state.drawSession=true;save(); // 达成画画邀请，直到发到聊天才完结
@@ -12754,6 +12767,7 @@ $("dvi-no").addEventListener("click",()=>{
   if(m)m.status=fromMe?"cancelled":"declined";
   drawInviteShown=false;pendingDrawInvId=null;drawInviteClose();
   if(m)save();
+  if(m){try{__refreshRecallRow(m.id);}catch(_){}}
   renderChat();save();
   toast(fromMe?"已取消邀请":"已拒绝画画邀请");
 });
@@ -12902,7 +12916,7 @@ function __sigOfList(arr){
   var out=String(a.length);
   for(var i=0;i<a.length;i++){
     var x=a[i]||{};
-    out+="|"+(x.id||"")+":"+(x.time||0)+":"+(x.read?1:0)+":"+(x.noReply?1:0)+":"+(x.replyTo||"")+":"+(x.from||"")+":"+(x.text?String(x.text).length:0);
+    out+="|"+(x.id||"")+":"+(x.time||0)+":"+(x.read?1:0)+":"+(x.noReply?1:0)+":"+(x.replyTo||"")+":"+(x.from||"")+":"+(x.text?String(x.text).length:0)+":"+(x.status||"");
   }
   return out;
 }
@@ -13810,7 +13824,7 @@ function renderGuestbook(){
       const isPartner=c.q.from==="partner";
       head='<div class="qa-head"><span class="qa-lock">'+(isPartner?'💬':'🔒')+'</span> '+(isPartner?'对方留言':'匿名问答')+'</div>';
       q='<div class="qa-q">'+esc(c.q.text)+'</div>';
-      a=c.ans?'<div class="qa-a"><div class="qa-a-label">'+(isPartner?'我的回复':'公开回复')+'</div><div class="qa-a-text">'+esc(c.ans.text)+'</div><div class="qa-a-meta">回答于 '+fmtTime(c.ans.time)+'</div></div>':'';
+      a=c.ans?'<div class="qa-a"><div class="qa-a-label">'+(isPartner?'我的回复':'公开回复')+'</div><div class="qa-a-text">'+esc(c.ans.text)+'</div><div class="qa-a-meta">回答于 '+fmtTime(c.ans.time)+(c.ans.from==="me"?'<button class="qa-adel" data-adelonly="'+c.ans.id+'">删除我的回复</button>':'')+'</div></div>':'';
     }else{
       head='<div class="qa-head"><span class="qa-lock">💬</span> 对方留言</div>';
       q='<div class="qa-q">'+esc(c.ans.text)+'</div>';
@@ -13850,6 +13864,12 @@ function renderGuestbook(){
     if(!confirm("删除这条留言？"))return;
     state.guestbook=state.guestbook.filter(x=>!ids.includes(x.id));
     save();renderGuestbook();toast("留言已删除");
+  }));
+  list.querySelectorAll("[data-adelonly]").forEach(b=>b.addEventListener("click",e=>{
+    e.stopPropagation();
+    if(!confirm("删除你的这条回复？"))return;
+    state.guestbook=state.guestbook.filter(x=>x.id!==b.dataset.adelonly);
+    save();renderGuestbook();toast("已删除我的回复");
   }));
   // 回复：点击对方留言卡片展开回复框
   list.querySelectorAll("[data-gbreply]").forEach(card=>{
@@ -13944,7 +13964,8 @@ function openMyProfile(){
 function renderMomentProfile(){
   const p=state.profile||{};
   const isP=mpSide==="partner";
-  $("mp-avatar").src=isP?state.partner.avatar:state.me.avatar;
+  var _mav=isP?state.partner.avatar:state.me.avatar;
+  if($("mp-avatar").getAttribute("src")!==(_mav||""))$("mp-avatar").src=_mav;
   $("mom-name").textContent=isP?(p.partnerMpName||state.partner.name):(p.mpName||state.me.name);
   const hd=isP?(p.partnerHandle||""):(p.handle||"");
   $("mp-handle").textContent=hd?"@"+hd:"";
@@ -13954,10 +13975,14 @@ function renderMomentProfile(){
   $("mp-stat-followers").textContent=isP?(p.partnerFollowers||0):(p.followers||0);
   $("mp-stat-following").textContent=isP?(p.partnerFollowing||0):(p.following||0);
   const c=isP?(p.partnerCover||""):(p.cover||"");
-  if(!c){$("mp-cover").style.background="linear-gradient(135deg,#5AC8FA,#3478F6)";$("mp-cover").style.backgroundSize="auto";}
-  else if(c.indexOf("data:")===0){$("mp-cover").style.background="url(\""+c+"\") center/cover no-repeat";}
-  else if(/^url\(/i.test(c)){$("mp-cover").style.background=c;$("mp-cover").style.backgroundSize="cover";$("mp-cover").style.backgroundPosition="center";}
-  else{$("mp-cover").style.background=c;$("mp-cover").style.backgroundSize="auto";}
+  var _ck=(isP?"p|":"m|")+c;
+  if(window.__mpCoverKey!==_ck){
+    window.__mpCoverKey=_ck;
+    if(!c){$("mp-cover").style.background="linear-gradient(135deg,#5AC8FA,#3478F6)";$("mp-cover").style.backgroundSize="auto";}
+    else if(c.indexOf("data:")===0){$("mp-cover").style.background="url(\""+c+"\") center/cover no-repeat";}
+    else if(/^url\(/i.test(c)){$("mp-cover").style.background=c;$("mp-cover").style.backgroundSize="cover";$("mp-cover").style.backgroundPosition="center";}
+    else{$("mp-cover").style.background=c;$("mp-cover").style.backgroundSize="auto";}
+  }
   if($("mom-view-title"))$("mom-view-title").textContent=isP?"对方主页":"主页";
 
   if($("btn-moment-post"))$("btn-moment-post").style.display=isP?"none":"";
@@ -13986,6 +14011,19 @@ function findComment(m,cid){
   return walk(m.comments||[]);
 }
 let replyCtx={momentId:null,commentId:null,name:""};
+function __removeComment(m,cid){
+  var done=false;
+  function walk(arr){
+    if(!arr)return false;
+    for(var i=0;i<arr.length;i++){
+      if(arr[i]&&arr[i].id===cid){arr.splice(i,1);done=true;return true;}
+      if(arr[i]&&arr[i].replies&&walk(arr[i].replies))return true;
+    }
+    return false;
+  }
+  walk(m.comments||[]);
+  return done;
+}
 /* 递归渲染评论楼中楼：之前只画一层，回复“对方的回复”时内容写进状态却看不见 */
 function mpViewOpen(){var v=document.getElementById("view-moments");return !!(v&&v.classList.contains("open"));}
 /* 定位到某条动态并闪一下（仿留言板的定位效果） */
@@ -14093,9 +14131,9 @@ function focusMomentCard(id){
   if(!id)return false;
   var card=document.querySelector('#moment-feed .moment-card[data-id="'+id+'"]');
   /* 动态是分段渲染的：目标还没铺出来就先补渲染到能定位为止 */
-  if(!card&&window.__momCards&&(window.__momShown||0)<window.__momCards.length){
+  if(!card&&window.__momData&&(window.__momShown||0)<window.__momData.length){
     var _guard=0;
-    while(!card&&(window.__momShown||0)<window.__momCards.length&&_guard++<20){
+    while(!card&&(window.__momShown||0)<window.__momData.length&&_guard++<20){
       try{momAppendChunk(15);}catch(e){break;}
       card=document.querySelector('#moment-feed .moment-card[data-id="'+id+'"]');
     }
@@ -14181,7 +14219,8 @@ function renderComments(m){
   function rowHtml(item,isRep){
     const liked=item.likes&&item.likes.indexOf("me")>-1;
     const cls=isRep?"mc-row rep":"mc-row";
-    const repBtn='<div class="mc-sub"><button class="mc-reply" data-mreply="'+item.id+'" data-mname="'+esc(authorName(item.from))+'">回复</button></div>';
+    const delBtn=item.from==="me"?'<button class="mc-del" data-mdelc="'+item.id+'">删除</button>':'';
+    const repBtn='<div class="mc-sub"><button class="mc-reply" data-mreply="'+item.id+'" data-mname="'+esc(authorName(item.from))+'">回复</button>'+delBtn+'</div>';
     return '<div class="'+cls+'" data-mc="'+item.id+'"><img class="mc-av" data-cav="'+item.from+'" src="'+authorAvatar(item.from)+'"><div class="mc-body"><div class="mc-top"><b class="mc-user">'+esc(authorName(item.from))+'</b><span class="mc-time">'+relTime(item.time)+'</span><button class="mc-like'+(liked?" on":"")+'" data-clike="'+item.id+'"><svg class="icon"><use xlink:href="#i-heart"/></svg></button></div><div class="mc-text">'+esc(item.text)+(item.emoji?'<img class="mc-emoji" src="'+item.emoji+'" alt="">':'')+'</div>'+repBtn+'</div></div>';
   }
   function dfs(list,depth,out){
@@ -14226,7 +14265,7 @@ function __momentCardHTML(m){
   const av=m.from==="me"?state.me.avatar:state.partner.avatar;
   const nm=authorName(m.from);
   const op=m.from==="partner"?" data-openp='1'":"";
-  const img=m.img?'<img class="moment-img" src="'+m.img+'" alt="">':'';
+  const img=m.img?'<img class="moment-img" src="'+m.img+'" alt="" loading="lazy" decoding="async">':'';
   const liked=m.likes&&m.likes.indexOf("me")>-1;
   const likeCnt=(m.likes&&m.likes.length)||0;
   const repInd=replyCtx&&replyCtx.momentId===m.id?'<div class="mc-repind" data-ri="'+m.id+'">回复 <b>'+esc(replyCtx.name)+'</b><button data-ri-x>×</button></div>':'';
@@ -14243,6 +14282,9 @@ window.__refreshMomentCard=function(mid){
     node.insertAdjacentHTML("afterend",__momentCardHTML(m));
     var nn=node.nextElementSibling;node.parentNode.removeChild(node);
     try{
+      if(window.__momData){
+        for(var di=0;di<window.__momData.length;di++){if(window.__momData[di]&&window.__momData[di].id===mid){window.__momData[di]=m;break;}}
+      }
       if(window.__momCards){
         var idx=-1;
         for(var i=0;i<window.__momCards.length;i++){if(window.__momCards[i].indexOf('data-id="'+mid+'"')>=0){idx=i;break;}}
@@ -14277,9 +14319,8 @@ function renderMoments(){
   }
   const arr=base.slice().reverse();
   const wasFocus=momentFocusMid;
-  const _momCards=arr.map(__momentCardHTML);
-  /* 动态先渲染最近 15 条，往下滚再续（100 条一次性铺开会明显拖慢进入主页） */
-  window.__momCards=_momCards;window.__momShown=0;
+  /* 只记数据，真正显示哪 15 条再按需生成 HTML；不再一次性拼完所有卡片 */
+  window.__momData=arr;window.__momCards=[];window.__momShown=0;
   feed.innerHTML="";
   momAppendChunk();
   // 重绘后恢复被“回复”目标的高亮
@@ -14298,11 +14339,13 @@ function renderMoments(){
 /* 动态卡片的事件只绑一次（事件委托）：卡片再多也不会每张重复绑 10 个监听，重绘成本降到最低 */
 function momAppendChunk(n){
   var feed=$("moment-feed");if(!feed)return;
-  var all=window.__momCards||[];var from=window.__momShown||0;
+  var all=window.__momData||[];var from=window.__momShown||0;
   var to=Math.min(all.length,from+(n||15));
   if(to<=from)return;
+  var html=all.slice(from,to).map(__momentCardHTML);
+  window.__momCards=(window.__momCards||[]).concat(html);
   var box=document.createElement("div");
-  box.innerHTML=all.slice(from,to).join("");
+  box.innerHTML=html.join("");
   while(box.firstChild)feed.appendChild(box.firstChild);
   window.__momShown=to;
   /* 最后一张卡片进入视野就继续续渲染（动态页由外层 .view 滚动，滚动监听不可靠） */
@@ -14339,6 +14382,16 @@ function bindMomentFeed(){
       if(ci0){ci0.classList.toggle("hidden");if(!ci0.classList.contains("hidden")){var inp0=ci0.querySelector("input");if(inp0)setTimeout(function(){inp0.focus();},80);}}return;}
     var eb=t.closest("[data-memoji]");
     if(eb){e.preventDefault();e.stopPropagation();openCommentEmoji(eb.dataset.memoji,eb);return;}
+    var dc=t.closest("[data-mdelc]");
+    if(dc){e.preventDefault();e.stopPropagation();
+      var cardD=cardOf(dc);if(!cardD)return;var mD=state.moments.find(function(x){return x.id===cardD.dataset.id;});if(!mD)return;
+      if(!confirm("删除这条回复？"))return;
+      if(__removeComment(mD,dc.dataset.mdelc)){
+        if(replyCtx&&replyCtx.momentId===mD.id&&(!replyCtx.commentId||!findComment(mD,replyCtx.commentId)))replyCtx={momentId:null,commentId:null,name:""};
+        momentFocusMid=null;
+        save();if(!__refreshMomentCard(mD.id))renderMoments();toast("回复已删除");
+      }
+      return;}
     var rb=t.closest("[data-mreply]");
     if(rb){e.preventDefault();e.stopPropagation();
       var card=cardOf(rb);if(!card)return;var mid=card.dataset.id;
@@ -14395,7 +14448,7 @@ function bindMomentFeed(){
       save();return;}
   },false);
   feed.addEventListener("scroll",function(){
-    var all=window.__momCards||[];
+    var all=window.__momData||[];
     if(!all.length||(window.__momShown||0)>=all.length)return;
     if(feed.scrollTop+feed.clientHeight>=feed.scrollHeight-320)momAppendChunk(15);
   },{passive:true});
@@ -14760,7 +14813,7 @@ function initAbout(){
     }catch(e){}
     /* 不再播开屏动画：直接进锁屏/主界面，点开就是内容 */
     $("about-screen").classList.remove("show");
-    initLock();
+    __entryStart();
     return;
   }
   $("about-screen").classList.add("show");
@@ -14803,9 +14856,9 @@ function initAbout(){
     if(btn.disabled)return;
     try{localStorage.setItem("__aboutAck",__curBuild||"1");}catch(e){}
     var _go=function(){
-      /* 声明页读完直接进锁屏，不再走开屏动画 */
+      /* 声明页读完先弹更新公告（如果有），关闭后再进锁屏/主页 */
       $("about-screen").classList.remove("show");
-      initLock();
+      __entryStart();
     };
     /* 点“同意并进入”时先比一次构建号：有新版本就带 skipabout 重载（声明只出现这一次），否则正常进入 */
     if(window.__checkBuildThen)window.__checkBuildThen(_go);else _go();
@@ -14824,7 +14877,7 @@ function initLock(){
   // 已取消密码入口（持久化免密）→ 直接进入
   /* 免密标记单独存一个小键：state 是异步加载的，等它加载完再判断会晚一步，还是会先弹一次密码 */
   try{if(localStorage.getItem("lockFree")==="1"){state.settings.unlocked=true;}}catch(e){}
-  if(state.settings.unlocked){$("lock-screen").classList.remove("show");showView("view-me");setTimeout(function(){if(typeof askNotifyPrompt==="function")askNotifyPrompt();},4000);try{if(typeof maybeAnnounce==="function")setTimeout(maybeAnnounce,500);}catch(e){}return;}
+  if(state.settings.unlocked){$("lock-screen").classList.remove("show");showView("view-me");setTimeout(function(){if(typeof askNotifyPrompt==="function")askNotifyPrompt();},4000);return;}
   // 每次进入都要求输入密码
   $("lock-sub").textContent="Across the boundary of light and dark, together with you.";
   $("lock-btn").textContent="进入";
@@ -14878,8 +14931,6 @@ function unlockGo(){
   showView("view-me");
   // 进入主界面后延迟弹通知提示，避免开屏期间透出
   setTimeout(function(){if(typeof askNotifyPrompt==="function")askNotifyPrompt();},4000);
-  /* 锁屏关掉后再确保更新公告弹出来一次（换了新版本时） */
-  try{if(typeof maybeAnnounce==="function")setTimeout(maybeAnnounce,600);}catch(e){}
 }
 $("lock-btn").addEventListener("click",submitLock);
 $("lock-input").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();submitLock();}});
@@ -15041,10 +15092,17 @@ window.addEventListener("load",function(){setTimeout(function(){try{applyLook();
 })();
 
 function renderMe(){
+  /* 主页资料没变就不重复铺：切回主页不再每次重建色块、照片框和资料文本 */
+  try{
+    var _sig=[state.profile.meAvatar||state.me.avatar||"",state.profile.mpName||state.me.name||"",state.profile.bio||"",state.profile.handle||"",state.profile.region||"",state.skin.meTopBg||0,state.skin.meTopImage||"",(state.me.photos||[])[0]||"",state.me1PhotosSize||""].join("~");
+    if(window.__meSig===_sig)return;
+    window.__meSig=_sig;
+  }catch(e){}
   applyLook();
   const p=state.profile||{bio:"",region:""};
-  $("me-av").src=state.profile.meAvatar||state.me.avatar||avatarSvg("#A5A5B0");
-  $("me-av-edit").src=state.profile.meAvatar||state.me.avatar||avatarSvg("#A5A5B0");
+  var _meav=state.profile.meAvatar||state.me.avatar||avatarSvg("#A5A5B0");
+  if($("me-av").getAttribute("src")!==_meav)$("me-av").src=_meav;
+  if($("me-av-edit").getAttribute("src")!==_meav)$("me-av-edit").src=_meav;
   $("me-name").textContent=state.profile.mpName||state.me.name||"我的名字";
   $("me-sign").textContent=p.bio||"写点个性签名…";
   $("me-handle").textContent=p.handle?("@"+p.handle):"";
@@ -15061,7 +15119,10 @@ function renderMePhotos(){
   const box=$("me-photos");if(!box)return;
   if(!state.me.photos)state.me.photos=[];
   const p=state.me.photos[0];
-  box.innerHTML=p?('<img src="'+p+'" alt="">'):('<span class="ph-add">+</span><span class="ph-hint">点这里选择一张照片</span>');
+  if(box.__photoSrc!==(p||"")){
+    box.__photoSrc=p||"";
+    box.innerHTML=p?('<img src="'+p+'" alt="" decoding="async">'):('<span class="ph-add">+</span><span class="ph-hint">点这里选择一张照片</span>');
+  }
   // 保持用户调整的照片框大小（持久化：刷新/切页都不回原位）
   if(state.me1PhotosSize){box.style.width=box.style.height=box.style.flexBasis=state.me1PhotosSize+'px';}
   try{if(window.__applyShowcase)window.__applyShowcase(Number(state.me1PhotosSize)||box.offsetWidth||160);}catch(e){}
@@ -15170,6 +15231,34 @@ function renderCouple(){
   if($("cp-note-count"))$("cp-note-count").textContent=(state.notes||[]).length;
 if(window.__cp2Reapply)window.__cp2Reapply();
 }
+function __cp2Activate(){
+  if(window.__cp2Ready)return;
+  window.__cp2Ready=1;
+  try{renderCouple();}catch(e){}
+  try{preloadCp2Images();}catch(e){}
+  /* 图片压小放到第二页显示之后再做，不占第一页打开的时间 */
+  try{setTimeout(function(){if(window.optimizeCp2Images)window.optimizeCp2Images();},2600);}catch(e){}
+}
+window.__cp2Activate=__cp2Activate;
+(function(){
+  try{
+    var pager=document.getElementById("me-pager"),p2=document.getElementById("me-page-2");
+    if(!pager||!p2)return;
+    function check(){
+      if(window.__cp2Ready)return;
+      var w=pager.clientWidth||1;
+      if(pager.scrollLeft>w*0.45)window.__cp2Activate();
+    }
+    pager.addEventListener("scroll",function(){try{requestAnimationFrame(check);}catch(e){check();}},{passive:true});
+    if(window.IntersectionObserver){
+      var io=new IntersectionObserver(function(es){
+        for(var i=0;i<es.length;i++){if(es[i].isIntersecting){window.__cp2Activate();break;}}
+      },{root:pager,threshold:0.05});
+      io.observe(p2);
+    }
+    setTimeout(check,260);
+  }catch(e){}
+})();
 // countdown card: tap to open in-app edit sheet (mobile-safe, no prompt)
 (function(){
   function cq(d){return new Promise(function(res){var im=new Image();var done=false;var to=setTimeout(function(){if(!done){done=true;res(d);}},4000);im.onload=function(){if(done)return;done=true;clearTimeout(to);try{var m=Math.max(im.width,im.height);if(m<=600){res(d);return;}var s=600/m,cw=Math.round(im.width*s),ch=Math.round(im.height*s);var cv=document.createElement("canvas");cv.width=cw;cv.height=ch;cv.getContext("2d").drawImage(im,0,0,cw,ch);res(__imgDataURL(cv,0.7));}catch(err){res(d);}};im.onerror=function(){if(done)return;done=true;clearTimeout(to);res(d);};im.src=d;});}
@@ -15211,6 +15300,7 @@ if(window.__cp2Reapply)window.__cp2Reapply();
 (function(){
   function compressImg(d,ms,q){return new Promise(function(res){var im=new Image();var done=false;var to=setTimeout(function(){if(!done){done=true;res(d);}},4000);im.onload=function(){if(done)return;done=true;clearTimeout(to);try{var m=Math.max(im.width,im.height);var cap=Math.min(ms,600);if(m<=cap){res(d);return;}var s=cap/m,cw=Math.round(im.width*s),ch=Math.round(im.height*s);var cv=document.createElement("canvas");cv.width=cw;cv.height=ch;cv.getContext("2d").drawImage(im,0,0,cw,ch);res(__imgDataURL(cv,Math.min(q||0.75,0.7)));}catch(err){res(d);}};im.onerror=function(){if(done)return;done=true;clearTimeout(to);res(d);};im.src=d;});}
   function optimizeCp2Images(){
+    if(!window.__cp2Ready)return;
     try{
       var p=(state&&state.profile)||{};
       var keys=["cpPhoto","cpPhotoCard","cpPhotoSub","cpRecord","cpMeAvatar","cpPartnerAvatar"];
@@ -15904,7 +15994,8 @@ setInterval(function(){try{
       if(document.querySelector(".overlay.show"))on=false;
       ["lock-screen","about-screen"].forEach(function(id){var o=document.getElementById(id);if(o&&o.classList.contains("show"))on=false;});
       var ed=document.getElementById("cp2-editbar");
-      if(ed&&getComputedStyle(ed).display!=="none")on=false;
+      /* 读行内 display 就够：这里用 getComputedStyle 会强制整页重排，正好卡在进主页那一下 */
+      if(ed&&ed.style.display!=="none")on=false;
       _dots.style.display=on?"flex":"none";
     }catch(e){}
   }
@@ -16326,7 +16417,7 @@ setTimeout(function(){
    不使用 Service Worker（避免缓存接管导致打不开/黑屏），只用“对比构建号 + 换 URL”这一招。 */
 (function(){
   if(!/^https?:$/.test(location.protocol))return;
-  var BUILD="2026-11-14o";
+  var BUILD="2026-11-14ad";
   var KEY="app_build_reloaded";
   var busy=false;
   function go(url){location.replace(url+"&skipabout=1");}
@@ -16351,6 +16442,18 @@ setTimeout(function(){
       }).catch(function(){done();});
     }catch(e){done();}
   };
+  /* 每次打开、每次回到前台都自动比一次构建号：不用删图标，也不用等用户点“同意并进入” */
+  var __autoBuildAt=0;
+  function __autoBuildCheck(){
+    try{
+      if(Date.now()-__autoBuildAt<15000)return;
+      __autoBuildAt=Date.now();
+      if(window.__checkBuildThen)window.__checkBuildThen(function(){});
+    }catch(e){}
+  }
+  setTimeout(__autoBuildCheck,1200);
+  window.addEventListener("pageshow",function(){setTimeout(__autoBuildCheck,300);});
+  document.addEventListener("visibilitychange",function(){if(!document.hidden)setTimeout(__autoBuildCheck,300);});
 })();
 
 /* 听歌会话标记与内存变量同步 */
