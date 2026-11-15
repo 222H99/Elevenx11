@@ -2,6 +2,36 @@
 <html lang="zh-CN" style="background:#fafafa;">
 <head>
 <meta charset="UTF-8">
+<script>
+/* 第一帧就把底色定对：不然深色用户在重新打开时会先闪一下白屏（浅色用户会被系统深色闪一下黑屏） */
+(function(){try{
+  var t=null;try{t=localStorage.getItem("__theme.v1");}catch(e){}
+  var dark=(t==="dark")||(!t&&!!(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches));
+  var bg=dark?"#000":"#fafafa",fg=dark?"#f2f2f7":"#111";
+  document.documentElement.style.background=bg;
+  document.documentElement.setAttribute("data-boot",dark?"dark":"light");
+  /* 第一帧就告诉系统「这块内容是深/浅色」：iOS 的顶栏（时间/信号/电量）会据此立刻上色，
+     不用等到后面 applySkin() 再同步（那一段就是「顶栏很久才变过来」） */
+  try{document.documentElement.style.colorScheme=dark?"dark":"light";}catch(e){}
+  var d=document.createElement("div");
+  d.id="boot-veil";
+  d.style.cssText="position:fixed;inset:0;z-index:99998;background:"+bg+";display:flex;align-items:center;justify-content:center;transition:opacity .2s ease;";
+  d.innerHTML='<div style="font:600 15px -apple-system,BlinkMacSystemFont,\'SF Pro Text\',sans-serif;color:'+fg+';opacity:.5;letter-spacing:.5px;">Eleven×11</div>';
+  try{document.documentElement.appendChild(d);}catch(e){}
+  window.__bootDark=dark;
+  window.__bootDone=function(){
+    var v=document.getElementById("boot-veil");if(!v)return;
+    v.style.opacity="0";
+    setTimeout(function(){try{v.remove();}catch(e){}},240);
+  };
+  /* 万一加载卡住，最多盖 3.2 秒也要放人进来 */
+  setTimeout(function(){try{window.__bootDone();}catch(e){}},3200);
+}catch(e){}})();
+</script>
+<style>
+html[data-boot="dark"],html[data-boot="dark"] body{background:#000!important;}
+html[data-boot="light"],html[data-boot="light"] body{background:#fafafa!important;}
+</style>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimum-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fafafa">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000">
@@ -104,7 +134,7 @@ input,textarea{-webkit-user-select:text;user-select:text;}
 .chat-new-pill{position:fixed;left:50%;bottom:calc(74px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:6px;padding:7px 14px;border:none;border-radius:999px;background:rgba(29,29,31,.72);color:#fff;font-size:13px;font-weight:500;letter-spacing:.2px;backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%);box-shadow:0 6px 20px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.18);cursor:pointer;}
 .chat-new-pill[hidden]{display:none;}
 .chat-new-pill:active{opacity:.8;}
-.msglist{flex:1;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;padding:14px 12px 12px;display:flex;flex-direction:column;gap:4px;background:transparent;-webkit-overflow-scrolling:touch;}
+.msglist{contain:layout style;flex:1;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;padding:14px 12px 12px;display:flex;flex-direction:column;gap:4px;background:transparent;-webkit-overflow-scrolling:touch;}
 .msg-day{text-align:center;font-size:12px;color:#8E8E93;margin:10px 0 8px;cursor:pointer;}
 .msg-day:active{opacity:.6;}
 .msg-day span{background:transparent;padding:0;border-radius:0;}
@@ -1767,7 +1797,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-14bp74">
+<meta name="app-build" content="2026-11-14bp84">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3026,6 +3056,8 @@ body.fs-4 .msg-more{font-size:calc(12px * var(--fs))}
   <input type="file" id="file-me-av" accept="image/*" hidden>
   <input type="file" id="cp-file-av-me" accept="image/*" hidden>
   <input type="file" id="cp-file-av-partner" accept="image/*" hidden>
+  <input type="file" id="cp-file-mp-av1" accept="image/*" hidden>
+  <input type="file" id="cp-file-mp-av2" accept="image/*" hidden>
 
   <!-- 个人主页 · 背景弹层 -->
   <div class="overlay" id="me-bgsheet">
@@ -5778,9 +5810,10 @@ async function init(){
   setTimeout(function(){try{window.__fitCompute(false);}catch(e){}},220);
   try{if(typeof renderTopStatus==="function")renderTopStatus();}catch(e){}
   try{if(window.__idle){window.__idle(function(){try{preloadCp2Images();}catch(e){}});}else{setTimeout(function(){try{preloadCp2Images();}catch(e){}},120);}}catch(e){}
-  try{if(typeof showView==="function")showView("view-me");}catch(e){}
+  try{if(typeof showView==="function")showView("view-me");}catch(e){}try{window.__bootDone&&window.__bootDone();}catch(_e){}
   try{if(typeof preloadCp2Images==="function")setTimeout(preloadCp2Images,180);}catch(e){}
   try{if(window.__cp2Reapply)window.__cp2Reapply();}catch(e){}
+  try{window.__stateReady=1;}catch(e){}
   try{initAbout();}catch(e){}
   try{initKeyboardFix();}catch(e){}
   try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(function(){});}catch(e){}
@@ -5804,7 +5837,7 @@ async function init(){
       var _lp=(state&&state.profile)||{};var _sp=(s.profile)||{};
       var _pics=["cpPhoto","cpPhotoCard","cpPhotoSub","cpRecord","cpMeAvatar","cpPartnerAvatar"];
       for(var _i=0;_i<_pics.length;_i++){var _k=_pics[_i];if(!_sp[_k]&&_lp[_k]){_sp[_k]=_lp[_k];}}
-      state=migrate(s);try{__ltReadApply();}catch(e){}try{__prefApply();}catch(e){}applySkin();
+      state=migrate(s);try{__ltReadApply();}catch(e){}try{__prefApply();}catch(e){}window.__stateReady=1;applySkin();
       if(!_sameSnap){renderAll();try{if(typeof renderMe==="function")renderMe();}catch(e){}}
       try{updateNewBadge();}catch(e){}
       /* 主库里可能是旧的设置（存盘被跳过/写失败），偏好键里才是用户最后调的值 → 以偏好键为准 */
@@ -5836,7 +5869,7 @@ try{window.__scheduleCp2Render&&window.__scheduleCp2Render();}catch(e){}
     }, 300);
     try{setTimeout(function(){window.__idle?window.__idle(function(){__bkAuto();}):__bkAuto();},2600);}catch(e){}
   }catch(e){window._dbReady=true;aboutLoadStatus("加载完成（离线模式）");
-      try{if(window.__rebuildSocialNotices)window.__rebuildSocialNotices();}catch(e){}try{renderAll();}catch(_e){}try{if(typeof showView==="function")showView("view-me");}catch(_e2){}try{setTimeout(function(){if(window.__prewarmChat)window.__prewarmChat();},260);}catch(_e3){}}
+      try{if(window.__rebuildSocialNotices)window.__rebuildSocialNotices();}catch(e){}try{renderAll();}catch(_e){}try{if(typeof showView==="function")showView("view-me");}catch(_e2){}try{window.__bootDone&&window.__bootDone();}catch(_e3){}try{setTimeout(function(){if(window.__prewarmChat)window.__prewarmChat();},260);}catch(_e3){}}
   try{setTimeout(function(){
     window.__idle(function(){
       try{if(typeof catchUpSocial==="function")catchUpSocial();}catch(e){}
@@ -6134,6 +6167,9 @@ function __syncSysBar(){
   }catch(e){}
   try{document.documentElement.style.colorScheme=sysDark?"dark":"light";}catch(e){}
 }
+/* 回前台 / 重新显示时补同步一次：系统顶栏有时要等一次页面活动才肯重新上色 */
+try{document.addEventListener("visibilitychange",function(){if(!document.hidden){try{__syncSysBar();}catch(e){}}});}catch(e){}
+try{window.addEventListener("pageshow",function(){try{__syncSysBar();}catch(e){}});}catch(e){}
 window.__syncSysBar=__syncSysBar;
 try{
   var _sbMq=window.matchMedia?window.matchMedia("(prefers-color-scheme: dark)"):null;
@@ -6144,12 +6180,25 @@ try{
   __syncSysBar();
 }catch(e){}
 
-function __effectiveDark(){var s=(state&&state.skin)||{};if(s.themeMode==="manual")return !!s.dark;return __sysPrefDark();}
+function __effectiveDark(){
+  var s=(state&&state.skin)||{};
+  if(s.themeMode==="manual")return !!s.dark;
+  /* 存档还在 IndexedDB 里没读回来时，state.skin 是默认值（浅色）：
+     这时先用第一帧记下的真实明暗，不然夜间用户会先看到一屏白的，再跳回黑 */
+  if(!window.__stateReady&&typeof window.__bootDark==="boolean")return window.__bootDark;
+  return __sysPrefDark();
+}
 window.__effectiveDark=__effectiveDark;
 function applySkin(){
 
   const r=document.documentElement.style,s=state.skin;
   const dark=__effectiveDark();
+  /* 记下当前真正生效的明暗，下次冷启动第一帧就能直接用这个底色，不再闪 */
+  /* 存档还没读回来之前（state.skin 是默认浅色）不要用它去改写这个「第一帧底色」键，
+     否则下次启动会被这句写成 light，夜间用户又先看到一屏白的 */
+  try{if(window.__stateReady||(state&&state.skin&&state.skin.themeMode))localStorage.setItem("__theme.v1",dark?"dark":"light");}catch(_e){}
+  try{document.documentElement.setAttribute("data-boot",dark?"dark":"light");}catch(_e){}
+  try{document.documentElement.style.background=dark?"#000":"#fafafa";}catch(_e){}
   applyCustomBubbleCSS();
   r.setProperty("--accent",s.accent);
   // 照片背景直接设元素 style（CSS 变量存超大 dataURL 会被截断，导致上传照片失效）
@@ -6308,7 +6357,10 @@ function _chatSigNow(){
 
     var rpHash=0;
     for(var i3=0;i3<r.length;i3++){var rr=r[i3];rpHash=(rpHash*31+((rr.status||"").length)+((rr.amount||"").length))%100000007;}
-    return m.length+"/"+r.length+"/"+rec+"/"+rd+"/"+nr+"/"+ans+"/"+extra+"/"+(st.readReceipt?1:0)+((st.showActiveTag!==false)?1:0)+((st.showReadNoreply!==false)?1:0)+"/"+(last?(last.id+"|"+((last.text||"").length)):"")+"/"+((state.seq||0))+"/"+rpHash;
+    /* 头像也算进签名：在设置里换了头像但消息没变时，签名必须变，
+       否则 renderChat 会以为「没变化」直接返回，聊天里还是旧头像 */
+    var _avS=(function(v){v=String(v||"");return v.length+":"+v.slice(-16);})(state.me&&state.me.avatar)+"|"+(function(v){v=String(v||"");return v.length+":"+v.slice(-16);})(state.partner&&state.partner.avatar);
+    return _avS+"/"+m.length+"/"+r.length+"/"+rec+"/"+rd+"/"+nr+"/"+ans+"/"+extra+"/"+(st.readReceipt?1:0)+((st.showActiveTag!==false)?1:0)+((st.showReadNoreply!==false)?1:0)+"/"+(last?(last.id+"|"+((last.text||"").length)):"")+"/"+((state.seq||0))+"/"+rpHash;
   }catch(e){return "x";}
 }
 /* 单条消息转 HTML（列表重建和“发消息只追加一条”共用同一套，保证样式完全一致） */
@@ -6325,6 +6377,9 @@ function __blobUrl(src){
     var bin=atob(m[2]),n=bin.length,u8=new Uint8Array(n);
     for(var i=0;i<n;i++)u8[i]=bin.charCodeAt(i);
     var url=URL.createObjectURL(new Blob([u8],{type:m[1]}));
+    /* 头像用同步解码 + 这里先预热一次：新气泡的 <img> 建出来时位图已在缓存里，
+       不会再出现「先空一帧、再把脸贴上去」的闪一下 */
+    try{var _w=new Image();_w.decoding="sync";_w.src=url;}catch(_eW){}
     __blobUrlCache[src]=url;
     return url;
   }catch(e){return src;}
@@ -6365,7 +6420,7 @@ function __msgRowRaw(m){
       }else{
         act='<div class="invite-wait">'+(m.status==="accepted"?(isMe?"对方接受了邀请 ✓":"你接受了邀请 ✓"):(m.status==="cancelled"?"你取消了邀请 ✕":(isMe?"对方拒绝了邀请 ✕":"你拒绝了邀请 ✕")))+'</div>';
       }
-      html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" loading="lazy" decoding="async" src="'+esc(__blobUrl(isMe?state.me.avatar:state.partner.avatar))+'" alt=""><div class="msg-col"><div class="invite-card"><div class="invite-title">'+tTitle+'</div><div class="invite-sub">'+tSub+'</div><div class="invite-act">'+act+'</div></div></div></div>';
+      html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="sync" src="'+esc(__blobUrl(isMe?state.me.avatar:state.partner.avatar))+'" alt=""><div class="msg-col"><div class="invite-card"><div class="invite-title">'+tTitle+'</div><div class="invite-sub">'+tSub+'</div><div class="invite-act">'+act+'</div></div></div></div>';
       return html;
     }
     const side=m.from==="me"?"me":"partner";
@@ -6382,21 +6437,21 @@ function __msgRowRaw(m){
     meta+=fmtTime(m.time)+'</div>';
     if(m.type==="image"&&m.kind!=="emoji"&&m.kind!=="draw"){
       // 普通图片：不包裹气泡，直接显示图片
-      html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" loading="lazy" decoding="async" src="'+__blobUrl(av)+'" alt=""><div class="msg-col">'+__photoDeckHTML(m)+meta+'</div></div>';
+      html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="sync" src="'+__blobUrl(av)+'" alt=""><div class="msg-col">'+__photoDeckHTML(m)+meta+'</div></div>';
       return html;
     }
     if(m.type==="image"&&(m.kind==="emoji"||m.kind==="draw")){
       // 表情包 / 画作：不包裹气泡，直接显示
       const frame=m.kind==="draw"?'drawbox':'sticker';
-      html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" loading="lazy" src="'+__blobUrl(av)+'" alt=""><div class="msg-col"><div class="'+frame+'"><img loading="lazy" decoding="async" src="'+m.src+'" alt=""></div>'+meta+'</div></div>';
+      html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="sync" src="'+__blobUrl(av)+'" alt=""><div class="msg-col"><div class="'+frame+'"><img loading="lazy" decoding="async" src="'+m.src+'" alt=""></div>'+meta+'</div></div>';
       return html;
     }    if(m.type==="voice"){
       const _d=Math.max(1,Math.round(Number(m.dur)||1));
       const _bars=Array.from({length:Math.min(24,Math.max(7,Math.round(_d*2.2)))}).map(function(_,i){return '<span class="vb-bar" style="height:'+(5+Math.round(Math.abs(Math.sin(i*1.7))*9))+'px"></span>';}).join("");
-      html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" loading="lazy" decoding="async" src="'+__blobUrl(av)+'" alt=""><div class="msg-col"><div class="bubble voice-bubble" data-voice="'+m.id+'"><span class="vb-tri"></span><span class="vb-wave">'+_bars+'</span><span class="vb-dur">'+_d+'"</span></div>'+meta+'</div></div>';
+      html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="sync" src="'+__blobUrl(av)+'" alt=""><div class="msg-col"><div class="bubble voice-bubble" data-voice="'+m.id+'"><span class="vb-tri"></span><span class="vb-wave">'+_bars+'</span><span class="vb-dur">'+_d+'"</span></div>'+meta+'</div></div>';
       return html;
     }
-    html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" loading="lazy" decoding="async" src="'+__blobUrl(av)+'" alt=""><div class="msg-col"><div class="bubble">'+quoteBlock(m)+body+'</div>'+meta+'</div></div>';
+    html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="sync" src="'+__blobUrl(av)+'" alt=""><div class="msg-col"><div class="bubble">'+quoteBlock(m)+body+'</div>'+meta+'</div></div>';
 
   return html;
 }
@@ -6423,7 +6478,7 @@ function showRecalledText(txt,anchorEl){
       wrap.className="msg-row partner rv-item";
       wrap.style.opacity="0.9";
       var av=state.partner.avatar||"";
-      wrap.innerHTML='<img class="msg-avatar" loading="lazy" decoding="async" src="'+__blobUrl(av)+'" alt=""><div class="msg-col"><div class="bubble" style="border-style:dashed;">'+esc(txt)+'</div><div class="meta"><span class="rv-tag">已撤回的原文</span></div></div>';
+      wrap.innerHTML='<img class="msg-avatar" decoding="sync" src="'+__blobUrl(av)+'" alt=""><div class="msg-col"><div class="bubble" style="border-style:dashed;">'+esc(txt)+'</div><div class="meta"><span class="rv-tag">已撤回的原文</span></div></div>';
       if(anchorEl.parentNode)anchorEl.parentNode.insertBefore(wrap,anchorEl.nextSibling);
       if(wrap.scrollIntoView)try{wrap.scrollIntoView({block:"nearest"});}catch(e){}
       return;
@@ -6642,14 +6697,21 @@ function __rebuildSocialNotices(){
     var unreadM=(state.moments||[]).filter(function(m){return m&&m.from==="partner"&&m.unread;}).length;
     var unreadC=0;(state.moments||[]).forEach(function(m){(m.comments||[]).forEach(function(c){if(c&&c.from==="partner"&&c.unread)unreadC++;});});
     var had=false;
+    /* 每类提示只保留一条：以前是「先全删再按未读重加」，
+       于是每次启动都会重新插一条新的系统消息 → 每开一次网站就弹一次「对方给你写了封信」 */
+    var flags=[false,false,false,false];
+    var alive=[unreadL>0,unreadN>0,unreadM>0,unreadC>0];
     for(var i=ms.length-1;i>=0;i--){
-      var t=String((ms[i]||{}).text||"");
-      if(ms[i]&&ms[i].type==="sys"&&res.some(function(re){return re.test(t);})){ms.splice(i,1);had=true;}
+      var t=String((ms[i]||{}).text||""),kind=-1;
+      if(ms[i]&&ms[i].type==="sys"){for(var j=0;j<res.length;j++){if(res[j].test(t)){kind=j;break;}}}
+      if(kind<0)continue;
+      if(!alive[kind]||flags[kind]){ms.splice(i,1);had=true;}
+      else flags[kind]=true;
     }
-    if(unreadL)pushMsg("partner","sys","📮 对方给你写了封信",{quiet:true});
-    if(unreadN)pushMsg("partner","sys","💬 对方给你留言了",{quiet:true});
-    if(unreadM)pushMsg("partner","sys","📷 对方发了一条新动态",{quiet:true});
-    if(unreadC)pushMsg("partner","sys","💬 对方评论了你的动态",{quiet:true});
+    if(unreadL&&!flags[0])pushMsg("partner","sys","📮 对方给你写了封信",{quiet:true});
+    if(unreadN&&!flags[1])pushMsg("partner","sys","💬 对方给你留言了",{quiet:true});
+    if(unreadM&&!flags[2])pushMsg("partner","sys","📷 对方发了一条新动态",{quiet:true});
+    if(unreadC&&!flags[3])pushMsg("partner","sys","💬 对方评论了你的动态",{quiet:true});
     if(had||unreadL||unreadN||unreadM||unreadC){try{save();__flushSave();}catch(e){};window.__chatDirty=1;}
     return true;
   }catch(e){return null;}
@@ -6691,7 +6753,34 @@ function __chatRowsHTML(seg,initDay){
   });
   return out;
 }
+function __avBgPaint(){
+  /* 头像「先空一帧再贴脸」的闪：给每个头像再叠一层同图的背景图。
+     <img> 的位图还没画上去时，背景层已经是缓存好的那张图，视觉上就不会闪 */
+  try{
+    var list=document.getElementById("msglist");if(!list)return;
+    var avs=list.querySelectorAll(".msg-avatar");
+    for(var i=0;i<avs.length;i++){
+      var img=avs[i];if(img.__avbg)continue;
+      var src=img.getAttribute("src");if(!src)continue;
+      img.__avbg=1;
+      img.style.backgroundImage='url("'+src+'")';
+      img.style.backgroundSize="cover";
+      img.style.backgroundPosition="center";
+    }
+  }catch(e){}
+}
 function renderChat(force){
+  try{
+    if(!window.__avObserver&&window.MutationObserver){
+      var _ml=document.getElementById("msglist");
+      if(_ml){
+        /* 有些行是别的路径（信件提醒/系统提示）直接插进来的，不在 renderChat 里；
+           监听子节点变化，新头像一进来就补背景层，任何入口都不会闪 */
+        window.__avObserver=new MutationObserver(function(){__avBgPaint();});
+        window.__avObserver.observe(_ml,{childList:true,subtree:false});
+      }
+    }
+  }catch(e){}
   try{__cleanStaleLetterSys();}catch(e){}
   try{__pruneSocialNotices();}catch(e){}
   var _isFullRebuild=false; /* 本次是否整块重绘（是→旧消息不播动效） */
@@ -6726,7 +6815,7 @@ function renderChat(force){
   }catch(e){}
   /* 默认只画最近 120 条：几百条记录不再一次性全铺进 DOM，进聊天更快、滚动更轻。
      往上翻到顶会自动补更早的 80 条，一条都不会少。 */
-  const CHAT_PAGE=120,CHAT_CHUNK=80;
+  const CHAT_PAGE=120,CHAT_CHUNK=40;
   const __idxFocus=_wantFocus?entries.findIndex(function(en){return (en.m&&en.m.id===_wantFocus)||(en.r&&en.r.id===_wantFocus);}):-1;
   var __start=0,__end=entries.length;
   if(__idxFocus>=0){
@@ -6785,6 +6874,9 @@ function renderChat(force){
     list.innerHTML=html;
     _isFullRebuild=true; /* 整块重绘：旧消息一律不播入场动效，避免切页时整屏闪 */
   }
+  try{__avBgPaint();}catch(_e){}
+  try{requestAnimationFrame(__avBgPaint);}catch(_e){}
+  try{setTimeout(__avBgPaint,80);}catch(_e){}
   window.__renderedKeys=_keys;
   window.__chatRenderStart=__start;window.__chatRenderEnd=__end;window.__chatWin=__shown.length;
   window.__chatTotal=entries.length;
@@ -7519,7 +7611,7 @@ function redpacketRowHTML(r){
   const av=out?state.me.avatar:state.partner.avatar;
   const nm=out?state.me.name:state.partner.name;
   const stTxt=out?(r.status==="claimed"?"已领取":(r.status==="declined"?"对方拒领":"等待对方领取")):(r.status==="claimed"?"已领取":(r.status==="declined"?"已拒领":"去领取"));
-  return '<div class="msg-row '+side+'" data-rp="'+r.id+'"><img class="msg-avatar" loading="lazy" decoding="async" src="'+__blobUrl(av)+'" alt="">'
+  return '<div class="msg-row '+side+'" data-rp="'+r.id+'"><img class="msg-avatar" decoding="sync" src="'+__blobUrl(av)+'" alt="">'
     +'<div class="msg-col"><div class="rp-shell">'
     +'<div class="rp-head"><img class="sq-hav" loading="lazy" src="'+__blobUrl(av)+'"><span class="sq-hname">'+esc(nm)+'</span><span class="sq-time">'+fmtTime(r.time)+'</span></div>'
     +'<div class="rp-body'+(r.status==="declined"?" declined":"")+'">'
@@ -7545,7 +7637,7 @@ function surveyRowHTML(m){
       else meta+='<span class="msg-read">'+(m.read?"已读":"已送达")+'</span>';
     }
   meta+=fmtTime(m.time)+'</div>';
-  return '<div class="msg-row '+side+'" data-sq="'+m.id+'" data-id="'+m.id+'"><img class="msg-avatar" loading="lazy" decoding="async" src="'+__blobUrl(av)+'" alt="">'
+  return '<div class="msg-row '+side+'" data-sq="'+m.id+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="sync" src="'+__blobUrl(av)+'" alt="">'
     +'<div class="msg-col"><div class="survey-shell">'
     +'<div class="sq-head"><img class="sq-hav" loading="lazy" src="'+__blobUrl(av)+'"><span class="sq-hname">'+esc(nm)+'</span><span class="sq-time">'+fmtTime(m.time)+'</span></div>'
     +'<div class="sq-card"><div class="sq-title">📋 '+(esc(s.title)||"问卷")+'</div>'
@@ -10613,9 +10705,22 @@ $("file-avatar").addEventListener("change",e=>{
   const r=new FileReader();
   r.onload=()=>{
     var _who=$("file-avatar").dataset.who,_raw=String(r.result||"");
-    state[_who].avatar=_raw;save();bindSetting();renderTopStatus();renderChat();try{renderMoments();}catch(_){}toast("头像已更新");
+    /* 情侣页那两张头像如果还是「跟着我的头像自动复制」的旧副本，就一起换掉；
+       用户自己单独设过情侣头像的（不等于旧头像）保持不动 */
+    var _oldAv=state[_who]&&state[_who].avatar;
+    state[_who].avatar=_raw;
+    try{
+      if(state.profile){
+        if(_who==="me"&&state.profile.cpMeAvatar===_oldAv)state.profile.cpMeAvatar=_raw;
+        if(_who==="partner"&&state.profile.cpPartnerAvatar===_oldAv)state.profile.cpPartnerAvatar=_raw;
+      }
+      renderCouple();
+    }catch(_e){}
+    save();bindSetting();renderTopStatus();renderChat(true);try{renderMoments();}catch(_){}toast("头像已更新");
     /* 手机原图可能有几 MB，直接存进存档会让每次保存都变慢、还容易撑爆存储：压到 600px 再替换 */
-    try{__shrinkImg(_raw,600,0.82).then(function(c){if(!c||c===_raw||state[_who].avatar!==_raw)return;state[_who].avatar=c;save();bindSetting();renderTopStatus();renderChat();try{renderMoments();}catch(_){}});}catch(_){}
+    try{__shrinkImg(_raw,600,0.82).then(function(c){if(!c||c===_raw||state[_who].avatar!==_raw)return;
+      try{if(state.profile){if(_who==="me"&&state.profile.cpMeAvatar===_raw)state.profile.cpMeAvatar=c;if(_who==="partner"&&state.profile.cpPartnerAvatar===_raw)state.profile.cpPartnerAvatar=c;}renderCouple();}catch(_e){}
+      state[_who].avatar=c;save();bindSetting();renderTopStatus();renderChat();try{renderMoments();}catch(_){}});}catch(_){}
   };
   r.readAsDataURL(f);e.target.value="";
 });
@@ -11573,10 +11678,23 @@ function gCompress(d,max,q){max=max||720;q=q||0.72;return new Promise(function(r
   $("music-edit-cancel").addEventListener("click",function(){ov.classList.remove("show");});
   ov.addEventListener("click",function(e){if(e.target===e.currentTarget)ov.classList.remove("show");});
   function pickAv(who){
-    var inp=document.createElement("input");inp.type="file";inp.accept="image/*";
-    inp.onchange=function(){var f=inp.files&&inp.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){var raw=String(rd.result);if(who==="partner")state.profile.mpAv1=raw;else state.profile.mpAv2=raw;renderMusicList();toast("头像已更换");gCompress(raw).then(function(c){var guard=who==="partner"?state.profile.mpAv1===raw:state.profile.mpAv2===raw;if(!guard)return;if(who==="partner")state.profile.mpAv1=c;else state.profile.mpAv2=c;save();renderMusicList();});};rd.readAsDataURL(f);};
-    inp.click();
+    /* 用常驻的隐藏 input 走 __nativePick：临时创建的 input 在 iOS/PWA 里经常弹不出相册 */
+    window.__nativePick(who==="partner"?"cp-file-mp-av1":"cp-file-mp-av2");
   }
+  [["cp-file-mp-av1","partner"],["cp-file-mp-av2","me"]].forEach(function(pair){
+    var inp=$(pair[0]);if(!inp||inp.__mpB)return;inp.__mpB=1;
+    inp.addEventListener("change",function(){
+      var f=inp.files&&inp.files[0];if(!f)return;
+      var who=pair[1],rd=new FileReader();
+      rd.onload=function(){
+        var raw=String(rd.result);
+        if(who==="partner")state.profile.mpAv1=raw;else state.profile.mpAv2=raw;
+        save();renderMusicList();toast("头像已更换");
+        gCompress(raw).then(function(c){var guard=who==="partner"?state.profile.mpAv1===raw:state.profile.mpAv2===raw;if(!guard)return;if(who==="partner")state.profile.mpAv1=c;else state.profile.mpAv2=c;save();renderMusicList();});
+      };
+      rd.readAsDataURL(f);inp.value="";
+    });
+  });
   $("mu-dist").addEventListener("click",function(){open("dist");});
   $("mu-name1").addEventListener("click",function(){open("partner");});
   $("mu-name2").addEventListener("click",function(){open("me");});
@@ -12927,7 +13045,7 @@ var _163Warmed=false;
       else if(m.type==="voice")inner='<span class="vb" data-vid="'+m.id+'" style="cursor:pointer;">▷ 语音 '+ (m.dur||1) +'″</span>';
       else inner=esc(m.text||"");
       html+='<div class="msg-row '+(mine?"me":"partner")+'">'+
-        '<img class="msg-avatar" loading="lazy" decoding="async" src="'+mlRoomAv(m.from)+'" alt="">'+
+        '<img class="msg-avatar" decoding="sync" src="'+mlRoomAv(m.from)+'" alt="">'+
         '<div class="msg-col"><div class="bubble'+(m.type==="image"?" imgb":"")+'">'+inner+'</div></div>'+
       '</div>';
     });
@@ -14036,7 +14154,9 @@ function paperPresetOf(v){
 function paperCssOf(v){ /* 没设置（或历史默认的米黄）就跟随主题：白天白纸，夜间黑纸 */
   if(v&&v.k==="cream"&&!v.img)v=null;
   if(!v)return "background-color:var(--ev-paper,#ffffff);";
-  if(v.img)return 'background-color:#111111;color:#FFFFFF !important;background-image:url("'+v.img+'");background-size:cover;background-position:center;';
+  /* 注意：这段是塞进 HTML 的 style="..." 里的，图片地址必须用单引号，
+     否则 dataURL 前面的双引号会把 style 属性截断 → 背景图变空 → 只剩 #111 黑底 */
+  if(v.img)return "background-color:#111111;color:#FFFFFF !important;background-image:url('"+v.img+"');background-size:cover;background-position:center;";
   var p=paperPresetOf(v);
   /* 字色按纸的明暗算：浅纸深字、深纸白字，白天夜间都不会看不见 */
   var h=(p.bg||"#ffffff").replace("#","");
@@ -16375,7 +16495,7 @@ window.__cp2Activate=__cp2Activate;
   // 情侣空间头像：点击各自更换（独立字段，不与其他页共用）
   function pickAv(who){
     var inp=document.createElement("input");inp.type="file";inp.accept="image/*";
-    inp.onchange=function(){var f=inp.files&&inp.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){var raw=String(rd.result);if(who==="me")state.profile.cpMeAvatar=raw;else state.profile.cpPartnerAvatar=raw;renderCouple();toast("情侣头像已更换");compressImg(raw,800,0.75).then(function(c){var guard=who==="me"?state.profile.cpMeAvatar===raw:state.profile.cpPartnerAvatar===raw;if(!guard)return;if(who==="me")state.profile.cpMeAvatar=c;else state.profile.cpPartnerAvatar=c;save();renderCouple();if(typeof preloadCp2Images==="function")preloadCp2Images();});};rd.readAsDataURL(f);};
+    inp.onchange=function(){var f=inp.files&&inp.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){var raw=String(rd.result);if(who==="me")state.profile.cpMeAvatar=raw;else state.profile.cpPartnerAvatar=raw;save();renderCouple();toast("情侣头像已更换");compressImg(raw,800,0.75).then(function(c){var guard=who==="me"?state.profile.cpMeAvatar===raw:state.profile.cpPartnerAvatar===raw;if(!guard)return;if(who==="me")state.profile.cpMeAvatar=c;else state.profile.cpPartnerAvatar=c;save();renderCouple();if(typeof preloadCp2Images==="function")preloadCp2Images();});};rd.readAsDataURL(f);};
     inp.click();
   }
   var line=$("cp2-line");
@@ -17135,7 +17255,7 @@ $("file-me-av").addEventListener("change",e=>{
 $("cp2-av-me").addEventListener("click",()=>window.__nativePick("cp-file-av-me"));
 $("cp-file-av-me").addEventListener("change",e=>{
   const f=e.target.files&&e.target.files[0];if(!f)return;
-  const rd=new FileReader();rd.onload=()=>{var raw=String(rd.result);state.profile.cpMeAvatar=raw;renderCouple();toast("情侣头像已更新");compressImg(raw,800,0.75).then(function(c){if(state.profile.cpMeAvatar===raw){state.profile.cpMeAvatar=c;save();renderCouple();}});};rd.readAsDataURL(f);e.target.value="";
+  const rd=new FileReader();rd.onload=()=>{var raw=String(rd.result);state.profile.cpMeAvatar=raw;save();renderCouple();toast("情侣头像已更新");compressImg(raw,800,0.75).then(function(c){if(state.profile.cpMeAvatar===raw){state.profile.cpMeAvatar=c;save();renderCouple();}});};rd.readAsDataURL(f);e.target.value="";
 });
 (function(){
   /* 情侣头像（对方）：点击只换头像，不再跳去对方主页 */
@@ -17147,7 +17267,7 @@ $("cp-file-av-me").addEventListener("change",e=>{
 })();
 $("cp-file-av-partner").addEventListener("change",e=>{
   const f=e.target.files&&e.target.files[0];if(!f)return;
-  const rd=new FileReader();rd.onload=()=>{var raw=String(rd.result);state.profile.cpPartnerAvatar=raw;renderCouple();toast("情侣头像已更新");compressImg(raw,800,0.75).then(function(c){if(state.profile.cpPartnerAvatar===raw){state.profile.cpPartnerAvatar=c;save();renderCouple();}});};rd.readAsDataURL(f);e.target.value="";
+  const rd=new FileReader();rd.onload=()=>{var raw=String(rd.result);state.profile.cpPartnerAvatar=raw;save();renderCouple();toast("情侣头像已更新");compressImg(raw,800,0.75).then(function(c){if(state.profile.cpPartnerAvatar===raw){state.profile.cpPartnerAvatar=c;save();renderCouple();}});};rd.readAsDataURL(f);e.target.value="";
 });
 try{
   var _ne=$("me-name-edit");
@@ -17517,7 +17637,7 @@ setTimeout(function(){
    不使用 Service Worker（避免缓存接管导致打不开/黑屏），只用“对比构建号 + 换 URL”这一招。 */
 (function(){
   if(!/^https?:$/.test(location.protocol))return;
-  var BUILD="2026-11-14bp74";
+  var BUILD="2026-11-14bp84";
   var KEY="app_build_reloaded";
   var busy=false;
   function go(url){location.replace(url+"&skipabout=1");}
