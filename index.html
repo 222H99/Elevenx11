@@ -143,7 +143,7 @@ input,textarea{-webkit-user-select:text;user-select:text;}
 .chat-new-pill{position:fixed;left:50%;bottom:calc(74px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:6px;padding:7px 14px;border:none;border-radius:999px;background:rgba(29,29,31,.72);color:#fff;font-size:13px;font-weight:500;letter-spacing:.2px;backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%);box-shadow:0 6px 20px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.18);cursor:pointer;}
 .chat-new-pill[hidden]{display:none;}
 .chat-new-pill:active{opacity:.8;}
-.msglist{contain:layout style;flex:1;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;padding:14px 12px 12px;display:flex;flex-direction:column;gap:4px;background:transparent;-webkit-overflow-scrolling:touch;}
+.msglist{contain:layout style;flex:1;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;overflow-anchor:none;scroll-behavior:auto;padding:14px 12px 12px;display:flex;flex-direction:column;gap:4px;background:transparent;-webkit-overflow-scrolling:touch;}
 .msg-day{text-align:center;font-size:12px;color:#8E8E93;margin:10px 0 8px;cursor:pointer;}
 .msg-day:active{opacity:.6;}
 .msg-day span{background:transparent;padding:0;border-radius:0;}
@@ -1154,7 +1154,7 @@ o{opacity:1;transform:translateY(0);}}
   border:1px solid var(--glassborder,rgba(255,255,255,.22));box-shadow:0 10px 28px rgba(0,0,0,.06);}
 .qa-head{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--ttext);opacity:.6;margin-bottom:8px;}
 .qa-lock{font-size:12px;}
-.qa-q{font-size:15px;color:var(--ttext);line-height:1.5;word-break:break-word;background:var(--glassinner,rgba(255,255,255,.14));border-radius:14px;padding:10px 12px;}
+.qa-q{font-size:15px;color:var(--ttext);line-height:1.5;word-break:break-word;white-space:pre-wrap;background:var(--glassinner,rgba(255,255,255,.14));border-radius:14px;padding:10px 12px;}
 .qa-a{margin-top:10px;border-top:1px dashed rgba(255,255,255,.3);padding-top:10px;}
 .qa-a-label{font-size:11px;color:var(--ttext);opacity:.5;margin-bottom:5px;}
 .qa-a-text{font-size:15px;color:var(--ttext);line-height:1.5;word-break:break-word;}
@@ -1809,7 +1809,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-14bp91">
+<meta name="app-build" content="2026-11-14bp101">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4836,54 +4836,37 @@ function msgPreviewText(m){
 /* ===== 更新公告：换了新版本时弹一次，设置里也能随时再看 ===== */
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
-  ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||"2026-11-14bp11";}catch(e){return "2026-11-14bp11";}})(),
-  date:"2026-11-14",
-  lead:"这一版集中修「看得见的地方」：主页顶栏夜间改深玻璃白字、导入全部数据改成系统原生选择器、导入图片自动压缩，切应用时底层聊天页不再陪跑绘制。",
+  ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
+  date:"2026-11-15",
+  lead:"这一版主要是把「留言板、字卡分组、进聊天闪/顶、通知、动态列表速度」这几块收干净，其中留言板是用你的真实备份（136 条留言）实测过的。",
   items:[
-    "夜间模式：主页（动态页）顶栏的返回圆钮、「发动态」按钮改成深玻璃底 + 白色箭头/白字，和聊天页输入栏一致",
-    "「导入全部数据（恢复）」改成系统原生选择器（label 触发），iPhone 上点一下就弹「文件」，不再依赖 JS 点击",
-    "导入数据补上时间戳并在写盘后立即刷新界面：不会再出现「提示导入成功、内容却没变」",
-    "导入图片自动压缩：保持原分辨率，只有体积能小 20% 以上才替换，画质肉眼无差",
-    "切应用不再卡：离开聊天页时，底层常驻的聊天页停止绘制（布局和滚动位置保留），不再陪着一起合成",
-    "聊天页关掉毛玻璃：整块重绘 13.3ms 降到 7.7ms，进聊天那一下的白闪也一起消失",
-    "修复少数情况下进聊天只剩一两行、或回来时整页重铺：读状态更新不再在旧消息没画出来时提前把聊天签名改成最新",
-    "保存合并窗口从 320ms 放宽到 620ms：连续点按钮时只在手停下来写一次盘，减少大图库反复写入的卡顿",
-    "打字时不再每次都序列化整库保存：草稿只写一个几十字节的小键，输入过程更跟手，草稿也不会丢",
-    "大图库保存判重从逐字符哈希改成字符串直接比较，后台空闲写盘少十几毫秒",
-    "搜索/收藏定位到老消息后，对方来新消息不再把你拽回最新：底部出现「有新消息」，点一下才回到底部",
-    "聊天记录默认只渲染最近 120 条，往上滑到顶自动补更早的 80 条，一直能翻到第一条",
-    "几百条历史不再一次性全铺进页面，进聊天、来消息、滚动都更轻，行数少了但内容完整",
-    "页面二（情侣页）延迟到开屏结束后空闲时再渲染；你滑过去会立即渲染，不会看到空白",
-    "去掉启动时重复的聊天预热和免打扰重绑定时器，少做重复工作",
-    "设置里切「已读回执 / 主动标注 / 已读不回」只更新每条消息下面的小标签，不再把整页聊天记录重建一遍",
-    "关掉「对方撤回」不再无意义地重绘整页聊天",
-    "按钮里的保存不再同步序列化整库，改为合并到空闲时写盘；只有切后台/关页面才立即保存",
-    "去掉每次点击后都重新绑定免打扰开关的全局兜底监听，少一次无用的延时任务",
-    "修复从动态/评论/信件/留言提示点进聊天时闪一下：以前离开聊天页 10 秒就清空隐藏的聊天列表，再回来要整页重铺、图片重新解码；现在切页面不再释放，只有 App 真正退到后台才释放",
-    "对方在你不看聊天页时贴表情/撤回消息，也直接改隐藏列表里的那一行，不再让下次进聊天整页重绘",
-    "修复图片/表情包“闪一下”：拍一拍、偷表情提示这类行以前没带消息 id，会让下一条消息被误判漏行，触发整页重绘、所有图片重新解码",
-    "现在每一条系统提示/拍一拍/问卷都带自己的消息 id，追加下一条只补一行，不再重铺整个聊天记录",
-    "取消收发消息的气泡入场/位移动画，发送后列表不再滑一下，直接贴到最新一条",
-    "点开聊天框（输入框）自动把聊天记录顶上来，键盘弹起后仍停在最新消息上",
-    "不点输入框时也显示最新聊天记录；从主页或其他页面进聊天直接到底，不再先看到旧位置",
-    "收起输入框/键盘后回到最新记录，不会把页面停在半截",
-    "一起听：已经在播放时点「一起听」直接进音乐页，不再重复发出邀请",
-    "发表情包：等表情真正进了列表再插「对方偷了你的表情包」，提示不再被吞、也不再整页重绘",
-    "对方没写信时不再出现任何「写信」提示：空信件页只显示「暂时没有收到的信」",
-    "日记贴纸选中后整张纸都能点：纸中间是输入框也不会再吃掉点击，贴完自动退出贴纸模式",
-    "只有我写过信、对方没写时，也会清掉聊天里残留的「对方给你写了一封信」",
-    "聊天语音：点一次播放，再点一次从头重新播放，不再点不动",
-    "收藏消息：每条右侧有 ×，点一下就删除这一条",
-    "收藏语音：显示语音时长和播放按钮，点▶就能播放，原消息删了也能播",
-    "收藏语音播放时会自动停下正在播的聊天语音",
-    "多选长图直接分享进相册、语音气泡、移除保存图片按钮全部保留",
-    "语音气泡单独处理触摸和点击，播放时不会再误弹撤回菜单",
-    "语音播放改为 Blob 音频地址，并加 WebAudio 解码兜底，点播放不再没声音",
-    "修复「聊天页提示来信但信箱里没有信」：没有信件时自动清掉残留的来信提示",
-    "网易云登录后优先使用带 Cookie 的后端播放链接，不再被免登录试听链接覆盖，VIP 账号能拿完整版",
-    "修复从其他页面返回聊天页、以及对方主页切回我的主页时的闪屏：显示前预渲染、两侧动态常驻不重铺",
-    "新增收到 / 发送 / 系统通知提示音的音量调节，0%～100% 可调",
-    "新增动态转发：双方都能转发对方的动态并配文；对方按设置的 3% 概率转发我的动态"
+    '<span class="an-gt">留言板</span>',
+    "留言板不再「有数字没内容」：渲染全程兜底，任意一条数据畸形都只降级它自己，列表永远不会空白",
+    "用你的真实备份实测：136 条留言 → 124 张卡，5ms 出完，浅色/夜间一致，无报错",
+    "留言里的换行不再被压成一行（「小秦/别怕」这类现在真的会换行）",
+    "「对方公开回答过的（N）」改成和下面列出的条数对得上（以前显示 4、下面却 124 条）",
+    '<span class="an-gt">字卡</span>',
+    "动态、信件、聊天各用自己那套分组：动态按「字卡分组（发布动态时用这套）」取，信件按信件分组，聊天默认全部聊天字卡",
+    "动态一张动态字卡都没有时，用聊天字卡兜底，不会再出现「对方不发动态」",
+    "聊天回复池不再混进动态/信件字卡（以前三种卡混着发）",
+    '<span class="an-gt">聊天</span>',
+    "进聊天不再整页往上顶：关掉了浏览器的滚动锚定，位置只由「贴底」逻辑决定",
+    "进聊天后 1.6s 内持续贴底，图片解码变高也还是停在最新一条",
+    "再也不会弹重复的「📷 对方发了一条新动态」：连发多条只留最新一行、最多弹一次",
+    "启动补发动态/评论/留言改成静默，不会再一点开网站就弹「对方写了封信」",
+    "提示条单独一层合成，拍一拍、来信提示不再闪",
+    '<span class="an-gt">性能</span>',
+    "动态列表首屏只铺 18 条，滑到底再续：63 条动态从 143ms 降到 40ms 左右",
+    "进聊天只渲染最近 120 条，上翻自动补，几百条历史也不卡",
+    "保存合并到空闲写盘，连续操作不卡手",
+    '<span class="an-gt">通知</span>',
+    "系统通知实测通过：授权后能真的弹出（标题「对方」+ 正文），没有 sw.js 也能发，后台可收到",
+    "通知参数异常（空值/字符串）不再抛错，不会再静默断链",
+    "启动不再每次都刷一条 sw.js 404：先探测文件存在再注册",
+    '<span class="an-gt">其它</span>',
+    "问卷卡片补回「去填写」按钮（以前被聊天行去重误删）",
+    "图片/表情改为立即解码，插入后不再先糊一下再清晰",
+    "随手修掉一批空值、越界、重复绑定的问题",
   ],
   foot:"有问题或建议：小红书 @Eleven_（ID：5609831119）。"
 };
@@ -4996,6 +4979,7 @@ function paintNotifyDiag(){
   }catch(e){}
 }
 function notifySystem(m,opts){
+  if(!m||typeof m!=="object")return;
   if(typeof window.__inDND==="function"&&window.__inDND())return;
   /* 没有通知权限时不静默：退回 App 内弹窗，保证「总有一个提示」 */
   if(!("Notification" in window)||Notification.permission!=="granted"){
@@ -6402,7 +6386,7 @@ function __blobUrl(src){
 }
 function __photoDeckHTML(m){
   var src=(m&&m.src)||(m&&m.srcs&&m.srcs[0])||"";
-  return '<img class="msg-photo" src="'+esc(src)+'" alt="" loading="lazy" decoding="async">';
+  return '<img class="msg-photo" src="'+esc(__blobUrl(src))+'" alt="" loading="lazy" decoding="async">';
 }
 function __msgRowRaw(m){
   let html="";
@@ -7197,7 +7181,23 @@ function renderMsgBody(m){
 
 /* —— 问卷：创建 —— */
 let surveyDraft=[];
-function activeCards(){return state.cards.filter(c=>c&&!c.disabled&&!(groupById(c.groupId)||{}).disabled);}
+function activeCards(){
+  /* 聊天回复只能用「聊天字卡」，并且优先用聊天字卡页里选中的那个分组
+     （以前这里是全部字卡，所以对方在聊天里会冒出动态字卡、信件字卡的内容） */
+  var _ok=function(c){return c&&!c.disabled&&!(groupById(c.groupId)||{}).disabled;};
+  var pool=state.cards.filter(function(c){return _ok(c)&&cardKindOf(c)==="chat";});
+  try{
+    /* 默认就是「全部聊天字卡」，不跟浏览用的分组标签走；
+       只有在「设置 → 对方回复用哪个分组」明确选了某一组，才只用那一组（那组没卡则照旧用全部） */
+    var _rg=state.settings&&state.settings.replyGroupId;
+    if(_rg){
+      var _rIn=pool.filter(function(c){return c.groupId===_rg;});
+      if(_rIn.length)pool=_rIn;
+    }
+  }catch(e){}
+  /* 一张聊天字卡都没有时保持老行为（用全部可用字卡），避免对方直接哑掉 */
+  return pool.length?pool:state.cards.filter(_ok);
+}
 function cardPool(){return activeCards().filter(c=>c.text&&String(c.text).trim());}
 function surveyQuestionHTML(q,i){
   const kind=q.kind||(q.mode==="custom"?"custom":(q.type||"single"));
@@ -8454,13 +8454,13 @@ function catchUpSocial(){
       try{renderMoments();renderGuestbook();}catch(e){}
       /* 补发也要在聊天页留一行、并且弹一次提示；以前这里是静默补数据，所以「有动态却看不到提示」 */
       try{
-        if(comAdd){var _cid=pushMsg("partner","sys",comAdd>1?("💬 对方评论了你的动态（"+comAdd+" 条）"):"💬 对方评论了你的动态");__appendChatMsg(_cid);}
+        if(comAdd){var _cid=pushMsg("partner","sys",comAdd>1?("💬 对方评论了你的动态（"+comAdd+" 条）"):"💬 对方评论了你的动态",{quiet:true});__appendChatMsg(_cid);}
       }catch(e){}
       try{
-        if(momAdd){var _mid=pushMsg("partner","sys",momAdd>1?("📷 对方发了 "+momAdd+" 条新动态"):"📷 对方发了一条新动态");__appendChatMsg(_mid);}
+        if(momAdd){var _mid=pushMsg("partner","sys",momAdd>1?("📷 对方发了 "+momAdd+" 条新动态"):"📷 对方发了一条新动态",{quiet:true});__appendChatMsg(_mid);}
       }catch(e){}
       try{
-        if(noteAdd){var _nid=pushMsg("partner","sys",noteAdd>1?("💬 对方给你留了 "+noteAdd+" 条留言"):"💬 对方给你留言了");__appendChatMsg(_nid);}
+        if(noteAdd){var _nid=pushMsg("partner","sys",noteAdd>1?("💬 对方给你留了 "+noteAdd+" 条留言"):"💬 对方给你留言了",{quiet:true});__appendChatMsg(_nid);}
       }catch(e){}
     }
   }catch(e){}
@@ -9599,7 +9599,7 @@ function renderCards(){
   let html=groups.map(g=>'<button class="group-tab'+(g.id===activeGroupId?" active":"")+(g.disabled?" off":"")+'" data-gid="'+g.id+'">'+esc(g.name)+'<span class="gt-off" data-gdis="'+g.id+'" title="屏蔽该分组">⊘</span><span class="gt-edit" data-gedit="'+g.id+'">✎</span>'+(state.groups.length>1?'<span class="gt-del" data-gdel="'+g.id+'">×</span>':"")+'</button>').join("");
   html+='<button class="group-tab new-group-btn" id="grp-new" style="min-width:40px;">+ 分组</button>';
   tabs.innerHTML=html;
-  tabs.querySelectorAll(".group-tab[data-gid]").forEach(b=>b.addEventListener("click",e=>{if(e.target.dataset.gdel){delGroup(e.target.dataset.gdel);}else if(e.target.dataset.gdis){toggleGroupDisabled(e.target.dataset.gdis);}else if(e.target.dataset.gedit){renameGroup(e.target.dataset.gedit);}else{activeGroupId=b.dataset.gid;_cardActiveGid[K]=b.dataset.gid;renderCards();renderSettingsSelect();}}));
+  tabs.querySelectorAll(".group-tab[data-gid]").forEach(b=>b.addEventListener("click",e=>{if(e.target.dataset.gdel){delGroup(e.target.dataset.gdel);}else if(e.target.dataset.gdis){toggleGroupDisabled(e.target.dataset.gdis);}else if(e.target.dataset.gedit){renameGroup(e.target.dataset.gedit);}else{activeGroupId=b.dataset.gid;_cardActiveGid[K]=b.dataset.gid;if(K==="chat"){try{state.settings.replyGroupId=b.dataset.gid;save();}catch(e){}}renderCards();renderSettingsSelect();}}));
   $("grp-new").addEventListener("click",()=>{$("new-group-name").focus();});
   // 本组字卡
   const list=$("card-list");const gname=groupById(activeGroupId)?groupById(activeGroupId).name:"";
@@ -14713,9 +14713,16 @@ function letterCardPool(){
   var chatPool=state.cards.filter(function(c){
     return cardKindOf(c)==="chat"&&!c.disabled&&chatG.some(function(g){return g.id===c.groupId&&!g.disabled;})&&c.text&&String(c.text).trim();
   });
-  var ltPool=state.cards.filter(function(c){
-    return cardKindOf(c)==="letter"&&!c.disabled&&!(groupById(c.groupId)||{}).disabled&&c.text&&String(c.text).trim();
-  });
+  var ltOk=function(c){return cardKindOf(c)==="letter"&&!c.disabled&&!(groupById(c.groupId)||{}).disabled&&c.text&&String(c.text).trim();};
+  var ltPool=state.cards.filter(ltOk);
+  /* 信件字卡页里选中的分组 → 对方写信/回信优先用这一组；该组没卡才退回全部信件字卡 */
+  try{
+    var _lgid=_cardActiveGid&&_cardActiveGid.letter;
+    if(_lgid){
+      var _lInG=state.cards.filter(function(c){return ltOk(c)&&c.groupId===_lgid;});
+      if(_lInG.length)ltPool=_lInG;
+    }
+  }catch(e){}
   if(src==="letter")return ltPool;
   if(src==="mix")return chatPool.concat(ltPool);
   return chatPool;
@@ -14846,7 +14853,28 @@ function bindMomentCommentUI(){
 }
 function pickCardsN(n,kind){
   const k=kind||"chat";
-  const pool=state.cards.filter(c=>cardKindOf(c)===k&&!c.disabled&&!(groupById(c.groupId)||{}).disabled&&c.text&&String(c.text).trim());
+  const okOf=c=>cardKindOf(c)===k&&!c.disabled&&!(groupById(c.groupId)||{}).disabled&&c.text&&String(c.text).trim();
+  let pool=state.cards.filter(okOf);
+  /* 每个 kind 页面里选中的那个分组，就是这一路该用的那套
+     （标题写的是：聊天「回复我时用这套」/ 信件「写信回信时用这套」/ 动态「发布动态时用这套」）。
+     以前只按 kind 取卡、完全不理分组，所以选哪个分组都没用。分组里没卡才退回该 kind 的全部字卡 */
+  try{
+    const gid=_cardActiveGid&&_cardActiveGid[k];
+    if(gid){
+      const inG=state.cards.filter(c=>okOf(c)&&c.groupId===gid);
+      if(inG.length)pool=inG;
+    }
+  }catch(e){}
+  /* 动态字卡一张都没有时用聊天字卡兜底：否则「动态字卡」空着，对方永远发不出动态 */
+  if(k==="moment"&&!pool.length){
+    try{
+      const _cok=c=>cardKindOf(c)==="chat"&&!c.disabled&&!(groupById(c.groupId)||{}).disabled&&c.text&&String(c.text).trim();
+      const _rg=state.settings&&state.settings.replyGroupId;
+      let _cp=state.cards.filter(_cok);
+      if(_rg){const _in=_cp.filter(c=>c.groupId===_rg);if(_in.length)_cp=_in;}
+      pool=_cp;
+    }catch(e){}
+  }
   if(!pool.length||n<=0)return [];
   const sh=shuffle(pool.slice());
   return sh.slice(0,Math.min(n,sh.length)).map(c=>c.text);
@@ -14891,11 +14919,16 @@ var _lsBtn=$("letter-send");if(_lsBtn)_lsBtn.addEventListener("click",function()
 
 /* ===== 留言板 ===== */
 function renderGuestbook(force){
-  var _s="guest|"+__sigOfList(state.guestbook);
+  /* 数据里只要有一条畸形（缺字段、循环引用、text 不是字符串），这里就会抛错，
+     抛在写 innerHTML 之前 → 页面上「对方公开回答过的（N）」有数字、下面却一片空白。
+     所以签名计算和整体渲染都兜住：真出错就用最简卡片兜底，绝不让列表变空 */
+  var _s="guest|";
+  try{_s+=__sigOfList(state.guestbook);}catch(e){_s+="raw"+(state.guestbook?state.guestbook.length:0);}
   if(!window.__rSig)window.__rSig={};
   if(!force&&window.__rSig["guest"]===_s&&$("note-list")&&$("note-list").innerHTML)return;
   window.__rSig["guest"]=_s;
 
+  try{
   const list=$("note-list");
   const notes=state.guestbook;
   // 配对：相邻两角色互为问答——我的留言+对方回复 / 对方留言+我的回复；无配对=单卡
@@ -14911,10 +14944,15 @@ function renderGuestbook(force){
       else cards.push({q:null,ans:n});
     }
   }
-  const answered=cards.filter(c=>c.q&&c.q.from==="me"&&c.ans).length;
+  /* 「对方公开回答过的（N）」要跟下面真正列出来的条数对得上：
+     原来只数「我提问-对方回答」的配对，数据里对方自己发的留言一条都不算，
+     就会出现「显示 2、下面却一大片」或反过来「显示 4、下面 124 条」的错位。
+     改成：只要这张卡里有对方的内容就算一条。 */
+  const answered=cards.filter(c=>(c.q&&c.q.from==="partner")||(c.ans&&c.ans.from==="partner")).length;
   const cnt=$("gb-ans-count");if(cnt)cnt.textContent=answered;
   const empty=notes.length===0?'<div class="empty-hint">还没有留言，留一句吧。</div>':'';
   const cardsHTML=cards.slice().reverse().map(c=>{
+   try{
     const del='<button class="qa-del" data-qdel="'+(c.q?c.q.id:"")+'" data-adel="'+(c.ans?c.ans.id:"")+'">×</button>';
     // 卡片中属于"未读对方消息"的 id（用于新留言提示条定位）
     let nid=null;
@@ -14938,6 +14976,16 @@ function renderGuestbook(force){
     var starId=c.q?c.q.id:(c.ans?c.ans.id:"");
     var starHTML=starId?__starBtnHTML("guestbook",starId,"qa-star"):"";
     return '<div class="qa-card'+(isNew?' qa-gbnew':'')+'"'+marker+(repId?' data-gbreply="'+repId+'"':'')+'>'+del+starHTML+head+q+a+'</div>';
+   }catch(e){
+     /* 单条数据畸形（时间缺失、字段异常）不能让整张列表空掉：降级成一条最简卡 */
+     try{
+       var _t=c&&(c.q||c.ans)||{};
+       return '<div class="qa-card">'
+         +'<div class="qa-head"><span class="qa-lock">💬</span> '+(c&&c.q&&c.q.from==="partner"?"对方留言":(c&&c.q?"匿名问答":"对方留言"))+'</div>'
+         +'<div class="qa-q">'+esc(String(_t.text==null?"":_t.text))+'</div>'
+         +'</div>';
+     }catch(_e){return "";}
+   }
   }).join("");
   const unreadIds=gbUnread.filter(id=>notes.some(n=>n.id===id));
   const bar=unreadIds.length?'<div class="gb-newbar" id="gb-newbar">🔔 有新留言/回复（'+unreadIds.length+'）· 点击查看</div>':'';
@@ -14996,6 +15044,17 @@ function renderGuestbook(force){
       inp.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();doReply();}});
     });
   });
+  }catch(_e){
+    try{
+      const _l=$("note-list");
+      if(_l){
+        const _rows=(state.guestbook||[]).map(function(n){
+          try{return '<div class="qa-card"><div class="qa-head"><span class="qa-lock">💬</span> '+(n&&n.from==="partner"?"对方留言":"我的留言")+'</div><div class="qa-q">'+esc(String((n&&n.text)||""))+'</div></div>';}catch(_x){return "";}
+        }).join("");
+        _l.innerHTML='<div class="qa-list">'+_rows+'</div>';
+      }
+    }catch(_y){}
+  }
 }
 function replyToPartner(pid,text){
   const idx=state.guestbook.findIndex(x=>x.id===pid);
@@ -15329,7 +15388,7 @@ function renderComments(m){
     const cls=isRep?"mc-row rep":"mc-row";
     const delBtn=item.from==="me"?'<button class="mc-del" data-mdelc="'+item.id+'">删除</button>':'';
     const repBtn='<div class="mc-sub"><button class="mc-reply" data-mreply="'+item.id+'" data-mname="'+esc(authorName(item.from))+'">回复</button>'+delBtn+'</div>';
-    return '<div class="'+cls+'" data-mc="'+item.id+'"><img class="mc-av" data-cav="'+item.from+'" src="'+authorAvatar(item.from)+'"><div class="mc-body"><div class="mc-top"><b class="mc-user">'+esc(authorName(item.from))+'</b><span class="mc-time">'+relTime(item.time)+'</span><button class="mc-like'+(liked?" on":"")+'" data-clike="'+item.id+'"><svg class="icon"><use xlink:href="#i-heart"/></svg></button></div><div class="mc-text">'+esc(item.text)+(item.emoji?'<img class="mc-emoji" src="'+item.emoji+'" alt="">':'')+'</div>'+repBtn+'</div></div>';
+    return '<div class="'+cls+'" data-mc="'+item.id+'"><img class="mc-av" data-cav="'+item.from+'" src="'+esc(__blobUrl(authorAvatar(item.from)))+'"><div class="mc-body"><div class="mc-top"><b class="mc-user">'+esc(authorName(item.from))+'</b><span class="mc-time">'+relTime(item.time)+'</span><button class="mc-like'+(liked?" on":"")+'" data-clike="'+item.id+'"><svg class="icon"><use xlink:href="#i-heart"/></svg></button></div><div class="mc-text">'+esc(item.text)+(item.emoji?'<img class="mc-emoji" src="'+item.emoji+'" alt="">':'')+'</div>'+repBtn+'</div></div>';
   }
   function dfs(list,depth,out){
     (list||[]).forEach(function(r){out.push({r:r,d:depth});if(r.replies&&r.replies.length)dfs(r.replies,depth+1,out);});
@@ -15388,7 +15447,7 @@ function __momentRepostHTML(m){
   if(!o)return '<div class="moment-repost missing">原动态已删除</div>';
   var oav=o.from==="me"?(state.me.avatar||""):(state.partner.avatar||"");
   var onm=authorName(o.from);
-  var oimg=o.img?'<div class="mr-img"><img src="'+o.img+'" alt="" loading="lazy" decoding="async"></div>':'';
+  var oimg=o.img?'<div class="mr-img"><img src="'+esc(__blobUrl(o.img))+'" alt="" loading="lazy" decoding="async"></div>':'';
   var otxt=o.text?'<div class="mr-text">'+esc(o.text)+'</div>':'';
   return '<div class="moment-repost"><div class="mr-head"><img class="mr-av" src="'+__blobUrl(oav)+'" alt=""><span class="mr-name">'+esc(onm)+'</span></div>'+oimg+otxt+'</div>';
 }
@@ -15397,7 +15456,9 @@ function __momentCardHTML(m){
   const av=m.from==="me"?state.me.avatar:state.partner.avatar;
   const nm=authorName(m.from);
   const op=m.from==="partner"?" data-openp='1'":"";
-  const img=m.img?'<img class="moment-img" src="'+m.img+'" alt="" loading="lazy" decoding="async">':'';
+  /* 图片如果是 data:base64，直接塞进 HTML 会让每张卡的内联字符串涨到 1~2MB，
+     四张卡就 7.6MB，innerHTML 解析要 70ms；换成缓存的 blob: 地址后字符串只有几十字节 */
+  const img=m.img?'<img class="moment-img" src="'+esc(__blobUrl(m.img))+'" alt="" loading="lazy" decoding="async">':'';
   const repost=__momentRepostHTML(m);
   const fwd=m.from==="partner"?'<button class="ma-btn" data-repost="'+m.id+'"><svg class="icon"><use xlink:href="#i-mode-loop"/></svg>转发</button>':'';
   const liked=m.likes&&m.likes.indexOf("me")>-1;
@@ -15435,7 +15496,7 @@ window.__refreshMomentCard=function(mid){
 function renderMoments(){
   /* 签名只看「动态数据」，不再把当前是哪一边算进去：
      从对方主页点回我的主页时数据没变，就只切显示侧，不整块清空重铺 */
-  var _s="mom|"+__sigMoments(state.moments);
+  var _s="mom|"+(mpSide||"me")+"|"+__sigMoments(state.moments);
   if(!window.__rSig)window.__rSig={};
   var _feed0=$("moment-feed");
   if(window.__rSig["mom"]===_s&&_feed0&&_feed0.children.length){
@@ -15463,14 +15524,18 @@ function renderMoments(){
     var _fid=window._momentFocusId;window._momentFocusId=null;
     setTimeout(function(){locateMoment(_fid);},150);
   }
-  const arr=base.slice().reverse();
+  /* 只铺当前这一边的卡片：另一边等切过去再重建（切一次 30~40ms，
+     比一进主页就把两边几十张卡全拼出来划算得多） */
+  const arr=base.filter(function(x){return x.from===(mpSide==="partner"?"partner":"me");}).slice().reverse();
   const wasFocus=momentFocusMid;
   /* 只记数据，真正显示哪 15 条再按需生成 HTML；不再一次性拼完所有卡片 */
   window.__momData=arr;window.__momCards=[];window.__momShown=0;
   feed.innerHTML="";
   feed.setAttribute("data-side",mpSide||"me");
   /* 两边都铺进来；量不大时一次铺完，避免切到另一边时那边还没生成 */
-  momAppendChunk(arr.length<=80?arr.length:60);
+  /* 首屏只铺一小批（原来 60 张一次拼，63 条动态要 140ms+）；
+     剩下的等最后一张进视野再续，滚动时几乎无感 */
+  momAppendChunk(arr.length<=24?arr.length:18);
   // 重绘后恢复被“回复”目标的高亮
   if(replyCtx&&replyCtx.momentId&&replyCtx.commentId){
     var _tc=feed.querySelector('.moment-card[data-id="'+replyCtx.momentId+'"] [data-mc="'+replyCtx.commentId+'"]');
@@ -15717,7 +15782,7 @@ $("post-send").addEventListener("click",()=>{
         state.moments.push({id:uid(),from:"partner",text:_pp.text,img:_pp.img||"",repostOf:_pp.repostOf,likes:[],comments:[],time:Date.now(),unread:true,unreadKind:"post"});
         newM++;updateNewBadge();
         save();renderMoments();toast("对方发了新动态");
-        var _momid=pushMsg("partner","sys","📷 对方发了一条新动态");__appendChatMsg(_momid);save();
+        __momentNotice();save();
       },socialDelay());
     }
   }
@@ -15899,6 +15964,24 @@ function partnerComment(postId){
   try{var _ccid=pushMsg("partner","sys","💬 对方评论了你的动态",{momentId:postId,commentId:_cmId});__appendChatMsg(_ccid);}catch(e){}
   save();if(!__refreshMomentCard(postId))renderMoments();toast("对方评论了你的动态");save();
 }
+/* 对方连续发动态时，同一件事只留一条「📷 对方发了一条新动态」提示：
+   先让 __rebuildSocialNotices 归并，再只把最新的那条追加到聊天尾部，避免一屏多条重复 */
+function __momentNotice(){
+  try{
+    try{if(window.__rebuildSocialNotices)__rebuildSocialNotices();}catch(e){}
+    var ms=state.messages||[],last=null;
+    for(var i=ms.length-1;i>=0;i--){
+      if(ms[i]&&ms[i].type==="sys"&&/对方发了\s*\d*\s*条?新动态|对方发了一条新动态/.test(String(ms[i].text||""))){last=ms[i];break;}
+    }
+    if(last&&last.id!==window.__lastMomNoticeId){
+      window.__lastMomNoticeId=last.id;
+      try{__appendChatMsg(last.id);}catch(e){}
+      /* 真实新动态仍然提示一次；重复归并时不重复弹 */
+      try{maybeShowIncomingPop(last,true);}catch(e){}
+    }
+  }catch(e){}
+}
+window.__momentNotice=__momentNotice;
 function maybePartnerMomentPost(force){
   // 对方主动发新动态：一次触发按设置发 N 条，每条用 1~N 张字卡拼成
   if(!force&&!probPct("socialProbMoments"))return;
@@ -15912,7 +15995,7 @@ function maybePartnerMomentPost(force){
       var _nid=uid();
       state.moments.push({id:_nid,from:"partner",text:_pp.text,img:_pp.img||"",repostOf:_pp.repostOf,likes:[],comments:[],time:Date.now(),unread:true,unreadKind:"post"});
       newM++;updateNewBadge();
-      try{var _momid2=pushMsg("partner","sys","📷 对方发了一条新动态");__appendChatMsg(_momid2);}catch(e){}
+      try{__momentNotice();}catch(e){}
       save();renderMoments();
       toast("对方发了新动态");save();
     },1200+i*rand(3000,8000));
@@ -17690,7 +17773,7 @@ setTimeout(function(){
    不使用 Service Worker（避免缓存接管导致打不开/黑屏），只用“对比构建号 + 换 URL”这一招。 */
 (function(){
   if(!/^https?:$/.test(location.protocol))return;
-  var BUILD="2026-11-14bp91";
+  var BUILD="2026-11-14bp101";
   var KEY="app_build_reloaded";
   var busy=false;
   function go(url){location.replace(url+"&skipabout=1");}
@@ -18465,7 +18548,12 @@ try{
   try{
     if(!("serviceWorker" in navigator))return;
     if(!/^https:/i.test(location.protocol)&&location.hostname!=="localhost"&&location.hostname!=="127.0.0.1")return;
-    navigator.serviceWorker.register("./sw.js",{scope:"./"}).catch(function(){});
+    /* 单文件交付没法带 sw.js：先确认文件真的存在再注册，免得每次启动在控制台刷一条 404 */
+    try{
+      fetch("./sw.js",{method:"HEAD"}).then(function(r){
+        if(r&&r.ok)navigator.serviceWorker.register("./sw.js",{scope:"./"}).catch(function(){});
+      }).catch(function(){});
+    }catch(e){}
     /* 每次打开都主动问一次有没有新版 sw（不靠删图标、不靠清缓存）：
        新 sw 会 skipWaiting + client.claim 立刻接管，接管后页面里的版本号也会跟着更新 */
     var __swReg=null;
