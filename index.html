@@ -13,6 +13,15 @@
   /* 第一帧就告诉系统「这块内容是深/浅色」：iOS 的顶栏（时间/信号/电量）会据此立刻上色，
      不用等到后面 applySkin() 再同步（那一段就是「顶栏很久才变过来」） */
   try{document.documentElement.style.colorScheme=dark?"dark":"light";}catch(e){}
+  /* iOS 主屏幕图标打开时，状态栏（时间/信号/电量那一条）的底色只在「启动那一刻」读这个 meta，
+     运行时改是无效的。所以不能写死 default：必须在第一帧按真实明暗建出来 */
+  try{
+    var _sb=document.createElement("meta");
+    _sb.name="apple-mobile-web-app-status-bar-style";
+    _sb.content=dark?"black":"default";
+    document.head.appendChild(_sb);
+    window.__sbMeta=_sb;
+  }catch(e){}
   var d=document.createElement("div");
   d.id="boot-veil";
   d.style.cssText="position:fixed;inset:0;z-index:99998;background:"+bg+";display:flex;align-items:center;justify-content:center;transition:opacity .2s ease;";
@@ -38,7 +47,7 @@ html[data-boot="light"],html[data-boot="light"] body{background:#fafafa!importan
 <title>Eleven×11</title>
 <link rel="apple-touch-icon" sizes="180x180" href="data:image/png;base64,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">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+
 <meta name="apple-mobile-web-app-title" content="Eleven×11">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='3' y='5' width='18' height='14' rx='4' fill='%233478F6'/%3E%3Ccircle cx='8' cy='12' r='1.5' fill='white'/%3E%3Ccircle cx='12' cy='12' r='1.5' fill='white'/%3E%3Ccircle cx='16' cy='12' r='1.5' fill='white'/%3E%3C/svg%3E">
 <style>
@@ -859,8 +868,11 @@ input[type=file][hidden]{display:block !important;position:fixed !important;left
      几千行聊天或整张壁纸都会跟着重画，看起来就是「有提示的时候屏幕闪一下」。改成实色半透明，不再模糊背景 */
   background:rgba(255,255,255,.94);
   border:1px solid var(--glassborder,rgba(255,255,255,.7));box-shadow:inset 0 1px 0 var(--glassinner,rgba(255,255,255,.6)),0 10px 30px rgba(0,0,0,.14);
-  opacity:0;transform:translateY(-14px);pointer-events:none;transition:.3s;}
-#incoming-pop.show{opacity:1;transform:translateY(0);pointer-events:auto;}
+  opacity:0;transform:translate3d(0,-14px,0);pointer-events:none;transition:opacity .24s,transform .24s;
+  /* 让它自己成为一个合成层：提示条出现/消失时不要带着底下的壁纸和整张聊天列表一起重画，
+     iOS 上那一下重画就是「有提示时屏幕闪一下」 */
+  will-change:transform,opacity;-webkit-backface-visibility:hidden;backface-visibility:hidden;contain:layout paint;}
+#incoming-pop.show{opacity:1;transform:translate3d(0,0,0);pointer-events:auto;}
 #incoming-pop .ip-av{width:40px;height:40px;border-radius:50%;object-fit:cover;background:var(--panel);flex:0 0 auto;}
 #incoming-pop .ip-mid{flex:1;min-width:0;}
 #incoming-pop .ip-name{font-size:13px;font-weight:700;color:var(--ttext);}
@@ -1797,7 +1809,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-14bp84">
+<meta name="app-build" content="2026-11-14bp91">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -5064,7 +5076,10 @@ function maybeShowIncomingPop(m,force){
   try{
     if(av){
       var _avSrc=(state.partner&&state.partner.avatar)||avatarSvg("#5AC8FA");
-      if(av.getAttribute("src")!==_avSrc)av.setAttribute("src",_avSrc);
+      if(av.getAttribute("src")!==_avSrc){
+        av.setAttribute("src",_avSrc);
+        try{if(av.decode)av.decode().catch(function(){});}catch(e){}
+      }
     }
     if(nm){
       var _nmTxt=(state.partner&&state.partner.name)||"对方";
@@ -6154,6 +6169,7 @@ function __syncSysBar(){
     var sb=document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
     /* 夜里不能用 black-translucent：那会让网页内容钻到状态栏底下，整页上移、底部空出一截。
        用 black：状态栏是黑的，内容仍然从状态栏下面开始，布局和白天一致。 */
+    if(!sb){sb=document.createElement("meta");sb.name="apple-mobile-web-app-status-bar-style";document.head.appendChild(sb);window.__sbMeta=sb;}
     if(sb)sb.setAttribute("content",sysDark?"black":"default");
   }catch(e){}
   try{
@@ -6443,7 +6459,7 @@ function __msgRowRaw(m){
     if(m.type==="image"&&(m.kind==="emoji"||m.kind==="draw")){
       // 表情包 / 画作：不包裹气泡，直接显示
       const frame=m.kind==="draw"?'drawbox':'sticker';
-      html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="sync" src="'+__blobUrl(av)+'" alt=""><div class="msg-col"><div class="'+frame+'"><img loading="lazy" decoding="async" src="'+m.src+'" alt=""></div>'+meta+'</div></div>';
+      html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="sync" src="'+__blobUrl(av)+'" alt=""><div class="msg-col"><div class="'+frame+'"><img loading="eager" decoding="async" src="'+m.src+'" alt=""></div>'+meta+'</div></div>';
       return html;
     }    if(m.type==="voice"){
       const _d=Math.max(1,Math.round(Number(m.dur)||1));
@@ -7102,6 +7118,28 @@ function __chatPinNow(){
   try{var l=document.getElementById("msglist");if(l)l.scrollTop=l.scrollHeight;}catch(e){}
 }
 window.__chatPinNow=__chatPinNow;
+/* 进聊天后的 1.6 秒内，只要列表高度变了（图片解码、字体落位、键盘收起）就重新贴底。
+   以前只在 0/1 帧/60ms 各贴一次，图片稍晚一点解码完，内容就往上顶一下 —— 看起来是「整页跳一下」 */
+function __chatStickFor(ms){
+  try{
+    var l=document.getElementById("msglist");if(!l)return;
+    if(window.__chatStickTimer)clearTimeout(window.__chatStickTimer);
+    var until=Date.now()+(Number(ms)||1600);
+    var stick=function(){
+      if(Date.now()>until)return;
+      if(Date.now()-(window.__lastUserScroll||0)<260)return;   /* 用户自己在滑，就别抢 */
+      try{if(l.isConnected)l.scrollTop=l.scrollHeight;}catch(e){}
+    };
+    if(!window.__chatStickBound){
+      window.__chatStickBound=1;
+      l.addEventListener("load",stick,true);                   /* 图片 load 冒不到 scroll 容器，用捕获 */
+    }
+    window.__chatStickRO=window.__chatStickRO||new ResizeObserver(stick);
+    try{window.__chatStickRO.observe(l);}catch(e){}
+    window.__chatStickTimer=setTimeout(function(){stick();try{window.__chatStickRO.disconnect();}catch(e){}},until-Date.now()+40);
+  }catch(e){}
+}
+window.__chatStickFor=__chatStickFor;
 function __chatTailDetached(){return Number(window.__chatRenderEnd||0)<Number(window.__chatTotal||0);}
 function __chatShowNewPill(){
   try{
@@ -7774,7 +7812,10 @@ function pushMsg(from,type,text,opts){
      不因为类型是 sys/poke 就被跳过；同一条只弹一次，避免和下面的 maybeShowIncomingPop 重复 */
   try{
     /* 分工：在后台就弹系统通知——对方任何类型（文字/图片/语音/表情/拍一拍/动态/留言/信/邀请/问卷/红包）全弹，含主动与补发；页面开着就只弹顶部提示并响收发提示音 */
-    if(from==="partner"&&document.hidden){
+    /* quiet 表示「启动时补的旧提示」（来信/留言/动态/评论那几条），不是刚发生的新消息：
+       启动那一下 document 往往还是 hidden，以前这些补提示也会走系统通知 →
+       由于没权限又退回 App 内弹窗，于是每开一次网站就弹一次「对方给你写了封信」 */
+    if(from==="partner"&&document.hidden&&!opts.quiet){
       m.__notified=1;
       notifySystem(m,{silent:m.type==="poke"});
     }
@@ -8004,6 +8045,12 @@ function chatAppendTail(m){
         }
         list.insertAdjacentHTML("beforeend",msgRowHTML(m));
         var row=list.lastElementChild;
+        /* 刚发/刚收到的这一行：图必须当下就解码出来，不能等滚动器慢慢懒加载，
+           否则先出现一块空白再补图，肉眼就是发图/发一次表情闪一下 */
+        try{
+          var _ni=row?row.querySelectorAll("img"):[];
+          for(var _ii=0;_ii<_ni.length;_ii++){try{_ni[_ii].loading="eager";_ni[_ii].decoding="sync";}catch(e){}}
+        }catch(e){}
         if(row&&!row.dataset.rp&&!row.dataset.sq){
           row.addEventListener("click",function(e){if(row._lp){row._lp=false;return;}e.stopPropagation();openActions(row.dataset.id);});
           try{bindLongPress(row);}catch(e){}
@@ -8454,7 +8501,9 @@ function catchUpMissed(){
     if(sent){
       state.settings.lastLetterTime=lastDue;
       newL+=sent;updateNewBadge();renderLetters();
-      var _newlid=pushMsg("partner","sys","📮 对方给你写了封信");__appendChatMsg(_newlid);save();
+      /* 启动补发（人不在的时候到点的信）不算「刚刚发生」：只安静地插一条聊天提示，
+         不弹顶部提示条、不发系统通知，否则每次打开网站都会先弹一次「对方给你写了封信」 */
+      var _newlid=pushMsg("partner","sys","📮 对方给你写了封信",{quiet:true});__appendChatMsg(_newlid);save();
     }
   }catch(e){}
 }
@@ -11230,7 +11279,11 @@ function showView(id){
     try{document.body.classList.toggle("away-chat",id!=="view-chat");}catch(e){}
     if(id==="view-chat"){
       /* 不点输入框时也直接看到最新聊天记录：显示后再即时贴底一次（无动画） */
-      try{__chatPinNow();requestAnimationFrame(__chatPinNow);setTimeout(__chatPinNow,60);}catch(e){}
+      try{__chatPinNow();requestAnimationFrame(__chatPinNow);setTimeout(__chatPinNow,60);
+        /* 关键：图片是显示后才解码的，解码完高度变大，列表会“往上顶一下”。
+           这里在 1.6 秒内持续粘底，把这个跳动吃掉 */
+        __chatStickFor(1600);
+      }catch(e){}
     }
     /* 离开聊天页后，趁它已经藏着的时候把「有变化但还没重画」的列表补画好，
        这样下次点进聊天是现成的，不会在可见状态下重建（那一下就是返回聊天时的闪） */
@@ -17637,7 +17690,7 @@ setTimeout(function(){
    不使用 Service Worker（避免缓存接管导致打不开/黑屏），只用“对比构建号 + 换 URL”这一招。 */
 (function(){
   if(!/^https?:$/.test(location.protocol))return;
-  var BUILD="2026-11-14bp84";
+  var BUILD="2026-11-14bp91";
   var KEY="app_build_reloaded";
   var busy=false;
   function go(url){location.replace(url+"&skipabout=1");}
@@ -20388,6 +20441,9 @@ try{
       for(var i=0;i<nodes.length;i++){
         var id=nodes[i].getAttribute("data-id");
         if(!id)continue;
+        /* 只看「行」本身：卡片里面的按钮也带 data-id（问卷的「去填写」就是），
+           以前把按钮当成重复行删掉了，问卷卡片因此没有按钮，点了也没用 */
+        try{if(nodes[i].parentElement&&nodes[i].parentElement.closest("[data-id]"))continue;}catch(e){}
         if(seen[id]){kill.push(nodes[i]);continue;}
         seen[id]=1;
       }
