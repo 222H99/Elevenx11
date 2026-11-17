@@ -14540,6 +14540,10 @@ function __musicCoverBadImg(im){
     var src=im.getAttribute("src")||"";
     window.__coverValidCache=window.__coverValidCache||{};
     window.__coverValidCache[src]=0;
+    if(isMain){
+      try{if(state.musicCoverImg===src)state.musicCoverImg="";}catch(_){}
+      try{if(state.musicDiscInnerImg===src)state.musicDiscInnerImg="";}catch(_){}
+    }
     var key=String(s.neteaseId||s.id||"");
     if(key){delete __songCoverCache[key];__songCoverMiss[key]=0;}
     if(s.__coverRetry)return;
@@ -14589,8 +14593,27 @@ function __recoverMusicFromBk(){
     }).catch(function(){window.__musicBkRecovering=0;});
   }catch(_){window.__musicBkRecovering=0;}
 }
+/* 自定义封面/唱片中心图如果是已经坏掉的 data 图，先验一次解码：
+   坏了就清掉，退回歌曲封面或占位，不能在唱片中心一直留空白 */
+function __verifyMusicCustomMedia(){
+  try{
+    window.__coverValidCache=window.__coverValidCache||{};
+    ["musicCoverImg","musicDiscInnerImg"].forEach(function(k){
+      var src=String(state[k]||"");if(!src||src.slice(0,11)!=="data:image/")return;
+      if(window.__coverValidCache[src]!==undefined)return;
+      var im=new Image();
+      im.onload=function(){window.__coverValidCache[src]=1;};
+      im.onerror=function(){
+        window.__coverValidCache[src]=0;
+        try{if(state[k]===src){state[k]="";save();renderMusicList();}}catch(_){}
+      };
+      im.src=src;
+    });
+  }catch(_){}
+}
 function renderMusicList(){
   renderMusicBg();
+  try{__verifyMusicCustomMedia();}catch(_){}
   const au=musicAudio();const pl=state.musicPlaylist;
   const cur=Math.min(state.musicCur,pl.length-1);
   const disc=$("music-disc");
