@@ -1,15 +1,15 @@
-/* Eleven×11 Service Worker —— 在线永远取最新版，缓存只做断网兜底
+/* Eleven×11 Service Worker —— 在线取最新版；断网/慢网先给缓存，绝不停在黑屏
  *
- * 关键点：
- * 1) 打开页面（navigate）走网络，并加 __sw 时间戳绕过 CDN/浏览器旧缓存；
- * 2) 只有网络失败（断网）才返回上一次成功缓存的 index.html；
- * 3) 其它同源静态文件也是网络优先，失败才用缓存；
- * 4) 新 sw 立刻 skipWaiting + clients.claim，并清掉旧 eleven11 缓存。
- *
- * 换版本不需要改这个文件；但如果你改了这个文件本身，浏览器会重新安装。
+ * 修复“退出网站再进入黑屏”：
+ * 1) 安装时主动缓存一份最新 index.html，换 SW 后不会出现缓存空窗；
+ * 2) 打开页面网络优先，但最多等 1.5 秒；1.5 秒没回来立刻用缓存，不再一直黑着；
+ * 3) 网络请求继续在后台完成，成功后更新缓存；
+ * 4) 连缓存都没有时，返回一个可重试的提示页，而不是空白 503。
  */
-const CACHE = "eleven11-runtime-v2";
+const CACHE = "eleven11-runtime-v15";
 const INDEX_URL = new URL("./index.html", self.location.href).href;
+const NETWORK_WAIT_MS = 1500;
+
 const SHELL = [
   "./manifest.json",
   "./icon-192.png",
@@ -17,12 +17,111 @@ const SHELL = [
   "./icon-maskable-512.png",
 ].map((p) => new URL(p, self.location.href).href);
 
+function freshUrl(raw) {
+  const u = new URL(raw);
+  u.searchParams.set("__sw", Date.now().toString(36));
+  return u.href;
+}
+
+function cacheIndexResponse(res) {
+  if (!res || !res.ok || res.status !== 200 || res.redirected) return;
+  const copy = res.clone();
+  caches
+    .open(CACHE)
+    .then((cache) => cache.put(INDEX_URL, copy))
+    .catch(() => {});
+}
+
+async function preCacheIndex() {
+  try {
+    const res = await fetch(freshUrl(INDEX_URL), {
+      cache: "no-store",
+      credentials: "same-origin",
+      redirect: "follow",
+    });
+    cacheIndexResponse(res);
+  } catch (_) {}
+}
+
+function offlinePage() {
+  return new Response(
+    '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
+      '<title>Eleven×11</title><style>' +
+      'html,body{margin:0;height:100%;background:#fafafa;color:#111}' +
+      '@media(prefers-color-scheme:dark){html,body{background:#000;color:#f2f2f7}}' +
+      'body{display:flex;align-items:center;justify-content:center;font:600 15px -apple-system,BlinkMacSystemFont,sans-serif}' +
+      '.b{text-align:center;opacity:.72}.a{display:inline-block;margin-top:14px;padding:8px 18px;border-radius:999px;background:#111;color:#fff;text-decoration:none;font-size:13px}' +
+      '@media(prefers-color-scheme:dark){.a{background:#f2f2f7;color:#111}}' +
+      '</style></head><body><div class="b">正在连接 Eleven×11…<br><a class="a" href="./index.html">重新进入</a></div>' +
+      '<script>setTimeout(function(){location.replace("./index.html?r="+Date.now())},2500)</script></body></html>',
+    { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } }
+  );
+}
+
+async function networkFirstIndex(request) {
+  const net = fetch(freshUrl(request.url), {
+    cache: "no-store",
+    credentials: "same-origin",
+    redirect: "follow",
+  });
+
+  let fresh = null;
+  try {
+    fresh = await Promise.race([
+      net,
+      new Promise((resolve) => setTimeout(() => resolve(null), NETWORK_WAIT_MS)),
+    ]);
+  } catch (_) {
+    fresh = null;
+  }
+
+  if (fresh && fresh.ok && fresh.status === 200) {
+    cacheIndexResponse(fresh);
+    return fresh;
+  }
+
+  // 网络超过 1.5 秒或失败：先让用户看到上一次的页面，绝不停在黑屏
+  const hit = await caches.match(INDEX_URL, { ignoreSearch: true });
+  if (hit) {
+    // 网络还在后台跑，成功后顺手更新缓存
+    net.then(cacheIndexResponse).catch(() => {});
+    return hit;
+  }
+
+  // 连缓存都没有：给一个可重试的提示页；网络若随后回来，后台也会写入缓存
+  net.then(cacheIndexResponse).catch(() => {});
+  return offlinePage();
+}
+
+async function networkFirstAsset(request) {
+  try {
+    const res = await fetch(request, { cache: "no-store", credentials: "same-origin" });
+    if (res && res.ok && res.status === 200) {
+      const copy = res.clone();
+      caches
+        .open(CACHE)
+        .then((cache) => cache.put(request, copy))
+        .catch(() => {});
+    }
+    return res;
+  } catch (err) {
+    const hit = await caches.match(request, { ignoreSearch: true });
+    if (hit) return hit;
+    throw err;
+  }
+}
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches
-      .open(CACHE)
-      .then((cache) => cache.addAll(SHELL).catch(() => {}))
+    Promise.all([
+      caches
+        .open(CACHE)
+        .then((cache) => cache.addAll(SHELL).catch(() => {}))
+        .catch(() => {}),
+      preCacheIndex(),
+    ])
       .then(() => self.skipWaiting())
+      .catch(() => self.skipWaiting())
   );
 });
 
@@ -44,55 +143,6 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SKIP_WAITING") self.skipWaiting();
 });
-
-function freshUrl(raw) {
-  const u = new URL(raw);
-  u.searchParams.set("__sw", Date.now().toString(36));
-  return u.href;
-}
-
-async function networkFirstIndex(request) {
-  try {
-    const res = await fetch(freshUrl(request.url), {
-      cache: "no-store",
-      credentials: "same-origin",
-      redirect: "follow",
-    });
-    if (res && res.ok && res.status === 200 && !res.redirected) {
-      const copy = res.clone();
-      caches
-        .open(CACHE)
-        .then((cache) => cache.put(INDEX_URL, copy))
-        .catch(() => {});
-    }
-    return res;
-  } catch (err) {
-    const hit = await caches.match(INDEX_URL, { ignoreSearch: true });
-    if (hit) return hit;
-    return new Response("当前离线，请联网后重新打开。", {
-      status: 503,
-      headers: { "Content-Type": "text/plain; charset=utf-8" },
-    });
-  }
-}
-
-async function networkFirstAsset(request) {
-  try {
-    const res = await fetch(request, { cache: "no-store", credentials: "same-origin" });
-    if (res && res.ok && res.status === 200) {
-      const copy = res.clone();
-      caches
-        .open(CACHE)
-        .then((cache) => cache.put(request, copy))
-        .catch(() => {});
-    }
-    return res;
-  } catch (err) {
-    const hit = await caches.match(request, { ignoreSearch: true });
-    if (hit) return hit;
-    throw err;
-  }
-}
 
 self.addEventListener("fetch", (event) => {
   const req = event.request;
