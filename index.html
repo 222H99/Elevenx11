@@ -43,6 +43,19 @@
 html.theme-swap *,html.theme-swap *::before,html.theme-swap *::after{transition:none!important;}
 html[data-boot="dark"],html[data-boot="dark"] body{background:#000!important;}
 html[data-boot="light"],html[data-boot="light"] body{background:#fafafa!important;}
+/* 开屏加载遮罩原来写死了浅色渐变：夜间先黑一下、再闪一块白，再进黑界面。
+   这里让启动遮罩、声明页、登录页都跟着第一帧明暗走，不再黑→白→黑。 */
+html[data-boot="dark"] #__veil{background:#000!important;background-image:none!important;}
+html[data-boot="dark"] #__veil>div{color:#f2f2f7!important;}
+html[data-boot="dark"] .about-screen{background:#000!important;color:#f2f2f7!important;}
+html[data-boot="dark"] .about-scroll h2,
+html[data-boot="dark"] .about-scroll p,
+html[data-boot="dark"] .about-scroll li{color:#f2f2f7!important;}
+html[data-boot="dark"] .about-scroll .about-note{color:rgba(255,255,255,.55)!important;}
+html[data-boot="dark"] .an-foot{background:rgba(0,0,0,.92)!important;border-color:rgba(255,255,255,.10)!important;}
+html[data-boot="dark"] .auth-gate{background:#000!important;color:#f5f5f7!important;}
+html[data-boot="dark"] .auth-card{background:#101012!important;border-color:rgba(255,255,255,.10)!important;}
+html[data-boot="dark"] .auth-input{background:#1c1c1f!important;border-color:rgba(255,255,255,.14)!important;color:#f5f5f7!important;}
 </style>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimum-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="color-scheme" content="light dark">
@@ -3523,7 +3536,7 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
       <!-- 信件回复 -->
       <div class="set-sec-title">信件回复</div>
       <div class="set-group"><div class="set-row"><span class="set-label">随机借用我的信封信纸<div class="set-sub">对方主动来信 / 回信时 3% 概率随机用你发过的信封+信纸搭配；关闭后一律用「对方来信」那套</div></span><button class="switch" id="sw-borrow-style"></button></div></div>
-      <div class="set-group"><div class="set-row"><span class="set-label">回信概率（%）<div class="set-sub">我写信后，他回信的概率</div></span><input class="set-input" id="set-reply-letter-prob" type="number" min="0" max="100" value="60"></div><div class="set-row"><span class="set-label">回信最快时长（分钟）</span><input class="set-input" id="set-reply-letter-min-sec" type="number" min="0" max="1440" step="1" value="1"></div><div class="set-row"><span class="set-label">回信最慢时长（小时）</span><input class="set-input" id="set-reply-letter-max-sec" type="number" min="0" max="72" step="1" value="1"></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">回信概率（%）<div class="set-sub">我写信后，他回信的概率</div></span><input class="set-input" id="set-reply-letter-prob" type="number" min="0" max="100" value="60"></div><div class="set-row"><span class="set-label">回信最快时长（分钟）</span><input class="set-input" id="set-reply-letter-min-sec" type="number" min="0" max="1440" step="1" value="1"></div><div class="set-row"><span class="set-label">回信最慢时长（小时）</span><input class="set-input" id="set-reply-letter-max-sec" type="number" min="0" max="72" step="0.1" value="1"></div>
       </div>
       <!-- 主动回信件 -->
       <div class="set-sec-title">主动回信件</div>
@@ -4854,7 +4867,11 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
     if(gate)gate.classList.add("show");bodyLock(true);
     try{window.__bootDone&&window.__bootDone();}catch(_){}
   }
-  function hideGate(){try{var _ae=document.activeElement;if(_ae&&(_ae.tagName==="INPUT"||_ae.tagName==="TEXTAREA"||_ae.tagName==="SELECT"||_ae.isContentEditable))_ae.blur();}catch(_e0){};if(gate)gate.classList.remove("show");bodyLock(false);try{window.__bootDone&&window.__bootDone();}catch(_){}}
+  function hideGate(){try{var _ae=document.activeElement;if(_ae&&(_ae.tagName==="INPUT"||_ae.tagName==="TEXTAREA"||_ae.tagName==="SELECT"||_ae.isContentEditable))_ae.blur();}catch(_e0){};if(gate)gate.classList.remove("show");bodyLock(false);
+  /* 真正进入账号空间后才定最终主题：登录/读云端之前一直沿用第一帧的明暗，
+     否则默认浅色存档会先把夜间页面刷白，再跳回黑色。 */
+  try{window.__themeReady=1;if(typeof applySkin==="function")applySkin();}catch(_eT){}
+  try{window.__bootDone&&window.__bootDone();}catch(_){}}
   function showPwdCard(){
     if(card)card.style.display="none";
     if(waitCard)waitCard.style.display="none";
@@ -6759,7 +6776,7 @@ async function init(){
           if((!_ssk[_bk]||__brokenImgVal(_ssk[_bk]))&&_lsk[_bk]&&!__brokenImgVal(_lsk[_bk]))_ssk[_bk]=_lsk[_bk];
         });
       }catch(_eSkinPhoto){}
-      state=migrate(s);try{__ltReadApply();}catch(e){}try{__prefApply();}catch(e){}window.__stateReady=1;try{window.__themeReady=1;}catch(_){}applySkin();
+      state=migrate(s);try{__ltReadApply();}catch(e){}try{__prefApply();}catch(e){}window.__stateReady=1;/* 主题先别在这里定：这份还可能是默认浅色快照，等两份存档合并完（下面 6820 行）再 __themeReady，否则夜间用户会先被刷白 */applySkin();
       try{__restoreEmojiLibFromBackup();}catch(_eEmojiLib){}
       try{__backfillEmojiMessageIds();}catch(_eBf){}
       try{__mergeMediaSnapshots(state,s);}catch(_eMergeMedia2){}
@@ -6804,7 +6821,7 @@ try{window.__scheduleCp2Render&&window.__scheduleCp2Render();}catch(e){}
       try{__backfillEmojiMessageIds();}catch(_eBf3){}
     }
     /* 存档最终确定后再定主题，并补画一次；早先的首屏一直用 __bootDark，不会白闪 */
-    try{window.__themeReady=1;applySkin();}catch(_eThemeFinal){}
+    try{/* 最终主题等 hideGate 再定，见 hideGate 注释 */applySkin();}catch(_eThemeFinal){}
     /* 两份存档合并完之后再统一改一次密码：此时 state 才是最终那份，改了才不会被旧快照盖回去 */
     try{if(typeof __pw1026==="function")__pw1026();}catch(e){}
     aboutLoadStatus("正在渲染界面…");
@@ -9780,7 +9797,9 @@ setInterval(function(){
     if(!due.length)return;
     due.forEach(function(p){_deliverLetterReply(p,Number(p.due)||now);});
   }catch(e){}
-},20000);
+},5000);
+/* 回前台立刻补一次，不等 5 秒轮询；回信到点不再因为切后台而拖很久 */
+try{document.addEventListener("visibilitychange",function(){if(!document.hidden){try{if(typeof catchUpMissed==="function")catchUpMissed();}catch(e){}}});}catch(e){}
 function _deliverLetterReply(p,when){
   if(!p||!p.letterId)return;
   var already=false;
@@ -9814,8 +9833,16 @@ function catchUpSocial(){
   function dueList(last, a, b, cap){
     var t0=Number(last)||0; if(!t0) return [];
     var mn=Math.max(1,Number(a)||1), mx=Math.max(mn,Number(b)||mn);
-    var avg=(mn+mx)/2*60000, out=[], t=t0+avg, k=0;
-    while(t<=now && k<cap){out.push(Math.round(t)); k++; t+=Math.max(60000,avg*(0.8+Math.random()*0.4));}
+    /* 每一段都在「最快～最慢」之间单独取值，而不是围着平均值抖动：
+       否则设了 1～5 分钟，实际会出现 0.8 分钟或 6 分钟，看起来像没按设置走。 */
+    var out=[], t=t0, k=0;
+    while(k<cap){
+      var gap=(mn+Math.random()*(mx-mn));
+      if(gap<1)gap=1;
+      t+=gap*60000;
+      if(t>now)break;
+      out.push(Math.round(t)); k++;
+    }
     return out;
   }
   var changed=false,momAdd=0,comAdd=0,noteAdd=0;
@@ -9837,7 +9864,7 @@ function catchUpSocial(){
       state.moments.push({id:uid(),from:"partner",text:_pp.text,img:_pp.img||"",repostOf:_pp.repostOf,likes:[],comments:[],time:mt[i],unread:true,unreadKind:"post"});
       newM++;momAdd++;changed=true;
     }
-    if(mt.length){try{state.settings.lastMomentsTime=mt[mt.length-1];}catch(e){}}else{try{state.settings.lastMomentsTime=now;}catch(e){}}
+    if(mt.length){try{state.settings.lastMomentsTime=mt[mt.length-1];}catch(e){}}else if(!Number(state.settings.lastMomentsTime)){try{state.settings.lastMomentsTime=now;}catch(e){}}
     /* 评论：分散补在我最新 3 条动态上，遵守每条动态上限；概率 0 时不补 */
     var ct=[];
     if(probPct("socialProbMomentComment")){ct=dueList(state.settings.lastCommentTime,state.settings.commentMinMin,state.settings.commentMaxMin,capFor(state.settings.lastCommentTime,state.settings.catchCommentPerHour));}
@@ -9859,7 +9886,7 @@ function catchUpSocial(){
       m2.comments.push({id:_cupId,from:"partner",text:joinCards(c),time:ct[j],likes:[],replies:[]});
       m2.unread=true;m2.unreadKind="comment";newM++;comAdd++;changed=true;
     }
-    if(ct.length){try{state.settings.lastCommentTime=ct[ct.length-1];}catch(e){}}else{try{state.settings.lastCommentTime=now;}catch(e){}}
+    if(ct.length){try{state.settings.lastCommentTime=ct[ct.length-1];}catch(e){}}else if(!Number(state.settings.lastCommentTime)){try{state.settings.lastCommentTime=now;}catch(e){}}
     /* 留言：概率 0 时不补 */
     var nt=[];
     if(probPct("socialProbNote")){nt=dueList(state.settings.lastNoteTime,state.settings.noteMinMin,state.settings.noteMaxMin,capFor(state.settings.lastNoteTime,state.settings.catchNotePerHour));}
@@ -9875,7 +9902,7 @@ function catchUpSocial(){
       try{gbUnread.push(pid);}catch(e){}
       newN++;noteAdd++;changed=true;
     }
-    if(nt.length){try{state.settings.lastNoteTime=nt[nt.length-1];}catch(e){}}else{try{state.settings.lastNoteTime=now;}catch(e){}}
+    if(nt.length){try{state.settings.lastNoteTime=nt[nt.length-1];}catch(e){}}else if(!Number(state.settings.lastNoteTime)){try{state.settings.lastNoteTime=now;}catch(e){}}
     if(changed){
       try{updateNewBadge();}catch(e){}
       try{save();}catch(e){}
@@ -11957,7 +11984,7 @@ function bindSetting(){
   $("set-social-max-sec").value=Math.round((state.settings.socialMaxSec||0)/60);
   $("set-reply-letter-prob").value=state.settings.replyLetterProb;
   $("set-reply-letter-min-sec").value=Math.round((state.settings.replyLetterMinSec||0)/60);
-  $("set-reply-letter-max-sec").value=Math.round((state.settings.replyLetterMaxSec||0)/60);
+  $("set-reply-letter-max-sec").value=Math.round((state.settings.replyLetterMaxSec||0)/3600*100)/100;
   $("set-letter-catch-max")&&($("set-letter-catch-max").value=(state.settings.letterCatchMax===0?0:(Number(state.settings.letterCatchMax)||5)));
   $("set-letter-min-sec").value=Math.round((state.settings.letterMinSec||0)/60);
   $("set-letter-max-sec").value=Math.round((state.settings.letterMaxSec||0)/60);
@@ -12390,7 +12417,7 @@ $("set-music-decline").addEventListener("change",e=>{state.settings.musicDecline
 $("set-social-max-sec").addEventListener("change",e=>{state.settings.socialMaxSec=Math.max(0,Math.round(Number(e.target.value)||0))*60;e.target.value=Math.round(state.settings.socialMaxSec/60);save();});
 $("set-reply-letter-prob").addEventListener("change",e=>{state.settings.replyLetterProb=Math.min(100,Math.max(0,Number(e.target.value)||0));e.target.value=state.settings.replyLetterProb;save();});
 $("set-reply-letter-min-sec").addEventListener("change",e=>{state.settings.replyLetterMinSec=Math.max(0,Math.round(Number(e.target.value)||0))*60;e.target.value=Math.round(state.settings.replyLetterMinSec/60);save();});
-$("set-reply-letter-max-sec").addEventListener("change",e=>{state.settings.replyLetterMaxSec=Math.max(0,Math.round(Number(e.target.value)||0))*60;e.target.value=Math.round(state.settings.replyLetterMaxSec/60);save();});
+$("set-reply-letter-max-sec").addEventListener("change",e=>{var _h=Math.max(0,Number(e.target.value)||0);state.settings.replyLetterMaxSec=Math.round(_h*3600);e.target.value=Math.round(state.settings.replyLetterMaxSec/3600*100)/100;save();});
 $("set-letter-catch-max")&&$("set-letter-catch-max").addEventListener("change",e=>{var v=Math.round(Number(e.target.value));if(!isFinite(v))v=5;state.settings.letterCatchMax=Math.min(200,Math.max(0,v));e.target.value=state.settings.letterCatchMax;save();toast("来信补发上限已设为 "+state.settings.letterCatchMax+" 封");});
 $("set-letter-min-sec").addEventListener("change",e=>{state.settings.letterMinSec=Math.max(0,Math.round(Number(e.target.value)||0))*60;e.target.value=Math.round(state.settings.letterMinSec/60);save();try{scheduleLetter();}catch(_){}});
 $("set-letter-max-sec").addEventListener("change",e=>{state.settings.letterMaxSec=Math.max(0,Math.round(Number(e.target.value)||0))*60;e.target.value=Math.round(state.settings.letterMaxSec/60);save();try{scheduleLetter();}catch(_){}});
