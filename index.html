@@ -53,6 +53,9 @@ html[data-boot="dark"] .about-scroll p,
 html[data-boot="dark"] .about-scroll li{color:#f2f2f7!important;}
 html[data-boot="dark"] .about-scroll .about-note{color:rgba(255,255,255,.55)!important;}
 html[data-boot="dark"] .an-foot{background:rgba(0,0,0,.92)!important;border-color:rgba(255,255,255,.10)!important;}
+/* 声明页底部按钮区原来只有浅色半透明，夜间整页仍然是白的；这里一起转深色 */
+html[data-boot="dark"] .about-agree{background:rgba(0,0,0,.92)!important;border-top-color:rgba(255,255,255,.10)!important;}
+html[data-boot="dark"] .about-agree-btn{box-shadow:0 8px 24px rgba(0,0,0,.45)!important;}
 html[data-boot="dark"] .auth-gate{background:#000!important;color:#f5f5f7!important;}
 html[data-boot="dark"] .auth-card{background:#101012!important;border-color:rgba(255,255,255,.10)!important;}
 html[data-boot="dark"] .auth-input{background:#1c1c1f!important;border-color:rgba(255,255,255,.14)!important;color:#f5f5f7!important;}
@@ -70,6 +73,11 @@ html[data-boot="dark"] .auth-input{background:#1c1c1f!important;border-color:rgb
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='3' y='5' width='18' height='14' rx='4' fill='%233478F6'/%3E%3Ccircle cx='8' cy='12' r='1.5' fill='white'/%3E%3Ccircle cx='12' cy='12' r='1.5' fill='white'/%3E%3Ccircle cx='16' cy='12' r='1.5' fill='white'/%3E%3C/svg%3E">
 <style>
 html,body{background:#fafafa;}
+/* PWA 顶部安全区兜底：状态栏透明/页面延伸到顶部时，这块跟随 App 明暗，
+   夜间不会再露出白条，白天也不会露出黑条。 */
+@media (display-mode:standalone){
+  body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top);background:var(--sysbar-bg,#fafafa);z-index:99999;pointer-events:none;}
+}
 html,body{background:#fafafa;}
 /* 夜间：html/body 底层也转黑，iOS 状态栏与回弹区不再露出米白 */
 html.ui-dark,body.ui-dark{background:#000000 !important;}
@@ -1164,6 +1172,10 @@ input[type=file][hidden]{display:block !important;position:fixed !important;left
 .about-scroll li{font-size:14px;line-height:1.7;color:#3a3d44;margin-bottom:4px;}
 .about-scroll .about-note{font-size:13px;color:#8e8e93;margin-top:20px;text-align:center;line-height:1.6;}
 .about-agree{flex-shrink:0;padding:12px 24px calc(16px + env(safe-area-inset-bottom));background:rgba(255,255,255,.88);border-top:1px solid rgba(255,255,255,.7);}
+body.ui-dark .about-screen,html.ui-dark .about-screen{background-color:#000!important;color:#f2f2f7!important;}
+body.ui-dark .about-scroll h2,body.ui-dark .about-scroll p,body.ui-dark .about-scroll li{color:#f2f2f7!important;}
+body.ui-dark .about-scroll .about-note{color:rgba(255,255,255,.55)!important;}
+body.ui-dark .about-agree{background:rgba(0,0,0,.92)!important;border-top-color:rgba(255,255,255,.10)!important;}
 .about-agree-btn{display:block;width:100%;padding:14px 0;border:none;border-radius:16px;background:linear-gradient(135deg,#3478F6,#5AC8FA);color:#fff;font-size:15px;font-weight:600;cursor:pointer;}
 /* 夜间信件/来信详情：信纸强制深底，字才会看得见（白天预设不受影响） */
 /* 只有在「跟随主题」(0 号，无预设) 时才强制黑；用户选过彩色背景的，夜间也照旧显示 */
@@ -2873,7 +2885,7 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
 #rotate-guard .rg-icon:after{content:"";position:absolute;left:50%;bottom:-9px;width:10px;height:10px;border-right:2px solid rgba(255,255,255,.7);border-bottom:2px solid rgba(255,255,255,.7);transform:translateX(-50%) rotate(45deg);}
 #rotate-guard .rg-t{font-size:17px;font-weight:600;letter-spacing:.4px;}
 #rotate-guard .rg-s{font-size:13px;color:rgba(255,255,255,.6);}
-@media (orientation:landscape) and (max-height:560px){#rotate-guard{display:flex!important;}}
+@media (orientation:landscape){#rotate-guard{display:flex!important;}}
 </style>
 </head>
 <body>
@@ -3536,7 +3548,7 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
       <!-- 信件回复 -->
       <div class="set-sec-title">信件回复</div>
       <div class="set-group"><div class="set-row"><span class="set-label">随机借用我的信封信纸<div class="set-sub">对方主动来信 / 回信时 3% 概率随机用你发过的信封+信纸搭配；关闭后一律用「对方来信」那套</div></span><button class="switch" id="sw-borrow-style"></button></div></div>
-      <div class="set-group"><div class="set-row"><span class="set-label">回信概率（%）<div class="set-sub">我写信后，他回信的概率</div></span><input class="set-input" id="set-reply-letter-prob" type="number" min="0" max="100" value="60"></div><div class="set-row"><span class="set-label">回信最快时长（分钟）</span><input class="set-input" id="set-reply-letter-min-sec" type="number" min="0" max="1440" step="1" value="1"></div><div class="set-row"><span class="set-label">回信最慢时长（小时）</span><input class="set-input" id="set-reply-letter-max-sec" type="number" min="0" max="72" step="0.1" value="1"></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">回信概率（%）<div class="set-sub">我写信后，他回信的概率</div></span><input class="set-input" id="set-reply-letter-prob" type="number" inputmode="numeric" step="1" min="0" max="100" value="60"></div><div class="set-row"><span class="set-label">回信最快时长（分钟）</span><input class="set-input" id="set-reply-letter-min-sec" type="number" min="0" max="1440" step="1" value="1"></div><div class="set-row"><span class="set-label">回信最慢时长（小时）</span><input class="set-input" id="set-reply-letter-max-sec" type="number" min="0" max="72" step="0.1" value="1"></div>
       </div>
       <!-- 主动回信件 -->
       <div class="set-sec-title">主动回信件</div>
@@ -3633,7 +3645,6 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
       </div>
       <div class="set-group">
         <div class="set-row"><span class="set-label">夜间模式<div class="set-sub">深色配色，可随时开关</div></span><button class="switch" id="sw-dark"></button></div>
-        <div class="set-row"><span class="set-label">配色跟随系统<div class="set-sub">系统切到深色时自动用夜间配色；关掉后由上面的「夜间模式」手动控制</div></span><button class="switch" id="sw-theme-auto"></button></div>
         <div class="set-row"><span class="set-label">主题色（强调/图标）</span><input class="color-input" type="color" id="skin-accent"></div>
         <div class="set-row"><span class="set-label">聊天背景</span><input class="color-input" type="color" id="skin-bg"></div>
         <div class="set-row" style="flex-direction:column;align-items:stretch;">
@@ -5536,6 +5547,8 @@ function __entryStart(){
 }
 /* 密码通过之后：先弹未读公告，关掉再进主页；没有公告就直接进 */
 function __entryHome(){
+  /* 进入主页时声明页必须已经退场；即便 ack 判断出错，也不能让它继续盖住主页/设置 */
+  try{var _abH=document.getElementById("about-screen");if(_abH)_abH.classList.remove("show");}catch(_eAbH){}
   showView("view-me");
   /* 锁屏密码是在 init 之后才解开的：先补离开期间到点的动态/评论/留言/来信，
      再启动各自的计时器。顺序反过来会把补发基准清掉。 */
@@ -6347,8 +6360,16 @@ function trimSocial(){
 }
 
 function migrate(s){
-  /* 默认白天：老存档没有 themeMode 字段时固定为手动白天，不再跟随系统深色 */
-  try{if(s&&s.skin&&(s.skin.themeMode===undefined||s.skin.themeMode===null||s.skin.themeMode==="")){s.skin.themeMode="manual";s.skin.dark=false;}}catch(e){}
+  /* 夜间就是夜间、白天就是白天：不再跟随手机系统，老存档里的 auto 一律拉回手动。
+     已经保存过明确明暗的沿用保存值，避免升级时把夜间用户刷成白屏。 */
+  try{
+    if(s&&s.skin){
+      if(s.skin.themeMode==="auto"||s.skin.themeMode===undefined||s.skin.themeMode===null||s.skin.themeMode===""){
+        s.skin.themeMode="manual";
+        if(typeof s.skin.dark!=="boolean")s.skin.dark=!!window.__bootDark;
+      }
+    }
+  }catch(e){}
   /* 旧的本地音频条目里可能还留着 blob: 临时地址（刷新就失效），顺手清掉 */
   try{(s.musicPlaylist||[]).forEach(function(x){if(x){delete x._blobUrl;delete x.volatileUrl;}});}catch(e){}
   if(!s)return defaultState();
@@ -7199,6 +7220,12 @@ function __syncSysBar(){
     }
   }catch(e){}
   try{document.documentElement.style.colorScheme=sysDark?"dark":"light";}catch(e){}
+  try{
+    var _sbBg=sysDark?"#000000":"#fafafa";
+    document.documentElement.style.setProperty("--sysbar-bg",_sbBg);
+    document.documentElement.style.setProperty("background-color",_sbBg,"important");
+    if(document.body)document.body.style.setProperty("background-color",_sbBg,"important");
+  }catch(_){}
   try{window.__lastSysDark=sysDark;}catch(e){}
 }
 /* 主题 class 一变就补同步一次：有些 WebView 在 applySkin 内同步 meta 时不立即刷新顶栏，
@@ -7250,8 +7277,8 @@ function __effectiveDark(){
      __themeReady 只在最终存档确定后置位，比 __stateReady 更晚、更准。 */
   if(!window.__themeReady&&typeof window.__bootDark==="boolean")return !!window.__bootDark;
   var s=(state&&state.skin)||{};
-  if(s.themeMode==="manual")return !!s.dark;
-  return __sysPrefDark();
+  /* 固定手动明暗：不再让系统深色模式把 App 在运行中改来改去 */
+  return !!s.dark;
 }
 window.__effectiveDark=__effectiveDark;
 function applySkin(){
@@ -7381,7 +7408,15 @@ function applySkin(){
     try{document.documentElement.classList.toggle("ui-dark",!!dark);}catch(_){}
     /* 顶栏（时间/信号/电量）跟随手机系统明暗，不随 App 主题切换 */
     try{__syncSysBar();}catch(_){}
-    try{document.documentElement.style.background=dark?"#000000":"#fafafa";}catch(_){}
+    /* 顶栏/状态栏背后的页面底色必须和主题一致：只改 html 不改 body，
+       有些 WebView 顶部安全区还会露出之前的白底。 */
+    try{
+      var _bg=dark?"#000000":"#fafafa";
+      document.documentElement.style.setProperty("background-color",_bg,"important");
+      document.body.style.setProperty("background-color",_bg,"important");
+      document.documentElement.style.setProperty("--sysbar-bg",_bg);
+      document.body.style.setProperty("--sysbar-bg",_bg);
+    }catch(_){}
     document.documentElement.setAttribute("data-theme",dark?"dark":"light");
   }catch(e){}
 }
@@ -10787,6 +10822,60 @@ function __emojiSrcOk(src){
      以前这里放行 blob，导致失效地址被当成“有效”，备份里的真图永远补不回来。 */
   return !!src&&typeof src==="string"&&src.slice(0,8)!==__BIG_REF&&src.indexOf("blob:")!==0&&(/^data:image\//i.test(src)||/^https?:\/\//i.test(src));
 }
+/* 每张表情单独再存一份 IndexedDB（不依赖主存档/localStorage 配额）：
+   以前整库 JSON 超过 localStorage 5MB 时，主存档里个别表情会被压成空图；
+   只要这张图当初导入过，就能按 id 从独立副本贴回来。 */
+function __emojiDbKey(id){return "emojiimg:"+String(id||"");}
+function __emojiPersistItem(e){
+  try{
+    if(!e||!e.id||typeof dbSet!=="function"||typeof db==="undefined"||!db)return;
+    var src=e.src||e.url||"";
+    if(!__emojiSrcOk(src))return;
+    dbSet(__emojiDbKey(e.id),src).catch(function(){});
+  }catch(_){}
+}
+function __emojiPersistList(list){
+  try{(list||[]).forEach(__emojiPersistItem);}catch(_){}
+}
+function __restoreEmojiItemFromDb(id,cb){
+  var done=false;
+  function fin(ok,src){if(done)return;done=true;cb(!!ok,src||"");}
+  try{
+    if(!id||typeof dbGet!=="function"||typeof db==="undefined"||!db){fin(false);return;}
+    dbGet(__emojiDbKey(id)).then(function(src){
+      if(!__emojiSrcOk(src)){fin(false);return;}
+      var list=curEmojis();var e=null;
+      for(var i=0;i<list.length;i++){if(list[i]&&list[i].id===id){e=list[i];break;}}
+      if(!e){fin(false);return;}
+      var old=e.src||e.url||"";
+      if(old!==src){e.src=src;delete e.__missing;try{save();}catch(_){}}
+      fin(true,src);
+    }).catch(function(){fin(false);});
+    setTimeout(function(){fin(false);},1200);
+  }catch(_){fin(false);}
+}
+function __restoreEmojiItemsFromDb(cb){
+  try{
+    if(window.__emojiRestoring)return;
+    var list=curEmojis()||[];
+    var bad=[];
+    list.forEach(function(e){
+      if(!e||!e.id)return;
+      var src=e.src||e.url||"";
+      if(!__emojiSrcOk(src)||e.__missing)bad.push(e.id);
+    });
+    if(!bad.length){cb&&cb(false);return;}
+    window.__emojiRestoring=1;
+    var left=bad.length,changed=false;
+    bad.forEach(function(id){
+      __restoreEmojiItemFromDb(id,function(ok){
+        if(ok)changed=true;
+        left--;
+        if(left<=0){window.__emojiRestoring=0;try{__emojiPersistList(curEmojis());}catch(_){}cb&&cb(changed);}
+      });
+    });
+  }catch(_){window.__emojiRestoring=0;cb&&cb(false);}
+}
 function __emojiNormalizeList(arr){
   /* 老版本有一阵把表情直接存成字符串数组（没有 {id,src} 外壳）。
      新代码只认对象，于是整排表情会被判成“没有图/失效”。这里原地补成对象，
@@ -11137,8 +11226,24 @@ function __epPreviewAt(cell,tx,ty){
   var cy=Math.min(Math.max(ty-want*0.55,60),H-60);
   d.style.display="block";d.style.left=cx+"px";d.style.top=cy+"px";
 }
+function __emojiCellRecover(im,id){
+  try{
+    if(!im||im.__eRecovering)return;im.__eRecovering=1;
+    var c=im.closest&&im.closest(".emoji-cell");
+    __restoreEmojiItemFromDb(id,function(ok,src){
+      if(ok&&src){
+        try{c&&c.classList.remove("missing");im.style.display="";im.src=src;}catch(_){}
+        return;
+      }
+      try{c&&c.classList.add("missing");im.style.display="none";}catch(_){}
+    });
+  }catch(_){}
+}
 function __epHidePreview(){var d=__epPvEl();d.style.display="none";__epPvCell=null;}function renderEmojis(){
   try{applyEmojiSize();}catch(e){}
+  /* 每次画表情面板前先合一次独立备份：个别图在主存档里被配额压坏时，
+     这里会按 id/名称/位置补回来，而不是等用户点开那张才提示失效。 */
+  try{__repairEmojiState();}catch(_eRep){}
   const list=curEmojis();
   const g=$("emoji-grid");
   const isP=emojiSide==="partner";
@@ -11151,7 +11256,7 @@ function __epHidePreview(){var d=__epPvEl();d.style.display="none";__epPvCell=nu
   $("btn-emoji-seldel").textContent="删除所选("+emojiSel.size+")";
   /* 面板重复打开时不要每一次都把 31 张 base64 表情重新拼成 innerHTML；
      同一份列表/同一页签/同一管理模式直接复用已有格子，点表情的响应只走 click。 */
-  var _epSig=emojiSide+"|"+emojiEdit+"|"+list.length+"|"+list.map(function(e){var u=e.src||e.url||"";return e.id+":"+u.length+":"+u.slice(0,24);}).join(",");
+  var _epSig=emojiSide+"|"+emojiEdit+"|"+list.length+"|"+list.map(function(e){var u=e.src||e.url||"";return e.id+":"+u.length+":"+u.slice(0,24)+":"+u.slice(-24)+":"+(e.__missing?1:0);}).join(",");
   if(g.dataset.epSig===_epSig && g.children.length)return;
   g.dataset.epSig=_epSig;
   if(!list.length){g.innerHTML='<div class="ep-empty" style="grid-column:1/-1">还没有'+(isP?"对方":"")+'表情包，点"导入"从相册添加图片表情。</div>';return;}
@@ -11173,22 +11278,27 @@ function __epHidePreview(){var d=__epPvEl();d.style.display="none";__epPvCell=nu
     if(im.__emojiErr)return;im.__emojiErr=1;
     im.addEventListener("error",function(){
       var c=im.closest&&im.closest(".emoji-cell");
-      /* 先尝试从 cp2EmojiLib 镜像把真图补回来；补回来就重设 src，
-         不要一次解码失败就把 <img> 删掉，否则这张表情会永久卡在「失效」。 */
       var _id=c&&c.dataset?c.dataset.id:"";
-      var _e=null;try{_e=curEmojis().find(function(x){return x&&x.id===_id;});}catch(_){}
-      var _old=_e&&(_e.src||_e.url)||"";
+      /* 先合一次整库备份：以前这里只在错误时修一次，修不回来就永远停在“失效” */
       try{__repairEmojiState();}catch(_){}
       var _e2=null;try{_e2=curEmojis().find(function(x){return x&&x.id===_id;});}catch(_){}
       var _new=_e2&&(_e2.src||_e2.url)||"";
-      if(_new&&__emojiSrcOk(_new)&&_new!==_old){
+      if(_new&&__emojiSrcOk(_new)&&_new!==im.getAttribute("src")){
         try{c.classList.remove("missing");im.style.display="";im.src=_new;delete _e2.__missing;}catch(_){}
         return;
       }
-      if(c)c.classList.add("missing");
-      try{im.style.display="none";}catch(_){}
+      __emojiCellRecover(im,_id);
     });
   });
+  /* data URL 图片的 error 事件有时在监听器挂上之前就触发；主动 decode() 一次，
+     失败就按 id 从独立副本恢复，保证不是“有的图好、有的图永久失效”。 */
+  try{
+    g.querySelectorAll(".emoji-cell img").forEach(function(im){
+      var _cid=(im.closest&&im.closest(".emoji-cell")||{}).dataset?im.closest(".emoji-cell").dataset.id:"";
+      if(!im.complete||!im.naturalWidth){setTimeout(function(){__emojiCellRecover(im,_cid);},0);}
+      if(im.decode)im.decode().catch(function(){__emojiCellRecover(im,_cid);});
+    });
+  }catch(_){}
   g.querySelectorAll(".emoji-cell").forEach(cell=>{
     cell.addEventListener("click",()=>{
       const id=cell.dataset.id;
@@ -11319,12 +11429,15 @@ function toggleEmojiPanel(force){
       if(ae&&(ae.tagName==="INPUT"||ae.tagName==="TEXTAREA"||ae.isContentEditable))ae.blur();
     }catch(_){}
     renderEmojis();
+    /* 存量表情也补写一份独立副本，之后任何一张被主存档压坏都能单独救回 */
+    try{__emojiPersistList(curEmojis());}catch(_){}
+    try{__restoreEmojiItemsFromDb(function(changed){if(changed){var _g=$("emoji-grid");if(_g)_g.dataset.epSig="";renderEmojis();}});}catch(_){}
     /* 打开面板时就把这一页表情预解码：点第一张时不用再等 new Image().decode()，
        大图/多图表情不会出现“点了半秒才弹出来”的迟滞。 */
     try{
       p.querySelectorAll(".emoji-cell img").forEach(function(im){
         try{im.loading="eager";}catch(_){}
-        try{if(im.decode)im.decode().then(function(){try{window.__decodedSrcCache=window.__decodedSrcCache||{};window.__decodedSrcCache[im.src]=1;}catch(_){}}).catch(function(){});}catch(_){}
+        try{if(im.decode)im.decode().then(function(){try{window.__decodedSrcCache=window.__decodedSrcCache||{};window.__decodedSrcCache[im.src]=1;}catch(_){}}).catch(function(){var _c0=im.closest&&im.closest(".emoji-cell");__emojiCellRecover(im,_c0&&_c0.dataset?_c0.dataset.id:"");});}catch(_){}
       });
     }catch(_){}
     var grow=function(){try{window.__uiScaleSync&&window.__uiScaleSync();}catch(_){}__syncEmojiKb();};
@@ -11374,7 +11487,7 @@ $("file-emoji").addEventListener("change",e=>{
         __verifyEmojiSrc(src,function(ok){
           if(!ok){skipped++;try{toast("「"+(f.name||"这张图")+"」识别不了（可能是不支持的格式或文件已损坏）");}catch(e){}tick();return;}
           var dup=curEmojis().some(function(x){return (x.src||x.url)===src;});
-          if(!dup){var _it={id:uid(),src:src,name:f.name};if(anim)_it.anim=1;curEmojis().push(_it);added++;save();renderEmojis();}else{skipped++;}
+          if(!dup){var _it={id:uid(),src:src,name:f.name};if(anim)_it.anim=1;curEmojis().push(_it);__emojiPersistItem(_it);added++;save();renderEmojis();}else{skipped++;}
           tick();
         });
       }
@@ -13506,6 +13619,14 @@ function __chatEntryGuard(){
 }
 window.__chatEntryGuard=__chatEntryGuard;
 function showView(id){
+  /* 开屏声明/更新公告偶尔会残留 show：它们 z-index 比设置页高，会整块吃掉标签点击，
+     表现就是“聊天/社交/外观点不动”。真正进入 App 页面后把残留层收掉。 */
+  try{
+    var _ab0=document.getElementById("about-screen");
+    if(_ab0&&_ab0.classList.contains("show")&&!document.body.classList.contains("auth-locked")&&(window.__lockPassed||id==="view-settings"||id==="view-chat"))_ab0.classList.remove("show");
+    var _an0=document.getElementById("announce-screen");
+    if(_an0&&_an0.classList.contains("show")&&!document.body.classList.contains("auth-locked")&&(id==="view-settings"||id==="view-chat"))_an0.classList.remove("show");
+  }catch(_eOv){}
   /* 设置页记住“到底从哪进来”：从聊天加号进就回聊天，从主页进就回主页。
      入口按钮会先写入 window.__settingsEntryView；只有直接调用 showView 时才读当前页。
      这样即使旧页面还残留着 view-me / view-chat，也不会把入口来源覆盖错。 */
@@ -16718,7 +16839,13 @@ function sendDrawingToChat(){
   try{window.__uiScaleSync&&window.__uiScaleSync();}catch(_){}
   setTimeout(function(){try{__blurSoftKeyboard();}catch(_){}try{window.__uiScaleSync&&window.__uiScaleSync();}catch(_){}},120);
   setTimeout(function(){try{__blurSoftKeyboard();}catch(_){}try{window.__uiStableH=0;window.__uiScaleSync&&window.__uiScaleSync();}catch(_){}},360);
-  try{
+
+  /* 画画发送后回到聊天：键盘已经收起，但根舞台有时仍停在键盘高度，
+     中间会空出一大块；这里再复位一次键盘位移并让舞台按真实屏高重算。 */
+  setTimeout(function(){try{window.__resetKbShift&&window.__resetKbShift();}catch(_){}
+    try{window.scrollTo(0,0);}catch(_){}
+    try{window.__uiStableH=0;window.__uiKLock=0;window.__uiScaleSync&&window.__uiScaleSync();}catch(_){}
+  },560);  try{
     var _stickDr=function(){try{var l=document.getElementById("msglist");if(l&&l.scrollHeight-l.scrollTop-l.clientHeight>2)l.scrollTop=l.scrollHeight;}catch(e){}};
     _stickDr();requestAnimationFrame(_stickDr);setTimeout(_stickDr,150);setTimeout(_stickDr,600);
   }catch(e){}
@@ -18034,8 +18161,13 @@ function commitLetter(_obj){
   if(_replyTo){toast("回信已寄出");return;}
   toast("信已寄出");
   // 对方从字卡里选取内容回信（回信概率/回信时间独立设置，字卡条数8~15条）
-  if(!probPct("replyLetterProb"))return;
-  const replyBody=joinCards(pickLetterCards(socialCardCount()));if(!replyBody)return; // 没有信件可用字卡就不回信
+  /* 回信概率只看设置值：100% 必回，0% 不回，中间按输入百分比随机。
+     字卡池为空时不再直接吞掉回信（否则用户填 100% 也永远收不到），用一句固定回信兜底。 */
+  var _p=Math.min(100,Math.max(0,Number(state.settings.replyLetterProb)||0));
+  if(_p<=0)return;
+  if(_p<100&&Math.random()*100>=_p)return;
+  var replyBody=joinCards(pickLetterCards(socialCardCount()));
+  if(!replyBody)replyBody="收到你的信了，我慢慢看，等我想好再回你。";
   const subjects=["收到","回信","念你","看到了","已读","安好","知道了"];
   const r=subjects[Math.floor(Math.random()*subjects.length)];
   const _due=Date.now()+replyLetterDelay();
@@ -23588,7 +23720,7 @@ body{margin:0;background:var(--bg,#fafafa);}
   window.addEventListener("resize",soon,{passive:true});
   window.addEventListener("pageshow",soon,{passive:true});
   document.addEventListener("focusout",function(){setTimeout(soon,120);},true);
-  window.addEventListener("orientationchange",function(){window.__uiKLock=0;setTimeout(function(){sync();try{if(typeof applySkin==="function")applySkin();}catch(_){ }try{if(typeof __syncSysBar==="function")__syncSysBar();}catch(_){ }},260);});
+  window.addEventListener("orientationchange",function(){window.__uiKLock=0;window.__uiStableH=0;setTimeout(function(){sync();try{if(typeof applySkin==="function")applySkin();}catch(_){ }try{if(typeof __syncSysBar==="function")__syncSysBar();}catch(_){ }},260);setTimeout(function(){window.__uiKLock=0;sync();try{window.__fitCompute&&window.__fitCompute(true);}catch(_){}},700);});
   if(window.visualViewport){
     window.visualViewport.addEventListener("resize",soon,{passive:true});
     window.visualViewport.addEventListener("scroll",soon,{passive:true});

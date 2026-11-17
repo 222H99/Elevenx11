@@ -6,7 +6,7 @@
  * 3) 网络请求继续在后台完成，成功后更新缓存；
  * 4) 连缓存都没有时，返回一个可重试的提示页，而不是空白 503。
  */
-const CACHE = "eleven11-runtime-v21";
+const CACHE = "eleven11-runtime-v22";
 const INDEX_URL = new URL("./index.html", self.location.href).href;
 const NETWORK_WAIT_MS = 1500;
 
