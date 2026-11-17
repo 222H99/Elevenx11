@@ -6058,7 +6058,7 @@ function __slimState(root){
   var st=window.__bigStore, pending=[], seen=[];
   /* 头像必须留在 state 本体里：头像一旦被换成 bigref，只要图片本体没写进库，
      顶部头像/设置页头像就会变成空白。头像单张一两百 KB，留在主档里体积可接受。 */
-  var __KEEP_INLINE=function(k){return /^(avatar|meAvatar|cpMeAvatar|cpPartnerAvatar|cpPhotoAvatar|mpAv1|mpAv2|cpPhoto|cpPhotoCard|cpPhotoSub|cpRecord)$/i.test(String(k||""));};
+  var __KEEP_INLINE=function(k){return /^(avatar|meAvatar|cpMeAvatar|cpPartnerAvatar|cpPhotoAvatar|mpAv1|mpAv2|cpPhoto|cpPhotoCard|cpPhotoSub|cpRecord|cover|musicCoverImg|musicDiscInnerImg|musicBgImg)$/i.test(String(k||""));};
   function walk(v,key){
     /* 主页照片框必须留在 state 本体里：如果走 bigref，图片本体要异步写 IndexedDB，
        用户选完照片马上返回/重进时可能还没写完，回来就变成空框。
@@ -10914,6 +10914,18 @@ function __verifyEmojiStateAsync(){
       window.__emojiVerifying=0;
       if(bad){
         try{__repairEmojiState();}catch(_){}
+        /* 解码确认坏掉的图，再从三份自动备份槽里按 id 找回；备份里有原图就能整排回来 */
+        try{
+          if(typeof __recoverMediaFromBackups==="function"){
+            __recoverMediaFromBackups().then(function(ch){
+              if(!ch)return;
+              try{__repairEmojiState();}catch(_){}
+              var gp=document.getElementById("emoji-panel");
+              if(gp&&gp.classList.contains("open")){var gg=document.getElementById("emoji-grid");if(gg)gg.dataset.epSig="";try{renderEmojis();}catch(_){}}
+              var vc=document.getElementById("view-chat");if(vc&&vc.classList.contains("open")){try{renderChat(true);}catch(_){}}
+            }).catch(function(){});
+          }
+        }catch(_){}
         var g=document.getElementById("emoji-grid");
         if(g&&document.getElementById("emoji-panel")&&document.getElementById("emoji-panel").classList.contains("open")){g.dataset.epSig="";try{renderEmojis();}catch(_){}}
       }
@@ -11033,17 +11045,18 @@ function __dedupeEmojiArray(arr){
 }
 function __mergeEmojiList(target,source){
   var changed=false;if(!Array.isArray(target)||!Array.isArray(source))return changed;
+  var good=function(v){return __emojiSrcOk(v)&&window.__emojiValidCache[v]!==0;};
   source.forEach(function(srcItem){
     if(!srcItem)return;
     var v=srcItem.src||srcItem.url||"";
-    if(!__emojiSrcOk(v))return;
+    if(!good(v))return;
     var hit=target.filter(function(x){return x&&srcItem.id&&x.id===srcItem.id;})[0];
     if(!hit&&target.length===source.length){
       var idx=source.indexOf(srcItem);hit=target[idx]||null;
     }
     if(!hit)return;
     var tv=hit.src||hit.url||"";
-    if(!__emojiSrcOk(tv)){
+    if(!good(tv)){
       hit.src=v;if(!hit.id&&srcItem.id)hit.id=srcItem.id;
       if(srcItem.name&&!hit.name)hit.name=srcItem.name;
       if(hit.__missing)delete hit.__missing;
@@ -11165,7 +11178,19 @@ function __mergeMediaSnapshots(a,b){
     copyObj(a.profile,b.profile,pk,true);copyObj(b.profile,a.profile,pk,true);
     var ik=["cpPhoto","cpPhotoCard","cpPhotoSub","cpRecord"];
     copyObj(a.profile,b.profile,ik,false);copyObj(b.profile,a.profile,ik,false);
-    copyObj(a,b,["musicBgImg","musicCoverImg","callBgImg"],false);copyObj(b,a,["musicBgImg","musicCoverImg","callBgImg"],false);
+    copyObj(a,b,["musicBgImg","musicCoverImg","musicDiscInnerImg","callBgImg"],false);copyObj(b,a,["musicBgImg","musicCoverImg","musicDiscInnerImg","callBgImg"],false);
+    /* 歌曲列表封面也按 id / 网易云 id 从旧快照补：只补空封面和已确认坏掉的封面 */
+    [["a","b"],["b","a"]].forEach(function(pr){
+      var A=pr[0]==="a"?a:b,B=pr[0]==="a"?b:a;
+      (A.musicPlaylist||[]).forEach(function(sg){
+        if(!sg)return;
+        var cur=__sgCover(sg),cache=window.__coverValidCache&&window.__coverValidCache[cur];
+        if(cur&&cache!==0&&!sg.__coverRetry)return;
+        var hit=(B.musicPlaylist||[]).filter(function(o){return o&&((sg.neteaseId&&o.neteaseId===sg.neteaseId)||(sg.id&&o.id===sg.id));})[0];
+        var pic=hit&&__sgCover(hit);
+        if(pic){sg.cover=pic;delete sg.__coverRetry;changed=true;}
+      });
+    });
     var sk=["bgImage","gbImage","ltImage","momImage","gameImage","meImage","meTopImage","coupleImage"];
     copyObj(a.skin,b.skin,sk,false);copyObj(b.skin,a.skin,sk,false);
     /* 头像本体与主页照片按位置补 */
@@ -14453,9 +14478,9 @@ function __sgCover(sg){
   if(u&&u.indexOf('http://')===0)u='https://'+u.slice(7);
   return u||'';
 }
-function __musicPic(sg,cb){
+function __musicPic(sg,cb,force){
   if(!sg){if(cb)cb('');return;}
-  var direct=__sgCover(sg);
+  var direct=force?'':__sgCover(sg);
   if(direct){__songCoverCache[String(sg.neteaseId||sg.id||'')]=direct;if(cb)cb(direct);return;}
   var id=sg.neteaseId||sg.id;if(!id){if(cb)cb('');return;}
   var k=String(id);
@@ -14504,6 +14529,66 @@ function __fillTrackCovers(items){
     }
   }catch(e){}
 }
+/* 音乐封面坏图兜底：先按网易云 id 重新取图；取不到就显示占位，不再留一个破图标 */
+function __musicCoverBadImg(im){
+  try{
+    var s=null,isMain=false;
+    var mc=im.closest&&im.closest("#mu-cover");
+    if(mc){isMain=true;s=(state.musicCur>=0?state.musicPlaylist[state.musicCur]:null);}
+    if(!s){var li=im.closest&&im.closest("[data-mi]");if(li){var idx=Number(li.getAttribute("data-mi"));s=state.musicPlaylist[idx]||null;}}
+    if(!s)return;
+    var src=im.getAttribute("src")||"";
+    window.__coverValidCache=window.__coverValidCache||{};
+    window.__coverValidCache[src]=0;
+    var key=String(s.neteaseId||s.id||"");
+    if(key){delete __songCoverCache[key];__songCoverMiss[key]=0;}
+    if(s.__coverRetry)return;
+    s.__coverRetry=1;
+    im.style.display="none";
+    try{var holder=im.parentNode;if(holder&&!holder.querySelector(".ml-cov-ph")&&!isMain){var ph=document.createElement("span");ph.className="ml-cov-ph";ph.textContent=s.emoji||"🎵";holder.appendChild(ph);}}catch(_){}
+    if(!key){try{__recoverMusicFromBk();}catch(_){}return;}
+    __musicPic(s,function(pic){
+      if(pic){try{s.cover=pic;delete s.__coverRetry;save();renderMusicList();}catch(_){}return;}
+      try{s.cover="";}catch(_){}
+      try{if(isMain){var _mc=document.getElementById("mu-cover");if(_mc){_mc.innerHTML='<span style="font-size:52px;">'+(s.emoji||"🎵")+'</span>';_mc.__lastHtml=_mc.innerHTML;_mc.__lastBg='';}}}catch(_){}
+      try{__recoverMusicFromBk();}catch(_){}
+    },true);
+  }catch(_){}
+}
+/* 自动备份槽里保存过完整封面/表情：坏图在主档里已经找不到原图时，从旧快照补 */
+function __recoverMusicFromBk(){
+  try{
+    if(window.__musicBkRecovering||typeof __bkMeta!=="function"||typeof dbGet!=="function")return;
+    window.__musicBkRecovering=1;
+    __bkMeta().then(function(meta){
+      var i=0;
+      function step(){
+        if(i>=meta.length){window.__musicBkRecovering=0;return false;}
+        var m=meta[i++];
+        return dbGet("bk_slot_"+m.slot).then(function(bv){
+          var bs=(bv&&bv.state)||null;if(!bs)return step();
+          var changed=false;var oldPl=bs.musicPlaylist||[];
+          (state.musicPlaylist||[]).forEach(function(sg){
+            if(!sg)return;
+            var cur=__sgCover(sg);var cache=window.__coverValidCache&&window.__coverValidCache[cur];
+            if(cur&&cache!==0&&!sg.__coverRetry)return;
+            var hit=null;
+            for(var j=0;j<oldPl.length;j++){
+              var o=oldPl[j];if(!o)continue;
+              if((sg.neteaseId&&o.neteaseId===sg.neteaseId)||(sg.id&&o.id===sg.id)){hit=o;break;}
+            }
+            var pic=hit&&__sgCover(hit);
+            if(pic){sg.cover=pic;delete sg.__coverRetry;changed=true;}
+          });
+          ["musicCoverImg","musicDiscInnerImg","musicBgImg"].forEach(function(k){var v=bs[k];if(v&&!state[k]){state[k]=v;changed=true;}});
+          if(changed){try{save();renderMusicList();refreshMusicMedia&&refreshMusicMedia();}catch(_){}return true;}
+          return step();
+        }).catch(function(){return step();});
+      }
+      step();
+    }).catch(function(){window.__musicBkRecovering=0;});
+  }catch(_){window.__musicBkRecovering=0;}
+}
 function renderMusicList(){
   renderMusicBg();
   const au=musicAudio();const pl=state.musicPlaylist;
@@ -14517,7 +14602,7 @@ function renderMusicList(){
   $("mu-name2").textContent=state.profile.mpName||state.me.name||"wxhggxhwm";
   (function(){var _n=String(state.musicRoomNote||"").trim();$("mu-dist").innerHTML=_n?esc(_n):("相距"+(state.profile.mpDist||0)+"公里，一起听了"+(state.profile.mpDur||"5小时20分钟"));})();
   const cov=state.musicCoverImg;
-  function coverHtml(pic,fallback){const img=pic?'<img src="'+pic+'" alt="">':fallback;return img+'<span class="mc-hint">📷</span>';}
+  function coverHtml(pic,fallback){const img=pic?'<img src="'+pic+'" alt="" data-mc="1" decoding="async">':fallback;return img+'<span class="mc-hint">📷</span>';}
   if(cur>=0){
     $("mu-head").style.display="";
     const song=pl[cur];
@@ -16172,6 +16257,13 @@ function stxt(t){var e=document.getElementById('ny-st'); if(e)e.textContent=t;}
     });
   }
   window.__openMusicLyric=openLyric;
+  try{
+    var _mv=document.getElementById("view-music");
+    if(_mv&&!_mv.__coverErrHooked){
+      _mv.__coverErrHooked=1;
+      _mv.addEventListener("error",function(ev){var t=ev.target;if(t&&t.tagName==="IMG"){try{__musicCoverBadImg(t);}catch(_){}}},true);
+    }
+  }catch(_){}
   // 唱片中心：点击看歌词
   $("mu-cover").addEventListener("click",e=>{
     if(e.target&&e.target.classList&&e.target.classList.contains("mc-hint"))return; /* 📷 换封面 */
