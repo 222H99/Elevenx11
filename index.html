@@ -23824,9 +23824,11 @@ body{margin:0;background:var(--bg,#fafafa);}
       /* 根节点的 left/top 不受自身 scale 影响：这里写的是屏幕上的实际位置，
          不能再除以 k，否则平板居中会偏、键盘引起 offsetTop 时也会偏。 */
       var left=(w-rw*k)/2+voffX;
-      /* 只有日记页需要跟着 visualViewport 的偏移走；聊天页是固定舞台，
-         键盘弹出时只缩高度，不能再把整页往下推，否则输入栏会被推到屏幕外。 */
-      var top=_diaryOpen?voffY:0;
+      /* iOS 键盘弹起时 visualViewport 不只会变矮，还可能整体向下偏移（offsetTop）。
+         固定舞台必须跟着这个偏移走，否则可视窗口看到的是舞台上方那截空白/黑底，
+         聊天内容整体“消失”，只剩键盘。日记页与其他页统一按 voffY 对齐。 */
+      var top=voffY;
+      if(!top||top<0)top=0;
       var _sig=[w,h,k,rw,rh,left,top,voffX,voffY].join("|");
       if(window.__uiSig===_sig)return;
       window.__uiSig=_sig;
