@@ -1,0 +1,4 @@
+accounts.csv
+supabase_setup/accounts.csv
+*.zip
+_backup/
