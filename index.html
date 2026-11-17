@@ -4841,7 +4841,7 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
     if(gate)gate.classList.add("show");bodyLock(true);
     try{window.__bootDone&&window.__bootDone();}catch(_){}
   }
-  function hideGate(){if(gate)gate.classList.remove("show");bodyLock(false);}
+  function hideGate(){if(gate)gate.classList.remove("show");bodyLock(false);try{window.__bootDone&&window.__bootDone();}catch(_){}}
   function showPwdCard(){
     if(card)card.style.display="none";
     if(waitCard)waitCard.style.display="none";
