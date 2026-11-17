@@ -170,6 +170,8 @@ input,textarea{-webkit-user-select:text;user-select:text;}
 .chat-new-pill[hidden]{display:none;}
 .chat-new-pill:active{opacity:.8;}
 .msglist{contain:layout style;flex:1 1 0;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;overflow-anchor:none;scroll-behavior:auto;padding:14px 12px 12px;display:flex;flex-direction:column;gap:4px;background:transparent;-webkit-overflow-scrolling:touch;}
+/* 聊天记录为空时给一句提示，避免点进聊天只看到一大块空白，以为页面坏了 */
+#msglist:empty::after{content:"还没有聊天记录，发一句试试";display:block;margin:auto;color:#8E8E93;font-size:13px;line-height:1.6;text-align:center;padding:24px 0;}
 .msg-day{text-align:center;font-size:12px;color:#8E8E93;margin:10px 0 8px;cursor:pointer;}
 .msg-day:active{opacity:.6;}
 .msg-day span{background:transparent;padding:0;border-radius:0;}
@@ -5900,6 +5902,19 @@ function _emojiSigNow(){
     return a.length+"/"+b.length+"/"+(a.length?one(a[a.length-1]):"")+"/"+(b.length?one(b[b.length-1]):"");
   }catch(e){return "x";}
 }
+function __emojiBackupValidCount(b){
+  try{
+    if(!b)return 0;
+    var n=0;
+    ["me","partner"].forEach(function(k){
+      (Array.isArray(b[k])?b[k]:[]).forEach(function(e){
+        var src=e&&(typeof e==="string"?e:(e.src||e.url||""));
+        if(src&&__emojiSrcOk(src)&&window.__emojiValidCache[src]!==0)n++;
+      });
+    });
+    return n;
+  }catch(_){return 0;}
+}
 function __emojiBackupPick(){
   /* localStorage 可能被另一个页签/上一次写入更新过，不能只看内存缓存，
      否则修复时会挑到更旧的空备份，面板仍然整排“失效”。 */
@@ -5907,13 +5922,37 @@ function __emojiBackupPick(){
   var _ls=null;try{_ls=JSON.parse(localStorage.getItem("cp2EmojiLib")||"null");}catch(_){_ls=null;}
   if(!_ls)_ls=window.__emojiLibLs||null;
   var _dt=Number(_db&&_db.t)||0,_lt=Number(_ls&&_ls.t)||0;
-  var _dn=_db?(((Array.isArray(_db.me)?_db.me.length:0)+(Array.isArray(_db.partner)?_db.partner.length:0))):0;
-  var _ln=_ls?(((Array.isArray(_ls.me)?_ls.me.length:0)+(Array.isArray(_ls.partner)?_ls.partner.length:0))):0;
-  /* 空备份不能因为时间戳更新就盖掉真正有图的备份：以前 localStorage 写满后
-     只留下一个 me/partner 都为空的镜像，修复时反而挑到它，表情面板就整排失效。 */
-  if(_dn&&!_ln)return _db;
-  if(_ln&&!_dn)return _ls;
-  return (_dt>=_lt?_db:_ls)||_db||_ls||null;
+  var _dn=__emojiBackupValidCount(_db),_ln=__emojiBackupValidCount(_ls);
+  /* 不只比条数，也比“能解码的张数”：localStorage 写满后留下的坏图备份
+     可能条数完整但整排失效，IndexedDB 里的好备份不能被它的时间戳顶掉。 */
+  if(_dn!==_ln)return _dn>_ln?_db:_ls;
+  if(_dn>0)return (_dt>=_lt?_db:_ls)||_db||_ls;
+  return _db||_ls||null;
+}
+/* 当前列表里有的图被配额压成坏图时，不能把独立备份也一起写成坏图。
+   这一层按 id/名称/位置从旧备份里把真图补回备份，旧的好备份才不会被覆盖掉。 */
+function __emojiBackupStabilize(cur,oldArr){
+  var out=[];
+  (cur||[]).forEach(function(e,i){
+    var eo=(typeof e==="string")?{id:"legacy"+i+"_"+e.length,src:e,name:""}:e;
+    if(!eo)return;
+    var src=eo.src||eo.url||"";
+    var _known=window.__emojiValidCache[src];
+    var cand=null;
+    if(eo.id&&oldArr)cand=oldArr.filter(function(x){return x&&x.id===eo.id;})[0];
+    if(!cand&&eo.name&&oldArr)cand=oldArr.filter(function(x){return x&&x.name===eo.name;})[0];
+    if(!cand&&oldArr&&oldArr[i])cand=oldArr[i];
+    /* 当前图没经过解码确认、旧备份里同 id 又是另一张真图时，先保住旧备份，
+       避免被截断的 base64 把好备份覆盖掉。 */
+    if(__emojiSrcOk(src)&&_known!==0&&!(cand&&_known!==1&&(cand.src||cand.url)!==src)){out.push(eo);return;}
+    if(cand&&__emojiSrcOk(cand.src||cand.url)){
+      var cp={};for(var k in eo){if(Object.prototype.hasOwnProperty.call(eo,k))cp[k]=eo[k];}
+      cp.src=cand.src||cand.url;delete cp.__missing;
+      try{eo.src=cp.src;delete eo.__missing;}catch(_){}
+      out.push(cp);
+    }
+  });
+  return out;
 }
 function _emojiBackup(){
   try{
@@ -5932,7 +5971,9 @@ function _emojiBackup(){
        绝不能拿这份“只救回几张”的列表去覆盖 previous 完整备份。等引用换回真图再备份。 */
     function hasRef(a){return (a||[]).some(function(e){var v=typeof e==="string"?e:(e&&(e.src||e.url))||"";return v.slice(0,8)===__BIG_REF;});}
     if(hasRef(rawMe)||hasRef(rawPt))return;
-    var me=clean(rawMe),partner=clean(rawPt);
+    var _oldBk=__emojiBackupPick();
+    var me=__emojiBackupStabilize(rawMe,_oldBk&&_oldBk.me),partner=__emojiBackupStabilize(rawPt,_oldBk&&_oldBk.partner);
+    /* 全部坏图时保留旧备份，不再写空库覆盖 */
     if((rawMe.length||rawPt.length)&&!me.length&&!partner.length)return;
     var obj={me:me,partner:partner,t:Date.now()};
     var _j=JSON.stringify(obj);
@@ -6747,6 +6788,14 @@ async function init(){
     var _forceIdb=false;
     try{_forceIdb=sessionStorage.getItem("__forceIdbRestore")==="1";if(_forceIdb)sessionStorage.removeItem("__forceIdbRestore");}catch(_){}
     var _useIdb=!!(s&&s.messages)&&(_forceIdb||_idbTs>=_ltTs);
+    /* 一份时间戳更新但消息为空的存档，不能把本地还有聊天记录的老存档顶掉：
+       这就是「退出再进/换设备后点聊天只剩一大块空白」最常见的原因。 */
+    try{
+      var _lN=(state&&state.messages)?state.messages.length:0;
+      var _sN=(s&&s.messages)?s.messages.length:0;
+      if(_useIdb&&_sN===0&&_lN>0&&!_forceIdb){_useIdb=false;window.__e11KeptLocalMsgs=_lN;}
+    }catch(_){}
+
     /* localStorage 里存的是「引用版」（含 bigref:）：图片本体在 IndexedDB，这里换回真图，
        否则刷新后聊天里的图片会变成空串——这就是「有的浏览器刷新图片/数据丢了」 */
     if(!_useIdb){
@@ -6856,6 +6905,11 @@ try{window.__scheduleCp2Render&&window.__scheduleCp2Render();}catch(e){}
       try{__mediaVaultRestore();}catch(_eVault){}
       try{
         __repairEmojiState();
+        /* 老表情只有整库备份。这里趁启动空闲给每张图补一份独立副本，
+           以后单张被配额压坏时能按 id 精确恢复，不必整库重来。 */
+        /* 启动时不批量解码/写 33 张表情：这是最重的一段。等用户真的打开表情面板时再做，
+           启动阶段只保留已经存在的整库备份，避免拖慢首屏。 */
+        setTimeout(function(){try{__verifyEmojiStateAsync();}catch(_){}},2600);
         var _epOpen=document.getElementById("emoji-panel");
         if(_epOpen&&_epOpen.classList.contains("open"))renderEmojis();
         var _pRef=__resolveEmojiBigRefs();
@@ -10822,6 +10876,62 @@ function __emojiSrcOk(src){
      以前这里放行 blob，导致失效地址被当成“有效”，备份里的真图永远补不回来。 */
   return !!src&&typeof src==="string"&&src.slice(0,8)!==__BIG_REF&&src.indexOf("blob:")!==0&&(/^data:image\//i.test(src)||/^https?:\/\//i.test(src));
 }
+/* __emojiSrcOk 只能看前缀：被 localStorage 截断的 data:image 也会“看起来有效”，
+   实际解码必然失败。这里真解码一次，结果缓存；修复/备份都以“能解码”为准。 */
+window.__emojiValidCache=window.__emojiValidCache||{};
+function __emojiDecodeCheck(src,cb){
+  try{
+   var c=window.__emojiValidCache;
+   if(!__emojiSrcOk(src)){c[src]=0;cb&&cb(false);return;}
+   if(c[src]===1||c[src]===0){cb&&cb(!!c[src]);return;}
+   window.__emojiDecodePending=window.__emojiDecodePending||{};
+   if(window.__emojiDecodePending[src]){window.__emojiDecodePending[src].push(cb);return;}
+   var q=window.__emojiDecodePending[src]=[cb];
+   var fin=function(ok){
+     if(!window.__emojiDecodePending[src])return;
+     c[src]=ok?1:0;
+     var arr=window.__emojiDecodePending[src];delete window.__emojiDecodePending[src];
+     arr.forEach(function(f){try{f&&f(ok);}catch(_){}});
+   };
+   var im=new Image();
+   im.onload=function(){fin(!!(im.naturalWidth&&im.naturalHeight));};
+   im.onerror=function(){fin(false);};
+   im.src=src;
+   setTimeout(function(){if(window.__emojiDecodePending[src])fin(false);},2500);
+  }catch(_){cb&&cb(false);}
+}
+/* 批量确认当前状态里的表情是否真的能解码；坏的交给 __repairEmojiState 从备份补。 */
+function __verifyEmojiStateAsync(){
+  try{
+    if(window.__emojiVerifying)return;
+    var arrs=[state.emojis||[],state.partnerEmojis||[]];
+    var srcs=[],seen={};
+    arrs.forEach(function(a){a.forEach(function(e){var s=e&&(typeof e==="string"?e:(e.src||e.url));if(s&&!seen[s]&&__emojiSrcOk(s)){seen[s]=1;srcs.push(s);}});});
+    if(!srcs.length)return;
+    window.__emojiVerifying=1;
+    var left=srcs.length,bad=0,idx=0,active=0;
+    function doneVerify(){
+      window.__emojiVerifying=0;
+      if(bad){
+        try{__repairEmojiState();}catch(_){}
+        var g=document.getElementById("emoji-grid");
+        if(g&&document.getElementById("emoji-panel")&&document.getElementById("emoji-panel").classList.contains("open")){g.dataset.epSig="";try{renderEmojis();}catch(_){}}
+      }
+    }
+    function nextVerify(){
+      if(idx>=srcs.length){if(left<=0)doneVerify();return;}
+      while(active<4&&idx<srcs.length){
+        var src=srcs[idx++];active++;
+        __emojiDecodeCheck(src,function(ok){
+          active--;if(!ok)bad++;left--;
+          if(left<=0){doneVerify();return;}
+          setTimeout(nextVerify,0);
+        });
+      }
+    }
+    nextVerify();
+  }catch(_){window.__emojiVerifying=0;}
+}
 /* 每张表情单独再存一份 IndexedDB（不依赖主存档/localStorage 配额）：
    以前整库 JSON 超过 localStorage 5MB 时，主存档里个别表情会被压成空图；
    只要这张图当初导入过，就能按 id 从独立副本贴回来。 */
@@ -10831,11 +10941,23 @@ function __emojiPersistItem(e){
     if(!e||!e.id||typeof dbSet!=="function"||typeof db==="undefined"||!db)return;
     var src=e.src||e.url||"";
     if(!__emojiSrcOk(src))return;
-    dbSet(__emojiDbKey(e.id),src).catch(function(){});
+    window.__emojiDbSeen=window.__emojiDbSeen||{};
+    if(window.__emojiDbSeen[e.id])return;
+    if(window.__emojiValidCache[src]===0)return;
+    function write(){
+      if(window.__emojiDbSeen[e.id])return;
+      try{dbSet(__emojiDbKey(e.id),src).then(function(){window.__emojiDbSeen[e.id]=1;}).catch(function(){});}catch(_){}
+    }
+    if(window.__emojiValidCache[src]===1)write();
+    else __emojiDecodeCheck(src,function(ok){if(ok)write();});
   }catch(_){}
 }
 function __emojiPersistList(list){
-  try{(list||[]).forEach(__emojiPersistItem);}catch(_){}
+  try{
+    var arr=list||[];
+    /* 一张一张错开写，避免 33 张大图同时 decode + 写 IndexedDB 把主线程顶住 */
+    arr.forEach(function(e,i){setTimeout(function(){__emojiPersistItem(e);},Math.min(i*35,1500));});
+  }catch(_){}
 }
 function __restoreEmojiItemFromDb(id,cb){
   var done=false;
@@ -10917,8 +11039,7 @@ function __mergeEmojiList(target,source){
     if(!__emojiSrcOk(v))return;
     var hit=target.filter(function(x){return x&&srcItem.id&&x.id===srcItem.id;})[0];
     if(!hit&&target.length===source.length){
-      var idx=source.indexOf(srcItem);hit=target[idx];
-      if(hit&&!(hit.src||hit.url)&&!hit.id)hit=hit; else hit=null;
+      var idx=source.indexOf(srcItem);hit=target[idx]||null;
     }
     if(!hit)return;
     var tv=hit.src||hit.url||"";
@@ -11162,7 +11283,7 @@ function __repairEmojiState(){
         if(!e)return;
         var src=e.src||e.url||"";
         if(src.indexOf("http://")===0){src="https://"+src.slice(7);e.src=src;changed=true;}
-        var bad=!__emojiSrcOk(src);
+        var bad=!__emojiSrcOk(src)||window.__emojiValidCache[src]===0;
         if(bad){
           var v=map[prefix+(e.id||"")]||(e.name?map[prefix+"name:"+e.name]:null);
           /* 老存档里 id 可能也被精简掉：按同一位置兜底，优先把图救回来 */
@@ -11228,22 +11349,42 @@ function __epPreviewAt(cell,tx,ty){
 }
 function __emojiCellRecover(im,id){
   try{
-    if(!im||im.__eRecovering)return;im.__eRecovering=1;
+    if(!im||im.__eRecovering)return;
     var c=im.closest&&im.closest(".emoji-cell");
+    var cur=im.getAttribute("src")||"";
+    /* 图片只是还没解码完，不能直接判“失效”：以前这里对所有 !complete 的图
+       都先查独立副本，查不到就盖一层“失效”，结果好图也被永久遮住。 */
+    if(__emojiSrcOk(cur)&&window.__emojiValidCache[cur]!==0){im.__eRecovering=0;return;}
+    im.__eRecovering=1;
     __restoreEmojiItemFromDb(id,function(ok,src){
       if(ok&&src){
-        try{c&&c.classList.remove("missing");im.style.display="";im.src=src;}catch(_){}
+        try{im.__eRecovering=0;c&&c.classList.remove("missing");im.style.display="";im.src=src;}catch(_){}
         return;
       }
+      /* 独立副本也没有时，再看一眼当前表情库：全局修复可能已经按 id 补回好图 */
+      try{
+        var e=null;curEmojis().forEach(function(x){if(x&&x.id===id)e=x;});
+        var s=e&&(e.src||e.url)||"";
+        if(s&&__emojiSrcOk(s)&&window.__emojiValidCache[s]!==0){
+          im.__eRecovering=0;c&&c.classList.remove("missing");im.style.display="";im.src=s;return;
+        }
+      }catch(_){}
       try{c&&c.classList.add("missing");im.style.display="none";}catch(_){}
     });
   }catch(_){}
 }
 function __epHidePreview(){var d=__epPvEl();d.style.display="none";__epPvCell=null;}function renderEmojis(){
   try{applyEmojiSize();}catch(e){}
-  /* 每次画表情面板前先合一次独立备份：个别图在主存档里被配额压坏时，
-     这里会按 id/名称/位置补回来，而不是等用户点开那张才提示失效。 */
-  try{__repairEmojiState();}catch(_eRep){}
+  /* 只有存在空图/坏图时才去合独立备份；正常打开面板不再每次解析 2MB 备份。 */
+  var _needRepair=false;
+  try{
+    var _raw0=(emojiSide==="partner"?state.partnerEmojis:state.emojis)||[];
+    for(var _ri=0;_ri<_raw0.length;_ri++){
+      var _re=_raw0[_ri];var _rs=_re&&(typeof _re==="string"?_re:(_re.src||_re.url));
+      if(!_rs||(_re&&_re.__missing)||String(_rs).slice(0,8)===__BIG_REF){_needRepair=true;break;}
+    }
+  }catch(_){}
+  if(_needRepair){try{__repairEmojiState();}catch(_eRep){}}
   const list=curEmojis();
   const g=$("emoji-grid");
   const isP=emojiSide==="partner";
@@ -11279,6 +11420,7 @@ function __epHidePreview(){var d=__epPvEl();d.style.display="none";__epPvCell=nu
     im.addEventListener("error",function(){
       var c=im.closest&&im.closest(".emoji-cell");
       var _id=c&&c.dataset?c.dataset.id:"";
+      try{window.__emojiValidCache[im.getAttribute("src")||""]=0;}catch(_){}
       /* 先合一次整库备份：以前这里只在错误时修一次，修不回来就永远停在“失效” */
       try{__repairEmojiState();}catch(_){}
       var _e2=null;try{_e2=curEmojis().find(function(x){return x&&x.id===_id;});}catch(_){}
@@ -11295,8 +11437,11 @@ function __epHidePreview(){var d=__epPvEl();d.style.display="none";__epPvCell=nu
   try{
     g.querySelectorAll(".emoji-cell img").forEach(function(im){
       var _cid=(im.closest&&im.closest(".emoji-cell")||{}).dataset?im.closest(".emoji-cell").dataset.id:"";
+      try{
+        im.addEventListener("load",function(){try{var _now=im.getAttribute("src")||"";if(__emojiSrcOk(_now))window.__emojiValidCache[_now]=1;}catch(_){}},{once:true});
+      }catch(_){}
       if(!im.complete||!im.naturalWidth){setTimeout(function(){__emojiCellRecover(im,_cid);},0);}
-      if(im.decode)im.decode().catch(function(){__emojiCellRecover(im,_cid);});
+      if(im.decode)im.decode().catch(function(){try{window.__emojiValidCache[im.getAttribute("src")||""]=0;}catch(_){}__emojiCellRecover(im,_cid);});
     });
   }catch(_){}
   g.querySelectorAll(".emoji-cell").forEach(cell=>{
@@ -11430,7 +11575,8 @@ function toggleEmojiPanel(force){
     }catch(_){}
     renderEmojis();
     /* 存量表情也补写一份独立副本，之后任何一张被主存档压坏都能单独救回 */
-    try{__emojiPersistList(curEmojis());}catch(_){}
+    /* 等图片先加载/解码一轮再补独立副本，避免一打开面板就同时解码 33 张大图 */
+    setTimeout(function(){try{__emojiPersistList(curEmojis());__verifyEmojiStateAsync();}catch(_){}},500);
     try{__restoreEmojiItemsFromDb(function(changed){if(changed){var _g=$("emoji-grid");if(_g)_g.dataset.epSig="";renderEmojis();}});}catch(_){}
     /* 打开面板时就把这一页表情预解码：点第一张时不用再等 new Image().decode()，
        大图/多图表情不会出现“点了半秒才弹出来”的迟滞。 */
@@ -13690,6 +13836,15 @@ function showView(id){
     }
     try{document.body.classList.toggle("away-chat",id!=="view-chat");}catch(e){}
     if(id==="view-chat"){
+      /* 进聊天不是进输入：先把上一个页面残留的焦点收掉，否则 iOS 会按“还在打字”
+         把全站舞台缩到键盘高度，看起来就是点聊天后下面多出一大块空白。 */
+      try{
+        var _ae0=document.activeElement;
+        if(_ae0&&(_ae0.tagName==="INPUT"||_ae0.tagName==="TEXTAREA"||_ae0.isContentEditable))_ae0.blur();
+      }catch(_){}
+      try{window.__resetKbShift&&window.__resetKbShift();}catch(_){}
+      try{window.__uiScaleSync&&window.__uiScaleSync();}catch(_){}
+      setTimeout(function(){try{window.__uiStableH=0;window.__uiScaleSync&&window.__uiScaleSync();}catch(_){}},120);
       /* 不点输入框时也直接看到最新聊天记录：显示后再即时贴底一次（无动画） */
       try{__chatPinNow();requestAnimationFrame(__chatPinNow);setTimeout(__chatPinNow,60);
         /* 关键：图片是显示后才解码的，解码完高度变大，列表会“往上顶一下”。
@@ -23626,6 +23781,10 @@ body{margin:0;background:var(--bg,#fafafa);}
       }
       var voffX=(vv&&vv.offsetLeft)||0, voffY=(vv&&vv.offsetTop)||0;
       var h=_diaryOpen?(window.__uiStableH||_baseH):(_typing?_vvH:(window.__uiStableH||_baseH));
+      /* 极少数 WebView 在键盘收起/切页时 visualViewport 会短暂给 0 或半截残值，
+         整站按这个高度画就会只剩一条、下面一大块空白。这里退回稳定屏高。 */
+      if(_typing&&(!_vvH||(_screenH&&_vvH<_screenH*0.28))){_typing=false;h=window.__uiStableH||_baseH;}
+      if(!h||h<200)h=window.__uiStableH||_screenH||844;
       /* 终极兜底：没在打字时，舞台高度绝不能只有屏幕的一半多一点。
          某些 iOS WebView 会把 visualViewport 停在上一次键盘的残值（约 520/852），
          这时即使它不报 typing，整站也会只画上半屏、底部聊天栏消失。 */
