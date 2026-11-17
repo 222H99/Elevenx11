@@ -144,7 +144,7 @@ input,textarea{-webkit-user-select:text;user-select:text;}
 .chat-new-pill{position:fixed;left:50%;bottom:calc(74px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:6px;padding:7px 14px;border:none;border-radius:999px;background:rgba(29,29,31,.72);color:#fff;font-size:13px;font-weight:500;letter-spacing:.2px;backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%);box-shadow:0 6px 20px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.18);cursor:pointer;}
 .chat-new-pill[hidden]{display:none;}
 .chat-new-pill:active{opacity:.8;}
-.msglist{contain:layout style;flex:1;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;overflow-anchor:none;scroll-behavior:auto;padding:14px 12px 12px;display:flex;flex-direction:column;gap:4px;background:transparent;-webkit-overflow-scrolling:touch;}
+.msglist{contain:layout style;flex:1 1 0;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;overflow-anchor:none;scroll-behavior:auto;padding:14px 12px 12px;display:flex;flex-direction:column;gap:4px;background:transparent;-webkit-overflow-scrolling:touch;}
 .msg-day{text-align:center;font-size:12px;color:#8E8E93;margin:10px 0 8px;cursor:pointer;}
 .msg-day:active{opacity:.6;}
 .msg-day span{background:transparent;padding:0;border-radius:0;}
@@ -4841,7 +4841,7 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
     if(gate)gate.classList.add("show");bodyLock(true);
     try{window.__bootDone&&window.__bootDone();}catch(_){}
   }
-  function hideGate(){if(gate)gate.classList.remove("show");bodyLock(false);try{window.__bootDone&&window.__bootDone();}catch(_){}}
+  function hideGate(){try{var _ae=document.activeElement;if(_ae&&(_ae.tagName==="INPUT"||_ae.tagName==="TEXTAREA"||_ae.tagName==="SELECT"||_ae.isContentEditable))_ae.blur();}catch(_e0){};if(gate)gate.classList.remove("show");bodyLock(false);try{window.__bootDone&&window.__bootDone();}catch(_){}}
   function showPwdCard(){
     if(card)card.style.display="none";
     if(waitCard)waitCard.style.display="none";
@@ -24505,6 +24505,14 @@ body{margin:0;background:var(--bg,#fafafa);}
       var _innerH=window.innerHeight||0;
       var _clientH=document.documentElement.clientHeight||0;
       var _screenH=(window.screen&&window.screen.height)||0;
+      /* 某些 iPhone WebView 的 screen.height 会被浏览器栏/键盘残值带小；
+         再用 outerHeight / availHeight 取一个靠谱的屏幕高度，避免整站只按半屏渲染。 */
+      try{
+        var _sh=(window.screen&&window.screen.height)||0;
+        var _ah=(window.screen&&window.screen.availHeight)||0;
+        var _oh=window.outerHeight||0;
+        _screenH=Math.max(_screenH,_sh,_ah,_oh,_innerH,_clientH);
+      }catch(_eS){}
       var _typing=false;
       try{
         var _ae=document.activeElement;
@@ -24531,6 +24539,13 @@ body{margin:0;background:var(--bg,#fafafa);}
       }
       var voffX=(vv&&vv.offsetLeft)||0, voffY=(vv&&vv.offsetTop)||0;
       var h=_diaryOpen?(window.__uiStableH||_baseH):(_typing?_vvH:(window.__uiStableH||_baseH));
+      /* 终极兜底：没在打字时，舞台高度绝不能只有屏幕的一半多一点。
+         某些 iOS WebView 会把 visualViewport 停在上一次键盘的残值（约 520/852），
+         这时即使它不报 typing，整站也会只画上半屏、底部聊天栏消失。 */
+      if(!_typing&&_screenH&&h<_screenH*0.68){
+        window.__uiStableH=_screenH;
+        h=_screenH;
+      }
       /* 日记页键盘弹起时 iOS 可能把 visualViewport 整体 scroll 出偏移；
          此时 root.top 不能跟着 voffY 走，否则整页会被抬上去、工具条压住日记字 */
       if(_diaryOpen){voffX=0;voffY=0;}
@@ -24557,9 +24572,9 @@ body{margin:0;background:var(--bg,#fafafa);}
       /* 根节点的 left/top 不受自身 scale 影响：这里写的是屏幕上的实际位置，
          不能再除以 k，否则平板居中会偏、键盘引起 offsetTop 时也会偏。 */
       var left=(w-rw*k)/2+voffX;
-      /* 只有键盘/日记页需要跟着 visualViewport 的偏移走；普通浏览时
-         浏览器工具栏或页面滚动给的 offsetTop 不能把整个舞台往下推。 */
-      var top=(_typing||_diaryOpen)?voffY:0;
+      /* 只有日记页需要跟着 visualViewport 的偏移走；聊天页是固定舞台，
+         键盘弹出时只缩高度，不能再把整页往下推，否则输入栏会被推到屏幕外。 */
+      var top=_diaryOpen?voffY:0;
       var _sig=[w,h,k,rw,rh,left,top,voffX,voffY].join("|");
       if(window.__uiSig===_sig)return;
       window.__uiSig=_sig;
