@@ -24521,6 +24521,10 @@ body{margin:0;background:var(--bg,#fafafa);}
       }catch(_eAe){}
       var _layoutH=Math.max(_innerH,_clientH,1);
       var _baseH=_layoutH;
+      /* 横竖屏切换时有些 WebView 不会触发 orientationchange：宽度变了就强制重算比例，
+         否则转回竖屏还会沿用横屏的 k 和宽度，整页变窄、只占中间一条。 */
+      if(window.__uiKLastW&&Math.abs(w-window.__uiKLastW)>8)window.__uiKLock=0;
+      window.__uiKLastW=w;
       /* 浏览器地址栏/工具栏会占掉一部分可见高度。优先用真正可见的
          visualViewport 高度，否则整站按 innerHeight 撑高，底部聊天栏会被推到屏幕外。
          但某些 WebView 会把 visualViewport 停在键盘残值（例如 480/852），
@@ -24567,7 +24571,9 @@ body{margin:0;background:var(--bg,#fafafa);}
       }
       var k=window.__uiKLock;
       var rw=w/k, rh=h/k;
-      var cap=440;
+      /* 竖屏保持 440 的阅读宽度；横屏时不要只画中间一条，按当前屏幕宽度铺满，
+         否则转屏后左右各留一大块黑边，看起来像整页被缩窄。 */
+      var cap=(h<w)?Math.min(900,w/k):440;
       if(rw>cap)rw=cap;
       /* 根节点的 left/top 不受自身 scale 影响：这里写的是屏幕上的实际位置，
          不能再除以 k，否则平板居中会偏、键盘引起 offsetTop 时也会偏。 */
@@ -24623,11 +24629,11 @@ body{margin:0;background:var(--bg,#fafafa);}
   document.addEventListener("visibilitychange",function(){if(!document.hidden)resumeLater();},{passive:true});
   window.addEventListener("focus",function(){setTimeout(resumePaint,120);},{passive:true});
   var raf=0;
-  function soon(){if(raf)return;raf=requestAnimationFrame(function(){raf=0;sync();});}
+  function soon(){if(raf)return;raf=requestAnimationFrame(function(){raf=0;var _pw=document.documentElement.clientWidth||window.innerWidth||0;if(window.__uiPaintW!==_pw){window.__uiPaintW=_pw;try{if(typeof applySkin==="function")applySkin();}catch(_){ }try{if(typeof __syncSysBar==="function")__syncSysBar();}catch(_){ }}sync();});}
   window.addEventListener("resize",soon,{passive:true});
   window.addEventListener("pageshow",soon,{passive:true});
   document.addEventListener("focusout",function(){setTimeout(soon,120);},true);
-  window.addEventListener("orientationchange",function(){window.__uiKLock=0;setTimeout(sync,260);});
+  window.addEventListener("orientationchange",function(){window.__uiKLock=0;setTimeout(function(){sync();try{if(typeof applySkin==="function")applySkin();}catch(_){ }try{if(typeof __syncSysBar==="function")__syncSysBar();}catch(_){ }},260);});
   if(window.visualViewport){
     window.visualViewport.addEventListener("resize",soon,{passive:true});
     window.visualViewport.addEventListener("scroll",soon,{passive:true});
