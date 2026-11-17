@@ -5507,7 +5507,10 @@ function __entryStart(){
 /* 密码通过之后：先弹未读公告，关掉再进主页；没有公告就直接进 */
 function __entryHome(){
   showView("view-me");
-  /* 锁屏密码是在 init 之后才解开的：进站时补启主动动态/评论/留言/来信计时器 */
+  /* 锁屏密码是在 init 之后才解开的：先补离开期间到点的动态/评论/留言/来信，
+     再启动各自的计时器。顺序反过来会把补发基准清掉。 */
+  try{if(typeof catchUpSocial==="function")catchUpSocial();}catch(e){}
+  try{if(typeof catchUpMissed==="function")catchUpMissed();}catch(e){}
   try{if(typeof reviveSocialTimers==="function")reviveSocialTimers();}catch(e){}
   setTimeout(function(){if(typeof askNotifyPrompt==="function")askNotifyPrompt();},4000);
 }
@@ -9680,10 +9683,14 @@ function scheduleActiveMsg(){
 let momentsTimer=null;
 function scheduleMoments(){
   if(momentsTimer){clearTimeout(momentsTimer);momentsTimer=null;}
-  const mn=Math.max(1,Math.min(1440,Number(state.settings.momentsMinMin)||1));
-  const mx=Math.max(mn,Math.min(1440,Number(state.settings.momentsMinMax)||mn));
   if(!state.settings.unlocked)return;
-  const next=()=>Math.round(rand(mn*60000,mx*60000));
+  /* 每次排下一次都按当前设置重读区间：改完“动态最快/最慢”不用重启就生效，
+     原来把 mn/mx 关在 next 外层，改设置后会继续用旧区间。 */
+  const next=()=>{
+    const mn=Math.max(1,Math.min(1440,Number(state.settings.momentsMinMin)||1));
+    const mx=Math.max(mn,Math.min(1440,Number(state.settings.momentsMinMax)||mn));
+    return Math.round(rand(mn*60000,mx*60000));
+  };
   const tick=()=>{
     try{if(typeof maybePartnerMomentPost==="function")maybePartnerMomentPost();}catch(e){}
     try{state.settings.lastMomentsTime=Date.now();save();}catch(e){}
@@ -9720,11 +9727,13 @@ function scheduleNote(){
 }
 /* ===== 关闭/切走网站后回来：按设定间隔补发错过的内容 ===== */
 function reviveSocialTimers(){
-  /* 动态/评论/留言不补发：重新进入时把计时基准设为现在，按设置区间重新计下一次 */
+  /* 只重新排下一次，不能把计时基准清成“现在”：
+     否则每次解锁/回前台都会先把离开这段时间抹掉，下面的 catchUpSocial 永远补不出东西。 */
+  var now=Date.now();
   try{
-    state.settings.lastMomentsTime=Date.now();
-    state.settings.lastCommentTime=Date.now();
-    state.settings.lastNoteTime=Date.now();
+    if(!state.settings.lastMomentsTime)state.settings.lastMomentsTime=now;
+    if(!state.settings.lastCommentTime)state.settings.lastCommentTime=now;
+    if(!state.settings.lastNoteTime)state.settings.lastNoteTime=now;
   }catch(e){}
   try{if(typeof scheduleActiveMsg==="function")scheduleActiveMsg();}catch(e){}
   try{if(typeof scheduleMoments==="function")scheduleMoments();}catch(e){}
@@ -9788,6 +9797,8 @@ function catchUpSocial(){
     if(probPct("socialProbMoments")){mt=dueList(state.settings.lastMomentsTime,state.settings.momentsMinMin,state.settings.momentsMinMax,capFor(state.settings.lastMomentsTime,state.settings.catchMomentsPerHour));}
     else{try{state.settings.lastMomentsTime=now;}catch(e){}}
     for(var i=0;i<mt.length;i++){
+      /* 补发也要按每一次动态的概率来掷骰子；只在进入时掷一次会把 15% 的间隔全补成动态，像刷屏。 */
+      if(!probPct("socialProbMoments"))continue;
       var n=Math.max(1,Math.round(rand(Number(state.settings.activeMomentsCountMin)||1,Number(state.settings.activeMomentsCountMax)||3)));
       var cards=null;try{cards=pickCardsN(n,"moment");}catch(e){}
       if(!cards||!cards.length)continue;
@@ -9805,6 +9816,8 @@ function catchUpSocial(){
     var top3=mine.slice(0,3);
     var perCap=Math.max(1,Math.round(Number(state.settings.commentPerPostMax)||3));
     for(var j=0;j<ct.length&&top3.length;j++){
+      /* 每一条评论也按一次概率，不能把整段离开时间里的评论全倒出来 */
+      if(!probPct("socialProbMomentComment"))continue;
       var tgt=top3.filter(function(m){return (m.comments||[]).filter(function(c){return c.from==="partner";}).length<perCap;});
       if(!tgt.length)break;
       var m2=tgt[Math.floor(Math.random()*tgt.length)];
@@ -9822,6 +9835,8 @@ function catchUpSocial(){
     if(probPct("socialProbNote")){nt=dueList(state.settings.lastNoteTime,state.settings.noteMinMin,state.settings.noteMaxMin,capFor(state.settings.lastNoteTime,state.settings.catchNotePerHour));}
     else{try{state.settings.lastNoteTime=now;}catch(e){}}
     for(var k2=0;k2<nt.length;k2++){
+      /* 每条留言单独掷骰子，避免补发时绕过“主动留言概率”一次刷一堆 */
+      if(!probPct("socialProbNote"))continue;
       var nn=Math.max(1,Math.round(rand(Number(state.settings.activeNoteCountMin)||1,Number(state.settings.activeNoteCountMax)||3)));
       var nc=null;try{nc=pickCardsN(nn);}catch(e){}
       if(!nc||!nc.length)continue;
@@ -9869,28 +9884,34 @@ function catchUpMissed(){
     var a=Math.max(1,Math.round((Number(state.settings.letterMinSec)||60)/60));
     var b=Math.max(a,Math.round((Number(state.settings.letterMaxSec)||60)/60));
     var gap=function(){return (a===b?a:Math.round(rand(a,b)))*60000;};
-    var due=last+gap(),sent=0,lastDue=0;
+    var due=last+gap(),sent=0,lastDue=0,tries=0;
     var _rawCap=state.settings.letterCatchMax;
     var _cap=Math.min(200,Math.max(0,Math.round(_rawCap===undefined||_rawCap===null||_rawCap===""?5:Number(_rawCap))));
     if(_cap<=0){state.settings.lastLetterTime=now;return;}
-    while(due<=now&&sent<_cap){
+    /* 每封到点的信单独掷概率；无论掷中与否都把基准推进到这次尝试的时刻，
+       否则一次没抽中，下次打开还会从同一个旧时刻重新补，越补越多。 */
+    while(due<=now&&tries<_cap){
+      lastDue=due;
+      tries++;
+      if(!probPct("socialProbLetter")){due+=gap();continue;}
       var n=Math.max(1,Math.round(rand(Number(state.settings.activeLetterCountMin)||1,Number(state.settings.activeLetterCountMax)||1)));
       var cards=null;try{cards=pickLetterCards(n);}catch(e){}
       if(cards&&cards.length){
         var subs=["想你","碎碎念","分享","无题","随笔","突然","想起","碎片","小记","日常","展信安","见信好"];
         var _bs2=_borrowStyle();
         state.letters.push({id:uid(),from:"partner",subject:"",body:partnerLetterBody(joinCards(cards)),time:due,paperBg:_bs2&&_bs2.paperBg,envBg:_bs2&&_bs2.envBg});
-        sent++;lastDue=due;
+        sent++;
       }
       due+=gap();
     }
+    if(lastDue){state.settings.lastLetterTime=lastDue;}
     if(sent){
       state.settings.lastLetterTime=lastDue;
       newL+=sent;updateNewBadge();renderLetters();
       /* 启动补发（人不在的时候到点的信）不算「刚刚发生」：只安静地插一条聊天提示，
          不弹顶部提示条、不发系统通知，否则每次打开网站都会先弹一次「对方给你写了封信」 */
       var _newlid=pushMsg("partner","sys","📮 对方给你写了封信",{quiet:true});__appendChatMsg(_newlid);save();
-    }
+    }else if(lastDue){save();}
   }catch(e){}
 }
 /* 保活用的静音音频与状态（之前这几个变量没声明，导致保活实际没跑起来） */
@@ -10038,6 +10059,8 @@ document.addEventListener("visibilitychange",()=>{
   var _away=_hidAt?Date.now()-_hidAt:0; _hidAt=0;
   /* 动态/评论/留言：离开满 3 分钟才按间隔与每小时上限补发，不足 3 分钟不补 */
   if(_away>=180000){try{if(typeof catchUpSocial==="function")catchUpSocial();}catch(e){}}
+  /* 来信按自己的秒级区间补：离开 1 分钟以上回来也要补，不能等重新打开才补 */
+  if(_away>=60000){try{if(typeof catchUpMissed==="function")catchUpMissed();}catch(e){}}
   reviveSocialTimers();
   /* 聊天：离开（含切后台）满 30 秒回来补 1~2 条 */
   bgCatchUpChat(_away);
