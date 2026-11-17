@@ -24504,26 +24504,29 @@ body{margin:0;background:var(--bg,#fafafa);}
       var _vvH=(vv&&vv.height)||0;
       var _innerH=window.innerHeight||0;
       var _clientH=document.documentElement.clientHeight||0;
+      var _screenH=(window.screen&&window.screen.height)||0;
       var _typing=false;
       try{
         var _ae=document.activeElement;
         var _aeVisible=!!(_ae&&(_ae.offsetParent!==null||(_ae.getClientRects&&_ae.getClientRects().length)));
         _typing=!!(_aeVisible&&(_ae.tagName==="INPUT"||_ae.tagName==="TEXTAREA"||_ae.isContentEditable));
       }catch(_eAe){}
-      var _baseH=Math.max(_vvH,_innerH,_clientH);
-      /* 手机上偶尔 visualViewport 会停在键盘高度（例如 480），但此时已经没有输入焦点。
-         不能把整站舞台继续按这个残值缩小，否则首页只渲染上半屏、下面一整片空白。
-         只用真实布局高度兜底；正在输入时仍按 visualViewport 让键盘避让。 */
-      try{
-        if(!_typing && window===window.top && window.screen && Math.min(window.screen.width||999,window.screen.height||999)<=600){
-          _baseH=Math.max(_baseH,window.screen.height||0);
-        }
-      }catch(_eScreen){}
+      var _layoutH=Math.max(_innerH,_clientH,1);
+      var _baseH=_layoutH;
+      /* 浏览器地址栏/工具栏会占掉一部分可见高度。优先用真正可见的
+         visualViewport 高度，否则整站按 innerHeight 撑高，底部聊天栏会被推到屏幕外。
+         但某些 WebView 会把 visualViewport 停在键盘残值（例如 480/852），
+         这种低于布局高度 70% 的数值仍然按布局高度兜底，避免首页只显示上半屏。 */
+      if(_vvH&&(!_typing||_vvH>=_layoutH*0.7))_baseH=_vvH;
+      if(!_typing&&_screenH&&_baseH<_screenH*0.7)_baseH=Math.max(_baseH,_screenH);
       if(!_baseH)_baseH=844;
       var _diaryOpen=!!(document.getElementById("diary-view")&&document.getElementById("diary-view").classList.contains("show"));
       /* 页面初次加载时记住真实屏高：键盘弹起 visualViewport 会变矮，但日记页不跟着缩，
          这样工具条/纸页不会被键盘顶到上面去。屏高变大（键盘收起/旋转）时重新取。 */
       if(!window.__uiStableH||Math.abs((window.__uiStableW||0)-w)>8||_baseH>window.__uiStableH+50){
+        window.__uiStableH=_baseH;window.__uiStableW=w;
+      }else if(!_typing&&_baseH<window.__uiStableH-20){
+        /* 键盘关掉后从残值恢复成真正可见高度；不能一直沿用键盘时的矮舞台 */
         window.__uiStableH=_baseH;window.__uiStableW=w;
       }
       var voffX=(vv&&vv.offsetLeft)||0, voffY=(vv&&vv.offsetTop)||0;
@@ -24554,7 +24557,9 @@ body{margin:0;background:var(--bg,#fafafa);}
       /* 根节点的 left/top 不受自身 scale 影响：这里写的是屏幕上的实际位置，
          不能再除以 k，否则平板居中会偏、键盘引起 offsetTop 时也会偏。 */
       var left=(w-rw*k)/2+voffX;
-      var top=voffY;
+      /* 只有键盘/日记页需要跟着 visualViewport 的偏移走；普通浏览时
+         浏览器工具栏或页面滚动给的 offsetTop 不能把整个舞台往下推。 */
+      var top=(_typing||_diaryOpen)?voffY:0;
       var _sig=[w,h,k,rw,rh,left,top,voffX,voffY].join("|");
       if(window.__uiSig===_sig)return;
       window.__uiSig=_sig;
