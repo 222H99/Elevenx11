@@ -4150,7 +4150,7 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
     <div class="sheet" id="sheet">
       <div class="sheet-grip"></div>
       <div class="sheet-item" id="act-multi"><svg class="icon" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px"><use xlink:href="#i-trash"/></svg>多选消息（批量删除 / 生成长图）</div>
-      <div class="sheet-item" id="act-fav"><svg class="icon" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px"><use xlink:href="#i-card"/></svg><span id="act-fav-txt">收藏这条消息</span></div>
+      <div class="sheet-item" id="act-fav"><svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round"><path d="M12 3.2l2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span id="act-fav-txt">收藏这条消息</span></div>
       <div class="sheet-item" id="act-reply"><svg class="icon" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px"><use xlink:href="#i-reply"/></svg>引用这条消息</div>
       <div class="sheet-item hidden" id="act-recall"><svg class="icon" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px"><use xlink:href="#i-undo"/></svg>撤回这条消息</div>
       <div class="sheet-item hidden" id="act-edit"><svg class="icon" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px"><use xlink:href="#i-edit"/></svg>修改这条消息</div>
@@ -4248,7 +4248,7 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
         <button class="plus-item" id="plus-survey"><span class="pi-ic"><svg class="icon"><use xlink:href="#i-survey"/></svg></span><span class="pi-lab">问卷</span></button>
         <button class="plus-item" id="plus-redpacket"><span class="pi-ic"><svg class="icon"><use xlink:href="#i-redpacket"/></svg><span class="ndot hidden"></span></span><span class="pi-lab">红包</span></button>
         <button class="plus-item" id="plus-diary"><span class="pi-ic"><svg class="icon"><use xlink:href="#i-note"/></svg></span><span class="pi-lab">日记本</span></button>
-        <button class="plus-item" id="plus-fav"><span class="pi-ic"><svg class="icon"><use xlink:href="#i-card"/></svg></span><span class="pi-lab">收藏夹</span></button>
+        <button class="plus-item" id="plus-fav"><span class="pi-ic"><svg class="icon" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round"><path d="M12 3.2l2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg></span><span class="pi-lab">收藏夹</span></button>
         <button class="plus-item" id="plus-cards"><span class="pi-ic"><svg class="icon"><use xlink:href="#i-card"/></svg></span><span class="pi-lab">字卡板块</span></button>
         <button class="plus-item" id="plus-game"><span class="pi-ic"><svg class="icon"><use xlink:href="#i-paint"/></svg></span><span class="pi-lab">接力画画</span></button>
         <button class="plus-item" id="plus-music"><span class="pi-ic"><svg class="icon"><use xlink:href="#i-music"/></svg></span><span class="pi-lab">一起听</span></button>
@@ -17857,13 +17857,13 @@ function __renderFavSheet(){
     return (String(f.text||"")+" "+(f.tag||"")).toLowerCase().indexOf(q)>=0;
   });
   if(!arr.length){
-    list.innerHTML='<div class="empty-hint" style="padding:22px 4px;">'+(all.length?"没有匹配的收藏":"还没有收藏。长按聊天气泡，点「收藏这条消息」就会出现在这里。")+'</div>';
+    list.innerHTML='<div class="empty-hint" style="padding:22px 4px;">'+(all.length?"没有匹配的收藏":"还没有收藏。长按聊天气泡，或点动态、信件、留言上的五角星，就会出现在这里。")+'</div>';
     return;
   }
   list.innerHTML=arr.map(function(f){
     var side=f.from==="me"?"我":((state.partner&&state.partner.name)||"对方");
     return '<div class="fav-row" data-fav-id="'+esc(f.id||"")+'">'
-      +'<div class="fav-main"><div class="fav-nm">'+esc(side)+' · '+fmtTime(f.time)+'</div>'
+      +'<div class="fav-main"><div class="fav-nm">'+(f.favKind?'<span class="fv-kind">'+esc(__starLabel(f.favKind))+'</span>':'')+esc(side)+' · '+fmtTime(f.time)+'</div>'
       +'<div class="fav-tx">'+esc(String(f.text||""))+'</div>'
       +(f.tag?'<div class="fav-tm">'+esc(f.tag)+'</div>':'')
       +'</div><button class="fav-x" data-fav-del="'+esc(f.id||"")+'" aria-label="删除收藏">×</button></div>';
@@ -18102,10 +18102,69 @@ function __sigOfList(arr){
 }
 /* 旧版删掉了收藏按钮的实现，但信件/动态/留言卡片仍在调用这个函数：
    一渲染就 ReferenceError，整页空白。这里补成安全的空字符串。 */
-function __starBtnHTML(){return "";}
-/* 收藏功能已被移除，但绑定/切换调用还留在旧代码里；补成空实现，避免整页渲染时报错 */
-function __bindStarButtons(){}
-function __starToggle(){}
+function __meName(){try{return (state.me&&state.me.name)||(state.profile&&(state.profile.myName||state.profile.nameMe))||"我";}catch(e){return "我";}}
+function __partName(){try{return (state.partner&&state.partner.name)||"对方";}catch(e){return "对方";}}
+function __favArr(){if(!Array.isArray(state.favorites))state.favorites=[];return state.favorites;}
+function __favHas(id){return __favArr().some(function(x){return x.id===id;});}
+/* ---- 动态 / 信件 / 留言 的五角星收藏 ---- */
+function __starHas(kind,refId){return __favArr().some(function(x){return x.favKind===kind&&x.refId===refId;});}
+function __letterFullBody(l){return String((l&&l.body)||"").trim();}
+function __letterFavText(x){
+  var raw=String((x&&x.text)||"");
+  var txt=raw.replace(/\{\{me\}\}/g,__meName()).replace(/\{\{partner\}\}/g,__partName());
+  var hasSig=/\[\[SIG\]\]/.test(txt);
+  txt=txt.replace(/\n*\[\[SIG\]\]\n*/g,"\n\n");
+  var sender=(x&&x.from==="me")?__meName():__partName();
+  var to=(x&&x.from==="me")?__partName():__meName();
+  if(!/^To\s/m.test(txt.trim()))txt="To "+to+"\n"+sender+" 写\n\n"+txt;
+  return txt.trim();
+}
+function __starLabel(kind){return kind==="moment"?"动态":kind==="letter"?"信件":kind==="guestbook"?"留言":"收藏";}
+function __starSnap(kind,refId){
+  try{
+    if(kind==="moment"){
+      var m=(state.moments||[]).filter(function(x){return x.id===refId;})[0];if(!m)return null;
+      return {id:"moment:"+refId,favKind:"moment",refId:refId,title:"动态",text:String(m.text||"")||(m.img?"[图片动态]":""),from:m.from||"",time:Number(m.time)||Date.now()};
+    }
+    if(kind==="letter"){
+      var l=(state.letters||[]).filter(function(x){return x.id===refId;})[0];if(!l)return null;
+      var body=__letterFullBody(l);
+      return {id:"letter:"+refId,favKind:"letter",refId:refId,title:l.subject||"信件",text:body,from:l.from||"",time:Number(l.time)||Date.now()};
+    }
+    if(kind==="guestbook"){
+      var n=(state.guestbook||[]).filter(function(x){return x.id===refId;})[0];if(!n)return null;
+      return {id:"guestbook:"+refId,favKind:"guestbook",refId:refId,title:"留言",text:String(n.text||"").slice(0,160),from:n.from||"",time:Number(n.time)||Date.now()};
+    }
+  }catch(e){}
+  return null;
+}
+function __starBtnHTML(kind,refId,cls){
+  var on=__starHas(kind,refId);
+  return '<button class="star-btn'+(cls?" "+cls:"")+(on?" on":"")+'" data-star-kind="'+esc(kind)+'" data-star-id="'+esc(refId)+'" title="'+(on?"取消收藏":"收藏")+'" aria-label="'+(on?"取消收藏":"收藏")+'"><svg viewBox="0 0 24 24"><path d="M12 3.2l2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg></button>';
+}
+function __starToggle(kind,refId){
+  var a=__favArr(),i=-1;
+  for(var k=0;k<a.length;k++){if(a[k].favKind===kind&&a[k].refId===refId){i=k;break;}}
+  if(i>=0){a.splice(i,1);toast("已取消收藏");}
+  else{
+    var snap=__starSnap(kind,refId);if(!snap){toast("这条内容已经不在了");return;}
+    a.unshift(snap);toast("已收藏，可在收藏夹查看");
+  }
+  save();
+  try{if($("fav-sheet")&&$("fav-sheet").classList.contains("show"))__renderFavSheet();}catch(e){}
+  try{
+    if(kind==="moment"){if(!__refreshMomentCard(refId))renderMoments();}
+    else if(kind==="letter"){window.__rSig&&(window.__rSig["letters"]=null);renderLetters();}
+    else if(kind==="guestbook"){window.__rSig&&(window.__rSig["guest"]=null);renderGuestbook();}
+  }catch(e){}
+}
+function __bindStarButtons(root){
+  if(!root||!root.querySelectorAll)return;
+  root.querySelectorAll("[data-star-kind]").forEach(function(b){
+    if(b.__starB)return;b.__starB=1;
+    b.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();__starToggle(b.dataset.starKind,b.dataset.starId);});
+  });
+}
 function renderLetters(force){
   var _s="letters|"+__sigOfList(state.letters);
   if(!window.__rSig)window.__rSig={};
