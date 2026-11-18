@@ -795,6 +795,9 @@ body.ui-dark:not(.lt-preset) .env-card .ev-sig{color:rgba(255,255,255,.62) !impo
    iOS 上就是白闪。聊天页留在下层继续画，上面的整屏页本来就不透明，看不见它。 */
 body.away-chat #view-chat{visibility:visible !important;opacity:1;}
 #view-chat:not(.open){pointer-events:none;}
+/* 启动阶段聊天页是常驻底图；如果初始化较慢/被 #chat 深链提前露出，
+   它会显示成“空白聊天且点不动”。在真正 open 过任何页面之前先藏住。 */
+body:not(.app-ready) #view-chat{visibility:hidden !important;}
 /* 聊天页固定成独立合成层：图层全程常驻，切进/切出不会新建或拆除 */
 #view-chat{transform:translateZ(0);-webkit-backface-visibility:hidden;backface-visibility:hidden;}
 @keyframes viewFade{from{opacity:0}to{opacity:1}}
@@ -5711,11 +5714,17 @@ try{
     });
   }
 }catch(e){}
-/* 从系统通知冷启动（openWindow 带 #chat）：启动完成后直接落在聊天页 */
+/* 从系统通知冷启动（openWindow 带 #chat）：必须等本地状态和页面初始化完成，
+   否则会先露出一个没有数据、按钮还没绑定的空白聊天页，表现为“点不动”。 */
 try{
   window.addEventListener("load",function(){
     if(String(location.hash||"").toLowerCase()==="#chat"){
-      setTimeout(function(){try{if(typeof showView==="function")showView("view-chat");}catch(e){}},600);
+      window.__wantChatOnReady=1;
+      var __goChat=function(){
+        if(!window.__stateReady||!window.__viewInit){setTimeout(__goChat,200);return;}
+        try{if(typeof showView==="function")showView("view-chat");}catch(e){}
+      };
+      setTimeout(__goChat,600);
     }
   });
 }catch(e){}
@@ -6845,7 +6854,7 @@ async function init(){
   setTimeout(function(){try{window.__fitCompute(false);}catch(e){}},220);
   try{if(typeof renderTopStatus==="function")renderTopStatus();}catch(e){}
   try{if(window.__idle){window.__idle(function(){try{preloadCp2Images();}catch(e){}});}else{setTimeout(function(){try{preloadCp2Images();}catch(e){}},120);}}catch(e){}
-  try{if(typeof showView==="function")showView("view-me");}catch(e){}try{window.__bootDone&&window.__bootDone();}catch(_e){}
+  try{if(typeof showView==="function")showView(window.__wantChatOnReady?"view-chat":"view-me");}catch(e){}try{window.__bootDone&&window.__bootDone();}catch(_e){}
   try{if(typeof preloadCp2Images==="function")setTimeout(preloadCp2Images,180);}catch(e){}
   try{if(window.__cp2Reapply)window.__cp2Reapply();}catch(e){}
   try{window.__stateReady=1;}catch(e){}
@@ -7042,7 +7051,7 @@ try{window.__scheduleCp2Render&&window.__scheduleCp2Render();}catch(e){}
     }, 300);
     try{setTimeout(function(){window.__idle?window.__idle(function(){__bkAuto();}):__bkAuto();},2600);}catch(e){}
   }catch(e){window._dbReady=true;aboutLoadStatus("加载完成（离线模式）");try{__storageGuard();}catch(_eG2){}
-      try{if(window.__rebuildSocialNotices)window.__rebuildSocialNotices();}catch(e){}try{renderAll();}catch(_e){}try{if(typeof showView==="function")showView("view-me");}catch(_e2){}try{window.__bootDone&&window.__bootDone();}catch(_e3){}try{setTimeout(function(){if(window.__prewarmChat)window.__prewarmChat();},260);}catch(_e3){}}
+      try{if(window.__rebuildSocialNotices)window.__rebuildSocialNotices();}catch(e){}try{renderAll();}catch(_e){}try{if(typeof showView==="function")showView(window.__wantChatOnReady?"view-chat":"view-me");}catch(_e2){}try{window.__bootDone&&window.__bootDone();}catch(_e3){}try{setTimeout(function(){if(window.__prewarmChat)window.__prewarmChat();},260);}catch(_e3){}}
   try{setTimeout(function(){
     window.__idle(function(){
       try{if(typeof catchUpSocial==="function")catchUpSocial();}catch(e){}
@@ -14315,6 +14324,8 @@ function showView(id){
     }
     if(!window.__viewInit){window.__viewInit=1;["view-chat","view-me","view-cards","view-settings","view-letters","view-guestbook","view-moments","view-redpacket","view-game","view-music","view-couple"].forEach(function(v){if(v!==id&&$(v))$(v).classList.remove("open");});}
     $(id).classList.add("open");window.__curView=id;
+    try{document.body.classList.add("app-ready");}catch(_){}
+    try{if(document.getElementById("boot-veil"))window.__bootDone&&window.__bootDone();}catch(_){}
     /* 聊天页已挂载并预画：新页 open 加完立即撤旧页，同一帧切换，不等 rAF */
     if(id==="view-chat"&&window.__chatPrevView){
       try{window.__chatPrevView.classList.remove("open");}catch(_){}
