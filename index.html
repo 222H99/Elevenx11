@@ -3694,11 +3694,16 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
       <div class="set-sec-title">数据管理</div>
       <div class="set-group">
         <div class="set-row"><button class="small-btn ghost" style="width:100%;" id="btn-export">导出全部数据（备份）</button></div>
+        <div class="set-row" style="gap:8px;">
+          <button class="small-btn ghost" style="flex:1;font-size:13px;" id="btn-export-chat">只导出聊天</button>
+          <button class="small-btn ghost" style="flex:1;font-size:13px;" id="btn-export-social">只导出信件动态留言</button>
+          <button class="small-btn ghost" style="flex:1;font-size:13px;" id="btn-export-emoji">只导出表情包</button>
+        </div>
         <div class="set-row" style="flex-direction:column;align-items:stretch;">
           <button class="small-btn ghost" style="width:100%;" id="btn-snapshots">自动备份（最近 3 次）</button>
           <div class="set-sub" id="snap-sub" style="margin-top:6px;">每天自动存一份，点开可一键恢复</div>
         </div>
-        <div class="set-row"><label class="small-btn ghost" for="file-import" style="width:100%;display:flex;align-items:center;justify-content:center;cursor:pointer;text-align:center;">导入全部数据（恢复）</label></div>
+        <div class="set-row"><label class="small-btn ghost" for="file-import" style="width:100%;display:flex;align-items:center;justify-content:center;cursor:pointer;text-align:center;">导入数据（全量/分类自动识别）</label></div>
         <div class="set-row"><button class="small-btn ghost" style="width:100%;" id="btn-clear-msgs">清空聊天记录</button></div>
         <div class="set-row"><button class="small-btn ghost" style="width:100%;color:var(--danger);" id="btn-reset-all">一键重置（重置所有内容）</button></div>
       </div>
@@ -13368,6 +13373,152 @@ function __restoreIDB(all){
   });
 }
 window.__e11RestoreIDB=function(all){return __restoreIDB(all);};
+
+/* ===== 分类导出：聊天 / 信件动态留言 / 表情包 =====
+   只导出选中的一类，导入时按 id 合并，不会覆盖没选中的数据。 */
+function __downloadJsonFile(obj,fname){
+  try{
+    var blob=new Blob([JSON.stringify(obj)],{type:"application/json"});
+    var a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);a.download=fname;
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+    return true;
+  }catch(_){return false;}
+}
+function __emojiValidSrc(v){return typeof v==="string"&&v.indexOf("\u0000bigref:")!==0&&(/^data:image\//i.test(v)||/^https?:\/\//i.test(v));}
+function __exportPartial(kind){
+  var groups=kind==="chat"?["chat"]:(kind==="social"?["letters","moments","guestbook"]:["emoji"]);
+  var label=kind==="chat"?"聊天记录":(kind==="social"?"信件/动态/留言":"表情包");
+  toast("正在整理"+label+"…");
+  var _go=function(){
+    var st={};
+    if(kind==="chat"){
+      st.messages=(state.messages||[]).slice();
+      st.redpackets=(state.redpackets||[]).slice();
+    }else if(kind==="social"){
+      st.letters=(state.letters||[]).slice();
+      st.moments=(state.moments||[]).slice();
+      st.guestbook=(state.guestbook||[]).slice();
+    }else{
+      st.emojis=(state.emojis||[]).filter(function(e){return e&&__emojiValidSrc(e.src||e.url);}).map(function(e){var c={};for(var k in e)if(Object.prototype.hasOwnProperty.call(e,k))c[k]=e[k];delete c.__missing;return c;});
+      st.partnerEmojis=(state.partnerEmojis||[]).filter(function(e){return e&&__emojiValidSrc(e.src||e.url);}).map(function(e){var c={};for(var k in e)if(Object.prototype.hasOwnProperty.call(e,k))c[k]=e[k];delete c.__missing;return c;});
+    }
+    if(kind==="emoji"&&!(st.emojis&&st.emojis.length)&&!(st.partnerEmojis&&st.partnerEmojis.length)){
+      toast("没有可导出的表情原图：这份数据里只剩文件名/坏引用，图片本体已经丢失");
+      return;
+    }
+    var _idb=null;
+    /* 聊天里的图片/动图引用，和表情的独立副本，一起带上；分类导入只写这些键，不会清空总库 */
+    if(kind==="chat"||kind==="emoji"){
+      _idb={};
+      __dumpIDB().then(function(all){
+        try{Object.keys(all||{}).forEach(function(k){if(/^(bigimg:|emojiimg:)/.test(k))_idb[k]=all[k];});}catch(_){}
+        __dumpDone();
+      }).catch(__dumpDone);
+      return;
+    }
+    __dumpDone();
+    function __dumpDone(){
+      var data={app:"privateChat",version:4,partial:true,groups:groups,exportedAt:new Date().toISOString(),state:st,idb:_idb};
+      var date=new Date();
+      var fn="e11_"+label+"_"+date.getFullYear()+("0"+(date.getMonth()+1)).slice(-2)+("0"+date.getDate()).slice(-2)+"_"+("0"+date.getHours()).slice(-2)+("0"+date.getMinutes()).slice(-2)+".json";
+      if(!__downloadJsonFile(data,fn)){toast("导出失败，请重试");return;}
+      toast("已导出"+label+(kind==="emoji"?"（含原图）":""));
+    }
+  };
+  if(typeof __resolveEmojiBigRefs==="function"){
+    __resolveEmojiBigRefs().then(_go).catch(_go);
+  }else _go();
+}
+window.__exportPartial=__exportPartial;
+$("btn-export-chat")&&$("btn-export-chat").addEventListener("click",function(){__exportPartial("chat");});
+$("btn-export-social")&&$("btn-export-social").addEventListener("click",function(){__exportPartial("social");});
+$("btn-export-emoji")&&$("btn-export-emoji").addEventListener("click",function(){__exportPartial("emoji");});
+
+/* 分类备份导入：按 id 合并，不覆盖未选中的数据 */
+function __mergeListById(cur,incoming,keyFn){
+  var out=(cur||[]).slice(),by={},bysrc={};
+  out.forEach(function(x,i){var k=keyFn(x);if(k)by[k]=x;});
+  (incoming||[]).forEach(function(x){
+    if(!x)return;
+    var k=keyFn(x);
+    if(k&&by[k]){
+      var old=by[k];
+      /* 老条目是坏图、新条目有真图时，替换图片但保留原 id（消息里可能引用旧 id） */
+      var nsrc=x.src||x.url||"",osrc=old.src||old.url||"";
+      if((!osrc||osrc.indexOf("\u0000bigref:")===0||old.__missing)&&__emojiValidSrc(nsrc)){
+        for(var kk in x)if(Object.prototype.hasOwnProperty.call(x,kk)&&kk!=="id")old[kk]=x[kk];
+        delete old.__missing;
+      }
+      return;
+    }
+    out.push(x);if(k)by[k]=x;
+  });
+  return out;
+}
+function __mergeEmojiPack(cur,incoming){
+  var out=(cur||[]).slice();
+  (incoming||[]).forEach(function(x){
+    if(!x||!__emojiValidSrc(x.src||x.url))return;
+    var hit=null;
+    for(var i=0;i<out.length;i++){
+      if(out[i]&&out[i].id===x.id){hit=out[i];break;}
+      if(!hit&&out[i]&&x.name&&out[i].name===x.name)hit=out[i];
+    }
+    if(hit){
+      var osrc=hit.src||hit.url||"";
+      if(!osrc||osrc.indexOf("\u0000bigref:")===0||hit.__missing){
+        for(var k in x)if(Object.prototype.hasOwnProperty.call(x,k)&&k!=="id")hit[k]=x[k];
+        delete hit.__missing;
+      }
+    }else{
+      out.push(x);
+    }
+  });
+  return out;
+}
+function __applyPartialBackup(data){
+  var st=(data&&data.state&&typeof data.state==="object")?data.state:{};
+  var groups=(data&&data.groups)||[];
+  var has=function(g){return groups.indexOf(g)>=0;};
+  var changed=[];
+  var keyId=function(x){return x&&(x.id||((x.time||"")+"|"+(x.text||x.body||"")));};
+  if(has("chat")){
+    state.messages=__mergeListById(state.messages,st.messages,keyId);
+    state.messages.sort(function(a,b){return (Number(a.time)||0)-(Number(b.time)||0);});
+    state.redpackets=__mergeListById(state.redpackets,st.redpackets,keyId);
+    changed.push("聊天 "+(st.messages||[]).length+" 条");
+  }
+  if(has("letters")){state.letters=__mergeListById(state.letters,st.letters,keyId);changed.push("信件 "+(st.letters||[]).length+" 封");}
+  if(has("moments")){state.moments=__mergeListById(state.moments,st.moments,keyId);changed.push("动态 "+(st.moments||[]).length+" 条");}
+  if(has("guestbook")){state.guestbook=__mergeListById(state.guestbook,st.guestbook,keyId);changed.push("留言 "+(st.guestbook||[]).length+" 条");}
+  if(has("cards")){state.cards=__mergeListById(state.cards,st.cards,keyId);state.groups=__mergeListById(state.groups,st.groups,function(x){return x&&x.id;});changed.push("字卡");}
+  if(has("emoji")||has("emojis")){
+    var before=(state.emojis||[]).length;
+    state.emojis=__mergeEmojiPack(state.emojis,st.emojis);
+    state.partnerEmojis=__mergeEmojiPack(state.partnerEmojis,st.partnerEmojis);
+    changed.push("表情 +"+((state.emojis||[]).length-before)+" 张");
+  }
+  try{__emojiPersistList(state.emojis);__emojiPersistList(state.partnerEmojis);}catch(_){}
+  try{state.__savedAt=Date.now();}catch(_){}
+  var _fin=function(){
+    try{sessionStorage.setItem("__forceIdbRestore","1");}catch(_){}
+    toast("已合并导入："+(changed.join("、")||"没有可合并的数据"));
+    try{__softApplyImport(state);}catch(_){}
+    setTimeout(function(){try{location.reload();}catch(_){}},300);
+  };
+  var _writeIdb=Promise.resolve();
+  if(data.idb&&typeof data.idb==="object"&&db){
+    _writeIdb=Promise.all(Object.keys(data.idb).map(function(k){
+      return dbSet(k,data.idb[k]).catch(function(){});
+    }));
+  }
+  _writeIdb.then(function(){
+    if(db)dbSet("state",state).then(_fin).catch(_fin);else _fin();
+  });
+}
+
 $("btn-export").addEventListener("click",function(){
   /* 全量备份：先把内存里的最新改动落盘，再一起导出
      1) state —— 聊天/动态/信件/留言/字卡/表情/问卷/红包/音乐/照片/皮肤/布局坐标尺寸/全部设置
@@ -13562,6 +13713,11 @@ function __importBackupText(txt,f){
         if(d.extras&&typeof d.extras==="object"){_norm={state:null,extras:d.extras,idb:d.idb||null};return;}
       })();
       if(!_norm)throw new Error("格式错误");
+      /* 分类备份：只把选中的类别按 id 合并进当前数据，不覆盖其他内容 */
+      if(data&&data.partial===true){
+        __applyPartialBackup({state:_norm.state,groups:data.groups||[],idb:_norm.idb});
+        return;
+      }
       var _base=defaultState();
       if(_norm.state&&typeof _norm.state==="object"){
         state=_norm.state;
