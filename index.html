@@ -1485,7 +1485,10 @@ o{opacity:1;transform:translateY(0);}}
 .mc-emoji-sheet .mce-close{margin-top:12px;border:none;border-radius:12px;padding:10px;background:rgba(255,255,255,.14);color:#fff;font-size:14px;}
 .mc-reply{border:none;background:none;color:#8E8E93;font-size:11px;padding:0;cursor:pointer;}
 .qa-adel{border:none;background:none;color:#B0B0B5;font-size:10px;padding:0 0 0 10px;cursor:pointer;}
-.mc-replies{border-left:2px solid rgba(0,0,0,.20);margin-left:34px;padding-left:58px;margin-top:4px;}
+.mc-replies{border-left:2px solid rgba(0,0,0,.20);margin-left:20px;padding-left:12px;margin-top:4px;}
+.mc-row[data-depth="2"]{margin-left:14px;border-left:1px solid rgba(0,0,0,.10);padding-left:10px;}
+.mc-tome{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:6px;font:600 10px/1.5 -apple-system,BlinkMacSystemFont,sans-serif;color:#3478F6;background:rgba(52,120,246,.10);vertical-align:middle;}
+.mc-row[data-depth="3"]{margin-left:28px;border-left:1px solid rgba(0,0,0,.08);padding-left:8px;}
 .mc-even{margin-left:30px;border-left:1px solid rgba(0,0,0,.10);padding-left:15px;margin-top:2px;}
 .mc-even .mc-row{padding:6px 0;}
 .mc-row.kid{margin-left:0;padding:5px 0;}
@@ -1976,7 +1979,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-18v31">
+<meta name="app-build" content="2026-11-18v38">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3608,7 +3611,7 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
       <div class="set-group"><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
-<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-14bp11</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-18v38</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5479,7 +5482,7 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"2026-11-16",
+  date:"2026-11-18",
   lead:"这一版恢复网易云扫码登录：账号弹层自动生成二维码，手机扫码确认后自动同步账号和歌单，Cookie 登录保留作备用；同时保留图片/表情包不空帧、聊天返回、照片框、日记、画画、防白闪等修复。",
   items:[
     '<span class="an-gt">画画</span>',
@@ -5540,7 +5543,10 @@ function __autoBuildId(src){
 }
 window.__autoBuildId=__autoBuildId;
 try{
-  var __bid=__autoBuildId();
+  /* 线上 CDN 的 Last-Modified 不保证存在，不能把它当成唯一版本号；
+     以页面里的 app-build 为准，拿不到时才退回文件时间。 */
+  var __mb=document.querySelector('meta[name="app-build"]');
+  var __bid=(__mb&&__mb.content)||__autoBuildId()||"";
   if(__bid){window.__buildId=__bid;ANNOUNCE.ver=__bid;}
 }catch(e){}
 
@@ -8321,18 +8327,34 @@ function __rebuildSocialNotices(){
     var res=[/对方给你写了(?:一)?封信|对方给你回信了/,
              /对方给你留了\s*\d*\s*条?留言|对方给你留言了/,
              /对方发了\s*\d*\s*条?新动态|对方发了一条新动态/,
-             /对方评论了你的动态|对方回复了你的评论/];
+             /对方评论了你的动态/,
+             /对方回复了你的评论/];
     var ids={};(state.letters||[]).forEach(function(l){if(l&&l.id)ids[l.id]=1;});
     var now=Date.now(),delay=Number(typeof LETTER_READ_DELAY!=="undefined"?LETTER_READ_DELAY:7200000);
     var unreadL=(state.letters||[]).filter(function(l){return l&&l.from==="partner"&&(!l.replyTo||ids[l.replyTo])&&!l.read&&(now-(Number(l.time)||0))<delay;}).length;
     var unreadN=(state.guestbook||[]).filter(function(n){return n&&n.from==="partner"&&n.unread;}).length;
     var unreadM=(state.moments||[]).filter(function(m){return m&&m.from==="partner"&&m.unread;}).length;
-    var unreadC=0;(state.moments||[]).forEach(function(m){(m.comments||[]).forEach(function(c){if(c&&c.from==="partner"&&c.unread)unreadC++;});});
+    /* 主动评论和回复必须分开计数：顶层 partner 评论=主动评论；
+       任意层级的 partner 回复=回复。旧代码把两者合并成 unreadC，
+       结果有主动评论时会把“对方回复了你的评论”提示保留，回复却可能被当成假的删掉。 */
+    var unreadC=0,unreadR=0;
+    (state.moments||[]).forEach(function(m){
+      (m.comments||[]).forEach(function(c){
+        if(!c||c.from!=="partner")return;
+        unreadC++;
+        (function walk(list){
+          (list||[]).forEach(function(r){
+            if(r&&r.from==="partner")unreadR++;
+            if(r&&r.replies&&r.replies.length)walk(r.replies);
+          });
+        })(c.replies);
+      });
+    });
     var had=false;
     /* 每类提示只保留一条：以前是「先全删再按未读重加」，
        于是每次启动都会重新插一条新的系统消息 → 每开一次网站就弹一次「对方给你写了封信」 */
-    var flags=[false,false,false,false];
-    var alive=[unreadL>0,unreadN>0,unreadM>0,unreadC>0];
+    var flags=[false,false,false,false,false];
+    var alive=[unreadL>0,unreadN>0,unreadM>0,unreadC>0,unreadR>0];
     for(var i=ms.length-1;i>=0;i--){
       var t=String((ms[i]||{}).text||""),kind=-1;
       if(ms[i]&&ms[i].type==="sys"){for(var j=0;j<res.length;j++){if(res[j].test(t)){kind=j;break;}}}
@@ -8344,7 +8366,8 @@ function __rebuildSocialNotices(){
     if(unreadN&&!flags[1])pushMsg("partner","sys","💬 对方给你留言了",{quiet:true});
     if(unreadM&&!flags[2])pushMsg("partner","sys","📷 对方发了一条新动态",{quiet:true});
     if(unreadC&&!flags[3])pushMsg("partner","sys","💬 对方评论了你的动态",{quiet:true});
-    if(had||unreadL||unreadN||unreadM||unreadC){try{save();__flushSave();}catch(e){};window.__chatDirty=1;}
+    if(unreadR&&!flags[4])pushMsg("partner","sys","💬 对方回复了你的评论",{quiet:true});
+    if(had||unreadL||unreadN||unreadM||unreadC||unreadR){try{save();__flushSave();}catch(e){};window.__chatDirty=1;}
     return true;
   }catch(e){return null;}
 }
@@ -13188,23 +13211,48 @@ $("sw-bg-sound")&&$("sw-bg-sound").addEventListener("click",function(){
   this.classList.toggle("on",state.settings.bgSoundOn);
   save();
   toast(state.settings.bgSoundOn?"后台会响提示音（可能出现播放卡片）":"后台只播静音，不会出现播放卡片");
-});if($("btn-check-update"))$("btn-check-update").addEventListener("click",function(){
-  /* 版本号 = 文件最后修改时间：这里只发 HEAD 比一下，不再把整页拉下来 */
+});
+/* 版本比较：app-build 形如 2026-11-18v38；日期相同再比 v 后缀 */
+function __cmpBuild(a,b){
+  function parse(x){var s=String(x||"");var m=/(\d{4}-\d{2}-\d{2})(?:v(\d+))?/i.exec(s);if(!m)return null;return {d:m[1],n:Number(m[2]||0)};}
+  var x=parse(a),y=parse(b);if(!x||!y)return 0;
+  if(x.d<y.d)return -1;if(x.d>y.d)return 1;
+  return x.n<y.n?-1:x.n>y.n?1:0;
+}
+window.__cmpBuild=__cmpBuild;
+if($("btn-check-update"))$("btn-check-update").addEventListener("click",function(){
   var b=window.__buildId||"";
   try{toast("正在检查…");}catch(e){}
   var _chkUrl=location.pathname+"?__bust="+Date.now();
-  fetch(_chkUrl,{method:"HEAD",cache:"no-store"}).then(function(r){
+  var _ctrl=null;
+  try{_ctrl=new AbortController();setTimeout(function(){try{_ctrl.abort();}catch(_){}},10000);}catch(_){}
+  /* 不能只信 HEAD 的 Last-Modified：豆包/CDN 线上可能不返回这个头，
+     旧逻辑就会一直「检查失败」或反复说发现新版本。直接取回 HTML 里的 app-build 比对。 */
+  fetch(_chkUrl,{cache:"no-store",credentials:"same-origin",redirect:"follow",signal:_ctrl&&_ctrl.signal}).then(function(r){
     if(!r.ok)throw new Error("HTTP "+r.status);
-    var lm=r.headers.get("last-modified")||"";
-    var nb=(lm&&window.__autoBuildId)?window.__autoBuildId(lm):"";
-    if(!nb)throw new Error("服务器没有返回最后修改时间");
-    if(nb!==b){
-      try{toast("发现新版本，正在更新…");}catch(e){}
-      location.replace("./index.html?v="+encodeURIComponent(nb.replace(/[^0-9]/g,""))+"&t="+Date.now()+"&skipabout=1");
+    return r.text();
+  }).then(function(txt){
+    var m=/<meta[^>]+name=["']app-build["'][^>]+content=["']([^"']+)["']/i.exec(txt);
+    var nb=(m&&m[1])||"";
+    if(!nb)throw new Error("服务器没有返回版本标记");
+    var cmp=__cmpBuild(nb,b);
+    if(cmp>0){
+      try{toast("发现新版本 "+nb+"，正在更新…");}catch(e){}
+      setTimeout(function(){
+        var u=new URL(location.href);
+        u.searchParams.set("v",nb.replace(/[^0-9]/g,""));
+        u.searchParams.set("t",Date.now());
+        u.searchParams.set("skipabout","1");
+        location.replace(u.href);
+      },320);
+    }else if(cmp<0){
+      try{toast("服务器版本较旧（"+nb+"），发布可能还在同步，稍后再试");}catch(e){}
     }else{
       try{toast("已是最新版本（"+b+"）");}catch(e){}
     }
-  }).catch(function(e){try{toast("检查失败："+((e&&e.message)||e));}catch(x){}});
+  }).catch(function(e){
+    try{toast("检查失败："+((e&&e.name==="AbortError")?"请求超时":((e&&e.message)||e)));}catch(x){}
+  });
 });
 ["accent","bg","mybubble","partbubble","topbar","bottombar"].forEach(k=>{
   $("skin-"+k).addEventListener("input",e=>{state.skin[k]=e.target.value;applySkin();save();});
@@ -19107,25 +19155,27 @@ function bindMomentCommentUI(){
 }
 function pickCardsN(n,kind){
   const k=kind||"chat";
-  /* 所有主动内容（含动态）都默认取聊天字卡；动态字卡只保留在字卡页管理，不再优先使用。 */
-  const _useChat=(k==="moment");
-  const _pickKind=_useChat?"chat":k;
-  const okOf=c=>cardKindOf(c)===_pickKind&&!c.disabled&&!(groupById(c.groupId)||{}).disabled&&c.text&&String(c.text).trim();
-  let pool=state.cards.filter(okOf);
-  /* 每个 kind 页面里选中的那个分组，就是这一路该用的那套
-     （标题写的是：聊天「回复我时用这套」/ 信件「写信回信时用这套」/ 动态「发布动态时用这套」）。
-     以前只按 kind 取卡、完全不理分组，所以选哪个分组都没用。分组里没卡才退回该 kind 的全部字卡 */
-  try{
-    /* 不直接用 _cardActiveGid：刷新后没打开过字卡页时它是空的，
-       会退回“全部字卡”，看起来就像没按我的设置发。 */
-    const gid=activeGidOfKind(_pickKind)||(_useChat?__activeChatGroupId():null);
-    if(gid){
-      const inG=state.cards.filter(c=>okOf(c)&&c.groupId===gid);
-      if(inG.length)pool=inG;
-    }
-  }catch(e){}
-  /* 动态没有专用字卡时只退回「聊天字卡」，不再生成兜底文案；
-     用户选中的分组仍优先，保证按各人设置来发。 */
+  /* 按调用方要求的字卡类型取：动态优先动态字卡，没有动态字卡才退回聊天字卡。
+     旧写法把 moment 强制当 chat，导致「动态用哪套字卡」的设置永远不生效。 */
+  const okOf=(c,kk)=>cardKindOf(c)===kk&&!c.disabled&&!(groupById(c.groupId)||{}).disabled&&c.text&&String(c.text).trim();
+  function collect(kk){
+    let pool=state.cards.filter(c=>okOf(c,kk));
+    /* 每个 kind 页面里选中的那个分组，就是这一路该用的那套；
+       没有选分组才用该 kind 的全部字卡。 */
+    try{
+      const gid=activeGidOfKind(kk)||(kk==="chat"?__activeChatGroupId():null);
+      if(gid){
+        const inG=state.cards.filter(c=>okOf(c,kk)&&c.groupId===gid);
+        if(inG.length)pool=inG;
+      }
+    }catch(e){}
+    return pool;
+  }
+  let pool=collect(k);
+  if(!pool.length&&k!=="chat"){
+    /* 动态没有专用字卡时退回聊天字卡；不生成兜底文案，但必须按设置继续发。 */
+    pool=collect("chat");
+  }
   if(!pool.length||n<=0)return [];
   const sh=shuffle(pool.slice());
   return sh.slice(0,Math.min(n,sh.length)).map(c=>c.text);
@@ -19869,12 +19919,19 @@ function renderComments(m){
      首评在最左；它的回复缩进到第 2 格；回复的回复再右移到第 3 格；
      再往下一层回到第 2 格，之后奇偶交替（2、3、2、3…）。
      首评那条竖线加粗，组内竖线落在该行「回复」二字的「回」字下方 */
-  function rowHtml(item,isRep){
+  function rowHtml(item,isRep,depth){
     const liked=item.likes&&item.likes.indexOf("me")>-1;
     const cls=isRep?"mc-row rep":"mc-row";
+    /* 按真实层级缩进：旧代码只看「奇偶层」交替缩进，回复的回复（第 3 层）
+       会被当成第 1 层显示，看起来就像对方回错了评论。 */
+    const d=Math.max(0,Math.min(3,Number(depth)||0));
+    const dep=d>1?' data-depth="'+d+'"':'';
     const delBtn=item.from==="me"?'<button class="mc-del" data-mdelc="'+item.id+'">删除</button>':'';
     const repBtn='<div class="mc-sub"><button class="mc-reply" data-mreply="'+item.id+'" data-mname="'+esc(authorName(item.from))+'">回复</button>'+delBtn+'</div>';
-    return '<div class="'+cls+'" data-mc="'+item.id+'"><img class="mc-av" data-cav="'+item.from+'" src="'+esc(__blobUrl(authorAvatar(item.from)))+'"><div class="mc-body"><div class="mc-top"><b class="mc-user">'+esc(authorName(item.from))+'</b><span class="mc-time">'+relTime(item.time)+'</span><button class="mc-like'+(liked?" on":"")+'" data-clike="'+item.id+'"><svg class="icon"><use xlink:href="#i-heart"/></svg></button></div><div class="mc-text">'+esc(item.text)+(item.emoji?'<img class="mc-emoji" src="'+item.emoji+'" alt="">':'')+'</div>'+repBtn+'</div></div>';
+    /* 主动评论是顶层；只有对方针对我的评论的回复才带“回复你”标记。
+       这样同一层级里也能一眼看出“他主动评论”和“他回复我”是两件事。 */
+    const toMeTag=(isRep&&item.toMe)?'<span class="mc-tome">回复你</span>':'';
+    return '<div class="'+cls+'"'+dep+' data-mc="'+item.id+'"><img class="mc-av" data-cav="'+item.from+'" src="'+esc(__blobUrl(authorAvatar(item.from)))+'"><div class="mc-body"><div class="mc-top"><b class="mc-user">'+esc(authorName(item.from))+'</b>'+toMeTag+'<span class="mc-time">'+relTime(item.time)+'</span><button class="mc-like'+(liked?" on":"")+'" data-clike="'+item.id+'"><svg class="icon"><use xlink:href="#i-heart"/></svg></button></div><div class="mc-text">'+esc(item.text)+(item.emoji?'<img class="mc-emoji" src="'+item.emoji+'" alt="">':'')+'</div>'+repBtn+'</div></div>';
   }
   function dfs(list,depth,out){
     (list||[]).forEach(function(r){out.push({r:r,d:depth});if(r.replies&&r.replies.length)dfs(r.replies,depth+1,out);});
@@ -19882,13 +19939,10 @@ function renderComments(m){
   }
   return '<div class="moment-comments">'+m.comments.map(function(c){
     var all=dfs(c.replies||[],1,[]);
-    var html="",i=0;
-    while(i<all.length){
-      if(all[i].d%2===1){html+=rowHtml(all[i].r,1);i++;}
-      else{var j=i;while(j<all.length&&all[j].d%2===0)j++;
-        html+='<div class="mc-even">'+all.slice(i,j).map(function(x){return rowHtml(x.r,2);}).join("")+'</div>';i=j;}
-    }
-    return rowHtml(c,false)+(html?('<div class="mc-replies">'+html+'</div>'):'');
+    /* DFS 保证「谁的子回复就紧跟在谁后面」；每一行按自己的真实深度缩进。
+       不再把第 3 层及以下折回第 1/2 层，否则对方回复会被画到别的评论下面。 */
+    var html=all.map(function(x){return rowHtml(x.r,1,x.d);}).join("");
+    return rowHtml(c,false,0)+(html?('<div class="mc-replies">'+html+'</div>'):'');
   }).join("")+'</div>';
 }
 
@@ -20401,8 +20455,12 @@ function partnerReplyComment(postId,targetCid,whenTs){
   const _b=Math.max(_a,Math.round(Number(state.settings.replyCommentCardMax)||_a));
   const card=joinCards(pickCommentCards(Math.round(rand(_a,_b))));if(!card)return;
   let myC=null,_mt=-1;
+  /* 「回复」必须回复到我自己的评论上；找不到目标时绝对不能退化成一条顶层评论，
+     否则界面和通知会把它当成「主动评论」，这就是主动评论/回复划分错乱的来源。
+     旧代码在目标丢失时会退到全动态最新一条我的评论，甚至直接 push 成顶层评论。 */
   if(targetCid){try{myC=findComment(m,targetCid)||null;}catch(e){}}
-  if(!myC){
+  if(myC&&myC.from!=="me")myC=null;
+  if(!myC&&!targetCid){
     (function walk(list){
       (list||[]).forEach(function(c){
         if(c.from==="me"&&(c.time||0)>_mt){_mt=c.time||0;myC=c;}
@@ -20410,17 +20468,13 @@ function partnerReplyComment(postId,targetCid,whenTs){
       });
     })(m.comments||[]);
   }
+  if(!myC)return;
   var _t=Number(whenTs)||Date.now();
   var _newRid=null;
-  if(myC){
-    // 楼中楼（推特形态）：他的回复固定挂在我最新那条评论下面，并标注回复对象
-    if(!myC.replies)myC.replies=[];
-    _newRid=uid();
-    myC.replies.push({id:_newRid,from:"partner",text:card,emoji:partnerCommentEmoji()||undefined,time:_t,likes:[],toMe:true});
-  }else{
-    if(!m.comments)m.comments=[];
-    m.comments.push({id:uid(),from:"partner",text:card,time:_t,likes:[],replies:[]});
-  }
+  // 楼中楼：他的回复只挂在我那条评论下面，并标注回复对象
+  if(!myC.replies)myC.replies=[];
+  _newRid=uid();
+  myC.replies.push({id:_newRid,from:"partner",text:card,emoji:partnerCommentEmoji()||undefined,time:_t,likes:[],toMe:true});
   // 对方回复我的评论：主页顶部 🔔“有新回复（N）· 点击查看”，点击时才定位到对应动态
   m.unread=true;m.unreadKind="reply";
   newM++;updateNewBadge();
@@ -20491,16 +20545,16 @@ function maybePartnerMomentPost(force){
       }
     }
     if(cards)_used.push(cards.join("\n"));
-    setTimeout(()=>{
-      const _rp=__partnerRepostPayload(cards);
-      const _pp=_rp||{text:joinCards(cards)};
-      var _nid=uid();
-      state.moments.push({id:_nid,from:"partner",text:_pp.text,img:_pp.img||"",repostOf:_pp.repostOf,likes:[],comments:[],time:Date.now(),unread:true,unreadKind:"post"});
-      newM++;updateNewBadge();
-      try{__momentNotice();}catch(e){}
-      save();renderMoments();
-      toast("对方发了新动态");save();
-    },1200+i*rand(3000,8000));
+    /* 直接落进 state 再渲染：旧写法把这条动态放进 1.2~8 秒后的 setTimeout，
+       页面一关/被系统回收，内容就跟着定时器一起丢了，而 lastMomentsTime 已经推进，补发也不会再来。 */
+    const _rp=__partnerRepostPayload(cards);
+    const _pp=_rp||{text:joinCards(cards)};
+    var _nid=uid();
+    state.moments.push({id:_nid,from:"partner",text:_pp.text,img:_pp.img||"",repostOf:_pp.repostOf,likes:[],comments:[],time:Date.now(),unread:true,unreadKind:"post"});
+    newM++;updateNewBadge();
+    try{__momentNotice();}catch(e){}
+    save();renderMoments();
+    toast("对方发了新动态");save();
   }
 }
 function commentDelay(){
@@ -20544,14 +20598,14 @@ function maybePartnerLetter(force,immediate){
     const body=joinCards(pickLetterCards(Math.max(1,Math.round(rand(Number(state.settings.activeLetterCountMin)||1,Number(state.settings.activeLetterCountMax)||1)))));if(!body)continue; // 写信条数区间（设置）
     const subjects=["想你","碎碎念","分享","无题","随笔","突然","想起","碎片","小记","日常","展信安","见信好"];
     const r=subjects[Math.floor(Math.random()*subjects.length)];
-    setTimeout(()=>{
-      var _bs3=_borrowStyle();
-      state.letters.push({id:uid(),from:"partner",subject:r,body:partnerLetterBody(body),time:Date.now(),paperBg:_bs3&&_bs3.paperBg,envBg:_bs3&&_bs3.envBg});
-      try{state.settings.lastLetterTime=Date.now();}catch(e){}
-      newL++;updateNewBadge();
-      try{var _lid=pushMsg("partner","sys","✉️ 对方给你写了一封信");__appendChatMsg(_lid);}catch(e){}
-      save();renderLetters();toast("对方给你来信了");save();
-    },d0+i*rand(3000,8000));
+    /* 和动态同理：不能把写信放进几秒后的定时器，否则关闭页面就整封丢；
+       定时器到点本身就是“发信时刻”，这里直接落盘。 */
+    var _bs3=_borrowStyle();
+    state.letters.push({id:uid(),from:"partner",subject:r,body:partnerLetterBody(body),time:Date.now(),paperBg:_bs3&&_bs3.paperBg,envBg:_bs3&&_bs3.envBg});
+    try{state.settings.lastLetterTime=Date.now();}catch(e){}
+    newL++;updateNewBadge();
+    try{var _lid=pushMsg("partner","sys","✉️ 对方给你写了一封信");__appendChatMsg(_lid);}catch(e){}
+    save();renderLetters();toast("对方给你来信了");save();
   }
 }
 function maybePartnerNote(force,immediate){
@@ -20562,14 +20616,13 @@ function maybePartnerNote(force,immediate){
   for(let i=0;i<cnt;i++){
     const card=joinCards(pickCardsN(Math.max(1,Math.round(rand(Number(state.settings.activeNoteCountMin)||1,Number(state.settings.activeNoteCountMax)||1)))));
     if(!card)continue; // 留言条数区间（设置）
-    setTimeout(()=>{
-      const pid=uid();
-      state.guestbook.push({id:pid,from:"partner",text:card,time:Date.now(),unread:true});
-      gbUnread.push(pid);
-      newN++;updateNewBadge();
-      try{var _noteid=pushMsg("partner","sys","💬 对方给你留言了");__appendChatMsg(_noteid);}catch(e){}
-      save();renderGuestbook();scrollNotes();toast("对方给你留言了");save();
-    },d0+i*rand(3000,8000));
+    /* 留言也直接落盘，避免定时器到点前关闭页面导致留言丢失。 */
+    const pid=uid();
+    state.guestbook.push({id:pid,from:"partner",text:card,time:Date.now(),unread:true});
+    gbUnread.push(pid);
+    newN++;updateNewBadge();
+    try{var _noteid=pushMsg("partner","sys","💬 对方给你留言了");__appendChatMsg(_noteid);}catch(e){}
+    save();renderGuestbook();scrollNotes();toast("对方给你留言了");save();
   }
 }
 function noteDelay(){
@@ -21865,11 +21918,14 @@ window.__fitSigCache="";
 window.__fitValid=false;
 /* 进入网站后只做一次自适应：之后内容/边缘变化不再反复缩放；只有调桌面二布局时临时放行 */
 window.__fitFrozen=false;
+/* 首次自适应完成后彻底锁定：之后切页、图片/字体加载、内容变高、窗口缩放都不再重算，
+   避免用户已经看到合适比例后，桌面又突然缩小一次。 */
+window.__fitLocked=false;
 window.__fitAllowUntil=0;
 window.__fitFreezeTimer=null;
 window.__fitFreezeSoon=function(){
   if(window.__fitFreezeTimer)clearTimeout(window.__fitFreezeTimer);
-  window.__fitFreezeTimer=setTimeout(function(){window.__fitFrozen=true;window.__fitFreezeTimer=null;},1200);
+  window.__fitFreezeTimer=setTimeout(function(){window.__fitFrozen=true;window.__fitLocked=true;window.__fitFreezeTimer=null;},1200);
 };
 window.__fitKey=function(){return Math.round(window.innerWidth)+"x"+Math.round(window.innerHeight);};
 function __fitInners(){
@@ -21959,9 +22015,12 @@ function __applyAppFit(_k){
 window.__applyAppFit=__applyAppFit;
 window.__fitMap=window.__fitMap||{};
 window.__fitCompute=function(force){
-  /* 已经完成一次自适应后，定时器/切页/图片加载都不再触发重算。
-     只有 __fitInvalidate（桌面二布局拖动/缩放）会临时放行 1.5 秒。 */
-  if(window.__fitFrozen&&Date.now()>window.__fitAllowUntil)return window.__fitK||1;
+  /* 自适应一旦锁定就固定住：force 也不能再重算。
+     以前 resize / homeDockCheck / 布局重排都会传 force=true，桌面比例被反复改小，
+     用户就会看到“刚调好又突然变小”。锁定后只返回当前比例，不再动 transform。 */
+  if(window.__fitLocked)return window.__fitK||1;
+  if(!force&&window.__fitFrozen&&Date.now()>window.__fitAllowUntil)return window.__fitK||1;
+  if(force){window.__fitFrozen=false;window.__fitAllowUntil=Date.now()+1200;}
   /* 缓存键 = 屏幕尺寸 + 内容高度签名。
      同一个屏幕、内容高度没变 -> 直接用上次确认的比例，不重量（默认就用它）
      内容/布局变了（加消息、拖组件、换布局）-> 签名变，才重新量一次 */
@@ -22054,20 +22113,44 @@ window.__cp1FitDock=__cp1FitDock;window.__cp2FitDock=__cp2FitDock;
 function __noteFit(k){return __fitApply(Number(k)||1);}
 window.__noteFit=__noteFit;
 var __fitLastKey=window.__fitKey();window.__fitLastW=window.__fitLastW||Math.round(window.innerWidth||0);
-window.addEventListener("resize",function(){
+window.__fitLastH=window.__fitLastH||Math.round(window.innerHeight||0);
+window.__fitLastDpr=window.__fitLastDpr||(window.devicePixelRatio||1);
+function __fitViewportChanged(){
   var key=window.__fitKey();
-  if(key===__fitLastKey)return;
-  /* 软键盘只改高度：不重算、不缩放；只有横向宽度真的变了（旋转/换屏）才自适应一次 */
-  var _w=Math.round(window.innerWidth||0);
-  if(window.__fitLastW&&Math.abs(_w-window.__fitLastW)<=8){__fitLastKey=key;return;}
-  window.__fitLastW=_w;__fitLastKey=key;window.__fitInvalidate(false);
+  var _w=Math.round(window.innerWidth||0),_h=Math.round(window.innerHeight||0),_dpr=Number(window.devicePixelRatio)||1;
+  var wChanged=Math.abs(_w-(window.__fitLastW||_w))>8;
+  var hChanged=Math.abs(_h-(window.__fitLastH||_h))>8;
+  var dprChanged=Math.abs(_dpr-(window.__fitLastDpr||_dpr))>0.05;
+  if(!wChanged&&!hChanged&&!dprChanged&&key===__fitLastKey)return false;
+  /* 软键盘/手机地址栏只改高度：不重算、不缩放。
+     但桌面（鼠标/触控板精细指针）改窗口高度、或浏览器整体缩放，必须重新适配，
+     否则主页会停在第一次算出的比例。 */
+  var _fine=false;
+  try{_fine=!!(window.matchMedia&&window.matchMedia("(pointer:fine)").matches);}catch(e){}
+  if(!wChanged&&!dprChanged&&!(hChanged&&_fine)){
+    window.__fitLastW=_w;window.__fitLastH=_h;window.__fitLastDpr=_dpr;__fitLastKey=key;return false;
+  }
+  window.__fitLastW=_w;window.__fitLastH=_h;window.__fitLastDpr=_dpr;__fitLastKey=key;
+  window.__fitInvalidate(false);
   setTimeout(function(){window.__fitCompute(true);},80);
-});
+  return true;
+}
+window.__fitViewportChanged=__fitViewportChanged;
+window.addEventListener("resize",__fitViewportChanged);
+/* 浏览器缩放 / 桌面窗口拖动时 visualViewport 也可能单独变化，补一层监听 */
+try{
+  if(window.visualViewport)window.visualViewport.addEventListener("resize",function(){
+    var vw=Math.round((window.visualViewport&&window.visualViewport.width)||0);
+    var _w=Math.round(window.innerWidth||0);
+    if(vw&&Math.abs(vw-_w)>8)return; /* 键盘引起的视觉视口变化交给 resize/键盘逻辑 */
+    __fitViewportChanged();
+  });
+}catch(e){}
 window.addEventListener("orientationchange",function(){
   var _w=Math.round(window.innerWidth||0);
   if(window.__fitLastW&&Math.abs(_w-window.__fitLastW)<=8){__fitLastKey=window.__fitKey();return;}
-  window.__fitLastW=_w;window.__fitInvalidate(false);
-  setTimeout(function(){__fitLastKey=window.__fitKey();window.__fitCompute(false);},250);
+  window.__fitLastW=_w;window.__fitLastH=Math.round(window.innerHeight||0);window.__fitLastDpr=Number(window.devicePixelRatio)||1;window.__fitInvalidate(false);
+  setTimeout(function(){__fitLastKey=window.__fitKey();window.__fitCompute(true);},250);
 });
 window.addEventListener("load",function(){window.__fitCompute(false);});
 setInterval(function(){try{
