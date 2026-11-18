@@ -1979,7 +1979,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-18v45">
+<meta name="app-build" content="2026-11-18v44">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3611,7 +3611,7 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
       <div class="set-group"><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
-<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-18v45</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-18v44</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -3652,7 +3652,6 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
       <div class="set-group">
         <div class="set-row"><span class="set-label">应用图标外框<div class="set-sub">固定栏不受影响</div></span><button class="switch" id="sw-app-frame"></button></div>
         <div class="set-row"><span class="set-label">页面透明度</span><input type="range" id="set-page-op" min="50" max="100" step="2" style="flex:1;max-width:140px;margin-left:auto;"></div>
-        <div class="set-row"><span class="set-label">桌面一与固定栏距离<div class="set-sub">固定栏不动；滑块越右越近，越左越远</div></span><input type="range" id="set-home1-gap" min="20" max="200" step="2" style="flex:1;max-width:140px;margin-left:auto;"></div>
         <div class="set-row"><span class="set-label">小组件透明度<div class="set-sub">页面二小组件</div></span><input type="range" id="set-widget-op" min="30" max="100" step="2" style="flex:1;max-width:140px;margin-left:auto;"></div>
         <div class="set-row"><span class="set-label">固定栏透明度<div class="set-sub">音乐/设置图标</div></span><input type="range" id="set-dock-op" min="30" max="100" step="2" style="flex:1;max-width:140px;margin-left:auto;"></div>
         <div class="set-row"><span class="set-label">照片框外框</span><button class="switch" id="sw-photo-frame"></button></div>
@@ -14471,7 +14470,7 @@ function showView(id){
     _gu.forEach(function(id){if(gbUnread.indexOf(id)<0)gbUnread.push(id);});
     gbUnread=gbUnread.filter(function(id){return (state.guestbook||[]).some(function(n){return n&&n.id===id;});});
     (state.guestbook||[]).forEach(function(n){if(n&&n.from==="partner")n.unread=false;});save();}catch(e){}updateNewBadge();renderGuestbook();$("gb-avatar").src=state.partner.avatar||avatarSvg("#5AC8FA");$("gb-name").textContent="@"+(state.profile.partnerMpName||state.partner.name||"对方");$("gb-prompt").textContent=state.settings.gbPrompt||"你说 我在听";}
-  if(id==="view-me"){renderMe();try{renderMePhotos();}catch(_){};try{if(window.__scheduleHome1Gap)window.__scheduleHome1Gap();}catch(_h1){}
+  if(id==="view-me"){renderMe();try{renderMePhotos();}catch(_){}
     /* 进主页就按上次保存的样子还原：一页的图标/照片尺寸 + 二页拖拽缩放后的位置尺寸，
        都在这一帧里套好，所以进去看到的就是自己调好的样子 */
     try{if(window.__applyMe1Sizes)window.__applyMe1Sizes();}catch(e){}
@@ -20845,7 +20844,6 @@ function applyLook(){
     if(st.pageOpacity===undefined)st.pageOpacity=100;
     if(st.widgetOpacity===undefined)st.widgetOpacity=100;
     if(st.dockOpacity===undefined)st.dockOpacity=100;
-    if(st.home1Gap===undefined)st.home1Gap=60;
     if(st.photoFrame===undefined)st.photoFrame=true;
     if(st.photoOpacity===undefined)st.photoOpacity=100;
     if(st.photo2Frame===undefined)st.photo2Frame=true;
@@ -20877,34 +20875,9 @@ function applyLook(){
     var chat2=document.getElementById("cp2-block-chat");if(chat2)chat2.classList.toggle("no-frame",!st.chat2Frame);
     var csw=$("sw-chat2-frame");if(csw)csw.classList.toggle("on",!!st.chat2Frame);
     var r7=$("set-chat2-op");if(r7&&Number(r7.value)!==st.chat2Opacity)r7.value=st.chat2Opacity;
-    var r8=$("set-home1-gap");if(r8&&Number(r8.value)!==Number(st.home1Gap))r8.value=st.home1Gap;
-    try{if(window.__scheduleHome1Gap)window.__scheduleHome1Gap();}catch(e){}
   }catch(e){}
 }
 window.__applyLook=applyLook;
-
-/* 桌面一：只移动上方内容，固定栏本身不动；滑块直接控制内容底部到固定栏的距离 */
-window.__applyHome1Gap=function(){
-  try{
-    var show=document.querySelector("#me-page-1 .me-showcase");
-    var dock=document.getElementById("me-dock-bar");
-    if(!show||!dock)return;
-    if(show.offsetParent===null)return;
-    var gap=Math.max(20,Math.min(200,Number(state.settings.home1Gap)||60));
-    var base=22; /* .me-showcase 原始 margin-top */
-    show.style.marginTop=base+"px";
-    var sr=show.getBoundingClientRect(),dr=dock.getBoundingClientRect();
-    if(!sr.height||!dr.top)return;
-    var k=Number(window.__fitK)||1;if(!(k>0))k=1;
-    var delta=(dr.top-gap-sr.bottom)/k;
-    var mt=Math.max(0,Math.round(base+delta));
-    show.style.marginTop=mt+"px";
-  }catch(e){}
-};
-window.__scheduleHome1Gap=function(){
-  if(window.__h1gTimer)clearTimeout(window.__h1gTimer);
-  window.__h1gTimer=setTimeout(function(){window.__h1gTimer=null;try{window.__applyHome1Gap();}catch(e){}},120);
-};
 var _cp2ClampT=null;
 window.__clampCp2AboveDock=function(){
   /* 统一等比缩放已经负责「内容不压到固定栏」，这里不再逐块往上挪：一挪就会把照片框压到记录/倒数日上 */
@@ -20998,16 +20971,10 @@ window.addEventListener("load",function(){setTimeout(function(){try{__compactBig
   bindRange("set-photo-op","photoOpacity",30,100);
   bindRange("set-photo2-op","photo2Opacity",30,100);
   bindRange("set-chat2-op","chat2Opacity",30,100);
-  bindRange("set-home1-gap","home1Gap",20,200);
   (function(){var sw=$("sw-chat2-frame");if(sw)sw.addEventListener("click",function(){state.settings.chat2Frame=!state.settings.chat2Frame;applyLook();save();});})();
   (function(){var sw=$("sw-photo2-frame");if(sw)sw.addEventListener("click",function(){state.settings.photo2Frame=!state.settings.photo2Frame;applyLook();save();});})();
   (function(){var sw=$("sw-photo-frame");if(sw)sw.addEventListener("click",function(){state.settings.photoFrame=!state.settings.photoFrame;applyLook();save();});})();
 })();
-
-window.addEventListener("resize",function(){try{if(window.__scheduleHome1Gap)window.__scheduleHome1Gap();}catch(e){}});
-window.addEventListener("orientationchange",function(){try{if(window.__scheduleHome1Gap)window.__scheduleHome1Gap();}catch(e){}});
-window.addEventListener("load",function(){setTimeout(function(){try{if(window.__scheduleHome1Gap)window.__scheduleHome1Gap();}catch(e){}},700);setTimeout(function(){try{if(window.__scheduleHome1Gap)window.__scheduleHome1Gap();}catch(e){}},1500);});
-(function(){var p=document.getElementById("me-pager");if(p)p.addEventListener("scroll",function(){try{if(window.__scheduleHome1Gap)window.__scheduleHome1Gap();}catch(e){}},{passive:true});})();
 
 function renderMe(){
   /* 主页资料没变就不重复铺：切回主页不再每次重建色块、照片框和资料文本 */
