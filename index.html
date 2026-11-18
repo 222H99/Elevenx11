@@ -86,6 +86,50 @@
   }catch(e){}
 })();
 </script>
+<script>
+/* Android 壳系统通知：WebView 没有网页 Notification API。
+   这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
+   来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
+(function(){
+  try{
+    if(!window.AndroidUI || typeof AndroidUI.notify!=="function")return;
+    if(window.__e11NativeNotification)return;
+    window.__e11NativeNotification=1;
+
+    function perm(){
+      try{return String(AndroidUI.notifyPermissionStatus()||"default");}catch(e){return "default";}
+    }
+    function E11Notification(title,opts){
+      opts=opts||{};
+      this.title=String(title==null?"":title);
+      this.body=String(opts.body==null?"":opts.body);
+      this.tag=String(opts.tag==null?"":opts.tag);
+      this.onclick=null;this.onclose=null;this.onerror=null;
+      try{AndroidUI.notify(this.title,this.body,this.tag,!!opts.silent);}catch(e){}
+    }
+    E11Notification.prototype.close=function(){};
+    E11Notification.prototype.addEventListener=function(){};
+    E11Notification.prototype.removeEventListener=function(){};
+    E11Notification.requestPermission=function(){
+      if(perm()==="granted")return Promise.resolve("granted");
+      if(perm()==="denied")return Promise.resolve("denied");
+      try{AndroidUI.requestNotifyPermission();}catch(e){}
+      return new Promise(function(res){
+        var n=0,iv=setInterval(function(){
+          n++;
+          var p=perm();
+          if(p==="granted"||p==="denied"){clearInterval(iv);res(p);return;}
+          if(n>=50){clearInterval(iv);res(p||"default");}
+        },200);
+      });
+    };
+    E11Notification.maxActions=0;
+    try{Object.defineProperty(E11Notification,"permission",{configurable:true,get:perm});}catch(e){}
+    try{Object.defineProperty(window,"Notification",{configurable:true,writable:true,value:E11Notification});}
+    catch(e){try{window.Notification=E11Notification;}catch(_){}}
+  }catch(e){}
+})();
+</script>
 <style>
 html.theme-swap *,html.theme-swap *::before,html.theme-swap *::after{transition:none!important;}
 html[data-boot="dark"],html[data-boot="dark"] body{background:#000!important;}
@@ -5770,6 +5814,13 @@ var _anTry=0,_anTimer=setInterval(function(){
 
 function paintNotifyDiag(){
   var el=document.getElementById("notify-diag");if(!el)return;
+  if(window.__e11NativeNotification){
+    try{
+      var p=String(Notification.permission||"default");
+      el.textContent=p==="granted"?"通知已允许（APK 系统通知）":(p==="denied"?"通知权限被拒绝：到系统设置 → 通知 → Eleven×11 打开":"还没允许通知：点「验证消息」并在系统弹窗里选“允许”");
+    }catch(e){el.textContent="读取通知状态失败";}
+    return;
+  }
   var out=[];
   try{
     if(!("Notification" in window)){out.push("当前环境不支持通知：iOS 请在 Safari 里「分享 → 添加到主屏幕」，再从桌面图标打开");}
@@ -5827,7 +5878,7 @@ function notifySystem(m,opts){
     /* 系统通知提示音只在后台响：页面开着时听到的是「收到消息音」，不重复响这一声 */
     /* 系统通知提示音只在后台响，且受「后台也响提示音」开关控制；页面开着时只响收到消息音 */
     try{
-      if(!_sil&&document.hidden&&!(state&&state.settings&&state.settings.bgSoundOn===false)){
+      if(!_sil&&document.hidden&&!window.__e11NativeNotification&&!(state&&state.settings&&state.settings.bgSoundOn===false)){
         window.__playNotifySound&&window.__playNotifySound();
       }
     }catch(e){}
