@@ -1963,7 +1963,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-18v29">
+<meta name="app-build" content="2026-11-18v30">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -5217,6 +5217,7 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
     window.__e11DbScope=(_bs&&_bs.user&&_ba!==OWNER_ACCOUNT)?_bs.user.id:(_ba===OWNER_ACCOUNT?"":"anon");
   }catch(e){window.__e11DbScope="anon";}
   window.__E11Auth={boot:boot,logout:logout,cloudSchedule:cloudSchedule,cfg:cfg};
+  window.__e11CloudGet=function(){try{return session&&session.user?cloudGet():Promise.reject(new Error("no-session"));}catch(_){return Promise.reject(new Error("no-session"));}};
   boot();
 })();
 
@@ -6937,7 +6938,7 @@ try{window.__scheduleCp2Render&&window.__scheduleCp2Render();}catch(e){}
       try{__repairEmojiMessages();}catch(_eEmMsg){}
       try{__repairProfileMedia();}catch(_ePm){}
       try{__recoverMediaFromBackups();}catch(_eRecover){}
-      try{setTimeout(function(){try{__recoverSocialFromBackups();}catch(_){}},80);}catch(_){}
+      try{setTimeout(function(){try{__recoverSocialFromBackups().then(function(){try{__recoverMediaFromCloud();}catch(_){}});}catch(_){try{__recoverMediaFromCloud();}catch(_){}}},80);}catch(_){}
       /* 刷新/重开后恢复本机网易云 Cookie 登录；否则账号面板会一直显示“未登录”，VIP 也退回匿名试听 */
       try{window.__nyRestoreLocal&&window.__nyRestoreLocal();}catch(_eNy){}
       try{if(window.__autoRecovered){toast("没找到上次的存档，已从自动备份恢复 "+window.__autoRecovered.msgs+" 条消息");window.__autoRecovered=0;}}catch(_eT){}
@@ -7754,6 +7755,41 @@ function __recoverSocialFromBackups(){
   }catch(_){window.__socialBkRecovering=0;return Promise.resolve(false);}
 }
 window.__recoverSocialFromBackups=__recoverSocialFromBackups;
+/* 本机备份也没有时，再向当前账号的云存档要一次：表情备份、动态/信件/留言只补空位。 */
+function __recoverMediaFromCloud(){
+  try{
+    if(window.__cloudMediaRecovering||typeof window.__e11CloudGet!=="function")return Promise.resolve(false);
+    var needE=false,needL=!Array.isArray(state.letters)||!state.letters.length,needM=!Array.isArray(state.moments)||!state.moments.length,needG=!Array.isArray(state.guestbook)||!state.guestbook.length;
+    [state.emojis,state.partnerEmojis].forEach(function(a){(a||[]).forEach(function(e){var v=e&&(e.src||e.url||"");if(!__emojiSrcOk(v)||e.__missing)needE=true;});});
+    if(!needE&&!needL&&!needM&&!needG)return Promise.resolve(false);
+    window.__cloudMediaRecovering=1;
+    return window.__e11CloudGet().then(function(snap){
+      var changed=false,st=(snap&&snap.state)||{};
+      try{
+        var lib=null;var raw=snap&&snap.extras&&snap.extras.cp2EmojiLib;
+        if(raw)lib=typeof raw==="string"?JSON.parse(raw):raw;
+        if(lib&&Array.isArray(lib.me)&&__mergeEmojiList(state.emojis,lib.me))changed=true;
+        if(lib&&Array.isArray(lib.partner)&&__mergeEmojiList(state.partnerEmojis,lib.partner))changed=true;
+      }catch(_){}
+      try{if(Array.isArray(st.emojis)&&__mergeEmojiList(state.emojis,st.emojis))changed=true;}catch(_){}
+      try{if(Array.isArray(st.partnerEmojis)&&__mergeEmojiList(state.partnerEmojis,st.partnerEmojis))changed=true;}catch(_){}
+      try{
+        if(needL&&Array.isArray(st.letters)&&st.letters.length){state.letters=st.letters.slice();changed=true;}
+        if(needM&&Array.isArray(st.moments)&&st.moments.length){state.moments=st.moments.slice();changed=true;}
+        if(needG&&Array.isArray(st.guestbook)&&st.guestbook.length){state.guestbook=st.guestbook.slice();changed=true;}
+      }catch(_){}
+      window.__cloudMediaRecovering=0;
+      if(changed){
+        try{__repairEmojiState();}catch(_){}
+        try{renderMoments();renderLetters(true);renderGuestbook(true);updateNewBadge();}catch(_){}
+        try{save();__flushSave(true);}catch(_){}
+        try{var gg=document.getElementById("emoji-grid");if(gg)gg.dataset.epSig="";renderEmojis();}catch(_){}
+      }
+      return changed;
+    }).catch(function(){window.__cloudMediaRecovering=0;return false;});
+  }catch(_){window.__cloudMediaRecovering=0;return Promise.resolve(false);}
+}
+window.__recoverMediaFromCloud=__recoverMediaFromCloud;
 function __repairProfileMedia(){
   try{
     var p=state.profile||{};
