@@ -840,6 +840,8 @@ body.away-chat #view-chat{visibility:visible !important;opacity:1;}
 .group-tab .gt-off{width:18px;height:18px;border-radius:50%;font-size:10px;display:inline-flex;align-items:center;justify-content:center;line-height:1;margin-left:4px;background:rgba(0,0,0,.10);}
 .group-tab .gt-del{display:inline-flex;}
 .group-tab.off{opacity:.45;}
+.group-tab.all-tab{border-style:dashed;}
+.group-tab .gt-all-n{font-size:10px;line-height:1;padding:2px 5px;border-radius:8px;background:rgba(0,0,0,.08);opacity:.8;}
 .card-item.off .ci-text{opacity:.45;text-decoration:line-through;}
 .card-item .ci-off{width:26px;height:26px;border:none;background:transparent;color:#8E8E93;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;border-radius:8px;font-size:14px;}
 .card-item .ci-off:active{background:rgba(0,0,0,.08);}
@@ -959,6 +961,8 @@ input[type=file][hidden]{display:block !important;position:fixed !important;left
 #incoming-pop .ip-name{font-size:13px;font-weight:700;color:var(--ttext);}
 #incoming-pop .ip-text{font-size:13px;color:var(--ttext);opacity:.82;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 #incoming-pop .ip-time{font-size:10px;color:var(--sub);flex:0 0 auto;}
+#incoming-pop .ip-x{width:26px;height:26px;flex:0 0 auto;border:0;border-radius:50%;background:rgba(127,127,127,.12);color:var(--sub);font-size:15px;line-height:26px;text-align:center;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+#incoming-pop .ip-x:active{opacity:.6;}
 .hidden{display:none !important;}
 /* ===== 电话功能 ===== */
 .call-overlay{position:absolute;inset:0;z-index:60;display:none;align-items:center;justify-content:center;
@@ -1590,6 +1594,8 @@ body.msgsel-on #view-chat .bottombar{display:none;}
 #notify-prompt .np-s{font-size:12px;color:#666;line-height:1.5;}
 #notify-prompt .np-b{display:flex;gap:10px;margin-top:4px;}
 #notify-prompt .np-b button{flex:1;border:none;padding:10px 0;border-radius:14px;font-size:14px;font-weight:600;cursor:pointer;}
+#notify-prompt .np-x{position:absolute;right:10px;top:8px;width:30px;height:30px;border:0;border-radius:50%;background:rgba(127,127,127,.12);color:#666;font-size:16px;line-height:30px;text-align:center;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
+#notify-prompt .np-t{padding-right:28px;}
 #notify-on{background:#007aff;color:#fff;}
 #notify-later{background:rgba(0,0,0,.06);color:#333;}
 
@@ -1607,6 +1613,10 @@ body.msgsel-on #view-chat .bottombar{display:none;}
 .survey-create-body,.survey-answer-body{overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scroll-padding-top:52px;}
 .sheet-x{position:absolute;right:8px;top:6px;width:32px;height:32px;border:0;background:transparent;color:#9a9a9a;font-size:24px;line-height:30px;text-align:center;cursor:pointer;z-index:9;-webkit-tap-highlight-color:transparent;}
 .sheet-x:active{opacity:.6;}
+/* 问卷查看的叉号：单独放大热区并压在滚动内容之上，避免手指点在内容边缘时点不到 */
+#survey-answer-x{right:4px;top:2px;width:44px;height:44px;line-height:42px;font-size:26px;z-index:30;touch-action:manipulation;pointer-events:auto;}
+#survey-answer-sheet .edit-sheet-title{padding-right:52px;}
+#survey-answer-overlay{z-index:1300;}
 
 .seg{display:flex;gap:6px;margin:4px 0 12px;background:rgba(0,0,0,.05);border-radius:10px;padding:4px;}
 .seg-btn{flex:1;border:0;background:transparent;padding:7px 0;border-radius:8px;font-size:13px;font-weight:600;color:#8a8a8e;cursor:pointer;-webkit-tap-highlight-color:transparent;}
@@ -3693,7 +3703,7 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
       <!-- 数据 -->
       <div class="set-sec-title">数据管理</div>
       <div class="set-group">
-        <div class="set-row"><button class="small-btn ghost" style="width:100%;" id="btn-export">导出全部数据（备份）</button></div>
+        <div class="set-row"><button class="small-btn ghost" style="width:100%;" id="btn-export">全量导出（聊天 / 信件 / 动态 / 字卡 / 表情 / 设置）</button></div>
         <div class="set-row" style="gap:8px;">
           <button class="small-btn ghost" style="flex:1;font-size:13px;" id="btn-export-chat">只导出聊天</button>
           <button class="small-btn ghost" style="flex:1;font-size:13px;" id="btn-export-social">只导出信件动态留言</button>
@@ -4219,6 +4229,7 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
       <div class="ip-text" id="ip-text"></div>
     </div>
     <div class="ip-time" id="ip-time"></div>
+    <button class="ip-x" id="ip-x" aria-label="关闭提示">×</button>
   </div>
 
   <!-- 更多菜单（仿微信➕） -->
@@ -4723,7 +4734,7 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
 
 <input type="file" id="file-import" accept="*/*" hidden>
 
-<div id="notify-prompt"><div class="np-t">开启消息通知</div><div class="np-s">对方来消息时，即使没打开网页也能第一时间收到</div><div class="np-b"><button id="notify-on">开启通知</button><button id="notify-later">以后再说</button></div></div>
+<div id="notify-prompt"><button class="np-x" id="notify-close" aria-label="关闭">×</button><div class="np-t">开启消息通知</div><div class="np-s">对方来消息时，即使没打开网页也能第一时间收到</div><div class="np-b"><button id="notify-on">开启通知</button><button id="notify-later">以后再说</button></div></div>
 <input type="file" id="file-momentimg" accept="image/*" hidden>
 <input type="file" id="file-avatar" accept="image/*" hidden>
 <input type="file" id="file-emoji" accept="image/*" multiple hidden>
@@ -5017,7 +5028,9 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
     });
     try{localStorage.setItem("privateChat",JSON.stringify(st));}catch(e){}
     var done=function(){window.__e11CloudPause=0;};
-    var p=window.__e11RestoreIDB?window.__e11RestoreIDB(snap.idb||{state:st}):Promise.resolve(false);
+    /* 云端快照目前只保存文字/state；恢复时只合并写入，保留本机已有的 bigimg/emojiimg 原图。
+       以前这里走“清空整库”，登录/云端恢复后表情原图会被一起删掉，表现为整排失效。 */
+    var p=window.__e11RestoreIDB?window.__e11RestoreIDB(snap.idb||{state:st},{merge:true}):Promise.resolve(false);
     return Promise.resolve(p).then(function(){done();return true;}).catch(function(){done();return false;});
   }
   function clearLocalApp(){
@@ -5589,6 +5602,9 @@ function maybeAnnounce(){
   try{
     var el=document.getElementById("announce-screen");
     if(!el||el.classList.contains("show"))return;
+    /* 公告只在主页出现：用户已经点进聊天/信件/动态等页面时不要盖上来，
+       否则整块公告层会像“聊天上方突然一大块空白”，还可能吃掉键盘和返回 */
+    if(window.__curView&&window.__curView!=="view-me")return;
     if(document.getElementById("about-screen")&&document.getElementById("about-screen").classList.contains("show"))return;
     if(document.getElementById("lock-screen")&&document.getElementById("lock-screen").classList.contains("show"))return;
     if(localStorage.getItem("__announceAck")===ANNOUNCE.ver)return;
@@ -5706,6 +5722,8 @@ try{
 /* 通知权限：未开启时每次打开提醒，最多 6 次，直到用户允许 */
 function askNotifyPrompt(){
   try{
+    /* 只在自己主页停留时询问：不要在聊天/写信/问卷/输入时弹出来抢焦点 */
+    if(window.__curView&&window.__curView!=="view-me")return;
     if("Notification" in window && Notification.permission==="granted")return;
     var n=Number(state.settings.notifyTry||0);
     if(n>=6){var _pn=document.getElementById("notify-prompt");if(_pn)_pn.classList.remove("show");return;}
@@ -5732,6 +5750,8 @@ try{
     }catch(e){if(p)p.classList.remove("show");toast("iOS 上需要先把网页“添加到主屏幕”，再从主屏幕图标打开，才能开启消息通知");}
   });
   if(_npLater)_npLater.addEventListener("click",function(){var p=document.getElementById("notify-prompt");if(p)p.classList.remove("show");});
+  var _npX=document.getElementById("notify-close");
+  if(_npX)_npX.addEventListener("click",function(e){try{e.preventDefault();e.stopPropagation();}catch(_){}var p=document.getElementById("notify-prompt");if(p)p.classList.remove("show");});
 }catch(e){}
 function maybeShowIncomingPop(m,force){
   if(!force&&typeof window.__inDND==="function"&&window.__inDND()){var _p0=$("incoming-pop");if(_p0)_p0.classList.remove("show");return;}
@@ -5782,6 +5802,14 @@ $("incoming-pop").addEventListener("click",()=>{
     setTimeout(_pin,120);setTimeout(_pin,320);setTimeout(_pin,700);
   }catch(e){}
 });
+try{
+  var _ipX=document.getElementById("ip-x");
+  if(_ipX)_ipX.addEventListener("click",function(e){
+    try{e.preventDefault();e.stopPropagation();}catch(_){}
+    try{clearTimeout(incomingPopTimer);}catch(_){}
+    var p=document.getElementById("incoming-pop");if(p)p.classList.remove("show");
+  },true);
+}catch(e){}
 
 /* ===== 默认状态 ===== */
 function defaultState(){
@@ -5790,7 +5818,7 @@ function defaultState(){
     version:2,
     me:{name:"我",avatar:avatarSvg("#A5A5B0"),photos:[]},
     partner:{name:"对方",avatar:avatarSvg("#5AC8FA")},
-    settings:{showChatAvatar:true,dndOn:false,dndStart:"23:00",dndEnd:"07:00",autoReply:true,partnerQuote:true,readReceipt:true,replyProb:100,emojiProb:20,replyTimes:1,maxDelaySec:12,minDelaySec:2,socialMinSec:60,socialMaxSec:300,replyGroupId:"g1",socialProbLetter:15,socialProbNote:15,socialProbMoments:15,socialProbCall:5,socialProbPat:5,socialProbRedpacket:10,socialProbSurvey:15,callMissProb:5,surveyMinSec:2,surveyMaxSec:60,replyLetterProb:60,replyLetterMinSec:60,replyLetterMaxSec:3600,letterMinSec:60,letterMaxSec:300,drawDeclineProb:40,drawInviteProb:15,socialProbMusic:15,musicDeclineProb:30,socialMsgMin:1,socialMsgMax:5,momentsMinMin:1,momentsMinMax:5,noteMinMin:1,noteMaxMin:5,activeNoteCountMin:1,activeNoteCountMax:3,activeLetterCountMin:1,activeLetterCountMax:3,activeMomentsCountMin:1,activeMomentsCountMax:3,socialProbMomentComment:15,commentCardMin:1,commentCardMax:2,commentNMin:1,commentNMax:3,commentMinMin:1,commentMaxMin:5,socialProbReplyComment:80,replyCommentCardMin:1,replyCommentCardMax:2,replyCommentNMin:1,replyCommentNMax:1,replyCommentMinMin:1,replyCommentMaxMin:5,noteBurstMin:1,noteBurstMax:1,momentBurstMin:1,momentBurstMax:1,letterBurstMin:1,letterBurstMax:1,replyNoteCardMin:8,replyNoteCardMax:15,replyNoteNMin:1,replyNoteNMax:1,keepAlive:false,entryPwd:"1026",unlocked:false,gbPrompt:"你说 我在听",catchMomentsPerHour:3,catchCommentPerHour:3,catchNotePerHour:3,commentPickMin:2,commentPickMax:3,commentPerPostMax:3,letterCatchMax:5,emojiSteal:true,emojiStealProb:5,musicMode:"order",sealX:0},
+    settings:{showChatAvatar:true,dndOn:false,dndStart:"23:00",dndEnd:"07:00",autoReply:true,partnerQuote:true,readReceipt:true,replyProb:100,emojiProb:20,replyTimes:1,maxDelaySec:12,minDelaySec:2,socialMinSec:60,socialMaxSec:300,replyGroupId:null,socialProbLetter:15,socialProbNote:15,socialProbMoments:15,socialProbCall:5,socialProbPat:5,socialProbRedpacket:10,socialProbSurvey:15,callMissProb:5,surveyMinSec:2,surveyMaxSec:60,replyLetterProb:60,replyLetterMinSec:60,replyLetterMaxSec:3600,letterMinSec:60,letterMaxSec:300,drawDeclineProb:40,drawInviteProb:15,socialProbMusic:15,musicDeclineProb:30,socialMsgMin:1,socialMsgMax:5,momentsMinMin:1,momentsMinMax:5,noteMinMin:1,noteMaxMin:5,activeNoteCountMin:1,activeNoteCountMax:3,activeLetterCountMin:1,activeLetterCountMax:3,activeMomentsCountMin:1,activeMomentsCountMax:3,socialProbMomentComment:15,commentCardMin:1,commentCardMax:2,commentNMin:1,commentNMax:3,commentMinMin:1,commentMaxMin:5,socialProbReplyComment:80,replyCommentCardMin:1,replyCommentCardMax:2,replyCommentNMin:1,replyCommentNMax:1,replyCommentMinMin:1,replyCommentMaxMin:5,noteBurstMin:1,noteBurstMax:1,momentBurstMin:1,momentBurstMax:1,letterBurstMin:1,letterBurstMax:1,replyNoteCardMin:8,replyNoteCardMax:15,replyNoteNMin:1,replyNoteNMax:1,keepAlive:false,entryPwd:"1026",unlocked:false,gbPrompt:"你说 我在听",catchMomentsPerHour:3,catchCommentPerHour:3,catchNotePerHour:3,commentPickMin:2,commentPickMax:3,commentPerPostMax:3,letterCatchMax:5,emojiSteal:true,emojiStealProb:5,musicMode:"order",sealX:0},
     profile:{bio:"",cover:"",handle:"kkcyunhy",followers:6329,following:17,mpName:"wxhggxhwm",partnerMpName:"jsndxhyyx",partnerHandle:"",partnerFollowers:0,partnerFollowing:0,partnerBio:"",partnerCover:"",mpDist:0,mpDur:"5小时20分钟",mpAv1:"",mpAv2:"",region:""},
     skin:{accent:"#3478F6",bg:"#ffffff",mybubble:"#3478F6",partbubble:"#E9E9EB",topbar:"#ffffff",bottombar:"#ffffff",themeMode:"manual",dark:false,bgImage:"",bubbleStyle:"classic",customBubbleCSS:"",myTextColor:"",partTextColor:"",mybubbleDark:"",partbubbleDark:"",gbBg:0,gbImage:"",ltBg:0,ltImage:"",momBg:0,momImage:"",gameBg:0,gameImage:"",meBg:0,meImage:"",meTopBg:0,meTopImage:""},
     groups:[g],
@@ -5827,6 +5855,54 @@ const DB_NAME="privateChatDB_v1"+(window.__e11DbScope?("_"+window.__e11DbScope):
 function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,1);r.onupgradeneeded=e=>{if(!e.target.result.objectStoreNames.contains(STORE))e.target.result.createObjectStore(STORE);};r.onsuccess=e=>{db=e.target.result;res(db);};r.onerror=e=>rej(r.error);});}
 function dbGet(k){return new Promise((res,rej)=>{const tx=db.transaction(STORE,"readonly");const q=tx.objectStore(STORE).get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error);});}
 function dbSet(k,v){return new Promise((res,rej)=>{const tx=db.transaction(STORE,"readwrite");tx.objectStore(STORE).put(v,k);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);});}
+/* 导入/恢复必须等数据库真正打开：页面刚开就选文件时 db 可能还没 ready，
+   直接写会静默跳过 IndexedDB，备份里的 bigimg/emojiimg 原图就整批丢了。 */
+function __whenDb(fn,timeout){
+  var done=false;
+  function run(){if(done)return;done=true;try{fn();}catch(_){}}
+  if(db){run();return;}
+  var started=Date.now();
+  var t=setInterval(function(){
+    if(db){clearInterval(t);run();return;}
+    if(Date.now()-started>(timeout||8000)){clearInterval(t);run();}
+  },50);
+}
+/* 全量导入发生在“账号还没恢复”的 anon 库、刷新后切到账号库时，
+   刚写进去的原图会留在旧库里。启动读 state 前把旧库整库搬到当前库，
+   否则导出只剩 state/快照，bigimg 原图看起来像“没导进来”。 */
+function __copyPendingImportDb(){
+  return new Promise(function(res){
+    var srcName=null;
+    try{srcName=sessionStorage.getItem("__e11ImportSrcDb");}catch(_){}
+    if(!srcName||srcName===DB_NAME){
+      try{sessionStorage.removeItem("__e11ImportSrcDb");}catch(_){}
+      res(false);return;
+    }
+    var done=false;
+    function finish(ok){
+      if(done)return;done=true;
+      try{sessionStorage.removeItem("__e11ImportSrcDb");}catch(_){}
+      res(ok);
+    }
+    try{
+      var rq=indexedDB.open(srcName,1);
+      rq.onupgradeneeded=function(){try{rq.transaction.abort();}catch(_){}finish(false);};
+      rq.onerror=function(){finish(false);};
+      rq.onsuccess=function(){
+        var sdb=rq.result;
+        try{
+          if(!sdb.objectStoreNames.contains(STORE)){finish(false);return;}
+          var tx=sdb.transaction(STORE,"readonly"),st=tx.objectStore(STORE),all={},cur=st.openCursor();
+          cur.onsuccess=function(){var c=cur.result;if(!c){return;}all[c.key]=c.value;c.continue();};
+          tx.oncomplete=function(){
+            __restoreIDB(all,{merge:true}).then(function(){try{sdb.close();}catch(_){}finish(true);}).catch(function(){finish(false);});
+          };
+          tx.onerror=function(){finish(false);};
+        }catch(_){finish(false);}
+      };
+    }catch(_){finish(false);}
+  });
+}
 /* 账号云存档用的最小访问桥：只读写当前 state，不暴露任何别的账号 */
 window.__e11StateGet=function(){return state;};
 window.__e11SetState=function(s){state=s;};
@@ -6432,6 +6508,16 @@ function migrate(s){
     s.settings.maxDelaySec=s.settings.maxDelayMin*60;delete s.settings.maxDelayMin;
   }
   if(!s.settings)s.settings=defaultState().settings;
+  /* 字卡默认全部：旧默认曾把聊天回复绑定到 g1，导致新老存档都只从「默认」组取卡。
+     只在“没有明确保存过 cardActiveGid.chat”且 replyGroupId 仍是旧默认 g1 时迁移一次；
+     用户自己点过其他分组的不动。 */
+  try{
+    var _ca=s.settings.cardActiveGid;
+    if((!_ca||_ca.chat===undefined)&&s.settings.replyGroupId==="g1"&&s.settings.cardAllDefaultMigrated!==true){
+      s.settings.replyGroupId=null;
+      s.settings.cardAllDefaultMigrated=true;
+    }
+  }catch(_){}
   if(s.settings.avatarSize===undefined)s.settings.avatarSize=30;
   if(s.settings.bubbleScale===undefined)s.settings.bubbleScale=100;
   /* 老数据里头像可能是空字符串，会显示成空白/文字，这里补默认头像 */
@@ -6769,6 +6855,8 @@ async function init(){
   try{
     aboutLoadStatus("正在连接数据库…");
     db=await openDB();
+    /* 全量导入如果是先写在 anon 库、刷新后账号库生效：先把旧库整库搬到当前库，再读 state */
+    try{await __copyPendingImportDb();}catch(_eCopyDb){}
     /* 表情库单独备份在 IndexedDB：主存档压缩/写满时，表情图还能从这里整组恢复 */
     try{var _emojiDbBk=await dbGet("emojiLib");if(_emojiDbBk)window.__emojiLibDb=_emojiDbBk;}catch(_eEmojiDb){}
     aboutLoadStatus("正在同步聊天记录…");
@@ -8999,7 +9087,7 @@ $("btn-bank-import").addEventListener("click",()=>{
 
 /* —— 问卷：填写 —— */
 function openSurveyAnswer(id){
-  if(__chatEntryGuard())return;
+  /* 问卷只能由用户点开；不能再套聊天入场守卫，否则刚进聊天就点「查看」会被静默吞掉，看起来像点了没反应/闪一下 */
   const m=msgById(id);if(!m)return;let s={};try{s=JSON.parse(m.text);}catch(e){return;}
   $("survey-answer-title").textContent="📋 "+(s.title||"问卷");
   const _answered=!!s.answeredBy, _isMe=m.from==="me";
@@ -9058,16 +9146,28 @@ window.saDirty=function(){
     return false;
   }catch(e){return false;}
 };
-function __closeSurveyAnswer(){
+function __closeSurveyAnswer(e){
+  if(e){try{e.preventDefault();e.stopPropagation();}catch(_){}}
   try{
     var m=msgById($("survey-answer-body")._qid);
     if(m&&$("survey-answer-body")._orig)m.text=$("survey-answer-body")._orig;
   }catch(e){}
-  $("survey-answer-overlay").classList.remove("show");
+  var ov=$("survey-answer-overlay");
+  if(ov)ov.classList.remove("show");
+  try{var body=$("survey-answer-body");if(body){body._qid=null;body._orig=null;}}catch(e){}
 }
-/* 点叉或取消：直接取消这次填写，不再弹 confirm；打开时选过但没提交的内容会还原 */
-$("survey-answer-cancel").addEventListener("click",()=>{__closeSurveyAnswer();});
-$("survey-answer-x").addEventListener("click",()=>{__closeSurveyAnswer();});
+/* 点叉 / 取消：只关这一层，事件不往下传，避免关掉的同一下又把聊天里的问卷卡片重新点开 */
+var _saX=$("survey-answer-x"),_saCancel=$("survey-answer-cancel");
+if(_saX){
+  _saX.addEventListener("pointerdown",function(e){try{e.stopPropagation();}catch(_){}},true);
+  _saX.addEventListener("touchstart",function(e){try{e.stopPropagation();}catch(_){}},{capture:true,passive:true});
+  _saX.addEventListener("click",function(e){__closeSurveyAnswer(e);},true);
+}
+if(_saCancel)_saCancel.addEventListener("click",function(e){__closeSurveyAnswer(e);},true);
+try{
+  var _saOv=$("survey-answer-overlay");
+  if(_saOv)_saOv.addEventListener("click",function(e){if(e.target===_saOv)__closeSurveyAnswer(e);});
+}catch(e){}
 $("survey-answer-submit").addEventListener("click",()=>{
   const m=msgById($("survey-answer-body")._qid);if(!m)return;let s=JSON.parse(m.text);
   const rows=$("survey-answer-body").querySelectorAll(".sq-q");
@@ -9951,7 +10051,7 @@ function scheduleMomentComment(){
   if(commentTimer){clearTimeout(commentTimer);commentTimer=null;}
   if(!state.settings.unlocked)return;
   const tick=()=>{
-    try{if(typeof maybePartnerMomentComment==="function")maybePartnerMomentComment();}catch(e){}
+    try{if(typeof maybePartnerMomentComment==="function")maybePartnerMomentComment(false,true);}catch(e){}
     try{state.settings.lastCommentTime=Date.now();save();}catch(e){}
     commentTimer=setTimeout(tick,commentDelay());
   };
@@ -9964,7 +10064,7 @@ function scheduleNote(){
   if(noteTimer){clearTimeout(noteTimer);noteTimer=null;}
   if(!state.settings.unlocked)return;
   const tick=()=>{
-    try{if(typeof maybePartnerNote==="function")maybePartnerNote();}catch(e){}
+    try{if(typeof maybePartnerNote==="function")maybePartnerNote(false,true);}catch(e){}
     try{state.settings.lastNoteTime=Date.now();save();}catch(e){}
     noteTimer=setTimeout(tick,noteDelay());
   };
@@ -10050,7 +10150,9 @@ function catchUpSocial(){
     if(!state.guestbook)state.guestbook=[];
     /* 动态：概率为 0 时不补发；时间推进到当下，避免以后改成非 0 时倒灌一大堆 */
     var mt=[];
-    if(probPct("socialProbMoments")){mt=dueList(state.settings.lastMomentsTime,state.settings.momentsMinMin,state.settings.momentsMinMax,capFor(state.settings.lastMomentsTime,state.settings.catchMomentsPerHour));}
+    /* 先按时间轴把到点的次数全部取出来；每一次在下面单独掷一次概率。
+       旧写法先整段掷一次、再在循环里为每次重掷一次，15% 实际变成 2.25%，所以会出现“几天都不发”。 */
+    if(Number(state.settings.socialProbMoments)>0){mt=dueList(state.settings.lastMomentsTime,state.settings.momentsMinMin,state.settings.momentsMinMax,capFor(state.settings.lastMomentsTime,state.settings.catchMomentsPerHour));}
     else{try{state.settings.lastMomentsTime=now;}catch(e){}}
     for(var i=0;i<mt.length;i++){
       /* 补发也要按每一次动态的概率来掷骰子；只在进入时掷一次会把 15% 的间隔全补成动态，像刷屏。 */
@@ -10066,7 +10168,7 @@ function catchUpSocial(){
     if(mt.length){try{state.settings.lastMomentsTime=mt[mt.length-1];}catch(e){}}else if(!Number(state.settings.lastMomentsTime)){try{state.settings.lastMomentsTime=now;}catch(e){}}
     /* 评论：分散补在我最新 3 条动态上，遵守每条动态上限；概率 0 时不补 */
     var ct=[];
-    if(probPct("socialProbMomentComment")){ct=dueList(state.settings.lastCommentTime,state.settings.commentMinMin,state.settings.commentMaxMin,capFor(state.settings.lastCommentTime,state.settings.catchCommentPerHour));}
+    if(Number(state.settings.socialProbMomentComment)>0){ct=dueList(state.settings.lastCommentTime,state.settings.commentMinMin,state.settings.commentMaxMin,capFor(state.settings.lastCommentTime,state.settings.catchCommentPerHour));}
     else{try{state.settings.lastCommentTime=now;}catch(e){}}
     var mine=(state.moments||[]).filter(function(x){return x.from==="me";}).sort(function(a,b){return b.time-a.time;});
     var top3=mine.slice(0,3);
@@ -10088,7 +10190,7 @@ function catchUpSocial(){
     if(ct.length){try{state.settings.lastCommentTime=ct[ct.length-1];}catch(e){}}else if(!Number(state.settings.lastCommentTime)){try{state.settings.lastCommentTime=now;}catch(e){}}
     /* 留言：概率 0 时不补 */
     var nt=[];
-    if(probPct("socialProbNote")){nt=dueList(state.settings.lastNoteTime,state.settings.noteMinMin,state.settings.noteMaxMin,capFor(state.settings.lastNoteTime,state.settings.catchNotePerHour));}
+    if(Number(state.settings.socialProbNote)>0){nt=dueList(state.settings.lastNoteTime,state.settings.noteMinMin,state.settings.noteMaxMin,capFor(state.settings.lastNoteTime,state.settings.catchNotePerHour));}
     else{try{state.settings.lastNoteTime=now;}catch(e){}}
     for(var k2=0;k2<nt.length;k2++){
       /* 每条留言单独掷骰子，避免补发时绕过“主动留言概率”一次刷一堆 */
@@ -11836,16 +11938,15 @@ function groupsOfKind(k){return (state.groups||[]).filter(function(g){return gro
 function cardsOfKind(k){return (state.cards||[]).filter(function(c){return cardKindOf(c)===k;});}
 function activeGidOfKind(k){
   var gs=groupsOfKind(k);
-  /* 用户点过哪个分组要跟着存档走：以前只存在内存里，刷新后自动回到第一个分组，
-     于是「按我选的分组发」看起来时对时错。 */
+  /* 默认「全部字卡」：没有明确点过某个分组就返回 null，不再自动落到第一个分组。
+     用户点过哪个分组要跟着存档走；如果存档里的分组已经被删了，也回到全部。 */
   var _saved=null;
   try{
     _saved=(state.settings&&state.settings.cardActiveGid&&state.settings.cardActiveGid[k])||null;
     if(!_saved&&k==="chat"&&state.settings&&state.settings.replyGroupId)_saved=state.settings.replyGroupId;
   }catch(_eS){}
-  if(!_cardActiveGid[k]||!gs.some(function(g){return g.id===_cardActiveGid[k];})){
-    _cardActiveGid[k]=(_saved&&gs.some(function(g){return g.id===_saved;}))?_saved:(gs.length?gs[0].id:null);
-  }
+  if(_saved&&gs.some(function(g){return g.id===_saved;}))_cardActiveGid[k]=_saved;
+  else _cardActiveGid[k]=null;
   return _cardActiveGid[k];
 }
 function __setCardActiveGid(k,gid){
@@ -11930,20 +12031,32 @@ function renderCards(){
   if(K==="moment"){try{bindMomentCommentUI();}catch(e){}try{renderMomentCommentUI();}catch(e){}}
   // 分组标签
   const tabs=$("group-tabs");
-  let html=groups.map(g=>'<button class="group-tab'+(g.id===activeGroupId?" active":"")+(g.disabled?" off":"")+'" data-gid="'+g.id+'">'+esc(g.name)+'<span class="gt-off" data-gdis="'+g.id+'" title="屏蔽该分组">⊘</span><span class="gt-edit" data-gedit="'+g.id+'">✎</span>'+(state.groups.length>1?'<span class="gt-del" data-gdel="'+g.id+'">×</span>':"")+'</button>').join("");
+  let html='<button class="group-tab all-tab'+(!activeGroupId?" active":"")+'" data-gid="__all">全部字卡<span class="gt-all-n">'+cardsOfKind(K).length+'</span></button>';
+  html+=groups.map(g=>'<button class="group-tab'+(g.id===activeGroupId?" active":"")+(g.disabled?" off":"")+'" data-gid="'+g.id+'">'+esc(g.name)+'<span class="gt-off" data-gdis="'+g.id+'" title="屏蔽该分组">⊘</span><span class="gt-edit" data-gedit="'+g.id+'">✎</span>'+(state.groups.length>1?'<span class="gt-del" data-gdel="'+g.id+'">×</span>':"")+'</button>').join("");
   html+='<button class="group-tab new-group-btn" id="grp-new" style="min-width:40px;">+ 分组</button>';
   tabs.innerHTML=html;
-  tabs.querySelectorAll(".group-tab[data-gid]").forEach(b=>b.addEventListener("click",e=>{if(e.target.dataset.gdel){delGroup(e.target.dataset.gdel);}else if(e.target.dataset.gdis){toggleGroupDisabled(e.target.dataset.gdis);}else if(e.target.dataset.gedit){renameGroup(e.target.dataset.gedit);}else{activeGroupId=b.dataset.gid;__setCardActiveGid(K,b.dataset.gid);renderCards();renderSettingsSelect();}}));
+  tabs.querySelectorAll(".group-tab[data-gid]").forEach(b=>b.addEventListener("click",e=>{if(e.target.dataset.gdel){delGroup(e.target.dataset.gdel);}else if(e.target.dataset.gdis){toggleGroupDisabled(e.target.dataset.gdis);}else if(e.target.dataset.gedit){renameGroup(e.target.dataset.gedit);}else{if(b.dataset.gid==="__all"){activeGroupId=null;__setCardActiveGid(K,null);}else{activeGroupId=b.dataset.gid;__setCardActiveGid(K,b.dataset.gid);}renderCards();renderSettingsSelect();}}));
   $("grp-new").addEventListener("click",()=>{$("new-group-name").focus();});
-  // 本组字卡
+  // 全部 / 本组字卡
   const list=$("card-list");const gname=groupById(activeGroupId)?groupById(activeGroupId).name:"";
   const q=$("card-search").value.trim().toLowerCase();
-  const _grpN=cardsCountInGroup(activeGroupId);
-  $("cards-sec-label").textContent=(gname?"本组字卡（"+gname+"）· 共 "+_grpN+" 条":"本组字卡")+(q?" · 搜索：“"+$("card-search").value.trim()+"”":"");
-  // 搜索只搜索当前选中分组里的字卡
-  const cards=state.cards.filter(c=>c.groupId===activeGroupId&&(!q||c.text.toLowerCase().includes(q)));
+  const _grpN=activeGroupId?cardsCountInGroup(activeGroupId):cardsOfKind(K).length;
+  $("cards-sec-label").textContent=(activeGroupId?("本组字卡（"+gname+"）· 共 "+_grpN+" 条"):("全部字卡 · 共 "+_grpN+" 条"))+(q?" · 搜索：“"+$("card-search").value.trim()+"”":"");
+  // 全部视图搜索整个类别；分组视图只搜当前分组
+  const cards=state.cards.filter(c=>cardKindOf(c)===K&&(!activeGroupId||c.groupId===activeGroupId)&&(!q||c.text.toLowerCase().includes(q)));
+  /* 同一种类/分组/搜索/多选状态没变时不再清空重建：进字卡页不会闪，也省掉一次 2000 条重排 */
+  try{
+    var _cs="cards|"+K+"|"+(activeGroupId||"")+"|"+q+"|"+(cardSelMode?1:0)+"|"+__sigOfList(cards)+"|"+__sigOfList(groupsOfKind(K));
+    if(window.__cardSig===_cs&&list.children.length){
+      renderSettingsSelect();
+      $("card-sel-bar").classList.toggle("show",cardSelMode);
+      if(cardSelMode)$("csb-info").textContent="已选 "+cardSel.size+" 条";
+      return;
+    }
+    window.__cardSig=_cs;
+  }catch(_e){}
   $("card-empty").classList.toggle("hidden",cards.length>0);
-  $("card-empty").textContent=q?("本组没有包含“"+$("card-search").value.trim()+"”的字卡（只搜索本组）"):"还没有字卡，添加或批量导入一些吧。";
+  $("card-empty").textContent=q?("没有包含“"+$("card-search").value.trim()+"”的字卡"):"还没有字卡，添加或批量导入一些吧。";
   /* 大库分片渲染：一次只建 80 条，滚动到底再续，避免 2000+ 条一次性建 DOM 卡住 */
   const CARD_CHUNK=20;
   const _allCards=cards;
@@ -12050,8 +12163,12 @@ function delGroup(id){
   save();renderCards();
 }
 function addCard(){
-  if(!activeGroupId)return;
   const t=$("new-card-text").value.trim();if(!t)return;
+  if(!activeGroupId){
+    var _gs=groupsOfKind(cardKindView);
+    if(!_gs.length){var _g={id:uid(),name:"默认分组",kind:cardKindView};state.groups.push(_g);_gs=[_g];}
+    activeGroupId=_gs[0].id;__setCardActiveGid(cardKindView,activeGroupId);
+  }
   if(state.cards.some(c=>c.groupId===activeGroupId&&c.text===t)){toast("该字卡已存在（自动查重）");return;}
   state.cards.push({id:uid(),groupId:activeGroupId,text:t,kind:cardKindView});$("new-card-text").value="";
   save();renderCards();
@@ -13359,20 +13476,23 @@ function __dumpIDB(){
   });
 }
 /* 清空并写回 IndexedDB 全部键（导入用） */
-function __restoreIDB(all){
+function __restoreIDB(all,opts){
   return new Promise(function(res){
     if(!db){res(false);return;}
     if(!all||typeof all!=="object"){res(false);return;}
+    var merge=!!(opts&&opts.merge);
     try{
       var tx=db.transaction(STORE,"readwrite"),st=tx.objectStore(STORE);
-      st.clear();
+      /* 只有“用户主动全量导入”才清空整库，保证备份原样覆盖。
+         云端快照只带文字/state 时用 merge：绝不把本机已有的 bigimg/emojiimg 原图删掉。 */
+      if(!merge)st.clear();
       Object.keys(all).forEach(function(k){try{st.put(all[k],k);}catch(_){}});
       tx.oncomplete=function(){res(true);};
       tx.onerror=function(){res(false);};
     }catch(e){res(false);}
   });
 }
-window.__e11RestoreIDB=function(all){return __restoreIDB(all);};
+window.__e11RestoreIDB=function(all,opts){return __restoreIDB(all,opts);};
 
 /* ===== 分类导出：聊天 / 信件动态留言 / 表情包 =====
    只导出选中的一类，导入时按 id 合并，不会覆盖没选中的数据。 */
@@ -13528,7 +13648,8 @@ $("btn-export").addEventListener("click",function(){
   var _go=function(idbAll){
     var _ls={};
     try{for(var _i=0;_i<localStorage.length;_i++){var _k=localStorage.key(_i);_ls[_k]=localStorage.getItem(_k);}}catch(_){}
-    const data={app:"privateChat",version:4,exportedAt:new Date().toISOString(),state:state,extras:_ls,idb:idbAll||{}};
+    const _counts={messages:(state.messages||[]).length,letters:(state.letters||[]).length,moments:(state.moments||[]).length,guestbook:(state.guestbook||[]).length,cards:(state.cards||[]).length,groups:(state.groups||[]).length,emojis:(state.emojis||[]).length,partnerEmojis:(state.partnerEmojis||[]).length};
+    const data={app:"privateChat",version:4,partial:false,exportedAt:new Date().toISOString(),meta:{counts:_counts,idbKeys:Object.keys(idbAll||{}).length,lsKeys:Object.keys(_ls).length},state:state,extras:_ls,idb:idbAll||{}};
     const blob=new Blob([JSON.stringify(data)],{type:"application/json"});
     const a=document.createElement("a");
     const d=new Date();
@@ -13536,7 +13657,7 @@ $("btn-export").addEventListener("click",function(){
     a.download="私密聊天备份_"+d.getFullYear()+("0"+(d.getMonth()+1)).slice(-2)+("0"+d.getDate()).slice(-2)+"_"+("0"+d.getHours()).slice(-2)+("0"+d.getMinutes()).slice(-2)+".json";
     document.body.appendChild(a);a.click();a.remove();
     setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-    toast("全部数据已导出");
+    toast("全量导出完成：聊天"+_counts.messages+" / 信件"+_counts.letters+" / 动态"+_counts.moments+" / 留言"+_counts.guestbook+" / 字卡"+_counts.cards+" / 图片库"+Object.keys(idbAll||{}).length+" 项");
   };
   try{save();}catch(_){}
   try{__flushSave();}catch(_){}
@@ -13789,6 +13910,8 @@ function __importBackupText(txt,f){
           setTimeout(function(){try{__softApplyImport(_imported);}catch(_e){}},1200);
         },300);
       };
+      /* 记下当前实际写入的库名；刷新后如果账号恢复导致库名变化，启动时把整库搬过去 */
+      try{sessionStorage.setItem("__e11ImportSrcDb",DB_NAME);}catch(_eSrcDb){}
       /* 先把解析好的数据写进 localStorage 兜底：IndexedDB 不可用或配额满时，也不会出现“导入没反应” */
       var _lsFail=false;
       /* 导入前先清掉旧的大存档和大图待写队列，否则配额被旧数据占满，新数据写不进去 */
@@ -13798,22 +13921,26 @@ function __importBackupText(txt,f){
       var _afterCommit=function(){
         /* 告诉启动流程必须用 IndexedDB 里的导入版，不能被 localStorage 里旧的空存档顶回去 */
         try{sessionStorage.setItem("__forceIdbRestore","1");}catch(_){}
-        toast(_lsFail?"已恢复（图片可能显示不全）":"全部数据已恢复");
+        toast(_lsFail?"全量已恢复（图片可能显示不全）":"全量数据已恢复");
         try{__softApplyImport(_imported);}catch(_){}
         _reload();
       };
       var _commit=function(){
         if(db){
           /* 等 state 真正写进本地库再刷新；以前没等就 reload，结果又读回旧的空存档 */
-          dbSet("state",state).then(_afterCommit).catch(function(){_afterCommit();});
+          dbSet("state",_imported).then(_afterCommit).catch(function(){_afterCommit();});
         }else _afterCommit();
       };
-      if(_allIdb){
-        _allIdb.state=state;
-        __restoreIDB(_allIdb).then(function(){_commit();}).catch(function(){_commit();});
-      }else{
-        _commit();
-      }
+      __whenDb(function(){
+        if(_allIdb){
+          _allIdb.state=_imported;
+          /* 全量导入用 merge：备份里没有的 bigimg/emojiimg 原图（例如备份文件本身缺图）
+             不能被清掉，否则本机原来还能显示的 33 张表情会被这次导入直接删成“失效”。 */
+          __restoreIDB(_allIdb,{merge:true}).then(function(){_commit();}).catch(function(){_commit();});
+        }else{
+          _commit();
+        }
+      },8000);
     }catch(err){toast("导入失败："+(err&&err.message?err.message:"备份文件损坏或格式不对")+"（"+(f&&f.size>1048576?Math.round(f.size/1048576)+"MB":Math.max(1,Math.round((f&&f.size||0)/1024))+"KB")+"）");}
 }
 window.__importBackupText=__importBackupText;
@@ -14148,6 +14275,26 @@ function showView(id){
       try{var _ml0=document.getElementById("msglist");if(_ml0&&(_ml0.scrollHeight-_ml0.scrollTop-_ml0.clientHeight>8))_ml0.scrollTop=_ml0.scrollHeight;}catch(e){}
     }catch(e){}
   }
+  /* 进字卡/信箱/留言板前，先在“还没 open”的状态把列表画好：
+     这样浏览器下一帧看到的已经是内容，不会先露一帧空白再补内容（就是点页面时那一下闪）。 */
+  try{
+    if(id==="view-cards")renderCards();
+    if(id==="view-letters"){renderLetters();fillLetterComposer();}
+    if(id==="view-guestbook"){renderGuestbook();}
+    if(id==="view-moments"){
+      try{
+        var _mup=momUnreadPost();
+        if(_mup.length){
+          var _mn=_mup.slice().sort(function(a,b){return b.time-a.time;})[0];
+          mpSide="partner";window._momentFocusId=_mn.id;
+        }
+      }catch(_){}
+      renderMoments();
+    }
+    if(id==="view-redpacket")renderRedpackets();
+    if(id==="view-music")renderMusicList();
+  }catch(_ePre){}
+
   /* 只切换「上一个 / 当前」两个视图的 open 类，避免每次都让 11 个整屏视图重算样式与布局 */
   try{
     var _was=window.__curView;
@@ -14212,7 +14359,9 @@ function showView(id){
       }
     }catch(e){}
   }catch(e){  ["view-chat","view-me","view-cards","view-settings","view-letters","view-guestbook","view-moments","view-redpacket","view-game","view-music","view-couple"].forEach(v=>$(v).classList.toggle("open",v===id));}
-  if(id==="view-cards"){renderCards();try{renderLetterTpl();}catch(e){}}
+  if(id==="view-cards"){/* 上面已在隐藏态画好；只有内容缺失时才补画，避免同一帧重建列表导致闪 */
+    try{var _cl0=document.getElementById("card-list");if(!_cl0||!_cl0.querySelector(".card-item"))renderCards();}catch(e){}
+    try{renderLetterTpl();}catch(e){}}
   if(id==="view-settings"){
     /* 只排版当前这一屏设置，另外两屏先藏着 */
     try{
@@ -14255,7 +14404,7 @@ function showView(id){
   if(id==="view-guestbook"){newN=0;try{var _gu=(state.guestbook||[]).filter(function(n){return n&&n.from==="partner"&&n.unread;}).map(function(n){return n.id;});
     _gu.forEach(function(id){if(gbUnread.indexOf(id)<0)gbUnread.push(id);});
     gbUnread=gbUnread.filter(function(id){return (state.guestbook||[]).some(function(n){return n&&n.id===id;});});
-    (state.guestbook||[]).forEach(function(n){if(n&&n.from==="partner")n.unread=false;});save();}catch(e){}updateNewBadge();renderGuestbook(true);$("gb-avatar").src=state.partner.avatar||avatarSvg("#5AC8FA");$("gb-name").textContent="@"+(state.profile.partnerMpName||state.partner.name||"对方");$("gb-prompt").textContent=state.settings.gbPrompt||"你说 我在听";}
+    (state.guestbook||[]).forEach(function(n){if(n&&n.from==="partner")n.unread=false;});save();}catch(e){}updateNewBadge();renderGuestbook();$("gb-avatar").src=state.partner.avatar||avatarSvg("#5AC8FA");$("gb-name").textContent="@"+(state.profile.partnerMpName||state.partner.name||"对方");$("gb-prompt").textContent=state.settings.gbPrompt||"你说 我在听";}
   if(id==="view-me"){renderMe();try{renderMePhotos();}catch(_){}
     /* 进主页就按上次保存的样子还原：一页的图标/照片尺寸 + 二页拖拽缩放后的位置尺寸，
        都在这一帧里套好，所以进去看到的就是自己调好的样子 */
@@ -14748,7 +14897,7 @@ function refreshMiniPlayer(){
   // 缩小唱片：封面优先用用户设置的歌曲封面
   /* 优先我设置的照片：唱片中心图 → 自己换的封面 → 歌曲封面 */
   const _customCover=state.musicDiscInnerImg||state.musicCoverImg;
-  const pic=_customCover||__sgCover(s);
+  const pic=_customCover||__sgDisplayCover(s);
   /* 没有自定义封面、歌曲本身也还没带封面时，补拉一次网易云封面。
      只按歌曲 id 请求一次，回来后再刷新小弹窗；不阻塞播放，也不反复请求。 */
   if(!_customCover&&s&&!__sgCover(s)&&s.neteaseId){
@@ -14771,7 +14920,8 @@ function refreshMiniPlayer(){
   var _key=(au.paused?"p":"r")+"|"+state.musicCur+"|"+_picSig;
   if(_disc.__discKey!==_key){
     _disc.__discKey=_key;
-    _disc.innerHTML=pic?'<img src="'+pic+'" alt="">':(au.paused?'<span class="mp-dic" style="font-size:19px;">▶</span>':'<span class="mp-dic">🎵</span>');
+    var _mpFallback=s?__songFallbackCover(s):'';
+    _disc.innerHTML=pic?'<img src="'+__escAttr(pic)+'" alt="" onerror="this.onerror=null;this.src=this.dataset.fb" data-fb="'+__escAttr(_mpFallback)+'">':(au.paused?'<span class="mp-dic" style="font-size:19px;">▶</span>':'<span class="mp-dic">🎵</span>');
     _disc.classList.toggle("spin",!au.paused&&!!pic);
   }
   /* 媒体元数据同理：内容没变就不重复写，避免系统播放卡片反复刷新 */
@@ -14797,6 +14947,56 @@ function __sgCover(sg){
   if(u&&u.indexOf('http://')===0)u='https://'+u.slice(7);
   return u||'';
 }
+/* 没有网易云封面、或接口暂时取不到时，给每首歌生成一张固定的“专辑封面”。
+   用歌名做哈希，同一首歌每次打开颜色和首字母都一样；这样列表里不会再有空白/破图。 */
+var __fallbackCoverCache={};
+function __songFallbackCover(sg){
+  if(!sg)return '';
+  var name=String(sg.name||sg.song||sg.title||'歌曲');
+  var artist=String(sg.artist||sg.singer||'');
+  var key=name+'|'+artist+'|'+String(sg.neteaseId||sg.id||'');
+  if(__fallbackCoverCache[key])return __fallbackCoverCache[key];
+  var h=0;
+  for(var i=0;i<key.length;i++){h=(h*31+key.charCodeAt(i))%360;}
+  if(h<0)h+=360;
+  var h2=(h+52)%360;
+  var chars=Array.from?Array.from(name):name.split('');
+  var initial=chars[0]||'♪';
+  if(/[&<>"']/.test(initial))initial='♪';
+  var svg='<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">'
+    +'<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="hsl('+h+',34%,30%)"/><stop offset="1" stop-color="hsl('+h2+',46%,13%)"/></linearGradient></defs>'
+    +'<rect width="200" height="200" fill="url(#g)"/>'
+    +'<circle cx="156" cy="44" r="70" fill="#fff" opacity=".055"/>'
+    +'<circle cx="156" cy="44" r="46" fill="none" stroke="#fff" stroke-width="1.5" opacity=".09"/>'
+    +'<path d="M112 48v70.5M112 48l31-7v70.5" fill="none" stroke="#fff" stroke-width="7" opacity=".22" stroke-linecap="round"/>'
+    +'<text x="18" y="177" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="54" font-weight="700" fill="#fff" opacity=".95">'+initial+'</text>'
+    +'</svg>';
+  var url='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
+  __fallbackCoverCache[key]=url;
+  return url;
+}
+function __sgDisplayCover(sg){return __sgCover(sg)||__songFallbackCover(sg);}
+/* 加载失败（包括备份里带来的旧封面链接已失效）时，图片自身会回退到生成封面；
+   这里再用捕获阶段兜一层，保证列表和播放器里不会出现破图/空白。 */
+try{
+  document.addEventListener("error",function(e){
+    var im=e&&e.target;
+    if(!im||im.tagName!=="IMG")return;
+    var holder=im.closest&&im.closest("#m-list .ml-cover");
+    if(holder && im.dataset && im.dataset.fb){
+      if(im.getAttribute("src")!==im.dataset.fb)im.src=im.dataset.fb;
+      return;
+    }
+    var main=im.closest&&im.closest("#mu-cover");
+    if(main){
+      try{
+        var song=(state.musicPlaylist||[])[state.musicCur];
+        var fb=song&&__songFallbackCover(song);
+        if(fb&&im.getAttribute("src")!==fb)im.src=fb;
+      }catch(_){}
+    }
+  },true);
+}catch(_){}
 function __musicPic(sg,cb,force){
   if(!sg){if(cb)cb('');return;}
   var direct=force?'':__sgCover(sg);
@@ -14830,7 +15030,17 @@ function __scheduleCoverPaint(){
 function __fillTrackCovers(items){
   try{
     var ids=[],map={};
-    (items||[]).forEach(function(x){var id=x&&x.sg&&(x.sg.id||x.sg.neteaseId);if(!id)return;id=String(id);if(__songCoverMiss[id]&&Date.now()-__songCoverMiss[id]<300000)return;if(!map[id]){map[id]=[];ids.push(id);}map[id].push(x);});
+    (items||[]).forEach(function(x){
+      if(!x||!x.sg)return;
+      /* 必须优先用网易云 id：本地列表项的 id 是随机短串（如 "tzgcjts"），
+         以前拿它去请求 song/detail，接口永远匹配不到，封面自然一直空着。 */
+      var nid=x.sg.neteaseId;
+      var id=nid?String(nid):(/^\d+$/.test(String(x.sg.id||''))?String(x.sg.id):'');
+      if(!id)return;
+      if(__songCoverMiss[id]&&Date.now()-__songCoverMiss[id]<300000)return;
+      if(!map[id]){map[id]=[];ids.push(id);}
+      map[id].push(x);
+    });
     if(!ids.length)return;
     for(var off=0;off<ids.length;off+=100){
       (function(batch){
@@ -14933,6 +15143,15 @@ function __verifyMusicCustomMedia(){
 function renderMusicList(){
   renderMusicBg();
   try{__verifyMusicCustomMedia();}catch(_){}
+  /* 进音乐页前先在隐藏态铺好列表，真正切过去时签名没变就直接复用：
+     否则同一帧刚铺完又被 post-render 清空重铺，看起来就是闪一下 */
+  var _msig="music|"+__sigOfList(state.musicPlaylist)+"|"+(state.musicCur|0)+"|"+(state.musicMode||"")+"|"+String(state.musicBgImg||"").slice(0,40);
+  if(!window.__rSig)window.__rSig={};
+  if(window.__rSig["music"]===_msig){
+    var _ml0=document.getElementById("m-list");
+    if(_ml0&&_ml0.children.length)return;
+  }
+  window.__rSig["music"]=_msig;
   const au=musicAudio();const pl=state.musicPlaylist;
   const cur=Math.min(state.musicCur,pl.length-1);
   const disc=$("music-disc");
@@ -14958,7 +15177,8 @@ function renderMusicList(){
       if(cover.__lastBg!==_bg){cover.innerHTML='';cover.style.background='url("'+_bg.replace(/"/g,'%22')+'") center/cover no-repeat';cover.__lastBg=_bg;cover.__lastHtml='';}
     }else{
       if(cover.__lastBg){cover.style.background='none';cover.__lastBg='';}
-      var _ch=cov?coverHtml(cov,''):coverHtml(song.cover,'<span style="font-size:52px;">'+(song.emoji||"🎵")+'</span>');
+      /* 当前歌曲没有网易云封面时也要显示一张封面：用固定的生成封面兜底，不再只留一个音符图标 */
+      var _ch=cov?coverHtml(cov,''):coverHtml(__sgDisplayCover(song),'<span style="font-size:52px;">'+(song.emoji||"🎵")+'</span>');
       if(cover.__lastHtml!==_ch){cover.innerHTML=_ch;cover.__lastHtml=_ch;}
     }
   }else{
@@ -14981,15 +15201,14 @@ function renderMusicList(){
   var _frag=document.createDocumentFragment();
   pl.forEach((s,i)=>{
     const li=document.createElement("div");li.className="m-li"+(i===cur?" playing":"");li.setAttribute("data-mi",String(i));
-    var _pic=__sgCover(s);
-    li.innerHTML='<div class="ml-cover">'+(_pic?'<img src="'+__escAttr(_pic)+'" alt="" decoding="async">':'<span class="ml-cov-ph">'+(s.emoji||"🎵")+'</span>')+'</div><div class="ml-no">'+(i===cur?"♪":(i+1))+'</div><div class="ml-info"><div class="ml-name">'+esc(s.name||"歌曲")+'</div><div class="ml-src">'+esc(s.neteaseId?("网易云 · ID "+s.neteaseId):s.url)+'</div></div><button class="ml-del" data-d="'+i+'">✕</button>';
-    if(!_pic&&s.neteaseId){
-      var _holder=li.querySelector(".ml-cover");
-      var _im=document.createElement("img");_im.alt="";_im.style.display="none";
-      _im.onload=function(){try{this.style.display="block";var _ph=_holder.querySelector(".ml-cov-ph");if(_ph)_ph.style.display="none";}catch(e){}};
-      _im.onerror=function(){try{this.remove();}catch(e){}};
-      _holder.appendChild(_im);
-      _missingCovers.push({sg:s,im:_im});
+    var _real=__sgCover(s);
+    var _fb=__songFallbackCover(s);
+    var _pic=_real||_fb;
+    li.innerHTML='<div class="ml-cover"><img src="'+__escAttr(_pic)+'" data-fb="'+__escAttr(_fb)+'" alt="" decoding="async" onerror="this.onerror=null;this.src=this.dataset.fb"></div><div class="ml-no">'+(i===cur?"♪":(i+1))+'</div><div class="ml-info"><div class="ml-name">'+esc(s.name||"歌曲")+'</div><div class="ml-src">'+esc(s.neteaseId?("网易云 · ID "+s.neteaseId):s.url)+'</div></div><button class="ml-del" data-d="'+i+'">✕</button>';
+    /* 先显示兜底封面，真实封面异步回来后直接替换这张图；失败则继续用兜底，不再留空白 */
+    if(!_real&&s.neteaseId){
+      var _im=li.querySelector(".ml-cover img");
+      if(_im)_missingCovers.push({sg:s,im:_im});
     }
     li.querySelector(".ml-del").onclick=(e)=>{e.stopPropagation();state.musicPlaylist.splice(i,1);if(state.musicCur===i){au.pause();state.musicCur=-1;}else if(state.musicCur>i)state.musicCur--;save();renderMusicList();};
     li.onclick=()=>playMusic(i);
@@ -15313,7 +15532,10 @@ function playMusic(i){
 var __discArtCache={};
 function __discArtURL(cb){
   var src="";
-  try{src=(state.musicDiscInnerImg||state.musicCoverImg||(((state.musicPlaylist||[])[state.musicCur]||{}).cover)||"");}catch(e){}
+  try{
+    var _song=(state.musicPlaylist||[])[state.musicCur]||null;
+    src=(state.musicDiscInnerImg||state.musicCoverImg||__sgCover(_song)||(_song?__songFallbackCover(_song):"")||"");
+  }catch(e){}
   if(!src){cb("");return;}
   if(/^https?:/i.test(src)){cb(src);return;}
   if(__discArtCache[src]){cb(__discArtCache[src]);return;}
@@ -20183,7 +20405,7 @@ function replyCommentDelay(){
   const b=Math.max(a,Math.min(1440,Number(state.settings.replyCommentMaxMin)||a));
   return Math.round(rand(a*60000,b*60000));
 }
-function maybePartnerMomentComment(force){
+function maybePartnerMomentComment(force,immediate){
   // 对方主动评论：从最新 2~3 条动态里随机挑几条评论，每条动态有独立上限
   if(!force&&!probPct("socialProbMomentComment"))return;
   const mine=state.moments.filter(x=>x.from==="me").sort((a,b)=>b.time-a.time);
@@ -20199,14 +20421,17 @@ function maybePartnerMomentComment(force){
     const room=Math.max(0,perCap-have);
     if(!room)return;
     const cn=Math.min(room,Math.max(1,Math.round(rand(Number(state.settings.commentNMin)||1,Number(state.settings.commentNMax)||3))));
-    for(let i=0;i<cn;i++){setTimeout(()=>partnerComment(m.id),commentDelay()+(idx*4+i)*Math.round(rand(1500,3500)));}
+    for(let i=0;i<cn;i++){setTimeout(()=>partnerComment(m.id),(immediate?0:commentDelay())+(idx*4+i)*Math.round(rand(1500,3500)));}
   });
 }
 function maybePartnerMoments(force){maybePartnerMomentPost(force);maybePartnerMomentComment(force);}
-function maybePartnerLetter(force){
+function maybePartnerLetter(force,immediate){
   if(!force&&!probPct("socialProbLetter"))return; // 对方主动来信概率（设置，force=按设定时间必发）
   const cnt=Math.max(1,Math.round(rand(Number(state.settings.letterBurstMin)||1,Number(state.settings.letterBurstMax)||1)));
-  const d0=letterDelay();
+  /* 定时器已经按「信件最快/最慢」等过一次了，这里不能再等第二次：
+     旧写法是 scheduleLetter 等 letterDelay，再调本函数又等 letterDelay，
+     实际间隔变成设置的 2 倍，看起来就是“信件一直不来”。 */
+  const d0=immediate?0:letterDelay();
   for(let i=0;i<cnt;i++){
     const body=joinCards(pickLetterCards(Math.max(1,Math.round(rand(Number(state.settings.activeLetterCountMin)||1,Number(state.settings.activeLetterCountMax)||1)))));if(!body)continue; // 写信条数区间（设置）
     const subjects=["想你","碎碎念","分享","无题","随笔","突然","想起","碎片","小记","日常","展信安","见信好"];
@@ -20221,10 +20446,11 @@ function maybePartnerLetter(force){
     },d0+i*rand(3000,8000));
   }
 }
-function maybePartnerNote(force){
+function maybePartnerNote(force,immediate){
   if(!force&&!probPct("socialProbNote"))return; // 对方主动留言概率（设置，force=按设定时间必发）
   const cnt=Math.max(1,Math.round(rand(Number(state.settings.noteBurstMin)||1,Number(state.settings.noteBurstMax)||1)));
-  const d0=noteDelay();
+  /* 定时器已经等过 noteDelay，这里立即发出，避免留言被拖成两倍间隔 */
+  const d0=immediate?0:noteDelay();
   for(let i=0;i<cnt;i++){
     const card=joinCards(pickCardsN(Math.max(1,Math.round(rand(Number(state.settings.activeNoteCountMin)||1,Number(state.settings.activeNoteCountMax)||1)))));
     if(!card)continue; // 留言条数区间（设置）
@@ -20248,7 +20474,7 @@ function scheduleLetter(){
   if(letterTimer){clearTimeout(letterTimer);letterTimer=null;}
   if(!state.settings.unlocked)return;
   const tick=function(){
-    try{if(typeof maybePartnerLetter==="function")maybePartnerLetter();}catch(e){}
+    try{if(typeof maybePartnerLetter==="function")maybePartnerLetter(false,true);}catch(e){}
     letterTimer=setTimeout(tick,Math.max(30000,letterDelay()));
   };
   letterTimer=setTimeout(tick,Math.max(30000,letterDelay()));
