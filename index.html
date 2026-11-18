@@ -1979,7 +1979,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-18v42">
+<meta name="app-build" content="2026-11-18v43">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3155,8 +3155,9 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
           </div>
           <div id="cp2-recover-list"></div>
         </div>
-      </div>      <div style="position:fixed;left:0;right:0;bottom:calc(14px + env(safe-area-inset-bottom));display:flex;justify-content:center;z-index:998;pointer-events:none;">
-        <div id="me-dock-bar" style="display:flex;justify-content:center;align-items:center;gap:14px;width:calc(100% - 32px);max-width:360px;padding:10px 24px;border-radius:28px;background:transparent;-webkit-backdrop-filter:blur(26px) saturate(180%);backdrop-filter:blur(26px) saturate(180%);border:1px solid rgba(255,255,255,.85);box-shadow:0 12px 32px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.95);pointer-events:auto;">
+      </div>      <div id="me-dock-wrap" style="position:fixed;left:0;right:0;bottom:calc(14px + env(safe-area-inset-bottom));display:flex;justify-content:center;z-index:998;pointer-events:none;">
+        <div id="me-dock-bar" style="position:relative;display:flex;justify-content:center;align-items:center;gap:14px;width:calc(100% - 32px);max-width:360px;padding:10px 24px;border-radius:28px;background:transparent;-webkit-backdrop-filter:blur(26px) saturate(180%);backdrop-filter:blur(26px) saturate(180%);border:1px solid rgba(255,255,255,.85);box-shadow:0 12px 32px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.95);pointer-events:auto;">
+          <div id="me-dock-handle" title="上下拖动调整固定栏位置" style="position:absolute;left:50%;top:-11px;transform:translateX(-50%);width:72px;height:18px;display:flex;align-items:center;justify-content:center;cursor:grab;touch-action:none;z-index:5;"><span style="display:block;width:34px;height:4px;border-radius:2px;background:rgba(255,255,255,.72);box-shadow:0 1px 3px rgba(0,0,0,.18);"></span></div>
           <div style="width:64px;flex:0 0 auto;"><button class="me-app" id="me-nav-music"><span class="me-app-ic"><img class="me-app-img" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20fill='%239BA0A8'%20d='M12%203v10.55A4%204%200%201%200%2014%2017V7h4V3h-6z'/%3E%3C/svg%3E"></span><span class="me-app-lb">音乐</span></button></div>
           <div style="width:64px;flex:0 0 auto;"><button class="me-app" id="me-nav-settings"><span class="me-app-ic"><img class="me-app-img" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAAEEklEQVR4nO3dy1IbOxSGUeVUHjLDTM5TMWHIW5IBdoUiduNLq/Vra61pKkFofy038YXWAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACDQj9EL4MPL69v7I3/v/9+/zPATmzHYoyF/JewP/41ewMr2innvf2tmgqYUQVOKoClF0IO45+1D0IW4SARNMYKmFEHfaMWH8xm/Z88ufePSUPd4Vq5XLM+u7dq6Znkm0gm94dpwX17f3p8JMvXk21pX6pq/muKqG+HWAd5zch0dRY+1pZ/U0Ysb5d7wtoaccrJdW+Mj60uOOnZhozwT4OdBp4T81V5rTI06clGjpEaYKjFqPxSeiPl+iXsm6JY5mFmk7d3yQacNZEZJe7h00EmDmF3KXi4bdMoAKknY02WDpiZBU4qgKUXQlLJs0InPcs0uYU+XDbq1jAFUkbKXSwdNPcsHnXKyzCxpD5cPurWsgcwmbe8ETSmCPkk7aWaQuGc/Ry+AbTO8CyaJoIN8d+J9/XOB/yvuIWOkEYHs9bA9Ku602w730CcjPmJgzxjSwhpF0AP0im/vi2RGgm7Hns5HBHdk1Gn38YI+0JGhrXpSLx/0USfMiMCO+ppJp/TyQR9h5Gm52km91Dd7Vu2e+RbJHxS5p9JPrCQ9FK6m1+dqfyfi9NhbSsgpp/PZCvtS7h46ZWhc13NG5YJOkXY6t5a5pr2VCtrpPI9esyoVNAi6g+SH9uS17UHQlCJoShE0pQiaUgRNKYKmFEFTiqApRdCUIujFVH+9i6A7qB5NslJBV3+dQiW9ZlUqaLalPHJ4x8odUj49KCWeNL1nM3zwRxgZV8LF1do6e1D6Xd9nWxvqJN1HyoVb7pYjTcIFk7CGoywf9BEny8igjvjaKadza4I+zIioVzqZzwR9oCMDWzHm1gTdWqv3ecorfnbfmaAH6BXcy+vb+6on81nU1TXarL80yC8M+muJ/4dO9jnGewNZ/TS+JO4KGy0tknPkqetKE7moUdKiSZcYtR8KT8R8v8Q9EzSlCLplnjSzSNu75YNOG8iMkvZw6aCTBjG7lL1cOmjqWTbolBOlkoQ9XTZoahI0pQiaUgRNKcsGnfg6hNkl7OmyQbeWMYAqUvZy6aBbyxnEzJL2cPmgW8sayGzS9k7QJ2mD6Wmv7zVxz+IWNNqjz3ZdGm7CM2ef7bnGxJhbE/RF9w75u+GODnvv9aXG3Jqgr7plyI8M9qi4e73hNjnm1gS9aWvIzwy2Z9TPBtfrez6KHwo3XBvgs4NNDuPS2lI+RP4WUyyyol6n9Czh9eKEphRBU4qgC1n9dqM1QVOMoClF0JQi6EHc7/Yh6CJcIB8EPZAI92dDQ1R7GScAAAAAAAAAAAAAAAAAAAAAAAAAAABw1R9owq38gTOcsgAAAABJRU5ErkJggg=="></span><span class="me-app-lb">设置</span></button></div>
         </div>
@@ -3611,7 +3612,7 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
       <div class="set-group"><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
-<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-18v42</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-18v43</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -3654,6 +3655,7 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
         <div class="set-row"><span class="set-label">页面透明度</span><input type="range" id="set-page-op" min="50" max="100" step="2" style="flex:1;max-width:140px;margin-left:auto;"></div>
         <div class="set-row"><span class="set-label">小组件透明度<div class="set-sub">页面二小组件</div></span><input type="range" id="set-widget-op" min="30" max="100" step="2" style="flex:1;max-width:140px;margin-left:auto;"></div>
         <div class="set-row"><span class="set-label">固定栏透明度<div class="set-sub">音乐/设置图标</div></span><input type="range" id="set-dock-op" min="30" max="100" step="2" style="flex:1;max-width:140px;margin-left:auto;"></div>
+        <div class="set-row"><span class="set-label">固定栏上下位置<div class="set-sub">正值上移，负值下移；也可拖固定栏上方短条</div></span><input type="range" id="set-dock-lift" min="-14" max="120" step="2" style="flex:1;max-width:140px;margin-left:auto;"></div>
         <div class="set-row"><span class="set-label">照片框外框</span><button class="switch" id="sw-photo-frame"></button></div>
         <div class="set-row"><span class="set-label">照片框透明度</span><input type="range" id="set-photo-op" min="30" max="100" step="2" style="flex:1;max-width:140px;margin-left:auto;"></div>
         <div class="set-row"><span class="set-label">页面二照片框外框</span><button class="switch" id="sw-photo2-frame"></button></div>
@@ -20850,6 +20852,9 @@ function applyLook(){
     if(st.photo2Opacity===undefined)st.photo2Opacity=100;
     if(st.chat2Opacity===undefined)st.chat2Opacity=100;
     if(st.chat2Frame===undefined)st.chat2Frame=true;
+    if(st.dockLift===undefined)st.dockLift=0;
+    var _dl=Math.max(-14,Math.min(120,Number(st.dockLift)||0));
+    var _dw=$("me-dock-wrap");if(_dw)_dw.style.transform="translateY("+(-_dl)+"px)";
     document.documentElement.style.setProperty("--page-op",(Math.max(50,Math.min(100,Number(st.pageOpacity)||100))/100));
     document.documentElement.style.setProperty("--w-op",(Math.max(30,Math.min(100,Number(st.widgetOpacity)||100))/100));
     document.documentElement.style.setProperty("--dock-op",(Math.max(30,Math.min(100,Number(st.dockOpacity)||100))/100));
@@ -20870,6 +20875,7 @@ function applyLook(){
     var r2=$("set-page-op");if(r2&&Number(r2.value)!==st.pageOpacity)r2.value=st.pageOpacity;
     var r3=$("set-widget-op");if(r3&&Number(r3.value)!==st.widgetOpacity)r3.value=st.widgetOpacity;
     var r4=$("set-dock-op");if(r4&&Number(r4.value)!==st.dockOpacity)r4.value=st.dockOpacity;
+    var r4b=$("set-dock-lift");if(r4b&&Number(r4b.value)!==_dl)r4b.value=_dl;
     var r5=$("set-photo-op");if(r5&&Number(r5.value)!==st.photoOpacity)r5.value=st.photoOpacity;
     var r6=$("set-photo2-op");if(r6&&Number(r6.value)!==st.photo2Opacity)r6.value=st.photo2Opacity;
     var chat2=document.getElementById("cp2-block-chat");if(chat2)chat2.classList.toggle("no-frame",!st.chat2Frame);
@@ -20968,12 +20974,36 @@ window.addEventListener("load",function(){setTimeout(function(){try{__compactBig
   bindRange("set-page-op","pageOpacity",50,100);
   bindRange("set-widget-op","widgetOpacity",30,100);
   bindRange("set-dock-op","dockOpacity",30,100);
+  bindRange("set-dock-lift","dockLift",-14,120);
   bindRange("set-photo-op","photoOpacity",30,100);
   bindRange("set-photo2-op","photo2Opacity",30,100);
   bindRange("set-chat2-op","chat2Opacity",30,100);
   (function(){var sw=$("sw-chat2-frame");if(sw)sw.addEventListener("click",function(){state.settings.chat2Frame=!state.settings.chat2Frame;applyLook();save();});})();
   (function(){var sw=$("sw-photo2-frame");if(sw)sw.addEventListener("click",function(){state.settings.photo2Frame=!state.settings.photo2Frame;applyLook();save();});})();
   (function(){var sw=$("sw-photo-frame");if(sw)sw.addEventListener("click",function(){state.settings.photoFrame=!state.settings.photoFrame;applyLook();save();});})();
+})();
+
+(function(){
+  var h=$("me-dock-handle");
+  if(!h)return;
+  var drag=false,sy=0,sl=0;
+  function cur(){var v=Number(state.settings&&state.settings.dockLift);return isFinite(v)?v:0;}
+  function setLift(v){state.settings.dockLift=Math.max(-14,Math.min(120,Math.round(v)));applyLook();}
+  h.addEventListener("pointerdown",function(e){
+    e.preventDefault();drag=true;sy=e.clientY;sl=cur();
+    try{h.setPointerCapture(e.pointerId);}catch(_){}
+    h.style.cursor="grabbing";
+  });
+  h.addEventListener("pointermove",function(e){
+    if(!drag)return;e.preventDefault();setLift(sl-(e.clientY-sy));
+  });
+  function end(e){
+    if(!drag)return;drag=false;h.style.cursor="grab";
+    try{h.releasePointerCapture(e.pointerId);}catch(_){}
+    save();
+  }
+  h.addEventListener("pointerup",end);
+  h.addEventListener("pointercancel",end);
 })();
 
 function renderMe(){
