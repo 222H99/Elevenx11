@@ -727,6 +727,15 @@ body.ui-dark:not(.lt-preset) .env-card .ev-sig{color:rgba(255,255,255,.62) !impo
 .mv-av2{border-color:#3478F6;}
 .mv-ic{width:38px;height:38px;border-radius:50%;background:rgba(142,142,147,.14);display:flex;align-items:center;justify-content:center;color:#A5A5B0;font-size:16px;flex:0 0 auto;border:1px solid rgba(165,165,176,.28);box-shadow:0 2px 8px rgba(0,0,0,.06);}
 .mv-ic .icon{width:18px;height:18px;}
+.mv-song{display:none;align-items:center;gap:10px;margin:-4px 0 16px;padding:8px 10px;border-radius:14px;background:rgba(255,255,255,.52);border:1px solid rgba(255,255,255,.62);box-shadow:0 3px 12px rgba(0,0,0,.055);text-align:left;}
+.mv-song.show{display:flex;}
+.mv-song-cover{width:48px;height:48px;border-radius:11px;flex:0 0 auto;background:#1c1c1e center/cover no-repeat;box-shadow:0 2px 8px rgba(0,0,0,.18);}
+.mv-song-meta{min-width:0;flex:1;}
+.mv-song-name{font-size:13px;font-weight:600;color:#2c2c2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mv-song-artist{font-size:11px;color:#8e8e93;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px;}
+body.ui-dark .mv-song{background:rgba(44,44,50,.62);border-color:rgba(255,255,255,.12);}
+body.ui-dark .mv-song-name{color:#f2f2f5;}
+body.ui-dark .mv-song-artist{color:rgba(255,255,255,.55);}
 .mv-name{font-size:17px;font-weight:700;color:#1c1f26;}
 .mv-txt{font-size:15px;color:#8E8E93;margin:6px 0 24px;}
 .mv-actions{display:flex;justify-content:center;gap:30px;}
@@ -2001,7 +2010,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-18v43-5">
+<meta name="app-build" content="2026-11-18v43-6">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3633,7 +3642,7 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
       <div class="set-group"><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
-<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-18v43-5</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-18v43-6</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -4735,6 +4744,13 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
         <div class="mv-ic" id="mvi-ic">▶</div>
         <div class="mv-av2"><img id="mvi-me" alt=""></div>
       </div>
+      <div class="mv-song" id="mvi-song">
+        <div class="mv-song-cover" id="mvi-cover"></div>
+        <div class="mv-song-meta">
+          <div class="mv-song-name" id="mvi-song-name"></div>
+          <div class="mv-song-artist" id="mvi-song-artist"></div>
+        </div>
+      </div>
       <div class="mv-name" id="mvi-name">对方</div>
       <div class="mv-txt" id="mvi-txt">邀请你一起听歌</div>
       <div class="mv-actions">
@@ -5524,7 +5540,7 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-18",
-  noticeKey:"2026-11-18v43-5",
+  noticeKey:"2026-11-18v43-6",
   lead:"v43 全量修复：主站/预览补全 PWA 安装包，修复 Chrome 添加到主屏幕崩溃和进站黑白屏；登录恢复时先显示进入状态，网络超时自动用本地记录；日记/字卡返回固定回聊天页；数据先写本地快照，云端旧存档不再覆盖新改动；双击气泡贴表情可在设置关掉并调概率，主页评论/回复的输入框会跟着键盘上移。",
   items:[
     '<span class="an-gt">v43 · 启动 / PWA</span>',
@@ -5539,10 +5555,13 @@ var ANNOUNCE={
     '<span class="an-gt">v43 · 贴表情 / 键盘</span>',
     "双击气泡可贴 ❤️/👍/😂 等表情；设置里新增开关和对方贴表情概率，关掉后双击不再弹面板，长按菜单不受影响",
     "主页动态的评论和回复输入框会像留言板一样跟着键盘上移，键盘弹起后不会被挡住",
+    '<span class="an-gt">v43-6 · 音乐封面 / APK</span>',
+    "一起听邀请弹窗补上当前歌曲的封面、歌名和歌手，不再只有头像和一个 ▶；没有真实封面时用固定生成的专辑封面兜底",
+    "新增 Android APK 安装包（内置当前网页；安装前建议先导出备份，旧 APK 若签名不同需先卸载）",
     '<span class="an-gt">v43 · 主动补发</span>',
     "主动动态、留言、信件的补发基准时间会立即落盘；这次没补出内容也会保存推进后的时间，避免重进后重复计算、等很久没动静或之后一次补一堆",
     '<span class="an-gt">v43 · 版本</span>',
-    "应用版本更新为 2026-11-18v43-5，设置页和更新检查同步显示新版本",
+    "应用版本更新为 2026-11-18v43-6，设置页和更新检查同步显示新版本",
     '<span class="an-gt">画画</span>',
     "聊天里收到的画不再被压成长条，图片按原比例完整显示",
     "画布恢复满宽，不再缩到 320；只压缩上下间距，底部两颗按钮仍完整可见",
@@ -14937,6 +14956,23 @@ function musicInviteOpen(dir,type){
   const m=msgById(pendingMusicInvId);if(m&&m.from!==(fromMe?"me":"partner")){m.from=fromMe?"me":"partner";m.status="pending";m.inv=type;}
   $("mvi-partner").src=state.partner.avatar||avatarSvg("#5AC8FA");
   $("mvi-me").src=state.me.avatar||avatarSvg("#A5A5B0");
+  /* 一起听邀请弹窗也要显示当前歌曲封面：以前只有头像和一个 ▶，看不到封面 */
+  try{
+    var _invList=state.musicPlaylist||[];
+    var _invSong=(state.musicCur>=0&&_invList[state.musicCur])?_invList[state.musicCur]:(_invList[0]||null);
+    var _mvs=$("mvi-song");
+    if(type==="draw"||!_invSong){
+      if(_mvs)_mvs.classList.remove("show");
+    }else{
+      var _invCover=__sgDisplayCover(_invSong)||"";
+      var _invName=String(_invSong.name||_invSong.song||_invSong.title||"未知歌曲");
+      var _invArtist=String(_invSong.artist||_invSong.singer||"");
+      if($("mvi-cover"))$("mvi-cover").style.backgroundImage=_invCover?'url("'+String(_invCover).replace(/"/g,'%22')+'")':"none";
+      if($("mvi-song-name"))$("mvi-song-name").textContent=_invName;
+      if($("mvi-song-artist"))$("mvi-song-artist").textContent=_invArtist;
+      if(_mvs)_mvs.classList.add("show");
+    }
+  }catch(e){}
   $("mvi-ic").textContent=type==="draw"?"🎨":"▶";
   $("mvi-name").textContent= fromMe?("你邀请 "+(state.profile.partnerMpName||state.partner.name||"对方")):("@"+(state.profile.partnerMpName||state.partner.name||"对方"));
   $("mvi-txt").textContent= type==="draw"?"邀请你一起画画":"邀请你一起听歌";
