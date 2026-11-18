@@ -3551,7 +3551,7 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
       </div>
       <!-- 留言回复 -->
       <div class="set-sec-title">留言回复</div>
-      <div class="set-group"><div class="set-row"><span class="set-label">对方回复概率（%）<div class="set-sub">留言回 / 主页回共用</div></span><input class="set-input" id="set-reply-prob" type="number" min="0" max="100" value="100"></div><div class="set-row"><span class="set-label">回复最快时长（分钟）</span><input class="set-input" id="set-social-min-sec" type="number" min="0" max="1440" step="1" value="1"></div><div class="set-row"><span class="set-label">回复最慢时长（分钟）</span><input class="set-input" id="set-social-max-sec" type="number" min="0" max="1440" step="1" value="5"></div><div class="set-row"><span class="set-label">字卡数最少<div class="set-sub">对方每条回复用几张字卡</div></span><input class="set-input" id="set-reply-note-card-min" type="number" min="1" max="30" value="8"></div><div class="set-row"><span class="set-label">字卡数最多</span><input class="set-input" id="set-reply-note-card-max" type="number" min="1" max="30" value="15"></div><div class="set-row"><span class="set-label">条数最少<div class="set-sub">一次回复几条留言</div></span><input class="set-input" id="set-reply-note-n-min" type="number" min="1" max="20" value="1"></div><div class="set-row"><span class="set-label">条数最多</span><input class="set-input" id="set-reply-note-n-max" type="number" min="1" max="20" value="1"></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">对方回复我的留言概率（%）<div class="set-sub">我发一条留言后，他回我</div></span><input class="set-input" id="set-reply-prob" type="number" min="0" max="100" value="100"></div><div class="set-row"><span class="set-label">回复最快时长（分钟）</span><input class="set-input" id="set-social-min-sec" type="number" min="0" max="1440" step="1" value="1"></div><div class="set-row"><span class="set-label">回复最慢时长（分钟）</span><input class="set-input" id="set-social-max-sec" type="number" min="0" max="1440" step="1" value="5"></div><div class="set-row"><span class="set-label">字卡数最少<div class="set-sub">对方每条回复用几张字卡</div></span><input class="set-input" id="set-reply-note-card-min" type="number" min="1" max="30" value="8"></div><div class="set-row"><span class="set-label">字卡数最多</span><input class="set-input" id="set-reply-note-card-max" type="number" min="1" max="30" value="15"></div><div class="set-row"><span class="set-label">条数最少<div class="set-sub">一次回复几条留言</div></span><input class="set-input" id="set-reply-note-n-min" type="number" min="1" max="20" value="1"></div><div class="set-row"><span class="set-label">条数最多</span><input class="set-input" id="set-reply-note-n-max" type="number" min="1" max="20" value="1"></div>
       </div>
       <!-- 主动发留言 -->
       <div class="set-sec-title">主动发留言</div>
@@ -10223,6 +10223,7 @@ function catchUpSocial(){
 }
 function catchUpMissed(){
   try{__scanPendingCommentReplies();}catch(e){}
+  try{__scanPendingNoteReplies();}catch(e){}
   if(!state||!state.settings||!state.settings.unlocked)return;
   var now=Date.now();
   try{
@@ -10238,10 +10239,14 @@ function catchUpMissed(){
   try{
     var last=Number(state.settings.lastLetterTime)||0;
     if(!last){state.settings.lastLetterTime=now;return;}
-    if(!probPct("socialProbLetter")){state.settings.lastLetterTime=now;return;}
-    var a=Math.max(1,Math.round((Number(state.settings.letterMinSec)||60)/60));
-    var b=Math.max(a,Math.round((Number(state.settings.letterMaxSec)||60)/60));
-    var gap=function(){return (a===b?a:Math.round(rand(a,b)))*60000;};
+    /* 这里以前先替整段补发掷一次概率，不中就直接把基准推到 now；
+       下面每个到点时段还会再掷一次，结果 14% 会被平方成约 2%。
+       只有概率为 0 才整段跳过；否则让每个到点时段各自决定发不发。 */
+    if((Number(state.settings.socialProbLetter)||0)<=0){state.settings.lastLetterTime=now;return;}
+    /* 补发按秒算，不取整成分钟：设置 30 秒/90 秒也能按原时间来 */
+    var a=Math.max(0,Number(state.settings.letterMinSec)||0);
+    var b=Math.max(a,Number(state.settings.letterMaxSec)||a);
+    var gap=function(){return Math.max(1000,Math.round(rand(a*1000,b*1000)));};
     var due=last+gap(),sent=0,lastDue=0,tries=0;
     var _rawCap=state.settings.letterCatchMax;
     var _cap=Math.min(200,Math.max(0,Math.round(_rawCap===undefined||_rawCap===null||_rawCap===""?5:Number(_rawCap))));
@@ -10415,10 +10420,11 @@ document.addEventListener("visibilitychange",()=>{
   /* 通话：回来接着计时（后台期间按真实时间顺延，不会停表） */
   try{if(call&&call.on&&call.status==="active"){if(!call.running&&typeof startCallTimer==="function")startCallTimer();else if(typeof callTick==="function")callTick();}}catch(e){}
   var _away=_hidAt?Date.now()-_hidAt:0; _hidAt=0;
-  /* 动态/评论/留言：离开满 3 分钟才按间隔与每小时上限补发，不足 3 分钟不补 */
-  if(_away>=180000){try{if(typeof catchUpSocial==="function")catchUpSocial();}catch(e){}}
-  /* 来信按自己的秒级区间补：离开 1 分钟以上回来也要补，不能等重新打开才补 */
-  if(_away>=60000){try{if(typeof catchUpMissed==="function")catchUpMissed();}catch(e){}}
+  /* 动态/评论/留言：每次回到前台都按各自的 last…Time 补；没有到点就不会补，
+     不再用固定的 3 分钟门槛把刚好到点的内容吞掉。 */
+  try{if(typeof catchUpSocial==="function")catchUpSocial();}catch(e){}
+  /* 来信/回信：每次回前台都补；到点判断在函数内部，没到点不会多发 */
+  try{if(typeof catchUpMissed==="function")catchUpMissed();}catch(e){}
   reviveSocialTimers();
   /* 聊天：离开（含切后台）满 30 秒回来补 1~2 条 */
   bgCatchUpChat(_away);
@@ -19381,6 +19387,39 @@ function replyToPartner(pid,text){
   }
 }
 function scrollNotes(){const b=document.querySelector("#view-guestbook .v-body");if(b)b.scrollTop=0;}
+function __deliverNoteReply(rid,due){
+  try{
+    var list=state.pendingNoteReplies||[],idx=-1;
+    for(var i=0;i<list.length;i++){if(list[i]&&list[i].id===rid){idx=i;break;}}
+    if(idx<0)return;
+    list.splice(idx,1);
+    state.pendingNoteReplies=list;
+  }catch(e){return;}
+  try{
+    const total=state.cards.filter(c=>c.text&&String(c.text).trim()).length;
+    var a=Math.max(1,Math.round(Number(state.settings.replyNoteCardMin)||8));
+    var b=Math.max(a,Math.round(Number(state.settings.replyNoteCardMax)||15));
+    var cnt=Math.min(total,Math.round(rand(a,b)));
+    var card=total?joinCards(pickCardsN(cnt)):"";
+    if(card){
+      const nid=uid();
+      state.guestbook.push({id:nid,from:"partner",text:card,time:Number(due)||Date.now(),unread:true});
+      try{gbUnread.push(nid);}catch(e){}
+      newN++;updateNewBadge();
+      try{renderGuestbook();scrollNotes();}catch(e){}
+    }
+    save();
+  }catch(e){save();}
+}
+function __scanPendingNoteReplies(){
+  try{
+    var list=state.pendingNoteReplies||[];
+    if(!list.length)return;
+    var now=Date.now(),due=[];
+    for(var i=0;i<list.length;i++){if(list[i]&&(Number(list[i].due)||0)<=now)due.push(list[i]);}
+    due.forEach(function(p){__deliverNoteReply(p.id,Number(p.due)||now);});
+  }catch(e){}
+}
 function addNote(){
   const t=$("note-text").value.trim();if(!t)return;
   state.guestbook.push({id:uid(),from:"me",text:t,time:Date.now()});
@@ -19392,21 +19431,18 @@ function addNote(){
   const _nMax=Math.max(_nMin,Math.round(Number(state.settings.replyNoteNMax)||1));
   const _n=Math.round(rand(_nMin,_nMax));
   const _d0=socialDelay();
+  /* 留言回复也要落盘等待：以前只用 setTimeout，只要关掉网页/被系统回收，
+     这次已经抽中概率的回复就丢了；现在按 due 存在 state 里，重开后可补发。 */
+  state.pendingNoteReplies=state.pendingNoteReplies||[];
   for(let _i=0;_i<_n;_i++){
-    setTimeout(()=>{
-      const total=state.cards.filter(c=>c.text&&String(c.text).trim()).length;if(!total)return;
-      const a=Math.max(1,Math.round(Number(state.settings.replyNoteCardMin)||8));
-      const b=Math.max(a,Math.round(Number(state.settings.replyNoteCardMax)||15));
-      const cnt=Math.min(total,Math.round(rand(a,b)));
-      const card=joinCards(pickCardsN(cnt));if(!card)return;
-      const rid=uid();
-      state.guestbook.push({id:rid,from:"partner",text:card,time:Date.now(),unread:true});
-      gbUnread.push(rid);
-      newN++;updateNewBadge();
-      save();renderGuestbook();scrollNotes();
-    },_d0+_i*rand(2000,6000));
+    const _due=Date.now()+_d0+_i*rand(2000,6000);
+    const rid=uid();
+    state.pendingNoteReplies.push({id:rid,due:_due});
+    (function(r,d){setTimeout(function(){__deliverNoteReply(r,d);},Math.max(0,d-Date.now()));})(rid,_due);
   }
+  save();
 }
+setInterval(__scanPendingNoteReplies,20000);
 $("btn-note-send").addEventListener("click",addNote);
 $("note-text").addEventListener("keydown",e=>{if(e.key==="Enter")addNote();});
 $("note-text").addEventListener("input",e=>{const c=$("gb-counter");if(c)c.textContent=e.target.value.length+"/200";});
@@ -20287,7 +20323,9 @@ function __scanPendingCommentReplies(){
 setInterval(__scanPendingCommentReplies,20000);
 function partnerReplyComment(postId,targetCid,whenTs){
   const m=state.moments.find(x=>x.id===postId);if(!m)return;
-  if(!wantPartner())return;
+  /* 评论回复只看「对方回复我的评论概率」这一项。
+     旧写法先过一遍全局回复概率、再过一遍本项，填 100% 也会被全局概率再砍一次；
+     所以会出现“评论回复概率填 100，评论却经常不回”。 */
   if(!probPct("socialProbReplyComment"))return;
   const _a=Math.max(1,Math.round(Number(state.settings.replyCommentCardMin)||1));
   const _b=Math.max(_a,Math.round(Number(state.settings.replyCommentCardMax)||_a));
@@ -20474,6 +20512,9 @@ function scheduleLetter(){
   if(letterTimer){clearTimeout(letterTimer);letterTimer=null;}
   if(!state.settings.unlocked)return;
   const tick=function(){
+    /* 到点就是一次“尝试”：无论这次概率有没有中，都要把基准推进到现在，
+       否则页面开着、抽不中时 catchUpMissed 还会把同一段时间重新补一遍。 */
+    try{state.settings.lastLetterTime=Date.now();save();}catch(e){}
     try{if(typeof maybePartnerLetter==="function")maybePartnerLetter(false,true);}catch(e){}
     letterTimer=setTimeout(tick,Math.max(30000,letterDelay()));
   };
