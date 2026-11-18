@@ -66,7 +66,7 @@ html[data-boot="dark"] .auth-input{background:#1c1c1f!important;border-color:rgb
 <meta name="x5-orientation" content="portrait">
 <link rel="manifest" href="./manifest.json">
 <title>Eleven×11</title>
-<link rel="apple-touch-icon" sizes="180x180" href="./icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="Eleven×11">
@@ -5102,9 +5102,9 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
           var local=window.__e11StateGet?window.__e11StateGet():null;
           var localTs=Number(local&&local.__savedAt)||0;
           var cloudTs=Number(cloud&&cloud.savedAt)||0;
-          var localEmpty=!(local&&((local.messages&&local.messages.length)||(local.letters&&local.letters.length)||(local.moments&&local.moments.length)));
-          /* 有新设备/退出后重登：只要这个账号有自己的云端存档，就优先恢复它，避免拿默认数据覆盖云端 */
-          if(cloud&&(!owner||cloudTs>localTs||localEmpty)){
+          /* 同一账号在本机重新登录时，如果本地时间戳更新，说明用户刚改过资料/设置；
+             哪怕还没产生聊天、信件、动态，也不能让云端旧快照把这次改动盖回默认。 */
+          if(cloud&&(!owner||cloudTs>localTs)){
             setWait("正在恢复你的云端存档","只恢复这个账号自己的数据，不会碰其他账号。");
             return applySnapshot(cloud).then(function(){localStorage.setItem(LS_OWNER,session.user.id);window.__e11CloudStatus="已同步";setAction(null);location.reload();});
           }

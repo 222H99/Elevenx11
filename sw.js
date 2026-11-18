@@ -12,6 +12,7 @@ const NETWORK_WAIT_MS = 1500;
 
 const SHELL = [
   "./manifest.json",
+  "./icon-180.png",
   "./icon-192.png",
   "./icon-512.png",
   "./icon-maskable-512.png",
