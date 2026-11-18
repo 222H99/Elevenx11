@@ -2001,7 +2001,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-18v43">
+<meta name="app-build" content="2026-11-18v43-4">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3633,7 +3633,7 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
       <div class="set-group"><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
-<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-18v43</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-18v43-4</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5524,8 +5524,8 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-18",
-  noticeKey:"2026-11-18v43-3",
-  lead:"v43 全量修复：主站/预览补全 PWA 安装包，修复 Chrome 添加到主屏幕崩溃和进站黑白屏；登录恢复时先显示进入状态，网络超时自动用本地记录；日记/字卡返回固定回聊天页；数据先写本地快照，云端旧存档不再覆盖新改动。",
+  noticeKey:"2026-11-18v43-4",
+  lead:"v43 全量修复：主站/预览补全 PWA 安装包，修复 Chrome 添加到主屏幕崩溃和进站黑白屏；登录恢复时先显示进入状态，网络超时自动用本地记录；日记/字卡返回固定回聊天页；数据先写本地快照，云端旧存档不再覆盖新改动；双击气泡贴表情可在设置关掉并调概率，主页评论/回复的输入框会跟着键盘上移。",
   items:[
     '<span class="an-gt">v43 · 启动 / PWA</span>',
     "主站和预览站改用同源 data manifest，Chrome 不再报 start-url-not-valid / no-acceptable-icon；180/192/512/maskable 图标齐全，添加到主屏幕不再因清单失效崩溃",
@@ -5536,8 +5536,11 @@ var ANNOUNCE={
     "日记、字卡板块的返回固定回到聊天页，不跟随上一个页面",
     "本地改动先同步写本地快照，再写 IndexedDB；本地库写入失败，重进也不会变回默认",
     "同一账号本地时间戳更新时，云端旧快照不再覆盖刚改的资料/设置",
+    '<span class="an-gt">v43 · 贴表情 / 键盘</span>',
+    "双击气泡可贴 ❤️/👍/😂 等表情；设置里新增开关和对方贴表情概率，关掉后双击不再弹面板，长按菜单不受影响",
+    "主页动态的评论和回复输入框会像留言板一样跟着键盘上移，键盘弹起后不会被挡住",
     '<span class="an-gt">v43 · 版本</span>',
-    "应用版本更新为 2026-11-18v43，设置页和更新检查同步显示新版本",
+    "应用版本更新为 2026-11-18v43-4，设置页和更新检查同步显示新版本",
     '<span class="an-gt">画画</span>',
     "聊天里收到的画不再被压成长条，图片按原比例完整显示",
     "画布恢复满宽，不再缩到 320；只压缩上下间距，底部两颗按钮仍完整可见",
@@ -8649,8 +8652,9 @@ function renderChat(force){
   if(!_appended){
   // 普通消息行：点击 → 操作，长按 → 编辑（红包/问卷独立卡除外）
   list.querySelectorAll(".msg-row:not([data-rp]):not([data-sq])").forEach(row=>{
-    /* 普通消息只长按弹操作；单击不再弹撤回/多选 */
+    /* 普通消息长按弹操作；双击/双点弹贴表情 */
     bindLongPress(row);
+    try{bindTapback(row);}catch(e){}
   });
   // 红包行（独立卡片，不裹气泡）：点击 → 领取/拒领或查看状态；长按 → 操作（撤回）
   list.querySelectorAll("[data-rp]").forEach(row=>{
@@ -8765,8 +8769,9 @@ function bindChatRow(row){
   if(!row||!row.querySelectorAll)return;
   try{
     if(row.matches&&row.matches(".msg-row:not([data-rp]):not([data-sq])")){
-      /* 普通消息只长按弹操作；单击不再弹撤回/多选 */
+      /* 普通消息长按弹操作；双击/双点弹贴表情 */
       bindLongPress(row);
+      try{bindTapback(row);}catch(e){}
     }
     if(row.dataset&&row.dataset.rp){
       row.addEventListener("click",function(e){if(__chatEntryGuard())return;if(row._lp){row._lp=false;return;}e.stopPropagation();handleRedpacketTap(row.dataset.rp);});
@@ -8789,6 +8794,145 @@ function bindChatRow(row){
     __bindInviteButtons(row);
   }catch(e){}
 }
+
+/* ===== 双击气泡贴表情（Tapback）===== */
+function __tbPanel(){return document.getElementById("tapback-panel");}
+function __tbList(){
+  try{
+    var x=state.tapbacksLib;
+    if(!Array.isArray(x)||!x.length)x=["❤️","👍","😂","‼️","❓"];
+    return x.filter(function(v){return v&&String(v).trim();});
+  }catch(e){return ["❤️","👍","😂","‼️","❓"];}
+}
+function __tbRefreshRow(id){
+  try{
+    var list=document.getElementById("msglist");if(!list)return;
+    var row=null;
+    Array.prototype.forEach.call(list.querySelectorAll(".msg-row[data-id]"),function(r){if(r.getAttribute("data-id")===id)row=r;});
+    if(!row)return;
+    var m=msgById(id);if(!m)return;
+    row.querySelectorAll(".tapback").forEach(function(x){x.remove();});
+    var col=row.querySelector(".msg-col");
+    if(col&&m.react&&m.react.e)col.insertAdjacentHTML("afterbegin",__tapBadge(m.react,m.from));
+  }catch(e){}
+}
+function __tbClose(){
+  var p=__tbPanel();if(p){p.classList.remove("show");p.style.left="";p.style.top="";}
+  window.__tbTarget=null;
+}
+function __tbPick(e){
+  var id=window.__tbTarget;if(!id)return;
+  var m=msgById(id);if(!m){__tbClose();return;}
+  if(m.react&&m.react.e===e){m.react=null;__tbRefreshRow(id);try{save();}catch(_){}__tbClose();toast("已取消贴表情");return;}
+  m.react={e:e,from:"me",t:Date.now()};
+  __tbRefreshRow(id);try{save();}catch(_){}
+  __tbClose();toast("已贴上 "+e);
+}
+function __tbRender(row){
+  var p=__tbPanel(),box=document.getElementById("tb-row");
+  if(!p||!box||!row)return;
+  var m=msgById(row.getAttribute("data-id"))||{};
+  var cur=(m.react&&m.react.e)||"";
+  var lib=__tbList();
+  box.innerHTML=lib.map(function(e){
+    return '<button class="tb-item'+(cur===e?" on":"")+'" data-tbe="'+esc(e)+'" aria-label="贴表情 '+esc(e)+'">'+esc(e)+'</button>';
+  }).join("")+'<button class="tb-item tb-add" data-tbadd="1" aria-label="添加贴表情">＋</button>';
+  p.classList.add("show");
+  var anchor=row.querySelector(".bubble")||row.querySelector(".msg-col")||row;
+  var r=anchor.getBoundingClientRect();
+  var vv=window.visualViewport;
+  var vw=(vv&&vv.width)||window.innerWidth||0;
+  var pw=p.offsetWidth||220,ph=p.offsetHeight||46;
+  var left=Math.max(8,Math.min(vw-pw-8,r.left+r.width/2-pw/2));
+  var top=r.top-ph-8;
+  if(top<8)top=Math.min((vv&&vv.height?vv.offsetTop+vv.height:window.innerHeight)-ph-8,r.bottom+8);
+  p.style.left=Math.round(left)+"px";
+  p.style.top=Math.round(top)+"px";
+}
+function __tbOpen(row){
+  try{
+    if(!state.settings||state.settings.tapbackOn===false)return;
+    if(!row||!row.getAttribute||!row.getAttribute("data-id"))return;
+    var id=row.getAttribute("data-id");if(!msgById(id))return;
+    window.__tbTarget=id;
+    window.__tbRowEl=row;
+    __tbRender(row);
+  }catch(e){}
+}
+function bindTapback(row){
+  if(!row||row.__tbBound)return;row.__tbBound=1;
+  var last=0,lx=0,ly=0;
+  row.addEventListener("dblclick",function(e){
+    try{
+      if(e.target&&e.target.closest&&e.target.closest(".msg-avatar,button,input,textarea,a,[data-voice]"))return;
+      e.preventDefault();e.stopPropagation();__tbOpen(row);
+    }catch(_){}
+  },{passive:false});
+  /* 手机浏览器不一定派发 dblclick：补一套 300ms 内的双击识别 */
+  row.addEventListener("touchend",function(e){
+    try{
+      if(row._lp)return;
+      if(e.target&&e.target.closest&&e.target.closest(".msg-avatar,button,input,textarea,a,[data-voice]"))return;
+      var t=e.timeStamp||Date.now();
+      var tc=e.changedTouches&&e.changedTouches[0];
+      var x=tc?tc.clientX:lx,y=tc?tc.clientY:ly;
+      if(last&&t-last<320&&Math.abs(x-lx)<30&&Math.abs(y-ly)<30){
+        e.preventDefault();e.stopPropagation();__tbOpen(row);last=0;
+      }else{last=t;lx=x;ly=y;}
+    }catch(_){}
+  },{passive:false});
+}
+/* 面板只在第一次加载时绑一次；点表情、点加号、点外面关闭 */
+(function(){
+  function bootTb(){
+    var p=__tbPanel(),box=document.getElementById("tb-row");
+    if(!p||!box||p.__tbBound)return;
+    p.__tbBound=1;
+    box.addEventListener("click",function(e){
+      var b=e.target&&e.target.closest?e.target.closest("[data-tbe],[data-tbadd]"):null;
+      if(b){
+        e.preventDefault();e.stopPropagation();
+        if(b.dataset.tbadd){
+          var v=prompt("添加一个贴表情（填一个 emoji）","");
+          if(v&&String(v).trim()){
+            var x=String(v).trim().slice(0,4);
+            if(!state.tapbacksLib)state.tapbacksLib=__tbList();
+            if(state.tapbacksLib.indexOf(x)<0)state.tapbacksLib.push(x);
+            try{save();}catch(_){}
+            __tbRender(window.__tbRowEl);
+          }
+          return;
+        }
+        __tbPick(b.getAttribute("data-tbe")||"");
+      }
+    });
+    document.addEventListener("pointerdown",function(e){
+      if(!p.classList.contains("show"))return;
+      if(e.target&&e.target.closest&&(e.target.closest("#tapback-panel")||e.target.closest(".msg-row")))return;
+      __tbClose();
+    },true);
+    var ml=document.getElementById("msglist");
+    if(ml)ml.addEventListener("scroll",function(){if(p.classList.contains("show"))__tbClose();},{passive:true});
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bootTb);else bootTb();
+})();
+/* 对方贴表情：只作用在我最近发的一条文字消息上，概率来自设置 */
+function __maybePartnerTapback(){
+  try{
+    var st=state.settings||{};
+    if(st.tapbackOn===false)return;
+    var p=Math.min(100,Math.max(0,Number(st.tapbackProb===undefined?35:st.tapbackProb)||0));
+    if(p<=0||Math.random()*100>=p)return;
+    var lib=__tbList();if(!lib.length)return;
+    var mine=(state.messages||[]).filter(function(m){return m&&m.from==="me"&&!m.recalled&&m.type==="text"&&!m.react;});
+    if(!mine.length)return;
+    var idx=Math.max(0,mine.length-1-Math.floor(Math.random()*Math.min(5,mine.length)));
+    var m=mine[idx];
+    m.react={e:lib[Math.floor(Math.random()*lib.length)],from:"partner",t:Date.now()};
+    save();__tbRefreshRow(m.id);
+  }catch(e){}
+}
+window.__tbClose=__tbClose;
 function bindLongPress(row,kind){
   let t=null,sx=0,sy=0;
   const clear=()=>{if(t){clearTimeout(t);t=null;}};
@@ -9857,8 +10001,9 @@ function chatAppendTail(m){
           for(var _ii=0;_ii<_ni.length;_ii++){try{_ni[_ii].loading="eager";_ni[_ii].decoding="sync";}catch(e){}}
         }catch(e){}
         if(row&&!row.dataset.rp&&!row.dataset.sq){
-          /* 普通消息只长按弹操作；单击不再弹撤回/多选 */
+          /* 普通消息长按弹操作；双击/双点弹贴表情 */
           try{bindLongPress(row);}catch(e){}
+          try{bindTapback(row);}catch(e){}
         }else if(row&&row.dataset&&row.dataset.sq){
           row.addEventListener("click",function(e){
             if(row._lp){row._lp=false;return;}
@@ -10922,6 +11067,8 @@ function scheduleReply(){
         delay+=1200+Math.random()*1500;
       });
     }
+    /* 对方回复后按概率给我最近一条文字消息贴表情；开关关掉时函数内部直接返回 */
+    setTimeout(function(){try{__maybePartnerTapback();}catch(e){}}, 1100);
     if(replyTimers.length===0)setTyping(false);
   },ms);
 
@@ -12624,6 +12771,14 @@ function bindSetting(){
   try{applyEmojiSize();}catch(e){}
   $("set-reply-prob")&&($("set-reply-prob").value=state.settings.replyProb);
   $("set-emoji-prob").value=state.settings.emojiProb;
+  /* 双击贴表情：开关和概率都要跟着 state 渲染，否则切页/重进设置会回到写死的 on/35 */
+  if($("sw-tapback"))$("sw-tapback").classList.toggle("on",state.settings.tapbackOn!==false);
+  if($("set-prob-tapback")){
+    $("set-prob-tapback").value=(state.settings.tapbackProb===undefined?35:Number(state.settings.tapbackProb));
+    var _tbOn=state.settings.tapbackOn!==false;
+    $("set-prob-tapback").disabled=!_tbOn;
+    $("set-prob-tapback").style.opacity=_tbOn?"":"0.4";
+  }
   if($("set-emoji-steal-prob"))$("set-emoji-steal-prob").value=(state.settings.emojiStealProb===undefined?5:state.settings.emojiStealProb);
   if($("set-reply-note-card-min"))$("set-reply-note-card-min").value=state.settings.replyNoteCardMin;
   if($("set-reply-note-card-max"))$("set-reply-note-card-max").value=state.settings.replyNoteCardMax;
@@ -12860,6 +13015,19 @@ bindProbInput("set-prob-call","socialProbCall","主动打电话概率");
 bindProbInput("set-call-miss","callMissProb","对方未接电话概率");
 bindProbInput("set-prob-pat","socialProbPat","回拍概率");
 bindProbInput("set-prob-recall","partnerRecallProb","对方撤回概率");
+bindProbInput("set-prob-tapback","tapbackProb","对方贴表情概率");
+$("sw-tapback")&&$("sw-tapback").addEventListener("click",function(e){
+  state.settings.tapbackOn=(state.settings.tapbackOn===false);
+  var on=state.settings.tapbackOn!==false;
+  e.target.classList.toggle("on",on);
+  if($("set-prob-tapback")){
+    $("set-prob-tapback").disabled=!on;
+    $("set-prob-tapback").style.opacity=on?"":"0.4";
+  }
+  try{window.__tbClose&&window.__tbClose();}catch(_){}
+  save();
+  toast(on?"双击气泡贴表情已开启":"双击气泡贴表情已关闭");
+});
 $("sw-recall")&&$("sw-recall").addEventListener("click",function(e){
   state.settings.recallOn=(state.settings.recallOn===false);
   var on=state.settings.recallOn!==false;
@@ -20183,6 +20351,28 @@ function momAppendChunk(n){
 function bindMomentFeed(){
   var feed=$("moment-feed");if(!feed||feed.__mb)return;feed.__mb=true;
   function cardOf(el){return el&&el.closest?el.closest(".moment-card"):null;}
+  /* 主页评论/回复：和留言板一样，键盘弹起后把输入框留在键盘上方，别让键盘盖住它。
+     visualViewport 在缩放舞台里是屏幕坐标，所以直接比较 getBoundingClientRect 的底边。 */
+  function keepMomentReplyVisible(inp){
+    try{
+      if(!inp||!inp.isConnected)return;
+      var vb=document.querySelector("#view-moments .v-body");if(!vb)return;
+      var vv=window.visualViewport;
+      var vr=vb.getBoundingClientRect();
+      var top=Math.max(vr.top+4,(vv?(vv.offsetTop||0):0)+4);
+      var bottom=Math.min(vr.bottom,(vv?((vv.offsetTop||0)+vv.height):(window.innerHeight||0)))-10;
+      var ir=inp.getBoundingClientRect();
+      if(ir.bottom>bottom)vb.scrollTop+=(ir.bottom-bottom);
+      else if(ir.top<top)vb.scrollTop-=(top-ir.top);
+    }catch(e){}
+  }
+  function scheduleMomentReplyKeep(inp){
+    try{
+      window.__momentReplyInp=inp;
+      keepMomentReplyVisible(inp);
+      [80,240,520,900].forEach(function(ms){setTimeout(function(){try{if(window.__momentReplyInp===inp)keepMomentReplyVisible(inp);}catch(e){}},ms);});
+    }catch(e){}
+  }
   feed.addEventListener("click",function(e){
     var t=e.target;
     if(!t||!t.closest)return;
@@ -20302,12 +20492,21 @@ function bindMomentFeed(){
   feed.addEventListener("focusin",function(e){
     var inp=e.target;if(!inp||!inp.closest||!inp.closest(".moment-comment-input"))return;
     var ci=inp.closest(".moment-comment-input");if(ci.dataset.ci)momentFocusMid=ci.dataset.ci;
+    scheduleMomentReplyKeep(inp);
   },false);
   feed.addEventListener("focusout",function(e){
     var inp=e.target;if(!inp||!inp.closest||!inp.closest(".moment-comment-input"))return;
     var ci=inp.closest(".moment-comment-input");
     if(momentFocusMid===ci.dataset.ci)momentFocusMid=null;
+    setTimeout(function(){try{if(window.__momentReplyInp===inp&&document.activeElement!==inp)window.__momentReplyInp=null;}catch(e){}},0);
   },false);
+  if(window.visualViewport&&!window.__momKbBound){
+    window.__momKbBound=1;
+    var _momKb=function(){try{var a=window.__momentReplyInp;if(a&&a.isConnected)keepMomentReplyVisible(a);}catch(e){}};
+    window.visualViewport.addEventListener("resize",_momKb,{passive:true});
+    window.visualViewport.addEventListener("scroll",_momKb,{passive:true});
+    window.addEventListener("resize",_momKb,{passive:true});
+  }
 }
 let postImg="",repostTarget=null;
 function __resetPostSheet(){
