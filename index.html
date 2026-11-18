@@ -1979,7 +1979,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-18v38">
+<meta name="app-build" content="2026-11-18v39">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3611,7 +3611,7 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
       <div class="set-group"><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
-<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-18v38</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-18v39</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -21921,11 +21921,22 @@ window.__fitFrozen=false;
 /* 首次自适应完成后彻底锁定：之后切页、图片/字体加载、内容变高、窗口缩放都不再重算，
    避免用户已经看到合适比例后，桌面又突然缩小一次。 */
 window.__fitLocked=false;
+/* 只在「真的压到固定栏」时允许补一次缩放；普通 resize/切页/加载不会再触发 */
+window.__fitOneShot=false;
+window.__fitEmergencyKey="";
 window.__fitAllowUntil=0;
 window.__fitFreezeTimer=null;
 window.__fitFreezeSoon=function(){
   if(window.__fitFreezeTimer)clearTimeout(window.__fitFreezeTimer);
-  window.__fitFreezeTimer=setTimeout(function(){window.__fitFrozen=true;window.__fitLocked=true;window.__fitFreezeTimer=null;},1200);
+  var __lockTry=function(){
+    window.__fitFreezeTimer=null;
+    /* 启动时存档还没读完，先不要锁定：此前会在空档内容上算出 k=1，
+       等真正的聊天/照片/字卡渲染完，内容超出固定栏却没有机会再缩放，
+       照片框就会压到底部固定栏下面。等 _dbReady 之后再锁。 */
+    if(!window._dbReady){window.__fitFreezeTimer=setTimeout(__lockTry,700);return;}
+    window.__fitFrozen=true;window.__fitLocked=true;
+  };
+  window.__fitFreezeTimer=setTimeout(__lockTry,1200);
 };
 window.__fitKey=function(){return Math.round(window.innerWidth)+"x"+Math.round(window.innerHeight);};
 function __fitInners(){
@@ -22018,7 +22029,12 @@ window.__fitCompute=function(force){
   /* 自适应一旦锁定就固定住：force 也不能再重算。
      以前 resize / homeDockCheck / 布局重排都会传 force=true，桌面比例被反复改小，
      用户就会看到“刚调好又突然变小”。锁定后只返回当前比例，不再动 transform。 */
-  if(window.__fitLocked)return window.__fitK||1;
+  if(window.__fitLocked&&!window.__fitOneShot)return window.__fitK||1;
+  if(window.__fitOneShot){
+    /* 用户改大照片框 / 切到第二页时确实压住了固定栏：只临时解除一次，
+       量完继续按原逻辑锁定；不会因为普通窗口变化反复缩小。 */
+    window.__fitOneShot=false;window.__fitLocked=false;window.__fitFrozen=false;window.__fitAllowUntil=Date.now()+1500;
+  }
   if(!force&&window.__fitFrozen&&Date.now()>window.__fitAllowUntil)return window.__fitK||1;
   if(force){window.__fitFrozen=false;window.__fitAllowUntil=Date.now()+1200;}
   /* 缓存键 = 屏幕尺寸 + 内容高度签名。
@@ -22084,6 +22100,12 @@ window.__homeDockCheck=function(){
     }
     if(!bad)return;
     window.__homeDockBusy=1;
+    /* 已经锁定但照片框/当前页真的压住固定栏：给一次重新自适应，
+       让照片框回到固定栏上方；量完仍会重新锁定。 */
+    try{
+      var _fk=window.__fitContentSig?window.__fitContentSig():"";
+      if(window.__fitLocked&&_fk&&window.__fitEmergencyKey!==_fk){window.__fitEmergencyKey=_fk;window.__fitOneShot=true;}
+    }catch(_){}
     try{window.__fitInvalidate&&window.__fitInvalidate();}catch(_){}
     try{window.__fitCompute&&window.__fitCompute(true);}catch(_){}
     /* 缩放到底仍压住（屏幕特别矮）时，第二页照片框再按固定栏上沿收一次高度 */
