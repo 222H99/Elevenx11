@@ -1979,7 +1979,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-18v40">
+<meta name="app-build" content="2026-11-18v41">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3611,7 +3611,7 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
       <div class="set-group"><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
-<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-18v40</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-18v41</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -21699,25 +21699,14 @@ window.__dockTopPx=function(){try{if(window.__dockEl&&document.contains(window._
     try{var _svPh=JSON.parse(localStorage.getItem("cp2PhotoUserSize")||"null");if(_svPh&&_svPh.w>80&&_svPh.h>60)_phSize={w:Math.round(_svPh.w),h:Math.round(_svPh.h)};}catch(e){}
     if(!_phSize){var _wv=(state.cp2Layout||{}).widgets&&state.cp2Layout.widgets.photo;if(_wv&&_wv.w>80&&_wv.h>60)_phSize={w:Math.round(_wv.w),h:Math.round(_wv.h)};}
     if(!_phSize&&_phOld&&_phOld.offsetWidth>80&&_phOld.offsetHeight>60)_phSize={w:_phOld.offsetWidth,h:_phOld.offsetHeight};
-    /* 把用户放大过的组件尺寸保留下来，等 reapply 时继续用；否则刚写进 DOM 又会被默认尺寸覆盖 */
+    /* 布局尺寸按模式给默认：默认/经典=小号，简洁=大号；不再把上一布局的放大尺寸带过来 */
     var _keptWids={};
-    try{
-      for(var _kw=0;_kw<_rcA.length;_kw++){
-        var _kid=_rcA[_kw].getAttribute('data-cp2');
-        var _kd=defPos(_kid),_kw0=_oldWids[_kid];
-        if(!_kd||!_kw0)continue;
-        var _dup=Math.round(_kw0.w||0),_khp=Math.round(_kw0.h||0);
-        if(_dup>_kd.w+4||_khp>_kd.h+4){
-          _keptWids[_kid]={x:_kd.x,y:_kd.y,w:Math.max(_dup,_kd.w),h:Math.max(_khp,_kd.h)};
-        }
-      }
-    }catch(_eKeep){}
     for(var _ra=0;_ra<_rcA.length;_ra++){
       var _raid=_rcA[_ra].getAttribute('data-cp2');
       var _da=defPos(_raid);
       var _oldS=_oldWids[_raid];
-      if(_da&&_oldS&&_oldS.w>80&&_oldS.h>60){_da.w=Math.round(_oldS.w);_da.h=Math.round(_oldS.h);}
-      if(_da&&_raid==="photo"&&_phSize&&_phSize.w>80&&_phSize.h>60){_da.w=_phSize.w;_da.h=_phSize.h;}
+      if(_da&&_oldS&&_oldS.w>80&&_oldS.h>60&&lay!=="classic"){_da.w=Math.round(_oldS.w);_da.h=Math.round(_oldS.h);}
+      if(_da&&_raid==="photo"&&lay==="simple"&&_phSize&&_phSize.w>80&&_phSize.h>60){_da.w=_phSize.w;_da.h=_phSize.h;}
       if(_da){_rcA[_ra].style.position="absolute";_rcA[_ra].style.left=_da.x+"px";_rcA[_ra].style.top=_da.y+"px";_rcA[_ra].style.width=_da.w+"px";_rcA[_ra].style.height=_da.h+"px";_rcA[_ra].style.margin="0";_rcA[_ra].style.transform="";}
     }
     state.cp2Layout.widgets=_keptWids;
@@ -21736,11 +21725,16 @@ window.__dockTopPx=function(){try{if(window.__dockEl&&document.contains(window._
         var _ph=page.querySelector('[data-cp2="photo"]');
         if(_ph){
           var _dp=defPos("photo");
-          var _hh=(_phSize&&_phSize.h>60?_phSize.h:_dp.h);
-          var _dockT2=window.__dockTopPx()?Math.round(window.__dockTopPx()-page.getBoundingClientRect().top):null;
-          var _yp2=272;
-          if(_dockT2&&(_dockT2-14-_hh)<_yp2)_yp2=Math.max(0,Math.round(_dockT2-14-_hh));
-          _w2.photo={x:_dp.x,y:_yp2,w:(_phSize&&_phSize.w>80?_phSize.w:_dp.w),h:_hh};
+          var _pr2=page.getBoundingClientRect();
+          var _dockT2=window.__dockTopPx()?Math.round(window.__dockTopPx()-_pr2.top):null;
+          var _bigH=_dockT2?Math.max(196,Math.min(340,_dockT2-274-14)):300;
+          /* 简洁布局默认大号：整行宽 + 尽量占满固定栏上方的空间 */
+          var _phW=(_phSize&&_phSize.w>80?Math.min(_phSize.w,Math.min(358,(page.clientWidth||348)-8)):Math.min(358,(page.clientWidth||348)-8));
+          var _phH=Math.max(_bigH,(_phSize&&_phSize.h>60?_phSize.h:0));
+          var _yp2=274;
+          if(_dockT2&&(_dockT2-14-_phH)<_yp2)_yp2=Math.max(0,Math.round(_dockT2-14-_phH));
+          _ph.style.left="4px";_ph.style.width=_phW+"px";_ph.style.height=_phH+"px";
+          _w2.photo={x:4,y:_yp2,w:_phW,h:_phH};
         }
       }
       if(lay==="couple"){
