@@ -1963,7 +1963,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-18v28">
+<meta name="app-build" content="2026-11-18v29">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -6809,6 +6809,8 @@ async function init(){
     if(!_useIdb){
       try{state=await __hydrateBig(state);}catch(_eH2){}
       try{__restoreEmojiLibFromBackup();}catch(_eEmojiLib0){}
+      /* 不等用户点开面板：启动时就把每张表情的独立副本小批量贴回来 */
+      try{setTimeout(function(){try{__restoreEmojiItemsFromDb(function(ch){if(ch){try{renderEmojis();}catch(_){}}});}catch(_){}},900);}catch(_){}
     }
     var _sameSnap=_useIdb&&_ltTs>0&&_idbTs===_ltTs;
     if(s&&s.messages&&!_useIdb){try{dbSet("state",state).catch(function(){});}catch(e){}}
@@ -7703,8 +7705,10 @@ function __recoverSocialFromBackups(){
     var needM=!Array.isArray(state.moments)||state.moments.length===0;
     var needG=!Array.isArray(state.guestbook)||state.guestbook.length===0;
     if(!needL&&!needM&&!needG)return Promise.resolve(false);
-    var mark="e11.socialBkRestored";
-    try{if(localStorage.getItem(mark)==="1")return Promise.resolve(false);}catch(_){}
+    var mark="e11.socialBkRestored.";
+    function can(k){try{return localStorage.getItem(mark+k)!=="1";}catch(_){return true;}}
+    needL=needL&&can("letters");needM=needM&&can("moments");needG=needG&&can("guestbook");
+    if(!needL&&!needM&&!needG)return Promise.resolve(false);
     window.__socialBkRecovering=1;
     return __bkMeta().then(function(meta){
       var i=0,changed=false;
@@ -7738,7 +7742,7 @@ function __recoverSocialFromBackups(){
     }).then(function(changed){
       window.__socialBkRecovering=0;
       if(changed){
-        try{localStorage.setItem(mark,"1");}catch(_){}
+        try{if(!needL)localStorage.setItem(mark+"letters","1");if(!needM)localStorage.setItem(mark+"moments","1");if(!needG)localStorage.setItem(mark+"guestbook","1");}catch(_){}
         try{renderMoments();}catch(_){}
         try{renderLetters(true);}catch(_){}
         try{renderGuestbook(true);}catch(_){}
@@ -11055,9 +11059,11 @@ function __restoreEmojiItemFromDb(id,cb){
       if(!e){fin(false);return;}
       var old=e.src||e.url||"";
       if(old!==src){e.src=src;delete e.__missing;try{save();}catch(_){}}
+      try{window.__emojiValidCache[src]=1;}catch(_){}
       fin(true,src);
     }).catch(function(){fin(false);});
-    setTimeout(function(){fin(false);},1200);
+    /* 手机上 IndexedDB 一次读 33 张会很慢，1.2 秒会把还读得回来的图全部判失败。 */
+    setTimeout(function(){fin(false);},8000);
   }catch(_){fin(false);}
 }
 function __restoreEmojiItemsFromDb(cb){
@@ -11072,14 +11078,26 @@ function __restoreEmojiItemsFromDb(cb){
     });
     if(!bad.length){cb&&cb(false);return;}
     window.__emojiRestoring=1;
-    var left=bad.length,changed=false;
-    bad.forEach(function(id){
-      __restoreEmojiItemFromDb(id,function(ok){
-        if(ok)changed=true;
-        left--;
-        if(left<=0){window.__emojiRestoring=0;try{__emojiPersistList(curEmojis());}catch(_){}cb&&cb(changed);}
-      });
-    });
+    var left=bad.length,changed=false,queue=bad.slice(),active=0,finished=false;
+    function finish(){
+      if(finished)return;finished=true;
+      window.__emojiRestoring=0;
+      try{__emojiPersistList(curEmojis());}catch(_){}
+      cb&&cb(changed);
+    }
+    function next(){
+      if(left<=0){finish();return;}
+      while(active<4&&queue.length){
+        var id=queue.shift();active++;
+        __restoreEmojiItemFromDb(id,function(ok){
+          if(ok)changed=true;
+          left--;active--;
+          if(left<=0){finish();return;}
+          setTimeout(next,0);
+        });
+      }
+    }
+    next();
   }catch(_){window.__emojiRestoring=0;cb&&cb(false);}
 }
 function __emojiNormalizeList(arr){
