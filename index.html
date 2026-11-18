@@ -6292,6 +6292,11 @@ function __flushSave(immediate){
     /* 大图已经换成引用，这里比的是几十 KB 的「去图 state」，判断又快又准 */
     if(_sig===window.__lastSaveSlim)return;
     var _pend=_pack.pending||[];
+    /* 最新文字/设置先同步写进 localStorage：IndexedDB 写入可能慢、可能配额失败，
+       但重进页面时至少能读到这次改动，不会被旧快照/default 覆盖。
+       图片本体仍走 IndexedDB；未落库的大图同时放 bigPending 兜底。 */
+    try{__writeLocalSnapshot(_sig);}catch(_eLocal){}
+    try{if(window.__backupPendingBig)window.__backupPendingBig(_pend);}catch(_ePend){}
     var _writeSlim=function(){
       window.__lastSaveSlim=_sig;
       /* 先写主库：引用版必须等所有图片本体都落库成功才写，否则刷新后就是一堆悬空引用，
