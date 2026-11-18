@@ -3725,6 +3725,7 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
       </div>
       <div class="set-sec-title">存储空间</div>
       <div class="set-group">
+        <div class="set-row"><span class="set-label">本机大图仓库<div class="set-sub">图片和表情存在 IndexedDB，不受 localStorage 约 5MB 限制；能存多少主要看手机剩余空间</div></span></div>
         <div class="set-row"><span class="set-label">已用 / 可用<div class="set-sub" id="set-storage-sub">图片和字卡都算在内</div></span><span id="set-storage-val" style="font-size:13px;color:var(--ttext);">—</span></div>
         <div class="set-row"><button class="small-btn ghost" style="width:100%;" id="btn-storage-refresh">刷新存储信息</button></div>
         <div class="set-row"><button class="small-btn ghost" style="width:100%;" id="btn-shrink-imgs">压缩已有图片（省空间）</button></div>
@@ -6085,7 +6086,10 @@ function _emojiBackup(){
     window.__emojiLibLs=obj;
     /* localStorage 只是小库镜像（只有 5MB）：大库仍然写 IndexedDB，
        这样即使主存档被压缩成空图、localStorage 也满了，表情图还有一份独立备份。 */
-    if(_j.length<=2*1024*1024){try{localStorage.setItem("cp2EmojiLib",_j);}catch(_eLs){}}
+    /* localStorage 只放一小份镜像；超过 192KB 就只留 IndexedDB 大库，
+       否则 33 张大表情会把 5MB 小库直接吃满，主存档反而写不进去。 */
+    if(_j.length<=192*1024){try{localStorage.setItem("cp2EmojiLib",_j);}catch(_eLs){}}
+    else{try{localStorage.removeItem("cp2EmojiLib");}catch(_eRm){}}
     if(typeof db!=="undefined"&&db&&typeof dbSet==="function"){
       try{
         window.__emojiLibDb=obj;window.__emojiDbSig=sig;
@@ -6159,56 +6163,35 @@ function __compactBigSkin(){
     });
   }catch(e){}
 }
+function __storedImg(v){
+  return typeof v==="string"&&v.length>800&&/^data:image\/(png|jpeg|jpg|webp|gif);base64,/i.test(v);
+}
 function __slimState(root){
-  var st=window.__bigStore, pending=[], seen=[];
-  /* 头像必须留在 state 本体里：头像一旦被换成 bigref，只要图片本体没写进库，
-     顶部头像/设置页头像就会变成空白。头像单张一两百 KB，留在主档里体积可接受。 */
-  var __KEEP_INLINE=function(k){return /^(avatar|meAvatar|cpMeAvatar|cpPartnerAvatar|cpPhotoAvatar|mpAv1|mpAv2|cpPhoto|cpPhotoCard|cpPhotoSub|cpRecord|cover|musicCoverImg|musicDiscInnerImg|musicBgImg)$/i.test(String(k||""));};
+  var st=window.__bigStore, pending=[], pendingIds={}, seen=[], copies=[];
+  function need(id,data){if(st.stored.has(id)||pendingIds[id])return;pendingIds[id]=1;pending.push([__BIG_KEY+id,data,id]);}
   function walk(v,key){
-    /* 主页照片框必须留在 state 本体里：如果走 bigref，图片本体要异步写 IndexedDB，
-       用户选完照片马上返回/重进时可能还没写完，回来就变成空框。
-       一张照片压缩后通常几百 KB，直接内联更稳。 */
-    try{
-      if(v&&typeof v==="object"&&Array.isArray(v)&&root&&root.me&&root.me.photos===v)return v.slice();
-      /* 表情包也留在 state 本体里：表情是最常被点开的东西，一旦走 bigref
-         而 IndexedDB 那一下没写进去/被清掉，刷新后就会整排「失效」。
-         单张表情压缩后通常只有几十 KB，整体内联比悬空引用可靠。 */
-      /* 表情包默认内联；但动图（GIF/动态 WebP）单张经常几 MB，
-         33 张就能把 localStorage 撑爆，随后整库被写成空图＝整排“失效”。
-         只把大动图移到 IndexedDB，静态小表情仍内联；读取时 __hydrateBig 会换回真图，
-         读不到时还有 emojiLib 独立备份兜底。 */
-      if(v&&typeof v==="object"&&Array.isArray(v)&&root&&(root.emojis===v||root.partnerEmojis===v)){
-        var _out=[];
-        for(var _ei=0;_ei<v.length;_ei++){
-          var _it=v[_ei];
-          try{
-            var _isrc=_it&&(_it.src||_it.url);
-            if(typeof _isrc==="string"&&__isBigImg(_isrc)&&(_it.anim||_isrc.slice(0,10)==="data:image/gif")){
-              var _bid=__bigId(_isrc);
-              if(!st.stored.has(_bid))pending.push([__BIG_KEY+_bid,_isrc,_bid]);
-              var _cp={};for(var _ek in _it){if(Object.prototype.hasOwnProperty.call(_it,_ek))_cp[_ek]=_it[_ek];}
-              _cp.src=__BIG_REF+_bid;
-              _out.push(_cp);continue;
-            }
-          }catch(_eEi){}
-          _out.push(_it);
-        }
-        return _out;
-      }
-    }catch(_){}
     if(typeof v==="string"){
-      if(__isBigImg(v)&&!__KEEP_INLINE(key)){
+      /* 所有图片都外置到 IndexedDB：localStorage 只留 bigref 索引。
+         这样头像、表情、照片、封面不会再把 5MB 小库撑满。 */
+      if(__storedImg(v)){
         var id=__bigId(v);
-        if(!st.stored.has(id))pending.push([__BIG_KEY+id,v,id]);
+        need(id,v);
         return __BIG_REF+id;
       }
       return v;
     }
     if(!v||typeof v!=="object"||v instanceof Date||v instanceof Blob)return v;
-    if(seen.indexOf(v)>=0)return v;
-    seen.push(v);
-    if(Array.isArray(v)){var a=new Array(v.length);for(var i=0;i<v.length;i++)a[i]=walk(v[i],key);return a;}
-    var o={};for(var k in v){if(Object.prototype.hasOwnProperty.call(v,k))o[k]=walk(v[k],k);}
+    var _seen=seen.indexOf(v);
+    if(_seen>=0)return copies[_seen];
+    seen.push(v);copies.push(null);
+    var _ci=seen.length-1;
+    if(Array.isArray(v)){
+      var a=[];copies[_ci]=a;
+      for(var i=0;i<v.length;i++)a[i]=walk(v[i],key);
+      return a;
+    }
+    var o={};copies[_ci]=o;
+    for(var k in v){if(Object.prototype.hasOwnProperty.call(v,k))o[k]=walk(v[k],k);}
     return o;
   }
   return {slim:walk(root,""),pending:pending};
@@ -6274,6 +6257,26 @@ function __stateSig(){
     })||"";
   }catch(e){return "err:"+Date.now();}
 }
+function __writeLocalSnapshot(sig){
+  /* localStorage 只有约 5MB：旧快照常常是“曾经能写、现在写不下”的那一份。
+     先删旧快照再写新的；如果新快照也超限，就只留一个“请读本地库”的小标记。
+     完整状态已经先写进 IndexedDB，不会因为这里失败而丢表情/图片。 */
+  try{
+    if(localStorage.getItem("privateChat")===sig)return true;
+    try{localStorage.setItem("privateChat",sig);return true;}catch(_e1){
+      try{localStorage.removeItem("privateChat");}catch(_eRm){}
+      try{localStorage.setItem("privateChat",sig);return true;}catch(_e2){
+        try{localStorage.setItem("privateChat",JSON.stringify({__idbOnly:1}));return true;}catch(_e3){}
+      }
+    }
+  }catch(e){}
+  if(!window.__lsFullNotified){
+    window.__lsFullNotified=1;
+    try{toast("本地快照空间不足，已自动改存到本地库；聊天和图片不会被清空");}catch(_){}
+  }
+  return false;
+}
+
 function __flushSave(immediate){
   if(window.__restoring)return;
   /* 按钮里常见的 save();__flushSave(); 不再同步整库序列化。
@@ -6295,7 +6298,7 @@ function __flushSave(immediate){
          表现正是「图片、顶部头像全变空白」 */
       dbSet("state",_slim).then(function(){
         try{
-          if(localStorage.getItem("privateChat")!==_sig)localStorage.setItem("privateChat",_sig);
+          __writeLocalSnapshot(_sig);
         }catch(_eLs){
           /* 不能把整份存档里的 data:image 全替换成空串：表情包是内联在 state 里的，
              一旦这样写，下次启动就会看到「33 张表情，只有前 2 张有图，其余失效」。
@@ -6451,7 +6454,7 @@ function __backupPendingBig(pending){
     for(var i=pending.length-1;i>=0;i--){
       var id=pending[i][0],data=pending[i][1];
       if(typeof data!=="string"||!data)continue;
-      if(total+data.length>1800000)break;
+      if(total+data.length>600000)break;
       take.unshift([id,data]);total+=data.length;
     }
     var _bpJson=take.length?JSON.stringify(take):"";
@@ -6881,6 +6884,7 @@ async function init(){
     /* P0.5：主存档整个不见了（localStorage 和 IndexedDB 都没有可用记录）时，
        先从自动备份槽救回最近一份，别让「刷新后全部数据消失」直接落成初始示例内容 */
     var _lsSnapNow=null;try{_lsSnapNow=localStorage.getItem("privateChat");}catch(_lsE){_lsSnapNow=null;}
+    try{if(_lsSnapNow){var _lsNowObj=JSON.parse(_lsSnapNow);if(_lsNowObj&&_lsNowObj.__idbOnly)_lsSnapNow=null;}}catch(_){_lsSnapNow=null;}
     if((!s||!s.messages||!s.messages.length)&&!_lsSnapNow){
       try{
         var _bkM=await __bkMeta();
@@ -18354,8 +18358,7 @@ function __ltNewbar(){
 window.__ltNewbar=__ltNewbar;
 function __closeLetterView(ov){
   try{if(ov)ov.style.display="none";}catch(_){}
-  /* 从信箱点开的信，关掉后直接回桌面；不要再让用户多点一次返回 */
-  try{if(window.__curView==="view-letters")showView("view-me");}catch(_){}
+  /* 只关闭信件详情，保持原来的信箱/聊天页面，不间接跳返回 */
 }
 function openLetterView(id){
   let l=(state.letters||[]).filter(x=>x.id===id)[0];
@@ -18729,8 +18732,9 @@ function applyLetterPageBackdrop(){
 }
 function __closeEnvelope(ov){
   try{if(ov)ov.classList.remove("show","open","showcard");}catch(_){}
-  /* 信封是从信箱点开的：收起信封直接回桌面，不要再让用户先回信箱再点一次返回 */
-  try{if(window.__curView==="view-letters")showView("view-me");}catch(_){}
+  try{window.__envCtx=null;}catch(_){}
+  /* 收起只关闭信件层，不再强制 showView("view-me")：
+     否则用户在信箱里点“收起”会被间接带回桌面，看起来像误触了返回。 */
 }
 function openEnvelope(id){
   var l=(state.letters||[]).filter(function(x){return x.id===id;})[0];if(!l)return;
@@ -21949,6 +21953,7 @@ function __fitMeasure(){
   var dock=window.__dockTopPx?window.__dockTopPx():0;if(!dock)return 0;
   __fitClear();
   var k1=1,k2=1,measured=false;
+  window.__fitK1=1;window.__fitK2=1;
   var in1=document.querySelector("#me-page-1 .me-page-inner");
   if(in1&&in1.children.length){
     var pr=in1.getBoundingClientRect();var top=pr.top,bottom=0;
@@ -21970,22 +21975,29 @@ function __fitMeasure(){
     if(r.bottom>lim2&&r.bottom>top0){k2=(lim2-top0)/(r.bottom-top0);measured=true;}
   }
   if(!measured)return 0;
-  var k=Math.min(k1,k2);
-  if(!isFinite(k)||k<=0)return 0;
-  if(k>0.995)k=1;
-  if(k<0.62)k=0.62;
-  return Math.round(k*1000)/1000;
+  /* 两页各自按自己的内容高度算比例：第一页图标太大时，不能把第二页一起缩成小号。
+     以前取 Math.min(k1,k2)，所以用户在第一页放大组件后，第二页桌面会突然整体变小。 */
+  function _clamp(k){if(!isFinite(k)||k<=0)return 1;if(k>0.995)return 1;if(k<0.62)return 0.62;return Math.round(k*1000)/1000;}
+  window.__fitK1=_clamp(k1);window.__fitK2=_clamp(k2);
+  return (Number(window.__mePage)||0)===1?window.__fitK2:window.__fitK1;
 }
 function __fitApply(k){
   var kk=Number(k)||1;if(kk>0.995)kk=1;if(kk<0.62)kk=0.62;
-  window.__fitK=kk;
-  __fitInners().forEach(function(el){
+  var k1=Number(window.__fitK1),k2=Number(window.__fitK2);
+  if(!(k1>=0.62&&k1<=1.3))k1=kk;
+  if(!(k2>=0.62&&k2<=1.3))k2=kk;
+  if(k1>0.995)k1=1;if(k1<0.62)k1=0.62;
+  if(k2>0.995)k2=1;if(k2<0.62)k2=0.62;
+  k1=Math.round(k1*1000)/1000;k2=Math.round(k2*1000)/1000;
+  window.__fitK=(Number(window.__mePage)||0)===1?k2:k1;
+  __fitInners().forEach(function(el,i){
     if(!el)return;
-    if(kk>=1){el.style.transform="";el.style.transformOrigin="";}
-    else{el.style.transformOrigin="top center";el.style.transform="scale("+kk+")";}
+    var use=(i===1)?k2:k1;
+    if(use>=1){el.style.transform="";el.style.transformOrigin="";}
+    else{el.style.transformOrigin="top center";el.style.transform="scale("+use+")";}
   });
-  try{__applyAppFit(kk);}catch(e){}
-  return kk;
+  try{__applyAppFit(window.__fitK);}catch(e){}
+  return window.__fitK;
 }
 window.__fitApply=__fitApply;
 function __applyAppFit(_k){
@@ -22043,18 +22055,26 @@ window.__fitCompute=function(force){
   var sig=__fitContentSig();
   var cached=force?0:window.__fitMap[sig];
   if(cached){
-    __fitApply(cached); /* 必须每次都套：测量时要先清 transform，跳过就会留在「没缩放」的状态 */
+    if(typeof cached==="object"&&cached){
+      window.__fitK1=Number(cached.k1)||1;window.__fitK2=Number(cached.k2)||1;
+    }else{
+      window.__fitK1=Number(cached)||1;window.__fitK2=Number(cached)||1;
+    }
+    __fitApply(window.__fitK);
     window.__fitValid=true;window.__fitSigCache=sig;
-    return cached;
+    return window.__fitK||1;
   }
   var k=__fitMeasure();
   if(!k)k=1;
   __fitApply(k);
-  window.__fitMap[sig]=k;
+  window.__fitMap[sig]={k1:window.__fitK1,k2:window.__fitK2};
   window.__fitValid=true;window.__fitSigCache=sig;
-  try{if(!state.fit||state.fit.k!==k||state.fit.sig!==sig){state.fit={k:k,sig:sig};save();}}catch(e){}
-  window.__fitAllowUntil=Date.now()+1200;window.__fitFreezeSoon();
-  return k;
+  try{if(!state.fit||state.fit.k!==window.__fitK||state.fit.sig!==sig){state.fit={k:window.__fitK,k1:window.__fitK1,k2:window.__fitK2,sig:sig};save();}}catch(e){}
+  window.__fitAllowUntil=Date.now()+1200;
+  /* 自适应算完就锁定：不再等 1.2 秒，也不因为后续内容变高/切页再缩一次。 */
+  if(window._dbReady){window.__fitFrozen=true;window.__fitLocked=true;}
+  window.__fitFreezeSoon();
+  return window.__fitK||k;
 };
 /* 内容高度签名：用 offset 值，不受整页 transform 影响；内容一变签名就变 */
 function __fitContentSig(){
@@ -22099,6 +22119,12 @@ window.__homeDockCheck=function(){
       }
     }
     if(!bad)return;
+    /* 适配已锁定：不再为了照片框重算整页比例（那会让桌面再次变小）。
+       只把当前页照片框压回固定栏上方，比例完全不动。 */
+    if(window.__fitLocked){
+      if(page===1){try{window.__keepPhotoAboveDock&&window.__keepPhotoAboveDock();}catch(_){}}
+      return;
+    }
     window.__homeDockBusy=1;
     /* 已经锁定但照片框/当前页真的压住固定栏：给一次重新自适应，
        让照片框回到固定栏上方；量完仍会重新锁定。 */
@@ -22153,6 +22179,9 @@ function __fitViewportChanged(){
     window.__fitLastW=_w;window.__fitLastH=_h;window.__fitLastDpr=_dpr;__fitLastKey=key;return false;
   }
   window.__fitLastW=_w;window.__fitLastH=_h;window.__fitLastDpr=_dpr;__fitLastKey=key;
+  /* 只有屏幕宽度/DPR 真的变了（旋转、换设备、浏览器缩放）才允许重新适配一次；
+     适配完继续锁定，普通高度变化和键盘不再改桌面比例。 */
+  window.__fitLocked=false;window.__fitFrozen=false;
   window.__fitInvalidate(false);
   setTimeout(function(){window.__fitCompute(true);},80);
   return true;
