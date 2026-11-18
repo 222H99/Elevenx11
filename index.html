@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html lang="zh-CN" style="background:#fafafa;">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
+<meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#fafafa" id="theme-color-meta">
 <script>
 /* 第一帧就把底色定对：不然深色用户在重新打开时会先闪一下白屏（浅色用户会被系统深色闪一下黑屏） */
@@ -4937,17 +4938,25 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
     var headers={"apikey":cfg.key,"Content-Type":"application/json"};
     if(opt.token)headers["Authorization"]="Bearer "+opt.token;
     if(opt.headers){Object.keys(opt.headers).forEach(function(k){headers[k]=opt.headers[k];});}
-    return fetch(cfg.url+path,{method:opt.method||"GET",headers:headers,body:opt.body==null?undefined:JSON.stringify(opt.body),cache:"no-store"}).then(function(r){
+    var ctrl=null,timer=null;
+    try{if(typeof AbortController!=="undefined"){ctrl=new AbortController();timer=setTimeout(function(){try{ctrl.abort();}catch(e){}},Number(opt.timeout)||9000);}}catch(e){}
+    var req=fetch(cfg.url+path,{method:opt.method||"GET",headers:headers,body:opt.body==null?undefined:JSON.stringify(opt.body),cache:"no-store",signal:ctrl?ctrl.signal:undefined});
+    return req.then(function(r){
+      if(timer){clearTimeout(timer);timer=null;}
       return r.text().then(function(txt){
         var d=null;try{d=txt?JSON.parse(txt):null;}catch(e){d=txt;}
         if(!r.ok){var err=new Error((d&&(d.msg||d.message||d.error_description||d.error))||("HTTP "+r.status));err.status=r.status;err.data=d;throw err;}
         return d;
       });
+    },function(e){
+      if(timer){clearTimeout(timer);timer=null;}
+      if(e&&(e.name==="AbortError"||e.code==="ABORT_ERR")){var te=new Error("网络请求超时，请检查网络后重试");te.code="timeout";te.cause=e;throw te;}
+      throw e;
     });
   }
   function refreshSession(s){
     if(!s||!s.refresh_token)return Promise.reject(new Error("登录已过期，请重新登录"));
-    return api("/auth/v1/token?grant_type=refresh_token",{method:"POST",body:{refresh_token:s.refresh_token}}).then(function(d){
+    return api("/auth/v1/token?grant_type=refresh_token",{method:"POST",body:{refresh_token:s.refresh_token},timeout:5000}).then(function(d){
       if(!d||!d.access_token)throw new Error("刷新登录失败");
       var ns={access_token:d.access_token,refresh_token:d.refresh_token||s.refresh_token,expires_at:Date.now()+(Number(d.expires_in)||3600)*1000,user:d.user||s.user};
       saveSession(ns);return ns;
@@ -4958,12 +4967,12 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
     var pre=(Number(s.expires_at)||0)>Date.now()+60000;
     var p=pre?Promise.resolve(s):refreshSession(s);
     return p.then(function(cur){
-      return api("/auth/v1/user",{token:cur.access_token}).then(function(u){
+      return api("/auth/v1/user",{token:cur.access_token,timeout:5000}).then(function(u){
         if(!u||!u.id)throw new Error("登录校验失败");
         cur.user=u;saveSession(cur);return cur;
       });
     }).catch(function(e){
-      if(e&&e.status===401){return refreshSession(s).then(function(ns){return api("/auth/v1/user",{token:ns.access_token}).then(function(u){ns.user=u;saveSession(ns);return ns;});});}
+      if(e&&e.status===401){return refreshSession(s).then(function(ns){return api("/auth/v1/user",{token:ns.access_token,timeout:5000}).then(function(u){ns.user=u;saveSession(ns);return ns;});});}
       throw e;
     });
   }
@@ -5124,7 +5133,9 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
         setAction(null);window.__e11CloudStatus="已同步";chipSync();hideGate();setChip("已登录 · "+accountOf(session.user)+" · 已同步");
       });
     }).catch(function(e){
-      setWait("没能进入云端空间",(e&&e.message?e.message:"网络连接失败")+"。请检查网络后重新打开页面。");
+      /* 云端暂时连不上时不要卡在登录层：本机已有记录就先用本地，之后恢复网络再同步 */
+      try{setAction(null);window.__e11CloudStatus="本地模式";hideGate();chipSync();setChip("本地模式 · 未同步");}catch(_){}
+      try{var _m=(e&&e.message)||"网络连接失败";toast("云端未连接，已使用本地记录："+_m);}catch(_){}
       throw e;
     });
   }
@@ -5149,6 +5160,9 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
     var s=loadSession();
     if(!s){showLoginCard();return;}
     window.__e11SkipLock=1;
+    /* 有本地登录态时先立刻显示“正在进入”，不要等网络校验：
+       否则启动幕撤掉后页面会停在空白/黑白屏，看起来像网站打不开。 */
+    setWait("正在进入你的空间","正在恢复本机存档…");
     validSession(s).then(function(cur){
       session=cur;window.__e11AuthOk=true;window.__e11SkipLock=1;
       var must=!!(cur.user&&cur.user.user_metadata&&cur.user.user_metadata.must_change_password);
@@ -5160,8 +5174,13 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
       }else{
         hideGate();chipSync();
       }
-    }).catch(function(){
-      clearSession();showLoginCard();setMsg("auth-msg","登录已过期，请重新输入密码。");
+    }).catch(function(e){
+      /* 401/403 才是登录失效；断网、超时、Supabase 暂停不能把本地记录锁在登录层外面 */
+      if(e&&(e.status===401||e.status===403)){
+        clearSession();showLoginCard();setMsg("auth-msg","登录已过期，请重新输入密码。");return;
+      }
+      try{session=s;window.__e11AuthOk=true;window.__e11SkipLock=1;hideGate();chipSync();setChip("本地模式 · 未同步");}catch(_){}
+      try{toast("网络不可用，已使用本地记录");}catch(_){}
     });
   }
 
@@ -5486,8 +5505,20 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-18",
-  lead:"这一版恢复网易云扫码登录：账号弹层自动生成二维码，手机扫码确认后自动同步账号和歌单，Cookie 登录保留作备用；同时保留图片/表情包不空帧、聊天返回、照片框、日记、画画、防白闪等修复。",
+  noticeKey:"2026-11-18v43-2",
+  lead:"v43 全量修复：主站/预览补全 PWA 安装包，修复 Chrome 添加到主屏幕崩溃和进站黑白屏；登录恢复时先显示进入状态，网络超时自动用本地记录；日记/字卡返回固定回聊天页；数据先写本地快照，云端旧存档不再覆盖新改动。",
   items:[
+    '<span class="an-gt">v43 · 启动 / PWA</span>',
+    "主站和预览站都补齐 manifest、Service Worker、180/192/512/maskable 图标，Chrome 添加到主屏幕不再因缺清单崩溃",
+    "有本地登录态时先显示「正在进入你的空间」，不再撤掉启动幕后停在空白或黑白屏",
+    "登录校验最多等 5 秒，网络超时自动进入本地模式，不再一直卡在加载",
+    "PWA 图标改成不透明底，旧主屏图标建议先删除再重新添加，避免旧 WebAPK 缓存",
+    '<span class="an-gt">v43 · 返回 / 数据</span>',
+    "日记、字卡板块的返回固定回到聊天页，不跟随上一个页面",
+    "本地改动先同步写本地快照，再写 IndexedDB；本地库写入失败，重进也不会变回默认",
+    "同一账号本地时间戳更新时，云端旧快照不再覆盖刚改的资料/设置",
+    '<span class="an-gt">v43 · 版本</span>',
+    "应用版本更新为 2026-11-18v43，设置页和更新检查同步显示新版本",
     '<span class="an-gt">画画</span>',
     "聊天里收到的画不再被压成长条，图片按原比例完整显示",
     "画布恢复满宽，不再缩到 320；只压缩上下间距，底部两颗按钮仍完整可见",
@@ -5575,7 +5606,7 @@ function showAnnounce(){
 }
 function closeAnnounce(){
   try{document.getElementById("announce-screen").classList.remove("show");}catch(e){}
-  try{localStorage.setItem("__announceAck",ANNOUNCE.ver);}catch(e){}
+  try{localStorage.setItem("__announceAck",(ANNOUNCE.noticeKey||ANNOUNCE.ver));}catch(e){}
   /* 启动时公告是进入前的最后一关：关掉后再进锁屏/主页 */
   try{
     var cb=window.__afterAnnounceEnter;
@@ -5600,7 +5631,7 @@ function __entryHome(){
 }
 function __afterLockPass(){
   try{
-    if(localStorage.getItem("__announceAck")!==ANNOUNCE.ver){
+    if(localStorage.getItem("__announceAck")!==(ANNOUNCE.noticeKey||ANNOUNCE.ver)){
       window.__afterAnnounceEnter=function(){try{__entryHome();}catch(e){}};
       showAnnounce();
       try{if(document.getElementById("announce-screen").classList.contains("show"))return;}catch(e){}
@@ -5619,7 +5650,7 @@ function maybeAnnounce(){
     if(window.__curView&&window.__curView!=="view-me")return;
     if(document.getElementById("about-screen")&&document.getElementById("about-screen").classList.contains("show"))return;
     if(document.getElementById("lock-screen")&&document.getElementById("lock-screen").classList.contains("show"))return;
-    if(localStorage.getItem("__announceAck")===ANNOUNCE.ver)return;
+    if(localStorage.getItem("__announceAck")===(ANNOUNCE.noticeKey||ANNOUNCE.ver))return;
     showAnnounce();
   }catch(e){}
 }
@@ -5645,7 +5676,7 @@ var _prTry=0,_prTimer=setInterval(function(){
 },3000);
 var _anTry=0,_anTimer=setInterval(function(){
   _anTry++;maybeAnnounce();
-  if(_anTry>200||localStorage.getItem("__announceAck")===ANNOUNCE.ver)clearInterval(_anTimer);
+  if(_anTry>200||localStorage.getItem("__announceAck")===(ANNOUNCE.noticeKey||ANNOUNCE.ver))clearInterval(_anTimer);
 },700);
 
 function paintNotifyDiag(){
@@ -14324,6 +14355,7 @@ function showView(id){
   if(id!=="view-chat"){try{__blurSoftKeyboard();}catch(_){}}
   /* 从日记页残留的状态切到画画时，把日记全屏层关掉，避免画画页被它盖住 */
   if(id==="view-game"){try{var _dv0=document.getElementById("diary-view");if(_dv0)_dv0.classList.remove("show","writing");}catch(_){}}
+  if(id==="view-cards"&&window.__curView!=="view-cards"&&window.__e11PushSub){try{window.__e11PushSub("cards");}catch(_){}}
   if(id==="view-settings"){try{requestAnimationFrame(function(){try{renderPartnerStyleUI();}catch(e){}});}catch(e){try{renderPartnerStyleUI();}catch(_){}}}
   /* 切页面/从后台回来先把通话计时刷成真实用时，避免看到停住的旧数字 */
   try{if(typeof call!=="undefined"&&call&&call.on&&call.status==="active"&&typeof callTick==="function")callTick();}catch(e){}
@@ -17980,7 +18012,7 @@ $("fav-clear")&&$("fav-clear").addEventListener("click",function(){
 });
 
 $("plus-settings").addEventListener("click",()=>{closePlus();window.__settingsEntryView="view-chat";window.__settingsBackTo="view-chat";_settingsFrom="view-chat";showView("view-settings");});
-$("btn-cards-back").addEventListener("click",()=>showView("view-me"));
+$("btn-cards-back").addEventListener("click",()=>{try{window.__e11ClearSub&&window.__e11ClearSub();}catch(_){};showView("view-chat");});
 /* 旧版情侣空间页的返回按钮原本没有绑定，顺手补上，避免进去后退不出来 */
 $("btn-couple-back").addEventListener("click",()=>showView("view-me"));
 /* 情侣空间背景：原来「背景」按钮没有事件，点了完全没反应 */
@@ -23561,9 +23593,13 @@ try{
     document.addEventListener("visibilitychange",function(){if(!document.hidden)__swAsk();});
     window.addEventListener("pageshow",__swAsk);
     /* 后台发现新版本：记下来，等切到后台时静默重载成新版（下次点开就是最新） */
-    /* 新 sw 接管后立刻换到新页面一次；只换一次，避免反复刷 */
+    /* 新 sw 接管后立刻换到新页面一次；只换一次，避免反复刷。
+       首次安装时页面本来就没有 controller，不要 reload：那一下会把启动幕撤掉重来，
+       看起来就是进站黑白屏。只有「本来已经被旧 sw 接管」的更新才刷新。 */
+    var __swHadController=!!navigator.serviceWorker.controller;
     navigator.serviceWorker.addEventListener("controllerchange",function(){
       try{
+        if(!__swHadController){__swHadController=true;return;}
         if(sessionStorage.getItem("e11.swReloaded")==="1")return;
         sessionStorage.setItem("e11.swReloaded","1");
         location.reload();
@@ -24378,6 +24414,7 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
     var ks=keys();
     var tk=todayKey();curIdx=ks.indexOf(tk);if(curIdx<0)curIdx=ks.length-1;curKey=ks[curIdx];
     stkSel="";
+    try{if(window.__e11PushSub)window.__e11PushSub("diary");}catch(_){}
     el("diary-view").classList.add("show");
     opened=false;
     el("diary-view").classList.remove("writing");
@@ -24392,8 +24429,9 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
   function closeDiary(){
     __diaryBlurInput();try{closeReplySheet();}catch(_){}
     /* 先把页面铺在日记遮罩下面，再撤遮罩，避免空白闪一下；
-       日记的返回现在统一回桌面，不再写死回聊天页。 */
-    try{showView("view-me");}catch(_){}
+       日记是从聊天页加号进入的，返回就直接回聊天页，不再落回桌面。 */
+    try{if(window.__e11ClearSub)window.__e11ClearSub();}catch(_){}
+    try{showView("view-chat");}catch(_){}
     el("diary-view").classList.remove("show");el("diary-view").classList.remove("writing");
     if(writingTimer){clearTimeout(writingTimer);writingTimer=null;}
     try{window.__uiScaleSync&&window.__uiScaleSync();}catch(_){}
@@ -24943,6 +24981,31 @@ body{margin:0;background:var(--bg,#fafafa);}
     return origAppend.call(body,el);
   };
   function loop(){setTimeout(function(){sync();loop();},1500);}loop();
+})();
+</script>
+<script>
+/* 手机返回键/侧滑返回：日记和字卡板块统一回聊天页，不把浏览器退出到上一张网页 */
+(function(){
+  window.__e11PushSub=function(tag){
+    try{
+      if(history.state&&history.state.e11)return;
+      history.pushState({e11:tag||"sub"},"",location.href);
+    }catch(e){}
+  };
+  window.__e11ClearSub=function(){
+    try{if(history.state&&history.state.e11)history.replaceState(null,"",location.href);}catch(e){}
+  };
+  window.addEventListener("popstate",function(){
+    try{
+      var dv=document.getElementById("diary-view");
+      if(dv&&dv.classList.contains("show")){
+        var dc=document.getElementById("diary-close");
+        if(dc)dc.click();else showView("view-chat");
+        return;
+      }
+      if(window.__curView==="view-cards"){showView("view-chat");return;}
+    }catch(e){}
+  });
 })();
 </script>
 </body>
