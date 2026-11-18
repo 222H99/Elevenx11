@@ -66,6 +66,25 @@ html[data-boot="dark"] .auth-input{background:#1c1c1f!important;border-color:rgb
 <meta name="screen-orientation" content="portrait">
 <meta name="x5-orientation" content="portrait">
 <link rel="manifest" href="./manifest.json">
+<script>
+/* 线上静态资源会被平台 302 到 CDN，真实 manifest.json 的 origin 变了，
+   Chrome 因此报 start-url-not-valid / no-acceptable-icon，添加到主屏幕会失败。
+   这里按当前页面路径生成同源的 data: manifest；不依赖 302 后的文件地址。 */
+(function(){try{
+  var p=location.pathname.replace(/index\.html$/i,"");if(p.slice(-1)!=="/")p+="/";
+  var dark=false;
+  try{var t=localStorage.getItem("__theme.v1");dark=(t==="dark"||(t&&JSON.parse(t)===true));}catch(e){}
+  var bg=dark?"#000000":"#fafafa";
+  var root=location.origin+p;
+  var m={name:"Eleven×11",short_name:"11×11",description:"两个人的私密空间：聊天、动态、信件、留言板、字卡、一起听",lang:"zh-CN",dir:"ltr",id:p,start_url:p,scope:p,display:"standalone",display_override:["standalone","minimal-ui"],orientation:"portrait",background_color:bg,theme_color:bg,prefer_related_applications:false,icons:[
+    {src:root+"icon-192.png",sizes:"192x192",type:"image/png",purpose:"any"},
+    {src:root+"icon-512.png",sizes:"512x512",type:"image/png",purpose:"any"},
+    {src:root+"icon-maskable-512.png",sizes:"512x512",type:"image/png",purpose:"maskable"}
+  ]};
+  var old=document.querySelector('link[rel="manifest"]');if(old&&old.parentNode)old.parentNode.removeChild(old);
+  var l=document.createElement("link");l.rel="manifest";l.href="data:application/manifest+json,"+encodeURIComponent(JSON.stringify(m));document.head.appendChild(l);
+}catch(e){}})();
+</script>
 <title>Eleven×11</title>
 <link rel="apple-touch-icon" sizes="180x180" href="./icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -5505,12 +5524,12 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-18",
-  noticeKey:"2026-11-18v43-2",
+  noticeKey:"2026-11-18v43-3",
   lead:"v43 全量修复：主站/预览补全 PWA 安装包，修复 Chrome 添加到主屏幕崩溃和进站黑白屏；登录恢复时先显示进入状态，网络超时自动用本地记录；日记/字卡返回固定回聊天页；数据先写本地快照，云端旧存档不再覆盖新改动。",
   items:[
     '<span class="an-gt">v43 · 启动 / PWA</span>',
-    "主站和预览站都补齐 manifest、Service Worker、180/192/512/maskable 图标，Chrome 添加到主屏幕不再因缺清单崩溃",
-    "有本地登录态时先显示「正在进入你的空间」，不再撤掉启动幕后停在空白或黑白屏",
+    "主站和预览站改用同源 data manifest，Chrome 不再报 start-url-not-valid / no-acceptable-icon；180/192/512/maskable 图标齐全，添加到主屏幕不再因清单失效崩溃",
+    "有本地登录态时先显示「正在进入你的空间」，首帧底色跟随夜间/白天，不再先闪白再闪黑；不再撤掉启动幕后停在空白",
     "登录校验最多等 5 秒，网络超时自动进入本地模式，不再一直卡在加载",
     "PWA 图标改成不透明底，旧主屏图标建议先删除再重新添加，避免旧 WebAPK 缓存",
     '<span class="an-gt">v43 · 返回 / 数据</span>',
