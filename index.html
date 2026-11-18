@@ -40,6 +40,52 @@
   setTimeout(function(){try{window.__bootDone();}catch(e){}},3200);
 }catch(e){}})();
 </script>
+<script>
+/* Android 壳专用：把 Railway 后端的 /api/* 请求交给原生 HttpURLConnection 发出。
+   APK 内置页的 origin 是 https://app.local，后端 CORS 只放行线上网页域名，
+   直接 fetch 会被浏览器拦成「空响应」，表现就是账号已登录但歌单/曲目读不出来、
+   或只显示封面不显示歌名。原生代理带上线上域名 Origin，数据链路与网页版一致。
+   网页版没有 AndroidUI，这段完全不生效。 */
+(function(){
+  try{
+    if(!window.AndroidUI || typeof AndroidUI.api!=="function")return;
+    if(window.__e11NativeApiFetch)return;
+    window.__e11NativeApiFetch=1;
+    var orig=window.fetch;
+    var API_RE=/^https:\/\/elevenx11-production\.up\.railway\.app\/api\//;
+    window.fetch=function(input,init){
+      var url="";
+      try{url=typeof input==="string"?input:(input&&input.url)||"";}catch(e){}
+      if(!API_RE.test(url))return orig.apply(this,arguments);
+      try{
+        init=init||{};
+        var hs={};
+        try{
+          var h=init.headers;
+          if(h){
+            if(typeof h.forEach==="function")h.forEach(function(v,k){hs[String(k)]=String(v);});
+            else for(var k in h)hs[String(k)]=String(h[k]);
+          }
+        }catch(e){}
+        var body=init.body;
+        if(body!=null && typeof body!=="string"){
+          try{body=String(body);}catch(e){body="";}
+        }
+        var raw=AndroidUI.api(url,String(init.method||"GET"),JSON.stringify(hs),body||"");
+        var out=null;
+        try{out=JSON.parse(String(raw||"{}"));}catch(e){}
+        if(!out || typeof out.status==="undefined")throw new Error("native api empty");
+        var status=Number(out.status)||502;
+        if(status<200||status>599)status=502;
+        var resp=new Response(String(out.body||""),{status:status,headers:{"Content-Type":"application/json"}});
+        return Promise.resolve(resp);
+      }catch(e){
+        return Promise.reject(e);
+      }
+    };
+  }catch(e){}
+})();
+</script>
 <style>
 html.theme-swap *,html.theme-swap *::before,html.theme-swap *::after{transition:none!important;}
 html[data-boot="dark"],html[data-boot="dark"] body{background:#000!important;}
