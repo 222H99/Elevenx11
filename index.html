@@ -1963,7 +1963,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-18v30">
+<meta name="app-build" content="2026-11-18v31">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -13635,20 +13635,28 @@ function __importBackupText(txt,f){
       };
       /* 先把解析好的数据写进 localStorage 兜底：IndexedDB 不可用或配额满时，也不会出现“导入没反应” */
       var _lsFail=false;
+      /* 导入前先清掉旧的大存档和大图待写队列，否则配额被旧数据占满，新数据写不进去 */
+      try{localStorage.removeItem("privateChat");localStorage.removeItem("bigPending");}catch(_){}
       try{localStorage.setItem("privateChat",JSON.stringify(state));}catch(_e){_lsFail=true;}
       var _allIdb=(data.idb&&typeof data.idb==="object")?data.idb:null;
-      if(_allIdb){
-        _allIdb.state=state; /* 以刚解析的 state 为准，避免备份里 state 与 idb.state 不一致 */
-        __restoreIDB(_allIdb).then(function(ok){
-          if(!ok&&db){try{dbSet("state",state);}catch(_){}}
-          toast(_lsFail?"已恢复，但本机存储空间不足：图片可能显示不全":"全部数据已恢复");
-          try{__softApplyImport(_imported);}catch(_){}
-          _reload();
-        });
-      }else{
-        if(db){try{dbSet("state",state);}catch(_){}}
-        toast(_lsFail?"已导入，但本机存储空间不足：图片可能显示不全":"数据导入成功");
+      var _afterCommit=function(){
+        /* 告诉启动流程必须用 IndexedDB 里的导入版，不能被 localStorage 里旧的空存档顶回去 */
+        try{sessionStorage.setItem("__forceIdbRestore","1");}catch(_){}
+        toast(_lsFail?"已恢复（图片可能显示不全）":"全部数据已恢复");
+        try{__softApplyImport(_imported);}catch(_){}
         _reload();
+      };
+      var _commit=function(){
+        if(db){
+          /* 等 state 真正写进本地库再刷新；以前没等就 reload，结果又读回旧的空存档 */
+          dbSet("state",state).then(_afterCommit).catch(function(){_afterCommit();});
+        }else _afterCommit();
+      };
+      if(_allIdb){
+        _allIdb.state=state;
+        __restoreIDB(_allIdb).then(function(){_commit();}).catch(function(){_commit();});
+      }else{
+        _commit();
       }
     }catch(err){toast("导入失败："+(err&&err.message?err.message:"备份文件损坏或格式不对")+"（"+(f&&f.size>1048576?Math.round(f.size/1048576)+"MB":Math.max(1,Math.round((f&&f.size||0)/1024))+"KB")+"）");}
 }
@@ -17576,6 +17584,12 @@ function __sigOfList(arr){
   }
   return out;
 }
+/* 旧版删掉了收藏按钮的实现，但信件/动态/留言卡片仍在调用这个函数：
+   一渲染就 ReferenceError，整页空白。这里补成安全的空字符串。 */
+function __starBtnHTML(){return "";}
+/* 收藏功能已被移除，但绑定/切换调用还留在旧代码里；补成空实现，避免整页渲染时报错 */
+function __bindStarButtons(){}
+function __starToggle(){}
 function renderLetters(force){
   var _s="letters|"+__sigOfList(state.letters);
   if(!window.__rSig)window.__rSig={};
