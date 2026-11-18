@@ -3800,8 +3800,8 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
         <div id="fav-tags" class="fav-tags"></div>
         <div id="fav-list" style="max-height:52vh;overflow-y:auto;-webkit-overflow-scrolling:touch;"></div>
         <div style="display:flex;gap:8px;margin-top:12px;">
-          <button class="small-btn ghost" style="flex:1;" id="fav-long">生成长图</button>
           <button class="small-btn ghost" style="flex:1;color:var(--danger);" id="fav-clear">清空收藏</button>
+          <button class="small-btn ghost" style="flex:1;" id="fav-close">关闭</button>
         </div>
       </div>
     </div>
@@ -14356,7 +14356,18 @@ function closePlus(){$("plus-overlay").classList.remove("show");}
   sheet.addEventListener("pointerup",end);sheet.addEventListener("pointercancel",end);
 })();
 /* 顶栏➕ 微信式菜单 */
-__fastTapBtn("btn-plus",()=>{__blurSoftKeyboard();try{$("emoji-panel").classList.remove("open");$("btn-emoji").classList.remove("active");}catch(_){};$("plus-overlay").classList.add("show");});
+__fastTapBtn("btn-plus",()=>{
+  __blurSoftKeyboard();
+  try{$("emoji-panel").classList.remove("open");$("btn-emoji").classList.remove("active");}catch(_){}
+  /* 加号在 touchend 就打开菜单，紧接着浏览器还会补一个 click；
+     这个 click 可能落到刚出现的「设置」格子上，表现就是点加号直接进了设置。
+     400ms 内把落在菜单上的 click 全部吞掉。 */
+  window.__plusGuardUntil=Date.now()+400;
+  $("plus-overlay").classList.add("show");
+});
+$("plus-overlay").addEventListener("click",function(e){
+  if(Date.now()<(window.__plusGuardUntil||0)){e.preventDefault();e.stopPropagation();return;}
+},true);
 $("plus-overlay").addEventListener("click",e=>{if(e.target.id==="plus-overlay")closePlus();});
 $("top-call").addEventListener("click",()=>{
   if(call.on){
@@ -17560,8 +17571,118 @@ if($("game-canvas")){bindGameCanvas();}
   if(window.visualViewport){window.visualViewport.addEventListener("resize",fit,{passive:true});}
 })();
 
+
+/* ===== 收藏夹：入口、长按菜单收藏、列表、搜索、删除 ===== */
+function __favTextOfMsg(m){
+  if(!m)return "";
+  var ty=m.type||"text";
+  if(ty==="text")return String(m.text||"");
+  if(ty==="image")return "[图片]";
+  if(ty==="voice")return "[语音] "+(m.dur?m.dur+"″":"");
+  if(ty==="card")return "[字卡] "+String(m.text||"");
+  if(ty==="survey")return "[问卷]";
+  if(ty==="draw")return "[画画]";
+  return "["+ty+"]";
+}
+function __toggleFavoriteMessage(id){
+  var m=msgById(id);
+  if(!m)return null;
+  var favs=state.favorites||(state.favorites=[]);
+  var idx=-1;
+  for(var i=0;i<favs.length;i++){if(favs[i]&&favs[i].id===id){idx=i;break;}}
+  if(idx>=0){favs.splice(idx,1);try{save();}catch(_){}return false;}
+  favs.unshift({
+    id:m.id,kind:"msg",text:__favTextOfMsg(m),from:m.from||"me",
+    time:Number(m.time)||Date.now(),tag:""
+  });
+  try{save();}catch(_){}
+  return true;
+}
+window.__toggleFavoriteMessage=__toggleFavoriteMessage;
+function __renderFavSheet(){
+  var list=$("fav-list");if(!list)return;
+  var q=String(($("fav-search")&&$("fav-search").value)||"").trim().toLowerCase();
+  var tag=window.__favTag||"";
+  var all=(state.favorites||[]).slice();
+  var tags=state.favTags||[];
+  var tagBox=$("fav-tags");
+  if(tagBox){
+    var tagHtml='<button class="small-btn ghost" data-ftag="" style="padding:5px 10px;font-size:12px;flex:0 0 auto;'+(tag===""?"background:rgba(52,120,246,.14);color:#3478F6;":"")+'">全部</button>';
+    tags.forEach(function(t){tagHtml+='<button class="small-btn ghost" data-ftag="'+esc(t)+'" style="padding:5px 10px;font-size:12px;flex:0 0 auto;'+(tag===t?"background:rgba(52,120,246,.14);color:#3478F6;":"")+'">'+esc(t)+'</button>';});
+    tagBox.innerHTML=tagHtml;
+  }
+  var arr=all.filter(function(f){
+    if(!f)return false;
+    if(tag&&f.tag!==tag)return false;
+    if(!q)return true;
+    return (String(f.text||"")+" "+(f.tag||"")).toLowerCase().indexOf(q)>=0;
+  });
+  if(!arr.length){
+    list.innerHTML='<div class="empty-hint" style="padding:22px 4px;">'+(all.length?"没有匹配的收藏":"还没有收藏。长按聊天气泡，点「收藏这条消息」就会出现在这里。")+'</div>';
+    return;
+  }
+  list.innerHTML=arr.map(function(f){
+    var side=f.from==="me"?"我":((state.partner&&state.partner.name)||"对方");
+    return '<div class="fav-row" data-fav-id="'+esc(f.id||"")+'">'
+      +'<div class="fav-main"><div class="fav-nm">'+esc(side)+' · '+fmtTime(f.time)+'</div>'
+      +'<div class="fav-tx">'+esc(String(f.text||""))+'</div>'
+      +(f.tag?'<div class="fav-tm">'+esc(f.tag)+'</div>':'')
+      +'</div><button class="fav-x" data-fav-del="'+esc(f.id||"")+'" aria-label="删除收藏">×</button></div>';
+  }).join("");
+}
+function __openFavSheet(){
+  window.__favTag="";
+  try{$("fav-search").value="";}catch(_){}
+  __renderFavSheet();
+  $("fav-sheet").classList.add("show");
+}
+window.__openFavSheet=__openFavSheet;
+$("plus-fav")&&$("plus-fav").addEventListener("click",function(){
+  try{closePlus();}catch(_){}
+  __openFavSheet();
+});
+$("act-fav")&&$("act-fav").addEventListener("click",function(){
+  if(!actMsgId)return;
+  var added=__toggleFavoriteMessage(actMsgId);
+  closeActions();
+  toast(added===null?"这条消息找不到了":(added?"已收藏":"已取消收藏"));
+});
+$("fav-sheet")&&$("fav-sheet").addEventListener("click",function(e){
+  if(e.target===$("fav-sheet"))$("fav-sheet").classList.remove("show");
+});
+$("fav-close")&&$("fav-close").addEventListener("click",function(){$("fav-sheet").classList.remove("show");});
+$("fav-search")&&$("fav-search").addEventListener("input",function(){__renderFavSheet();});
+$("fav-tags")&&$("fav-tags").addEventListener("click",function(e){
+  var b=e.target&&e.target.closest?e.target.closest("[data-ftag]"):null;
+  if(!b)return;
+  window.__favTag=b.dataset.ftag||"";
+  __renderFavSheet();
+});
+$("fav-list")&&$("fav-list").addEventListener("click",function(e){
+  var del=e.target&&e.target.closest?e.target.closest("[data-fav-del]"):null;
+  if(del){
+    e.preventDefault();e.stopPropagation();
+    var id=del.dataset.favDel;
+    state.favorites=(state.favorites||[]).filter(function(f){return !f||f.id!==id;});
+    try{save();}catch(_){}
+    __renderFavSheet();
+    toast("已删除这条收藏");
+    return;
+  }
+  var row=e.target&&e.target.closest?e.target.closest(".fav-row"):null;
+  if(!row)return;
+  var tx=row.querySelector(".fav-tx");if(tx)tx.classList.toggle("fav-full");
+});
+$("fav-clear")&&$("fav-clear").addEventListener("click",function(){
+  if(!confirm("清空全部收藏？"))return;
+  state.favorites=[];
+  try{save();}catch(_){}
+  __renderFavSheet();
+  toast("收藏已清空");
+});
+
 $("plus-settings").addEventListener("click",()=>{closePlus();window.__settingsEntryView="view-chat";window.__settingsBackTo="view-chat";_settingsFrom="view-chat";showView("view-settings");});
-$("btn-cards-back").addEventListener("click",()=>showView("view-chat"));
+$("btn-cards-back").addEventListener("click",()=>showView("view-me"));
 /* 旧版情侣空间页的返回按钮原本没有绑定，顺手补上，避免进去后退不出来 */
 $("btn-couple-back").addEventListener("click",()=>showView("view-me"));
 /* 情侣空间背景：原来「背景」按钮没有事件，点了完全没反应 */
@@ -17885,6 +18006,11 @@ function __ltNewbar(){
   };
 }
 window.__ltNewbar=__ltNewbar;
+function __closeLetterView(ov){
+  try{if(ov)ov.style.display="none";}catch(_){}
+  /* 从信箱点开的信，关掉后直接回桌面；不要再让用户多点一次返回 */
+  try{if(window.__curView==="view-letters")showView("view-me");}catch(_){}
+}
 function openLetterView(id){
   let l=(state.letters||[]).filter(x=>x.id===id)[0];
   if(!l)return;
@@ -17906,8 +18032,8 @@ function openLetterView(id){
       +'<div id="letter-view-body" style="font-size:14px;line-height:1.65;color:var(--lv-fg,var(--ttext));white-space:pre-wrap;word-break:break-word;padding:10px 16px 18px;overflow:auto;-webkit-overflow-scrolling:touch;flex:1;"></div>'
       +'</div>';
     document.body.appendChild(ov);
-    ov.addEventListener("click",e=>{if(e.target===ov)ov.style.display="none";});
-    ov.querySelector("#letter-view-x").addEventListener("click",()=>{ov.style.display="none";});
+    ov.addEventListener("click",e=>{if(e.target===ov)__closeLetterView(ov);});
+    ov.querySelector("#letter-view-x").addEventListener("click",()=>__closeLetterView(ov));
   }
   const av=ov.querySelector("#letter-view-av"),nm=ov.querySelector("#letter-view-nm"),tm=ov.querySelector("#letter-view-tm"),sub=ov.querySelector("#letter-view-sub"),bd=ov.querySelector("#letter-view-body");
   /* 弹层也跟随这封信的信纸：设置过就用他的纸，没设置跟随主题 */
@@ -18255,6 +18381,11 @@ function applyLetterPageBackdrop(){
   el.style.backgroundSize="cover";
   el.style.backgroundPosition="center";
 }
+function __closeEnvelope(ov){
+  try{if(ov)ov.classList.remove("show","open","showcard");}catch(_){}
+  /* 信封是从信箱点开的：收起信封直接回桌面，不要再让用户先回信箱再点一次返回 */
+  try{if(window.__curView==="view-letters")showView("view-me");}catch(_){}
+}
 function openEnvelope(id){
   var l=(state.letters||[]).filter(function(x){return x.id===id;})[0];if(!l)return;
   /* 谁写的信，就用谁设置的信封/信纸：点我的信用我的，点他的信用他的 */
@@ -18348,16 +18479,16 @@ function openEnvBgSheet(){
           if(ctx2&&ctx2.root){try{openWriteModal(ctx2.root.id);}catch(e){}}
           return;
         }
-        if(btn&&btn.id==="env-card-close"){ov.classList.remove("show","open","showcard");return;}
+        if(btn&&btn.id==="env-card-close"){__closeEnvelope(ov);return;}
         if(te&&te.closest&&te.closest(".ev-page-head"))return; /* 顶栏空白不关 */
         /* 只点信封外的遮罩才收回；点信纸正文/回信内容不能把历史信直接关掉 */
         if(te===ov){
-          ov.classList.remove("show","open","showcard");
+          __closeEnvelope(ov);
         }
         return;
       }
       if(!ctx||!ctx.revealed){revealEnvelope();return;}
-      if(e.target===ov){ov.classList.remove("show","open","showcard");}
+      if(e.target===ov){__closeEnvelope(ov);}
     });
   }
   var cardEl=document.getElementById("env-card");
@@ -23782,9 +23913,9 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
   };
   function closeDiary(){
     __diaryBlurInput();try{closeReplySheet();}catch(_){}
-    /* 先把聊天页铺在日记遮罩下面，再撤遮罩：否则撤掉全屏层的瞬间会露出空白/白闪。
-       用户明确要求日记关掉后回聊天，不跟着上一个页面（主页/设置）走。 */
-    try{showView("view-chat");}catch(_){}
+    /* 先把页面铺在日记遮罩下面，再撤遮罩，避免空白闪一下；
+       日记的返回现在统一回桌面，不再写死回聊天页。 */
+    try{showView("view-me");}catch(_){}
     el("diary-view").classList.remove("show");el("diary-view").classList.remove("writing");
     if(writingTimer){clearTimeout(writingTimer);writingTimer=null;}
     try{window.__uiScaleSync&&window.__uiScaleSync();}catch(_){}
