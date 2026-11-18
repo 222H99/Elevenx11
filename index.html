@@ -1963,7 +1963,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-14bp109">
+<meta name="app-build" content="2026-11-18v27">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -6927,6 +6927,7 @@ try{window.__scheduleCp2Render&&window.__scheduleCp2Render();}catch(e){}
       try{__repairEmojiMessages();}catch(_eEmMsg){}
       try{__repairProfileMedia();}catch(_ePm){}
       try{__recoverMediaFromBackups();}catch(_eRecover){}
+      try{setTimeout(function(){try{__recoverSocialFromBackups();}catch(_){}},80);}catch(_){}
       /* 刷新/重开后恢复本机网易云 Cookie 登录；否则账号面板会一直显示“未登录”，VIP 也退回匿名试听 */
       try{window.__nyRestoreLocal&&window.__nyRestoreLocal();}catch(_eNy){}
       try{if(window.__autoRecovered){toast("没找到上次的存档，已从自动备份恢复 "+window.__autoRecovered.msgs+" 条消息");window.__autoRecovered=0;}}catch(_eT){}
@@ -7685,6 +7686,62 @@ function __recoverMediaFromBackups(){
   }catch(_){return Promise.resolve(false);}
 }
 window.__recoverMediaFromBackups=__recoverMediaFromBackups;
+/* 动态 / 信箱 / 留言被清空时（云端旧档、配额写入、版本切换都可能造成），
+   从三份自动备份里把内容按 id 接回来；只补空列表，不覆盖现有内容。 */
+function __recoverSocialFromBackups(){
+  try{
+    if(window.__socialBkRecovering||typeof __bkMeta!=="function"||typeof dbGet!=="function")return Promise.resolve(false);
+    var needL=!Array.isArray(state.letters)||state.letters.length===0;
+    var needM=!Array.isArray(state.moments)||state.moments.length===0;
+    var needG=!Array.isArray(state.guestbook)||state.guestbook.length===0;
+    if(!needL&&!needM&&!needG)return Promise.resolve(false);
+    var mark="e11.socialBkRestored";
+    try{if(localStorage.getItem(mark)==="1")return Promise.resolve(false);}catch(_){}
+    window.__socialBkRecovering=1;
+    return __bkMeta().then(function(meta){
+      var i=0,changed=false;
+      function clean(arr){
+        return (arr||[]).filter(function(x){
+          if(!x)return false;
+          var t=String(x.text||""),s=String(x.subject||""),b=String(x.body||"");
+          try{if(typeof DEMO_MOMENT!=="undefined"&&DEMO_MOMENT.indexOf(t)>=0)return false;}catch(_){}
+          try{if(typeof DEMO_LETTER!=="undefined"&&DEMO_LETTER.subject&&DEMO_LETTER.subject.indexOf(s)>=0&&DEMO_LETTER.body&&DEMO_LETTER.body.indexOf(b)>=0)return false;}catch(_){}
+          return true;
+        });
+      }
+      function step(){
+        if(i>=meta.length){window.__socialBkRecovering=0;return changed;}
+        var m=meta[i++];
+        return dbGet("bk_slot_"+m.slot).then(function(bv){
+          var bs=(bv&&bv.state)||null;if(!bs)return step();
+          if(needL&&Array.isArray(bs.letters)&&bs.letters.length){
+            var L=clean(bs.letters);if(L.length){state.letters=L.slice();needL=false;changed=true;}
+          }
+          if(needM&&Array.isArray(bs.moments)&&bs.moments.length){
+            var M=clean(bs.moments);if(M.length){state.moments=M.slice();needM=false;changed=true;}
+          }
+          if(needG&&Array.isArray(bs.guestbook)&&bs.guestbook.length){
+            var G=clean(bs.guestbook);if(G.length){state.guestbook=G.slice();needG=false;changed=true;}
+          }
+          return (changed&&!needL&&!needM&&!needG)?true:step();
+        }).catch(function(){return step();});
+      }
+      return step();
+    }).then(function(changed){
+      window.__socialBkRecovering=0;
+      if(changed){
+        try{localStorage.setItem(mark,"1");}catch(_){}
+        try{renderMoments();}catch(_){}
+        try{renderLetters(true);}catch(_){}
+        try{renderGuestbook(true);}catch(_){}
+        try{updateNewBadge();}catch(_){}
+        try{save();__flushSave(true);}catch(_){}
+      }
+      return changed;
+    }).catch(function(){window.__socialBkRecovering=0;return false;});
+  }catch(_){window.__socialBkRecovering=0;return Promise.resolve(false);}
+}
+window.__recoverSocialFromBackups=__recoverSocialFromBackups;
 function __repairProfileMedia(){
   try{
     var p=state.profile||{};
@@ -11045,6 +11102,8 @@ function __dedupeEmojiArray(arr){
 }
 function __mergeEmojiList(target,source){
   var changed=false;if(!Array.isArray(target)||!Array.isArray(source))return changed;
+  try{if(__emojiNormalizeList(target))changed=true;}catch(_){}
+  try{__emojiNormalizeList(source);}catch(_){}
   var good=function(v){return __emojiSrcOk(v)&&window.__emojiValidCache[v]!==0;};
   source.forEach(function(srcItem){
     if(!srcItem)return;
@@ -11409,7 +11468,23 @@ function __epHidePreview(){var d=__epPvEl();d.style.display="none";__epPvCell=nu
       if(!_rs||(_re&&_re.__missing)||String(_rs).slice(0,8)===__BIG_REF){_needRepair=true;break;}
     }
   }catch(_){}
-  if(_needRepair){try{__repairEmojiState();}catch(_eRep){}}
+  if(_needRepair){
+    try{__repairEmojiState();}catch(_eRep){}
+    try{
+      var _nowB=Date.now();
+      if(!window.__emojiBkCheckAt||_nowB-window.__emojiBkCheckAt>30000){
+        window.__emojiBkCheckAt=_nowB;
+        if(typeof __recoverMediaFromBackups==="function"){
+          __recoverMediaFromBackups().then(function(ch){
+            if(!ch)return;
+            try{__repairEmojiState();}catch(_){}
+            var g2=document.getElementById("emoji-grid");if(g2)g2.dataset.epSig="";
+            try{renderEmojis();}catch(_){}
+          }).catch(function(){});
+        }
+      }
+    }catch(_){}
+  }
   const list=curEmojis();
   const g=$("emoji-grid");
   const isP=emojiSide==="partner";
@@ -22638,6 +22713,14 @@ try{
     document.addEventListener("visibilitychange",function(){if(!document.hidden)__swAsk();});
     window.addEventListener("pageshow",__swAsk);
     /* 后台发现新版本：记下来，等切到后台时静默重载成新版（下次点开就是最新） */
+    /* 新 sw 接管后立刻换到新页面一次；只换一次，避免反复刷 */
+    navigator.serviceWorker.addEventListener("controllerchange",function(){
+      try{
+        if(sessionStorage.getItem("e11.swReloaded")==="1")return;
+        sessionStorage.setItem("e11.swReloaded","1");
+        location.reload();
+      }catch(e){}
+    });
     navigator.serviceWorker.addEventListener("message",function(ev){
       try{
         var d=ev&&ev.data;if(!d||d.type!=="build"||!d.ver)return;
