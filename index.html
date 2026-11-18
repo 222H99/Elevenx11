@@ -1963,7 +1963,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-18v27">
+<meta name="app-build" content="2026-11-18v28">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4997,6 +4997,14 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
     /* 云端快照可能只存了文字/旧版本，图在别的槽里；先用本机同账号的好图把空图补回来，
        避免“登录/恢复云存档后表情包和头像全变成失效图”。只补坏图，不覆盖用户删掉的内容。 */
     try{if(localState&&window.__mergeMediaSnapshots)window.__mergeMediaSnapshots(st,localState);}catch(_){}
+    /* 云端旧快照可能根本没有动态/信件/留言字段：本机还有内容时不要被空数组整体覆盖。 */
+    try{
+      if(localState){
+        ['moments','letters','guestbook'].forEach(function(k){
+          if((!Array.isArray(st[k])||!st[k].length)&&Array.isArray(localState[k])&&localState[k].length)st[k]=localState[k].slice();
+        });
+      }
+    }catch(_){}
     var extras=snap.extras&&typeof snap.extras==="object"?snap.extras:{};
     Object.keys(extras).forEach(function(k){
       if(k.indexOf("e11.")===0||k==="privateChat")return;
@@ -10954,7 +10962,14 @@ function __emojiDecodeCheck(src,cb){
    im.onload=function(){fin(!!(im.naturalWidth&&im.naturalHeight));};
    im.onerror=function(){fin(false);};
    im.src=src;
-   setTimeout(function(){if(window.__emojiDecodePending[src])fin(false);},2500);
+   /* 大动图在手机上解码经常超过 2.5 秒。超时不能判成“坏图”，
+      否则 33 张会被整排标成失效；超时只结束等待，不写 0。 */
+   setTimeout(function(){
+     if(!window.__emojiDecodePending[src])return;
+     var arr=window.__emojiDecodePending[src];
+     delete window.__emojiDecodePending[src];
+     try{arr&&arr.forEach(function(f){try{f&&f(true);}catch(_){}});}catch(_){}
+   },9000);
   }catch(_){cb&&cb(false);}
 }
 /* 批量确认当前状态里的表情是否真的能解码；坏的交给 __repairEmojiState 从备份补。 */
