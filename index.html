@@ -343,6 +343,26 @@ body.fs-1 .set-input,body.fs-2 .set-input,body.fs-3 .set-input,body.fs-4 .set-in
 @media (max-width:480px){
   .set-page.cv-off{content-visibility:hidden;}
 }
+/* 小屏/显示缩放适配：第二页原来用 320px 死宽，320~360 宽的手机上会横向溢出。
+   这里只在小屏改成流式宽度，大屏保持原布局和原来的缩放。 */
+@media (max-width:380px){
+  html,body{max-width:100%;overflow-x:hidden;}
+  #cp2-block-av{left:12px!important;width:calc(100% - 24px)!important;max-width:320px!important;}
+  #cp2-record{left:16px!important;width:calc(42% - 6px)!important;max-width:150px!important;height:auto!important;aspect-ratio:1/1;}
+  #cp2-count-card{left:calc(42% + 20px)!important;width:calc(42% - 6px)!important;max-width:150px!important;height:auto!important;aspect-ratio:1/1;}
+  #cp2-block-chat,#cp2-block-photo{left:2px!important;width:calc(100% - 4px)!important;}
+  .v-body{padding-left:12px;padding-right:12px;}
+  .set-page{padding-left:12px;padding-right:12px;}
+  .me-page-inner{padding-left:8px;padding-right:8px;}
+  .topbar{padding-left:8px;padding-right:8px;}
+  .me-side{gap:8px 4px;}
+  .me-app-lb{font-size:9px;}
+}
+@media (max-height:700px){
+  .me-w-top{height:clamp(112px,30vw,140px);}
+  .me-w-bot{padding-bottom:18px;}
+  .me-widget{margin-top:10px;}
+}
 /* 按下立刻给反馈，不用等事件跑完 */
 button:active,.top-btn:active,.bb-btn:active,.send-btn:active,.small-btn:active,.set-row:active,.set-tab:active,.me-app:active{
   transition:none !important;opacity:.82;transform:scale(.985);
@@ -2100,7 +2120,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-19v43-6d">
+<meta name="app-build" content="2026-11-19v43-6e">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3732,7 +3752,7 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
       <div class="set-group"><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
-<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-19v43-6d</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-19v43-6e</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5630,7 +5650,7 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-19",
-  noticeKey:"2026-11-19v43-6d",
+  noticeKey:"2026-11-19v43-6e",
   lead:"v43 全量修复：主站/预览补全 PWA 安装包，修复 Chrome 添加到主屏幕崩溃和进站黑白屏；登录恢复时先显示进入状态，网络超时自动用本地记录；日记/字卡返回固定回聊天页；数据先写本地快照，云端旧存档不再覆盖新改动；双击气泡贴表情可在设置关掉并调概率，主页评论/回复的输入框会跟着键盘上移。",
   items:[
     '<span class="an-gt">v43 · 启动 / PWA</span>',
@@ -5645,10 +5665,10 @@ var ANNOUNCE={
     '<span class="an-gt">v43 · 贴表情 / 键盘</span>',
     "双击气泡可贴 ❤️/👍/😂 等表情；设置里新增开关和对方贴表情概率，关掉后双击不再弹面板，长按菜单不受影响",
     "主页动态的评论和回复输入框会像留言板一样跟着键盘上移，键盘弹起后不会被挡住",
-    '<span class="an-gt">v43-6d · 批量导入 / 返回防误触</span>',
-    "表情包「导入」改为「批量导入」：一次可以选择多张图片，逐张导入并显示进度，已存在的自动跳过",
-    "返回主页/字卡页后的 420ms 内忽略背景卡片点击，同时清掉主页一、主页二、字卡的长按计时器和编辑态，不再误进卡片编辑",
-    "收藏点星后立即落盘，动态/信件/留言和聊天消息都补了兜底，切页或刷新不丢",
+    '<span class="an-gt">v43-6e · 点赞防取消 / 小屏适配</span>',
+    "同一条动态/评论的点赞 500ms 内只切一次，避免卡片重绘让一次点击变成「点赞后又取消」",
+    "320~360 宽的小屏第二页改成流式宽度，头像、唱片、倒数日、照片框不再横向溢出；短屏自动收紧主页组件高度",
+    "表情包批量导入、返回主页 420ms 防误触、收藏立即落盘继续保留",
     '<span class="an-gt">v43-6b · 安卓系统通知</span>',
     "APK 接入 Android 原生通知：设置页打开「消息通知」并允许系统权限后，来消息/动态/信件/留言会弹到通知栏，点通知直达聊天页",
     '<span class="an-gt">v43-6 · 音乐封面 / APK</span>',
@@ -5657,7 +5677,7 @@ var ANNOUNCE={
     '<span class="an-gt">v43 · 主动补发</span>',
     "主动动态、留言、信件的补发基准时间会立即落盘；这次没补出内容也会保存推进后的时间，避免重进后重复计算、等很久没动静或之后一次补一堆",
     '<span class="an-gt">v43 · 版本</span>',
-    "应用版本更新为 2026-11-19v43-6d，设置页和更新检查同步显示新版本",
+    "应用版本更新为 2026-11-19v43-6e，设置页和更新检查同步显示新版本",
     '<span class="an-gt">画画</span>',
     "聊天里收到的画不再被压成长条，图片按原比例完整显示",
     "画布恢复满宽，不再缩到 320；只压缩上下间距，底部两颗按钮仍完整可见",
@@ -20560,7 +20580,13 @@ function bindMomentFeed(){
     var rp=t.closest("[data-repost]");
     if(rp){e.preventDefault();e.stopPropagation();__openRepostSheet(rp.dataset.repost);return;}
     var lb=t.closest("[data-like]");
-    if(lb){var m1=state.moments.find(function(x){return x.id===lb.dataset.like;});if(!m1)return;
+    if(lb){e.preventDefault();e.stopPropagation();
+      var m1=state.moments.find(function(x){return x.id===lb.dataset.like;});if(!m1)return;
+      /* 同一条动态 500ms 内只允许切一次：移动端点在心形上时，卡片重绘会让同一次手指
+         产生第二次 click，表现就是“刚点赞又立刻取消”。 */
+      var _now=Date.now();window.__likeAt=window.__likeAt||{};
+      if(_now-(window.__likeAt["m:"+m1.id]||0)<500)return;
+      window.__likeAt["m:"+m1.id]=_now;
       if(!m1.likes)m1.likes=[];var i1=m1.likes.indexOf("me");if(i1>-1)m1.likes.splice(i1,1);else m1.likes.push("me");
       save();if(!__refreshMomentCard(m1.id))renderMoments();toast(i1>-1?"已取消点赞":"已点赞");return;}
     var db=t.closest("[data-mdel]");
@@ -20605,8 +20631,12 @@ function bindMomentFeed(){
       var _ind=rx.closest(".mc-repind");if(_ind)_ind.remove();
       feed.querySelectorAll(".mc-rep-target").forEach(function(x){x.classList.remove("mc-rep-target");});return;}
     var cl=t.closest("[data-clike]");
-    if(cl){var card2=cardOf(cl);if(!card2)return;var m2=state.moments.find(function(x){return x.id===card2.dataset.id;});if(!m2)return;
+    if(cl){e.preventDefault();e.stopPropagation();
+      var card2=cardOf(cl);if(!card2)return;var m2=state.moments.find(function(x){return x.id===card2.dataset.id;});if(!m2)return;
       var target=findComment(m2,cl.dataset.clike);if(!target)return;
+      var _now2=Date.now();window.__likeAt=window.__likeAt||{};
+      if(_now2-(window.__likeAt["c:"+target.id]||0)<500)return;
+      window.__likeAt["c:"+target.id]=_now2;
       if(!target.likes)target.likes=[];var i2=target.likes.indexOf("me");if(i2>-1)target.likes.splice(i2,1);else target.likes.push("me");
       save();if(!__refreshMomentCard(card2.dataset.id))renderMoments();toast(i2>-1?"已取消点赞这条评论":"已点赞这条评论");return;}
     var sb=t.closest("[data-csend]");
