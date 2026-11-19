@@ -2120,7 +2120,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-19v43-6e">
+<meta name="app-build" content="2026-11-19v43-6f">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3752,7 +3752,7 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
       <div class="set-group"><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
-<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-19v43-6e</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-19v43-6f</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5650,7 +5650,7 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-19",
-  noticeKey:"2026-11-19v43-6e",
+  noticeKey:"2026-11-19v43-6f",
   lead:"v43 全量修复：主站/预览补全 PWA 安装包，修复 Chrome 添加到主屏幕崩溃和进站黑白屏；登录恢复时先显示进入状态，网络超时自动用本地记录；日记/字卡返回固定回聊天页；数据先写本地快照，云端旧存档不再覆盖新改动；双击气泡贴表情可在设置关掉并调概率，主页评论/回复的输入框会跟着键盘上移。",
   items:[
     '<span class="an-gt">v43 · 启动 / PWA</span>',
@@ -5665,10 +5665,10 @@ var ANNOUNCE={
     '<span class="an-gt">v43 · 贴表情 / 键盘</span>',
     "双击气泡可贴 ❤️/👍/😂 等表情；设置里新增开关和对方贴表情概率，关掉后双击不再弹面板，长按菜单不受影响",
     "主页动态的评论和回复输入框会像留言板一样跟着键盘上移，键盘弹起后不会被挡住",
-    '<span class="an-gt">v43-6e · 点赞防取消 / 小屏适配</span>',
+    '<span class="an-gt">v43-6f · 主页照片可换 / 点赞防取消</span>',
+    "修复通用选图入口的变量错误：主页二头像/照片/唱片/倒数日图片，以及留言、信件、画画背景现在都能正常打开相册",
     "同一条动态/评论的点赞 500ms 内只切一次，避免卡片重绘让一次点击变成「点赞后又取消」",
-    "320~360 宽的小屏第二页改成流式宽度，头像、唱片、倒数日、照片框不再横向溢出；短屏自动收紧主页组件高度",
-    "表情包批量导入、返回主页 420ms 防误触、收藏立即落盘继续保留",
+    "320~360 宽的小屏第二页改成流式宽度；短屏收紧主页组件高度；表情批量导入和返回主页防误触继续保留",
     '<span class="an-gt">v43-6b · 安卓系统通知</span>',
     "APK 接入 Android 原生通知：设置页打开「消息通知」并允许系统权限后，来消息/动态/信件/留言会弹到通知栏，点通知直达聊天页",
     '<span class="an-gt">v43-6 · 音乐封面 / APK</span>',
@@ -5677,7 +5677,7 @@ var ANNOUNCE={
     '<span class="an-gt">v43 · 主动补发</span>',
     "主动动态、留言、信件的补发基准时间会立即落盘；这次没补出内容也会保存推进后的时间，避免重进后重复计算、等很久没动静或之后一次补一堆",
     '<span class="an-gt">v43 · 版本</span>',
-    "应用版本更新为 2026-11-19v43-6e，设置页和更新检查同步显示新版本",
+    "应用版本更新为 2026-11-19v43-6f，设置页和更新检查同步显示新版本",
     '<span class="an-gt">画画</span>',
     "聊天里收到的画不再被压成长条，图片按原比例完整显示",
     "画布恢复满宽，不再缩到 320；只压缩上下间距，底部两颗按钮仍完整可见",
@@ -14211,7 +14211,6 @@ function __pickLocalFile(accept,onFiles,opts){
     var inp=document.createElement("input");
     inp.type="file";inp.accept=accept||"image/*";
     if(opts&&opts.multiple)inp.multiple=true;
-    if(id==="file-emoji"||id==="file-emojibatch")inp.multiple=true;
     inp.style.cssText="position:fixed;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;opacity:0;z-index:99999;display:block;border:0;padding:0;";
     inp.setAttribute("data-qa-pick","1");
     var host=document.body;
