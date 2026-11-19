@@ -2126,7 +2126,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-19v43-6l">
+<meta name="app-build" content="2026-11-20v43-6m">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3763,7 +3763,7 @@ html.kb-typing #rotate-guard,html.kb-typing body #rotate-guard{display:none!impo
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
       <div class="set-group"><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
-<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-19v43-6l</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-20v43-6m</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5660,10 +5660,15 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"2026-11-19",
-  noticeKey:"2026-11-19v43-6l",
+  date:"2026-11-20",
+  noticeKey:"2026-11-20v43-6m",
   lead:"v43 全量修复：主站/预览补全 PWA 安装包，修复 Chrome 添加到主屏幕崩溃和进站黑白屏；登录恢复时先显示进入状态，网络超时自动用本地记录；日记/字卡返回固定回聊天页；数据先写本地快照，云端旧存档不再覆盖新改动；双击气泡贴表情可在设置关掉并调概率，主页评论/回复的输入框会跟着键盘上移。",
   items:[
+    '<span class="an-gt">v43-6m · 留言配对 / 快速返回 / 保存</span>',
+    "对方主动发的留言不再被相邻位置误认成「我的回复」；只有 replyTo 或明确的旧回复标记才配对",
+    "快速返回又马上点进同一页时，不再因为残留的淡出动画把页面留成透明；设置/日记等页面仍然正常显示",
+    "IndexedDB 写入瞬时失败后，同一版改动会在下一次保存时自动重试，不再被误判成「已保存」而跳过",
+    "保存时先检查留言/信件/动态数组是否已经有序，只有真的乱序才排序，减少大量数据下每次落盘的重复开销",
     '<span class="an-gt">v43-6l · 返回 / 留言 / 字卡分组</span>',
     "日记、字卡、接力画画、一起听、设置从聊天或加号进入后，返回统一回聊天页；所有页面切换改成旧页原位淡出 0.1 秒，返回不再白闪/黑闪",
     "安卓系统返回键先走页面内返回（二级页回聊天页），不再直接退 WebView 浏览历史导致白屏或退出",
@@ -6517,10 +6522,12 @@ function __flushSave(immediate){
     try{__writeLocalSnapshot(_sig);}catch(_eLocal){}
     try{if(window.__backupPendingBig)window.__backupPendingBig(_pend);}catch(_ePend){}
     var _writeSlim=function(){
-      window.__lastSaveSlim=_sig;
       /* 先写主库：引用版必须等所有图片本体都落库成功才写，否则刷新后就是一堆悬空引用，
          表现正是「图片、顶部头像全变空白」 */
       dbSet("state",_slim).then(function(){
+        /* 只有主库确认写入成功，才把这一版记为“已保存”；
+           以前在写之前就记，dbSet 瞬时失败后同版改动会被直接跳过、不再重试。 */
+        window.__lastSaveSlim=_sig;
         try{
           __writeLocalSnapshot(_sig);
         }catch(_eLs){
@@ -6723,6 +6730,16 @@ function trimSocial(){
   /* 动态 / 信件 / 留言：双方都不设上限，一条都不丢（只按时间排序） */
   function _keepAll(arr){
     if(!Array.isArray(arr))return arr;
+    /* 绝大多数改动都是按时间追加，数组本来就有序。
+       以前每次落盘都 slice().sort()，条数一多就重复做一次全量排序；
+       先花 O(n) 检查顺序，只有真的乱序（比如回复补插到旧留言后面）才排序。 */
+    var _sorted=true,_last=-Infinity;
+    for(var i=0;i<arr.length;i++){
+      var _t=Number(arr[i]&&arr[i].time)||0;
+      if(_t<_last){_sorted=false;break;}
+      _last=_t;
+    }
+    if(_sorted)return arr;
     return arr.slice().sort(function(a,b){return (Number(a&&a.time)||0)-(Number(b&&b.time)||0);});
   }
   try{state.sched=[];state.schedReplies=[];}catch(e){}
@@ -14744,6 +14761,9 @@ function __cancelViewFade(el){
   if(!el)return;
   try{el.__fadeToken=(Number(el.__fadeToken)||0)+1;}catch(_){}
   try{if(el.__fadeTimer){clearTimeout(el.__fadeTimer);el.__fadeTimer=null;}}catch(_){}
+  /* 关键：淡出开始时排了一个 rAF 把 opacity 置 0。
+     如果用户快速返回又点进来，只清 timer 不清 rAF，下一帧仍会把刚恢复的页面做成透明。 */
+  try{if(el.__fadeRaf){cancelAnimationFrame(el.__fadeRaf);el.__fadeRaf=null;}}catch(_){}
   try{el.style.transition="";el.style.opacity="";el.style.pointerEvents="";}catch(_){}
 }
 function __fadeOutView(el,ms){
@@ -14754,7 +14774,7 @@ function __fadeOutView(el,ms){
     el.style.pointerEvents="none";
     el.style.transition="opacity "+(Math.max(60,Number(ms)||110)/1000)+"s cubic-bezier(.2,.8,.2,1)";
     el.style.opacity="1";
-    requestAnimationFrame(function(){try{el.style.opacity="0";}catch(_){}});
+    el.__fadeRaf=requestAnimationFrame(function(){try{el.__fadeRaf=null;el.style.opacity="0";}catch(_){}});
     el.__fadeTimer=setTimeout(function(){
       try{if(el.__fadeToken!==_tk)return;}catch(_){}
       try{el.classList.remove("open");}catch(_){}
@@ -14771,7 +14791,7 @@ function __fadeOutDiary(ms){
     el.style.pointerEvents="none";
     el.style.transition="opacity "+(Math.max(60,Number(ms)||110)/1000)+"s cubic-bezier(.2,.8,.2,1)";
     el.style.opacity="1";
-    requestAnimationFrame(function(){try{el.style.opacity="0";}catch(_){}});
+    el.__fadeRaf=requestAnimationFrame(function(){try{el.__fadeRaf=null;el.style.opacity="0";}catch(_){}});
     el.__fadeTimer=setTimeout(function(){
       try{if(el.__fadeToken!==_tk)return;}catch(_){}
       try{el.classList.remove("show");el.classList.remove("writing");}catch(_){}
@@ -19838,10 +19858,10 @@ function renderGuestbook(force){
       _gbUsed[n.id]=1;reps.forEach(function(r){_gbUsed[r.id]=1;});
       continue;
     }
-    /* 旧数据没有 replyTo：只在“我/对方”相邻且下一条本身不是回复时配对一次，
-       不再把一条主动留言硬当成上一条留言的回复。 */
+    /* 只剩真正标记过 toMe 的旧回复才做相邻配对。
+       以前只要“下一条是对方”就配成回复，会把对方主动发的留言吞成我的回复。 */
     const nxt=notes[i+1];
-    if(nxt&&!_gbUsed[nxt.id]&&!nxt.replyTo&&n.from!==nxt.from){
+    if(nxt&&!_gbUsed[nxt.id]&&!nxt.replyTo&&nxt.toMe===true&&n.from!==nxt.from){
       cards.push({q:n.from==="me"?n:n,ans:nxt,extra:[]});
       _gbUsed[n.id]=1;_gbUsed[nxt.id]=1;continue;
     }
@@ -19886,9 +19906,10 @@ function renderGuestbook(force){
         var _dell=_mine?'<button class="qa-adel" data-adelonly="'+x.id+'">删除我的回复</button>':'';
         return '<div class="qa-a"><div class="qa-a-label">'+_lab+'</div><div class="qa-a-text">'+esc(String(x.text==null?"":x.text))+'</div><div class="qa-a-meta">回复于 '+fmtTime(x.time)+_dell+'</div></div>';
       }).join("");
-      /* 对方留言可以继续回复；我的留言已经有回复时不再叠一个回复入口，
-         避免把“对方回复我”又变成“我回复我自己”。 */
-      if(isPartner)repId=c.q.id;
+      /* 对方留言可以继续回复；已经有回复的卡片不再挂“点击回复”入口，
+         避免增量回复时把已有回复的“删除我的回复/时间”一起重写。
+         我的留言也不叠回复入口，避免把“对方回复我”变成“我回复我自己”。 */
+      if(isPartner&&!answers.length)repId=c.q.id;
     }else{
       head='<div class="qa-head"><span class="qa-lock">💬</span> 对方留言</div>';
       q='<div class="qa-q">'+esc(c.ans.text)+'</div>';
@@ -20124,7 +20145,7 @@ function __deliverNoteReply(rid,due){
     var card=total?joinCards(pickCardsN(cnt)):"";
     if(card){
       const nid=uid();
-      const note={id:nid,from:"partner",text:card,time:Number(due)||Date.now(),unread:true};
+      const note={id:nid,from:"partner",text:card,time:Number(due)||Date.now(),unread:true,toMe:true};
       if(p&&p.replyTo)note.replyTo=p.replyTo;
       /* 回复必须插到原留言下面，不能追加到留言板末尾：
          原留言后面可能已经有别的留言，追加到末尾就会被界面当成另一条留言。 */
