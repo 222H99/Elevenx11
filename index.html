@@ -953,10 +953,16 @@ body:not(.app-ready) #view-chat{visibility:hidden !important;}
 .card-sec{margin-bottom:20px;}
 .sec-label{font-size:13px;color:#8E8E93;margin-bottom:10px;font-weight:600;}
 .group-tabs{display:flex;flex-wrap:wrap;gap:8px;padding-bottom:4px;}
-.group-tab{flex:0 0 auto;border:1px solid var(--line);background:var(--panel);color:var(--ttext);padding:7px 14px;border-radius:16px;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:6px;}
+.group-tab{flex:0 0 auto;border:1px solid var(--line);background:var(--panel);color:var(--ttext);padding:6px 6px 6px 12px;border-radius:16px;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:5px;min-height:42px;white-space:nowrap;}
+.group-tab .gt-name{display:inline-flex;align-items:center;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.group-tab .gt-acts{display:inline-flex;align-items:center;gap:4px;margin-left:2px;}
+.group-tab .gt-off,.group-tab .gt-edit,.group-tab .gt-del{width:auto;min-width:30px;height:24px;padding:0 5px;border-radius:12px;font-size:10px;display:inline-flex;align-items:center;justify-content:center;line-height:1;background:rgba(0,0,0,.12);color:inherit;border:none;flex:0 0 auto;}
+.group-tab .gt-del{min-width:24px;padding:0 4px;}
+.group-tab.off{opacity:.72;box-shadow:inset 0 0 0 1px rgba(255,59,48,.28);}
+.group-hint{font-size:11px;line-height:1.5;color:var(--sub,#8E8E93);margin:-2px 0 8px;padding:0 2px;}
 .group-tab.active{background:var(--accent);color:#fff;border-color:var(--accent);}
-.group-tab .gt-del{width:16px;height:16px;border:none;background:rgba(0,0,0,.15);color:inherit;border-radius:50%;font-size:10px;display:none;align-items:center;justify-content:center;line-height:1;cursor:pointer;}
-.group-tab:hover .gt-del{display:flex;}
+.group-tab .gt-del{cursor:pointer;}
+.group-tab:hover .gt-del{display:inline-flex;}
 .new-group-btn{border:1px dashed var(--accent);background:transparent;color:var(--accent);flex:0 0 auto;}
 .add-group-row{display:flex;gap:8px;margin-top:10px;align-items:center;}
 .text-input{
@@ -980,10 +986,10 @@ body:not(.app-ready) #view-chat{visibility:hidden !important;}
 .card-item.sel .ci-check{background:var(--accent);border-color:var(--accent);}
 .card-item.sel-mode .ci-edit,.card-item.sel-mode .ci-del{display:none;}
 .card-item.sel-mode .ci-check{display:flex;}
-.group-tab .gt-edit{width:18px;height:18px;border-radius:50%;font-size:10px;display:inline-flex;align-items:center;justify-content:center;line-height:1;margin-left:4px;background:rgba(0,0,0,.10);}
-.group-tab .gt-off{width:18px;height:18px;border-radius:50%;font-size:10px;display:inline-flex;align-items:center;justify-content:center;line-height:1;margin-left:4px;background:rgba(0,0,0,.10);}
+/* 分组操作改成文字按钮：手机上看得懂、点得到，不再靠 16px 的小图标 */
+.group-tab .gt-edit,.group-tab .gt-off{font-size:10px;line-height:1;background:rgba(0,0,0,.12);}
 .group-tab .gt-del{display:inline-flex;}
-.group-tab.off{opacity:.45;}
+.group-tab.off{opacity:.72;}
 .group-tab.all-tab{border-style:dashed;}
 .group-tab .gt-all-n{font-size:10px;line-height:1;padding:2px 5px;border-radius:8px;background:rgba(0,0,0,.08);opacity:.8;}
 .card-item.off .ci-text{opacity:.45;text-decoration:line-through;}
@@ -2120,7 +2126,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-19v43-6k">
+<meta name="app-build" content="2026-11-19v43-6l">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3522,6 +3528,7 @@ html.kb-typing #rotate-guard,html.kb-typing body #rotate-guard{display:none!impo
       <div class="card-sec">
         <div class="sec-label" id="cards-sec-title">字卡分组（对方在聊天里回复"我"时用这套）</div>
         <div class="group-tabs" id="group-tabs"></div>
+        <div class="group-hint">点「屏蔽」后整组字卡不会被抽到；点「改名」直接改分组名；「删除」会连同组内字卡一起删。</div>
         <div class="add-group-row">
           <input class="text-input" id="new-group-name" placeholder="新建分组名称" maxlength="12">
           <button class="small-btn" id="btn-add-group">新建分组</button>
@@ -3756,7 +3763,7 @@ html.kb-typing #rotate-guard,html.kb-typing body #rotate-guard{display:none!impo
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
       <div class="set-group"><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
-<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-19v43-6k</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-19v43-6l</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5654,10 +5661,16 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-19",
-  noticeKey:"2026-11-19v43-6k",
+  noticeKey:"2026-11-19v43-6l",
   lead:"v43 全量修复：主站/预览补全 PWA 安装包，修复 Chrome 添加到主屏幕崩溃和进站黑白屏；登录恢复时先显示进入状态，网络超时自动用本地记录；日记/字卡返回固定回聊天页；数据先写本地快照，云端旧存档不再覆盖新改动；双击气泡贴表情可在设置关掉并调概率，主页评论/回复的输入框会跟着键盘上移。",
   items:[
-    '<span class="an-gt">v43-6k · 画画发送 / 闪屏</span>',
+    '<span class="an-gt">v43-6l · 返回 / 留言 / 字卡分组</span>',
+    "日记、字卡、接力画画、一起听、设置从聊天或加号进入后，返回统一回聊天页；所有页面切换改成旧页原位淡出 0.1 秒，返回不再白闪/黑闪",
+    "安卓系统返回键先走页面内返回（二级页回聊天页），不再直接退 WebView 浏览历史导致白屏或退出",
+    "留言回复改为按 replyTo 精确挂在原留言下面，并区分「我的留言 / 对方留言 / 对方回复 / 我的回复」；多条回复不再错位",
+    "留言/评论的待发送回复同时写 localStorage，关网页过快也能在重开后按原定时间补发；评论回复概率只在建任务时掷一次，不再到点重复掷",
+    "字卡分组操作改成「屏蔽 / 恢复」「改名」「删除」文字按钮，热区加大；屏蔽整组会同步清掉信件/评论/回复设置里对该组的选中",
+    '<span class="an-gt">v43-6l · 画画发送</span>',
     "从画画页点「发送到聊天」后，白画纸不再一帧切成深色聊天：画画页原位淡出约 0.1 秒，聊天页一直在下面当底，亮度是渐变过去的",
     "发送时只追加这一条画作，不整屏重绘聊天列表；画作已解码并带宽高，进聊天立刻可见，不再先空一帧",
     '<span class="an-gt">v43 · 启动 / PWA</span>',
@@ -12474,7 +12487,7 @@ function renderCards(){
   // 分组标签
   const tabs=$("group-tabs");
   let html='<button class="group-tab all-tab'+(!activeGroupId?" active":"")+'" data-gid="__all">全部字卡<span class="gt-all-n">'+cardsOfKind(K).length+'</span></button>';
-  html+=groups.map(g=>'<button class="group-tab'+(g.id===activeGroupId?" active":"")+(g.disabled?" off":"")+'" data-gid="'+g.id+'">'+esc(g.name)+'<span class="gt-off" data-gdis="'+g.id+'" title="屏蔽该分组">⊘</span><span class="gt-edit" data-gedit="'+g.id+'">✎</span>'+(state.groups.length>1?'<span class="gt-del" data-gdel="'+g.id+'">×</span>':"")+'</button>').join("");
+  html+=groups.map(g=>'<button class="group-tab'+(g.id===activeGroupId?" active":"")+(g.disabled?" off":"")+'" data-gid="'+g.id+'" title="'+esc(g.name)+'"><span class="gt-name">'+esc(g.name)+'</span><span class="gt-acts"><span class="gt-off" data-gdis="'+g.id+'" title="屏蔽/恢复该分组">'+(g.disabled?"恢复":"屏蔽")+'</span><span class="gt-edit" data-gedit="'+g.id+'" title="改名">改名</span>'+(state.groups.length>1?'<span class="gt-del" data-gdel="'+g.id+'" title="删除分组">删除</span>':"")+'</span></button>').join("");
   html+='<button class="group-tab new-group-btn" id="grp-new" style="min-width:40px;">+ 分组</button>';
   tabs.innerHTML=html;
   tabs.querySelectorAll(".group-tab[data-gid]").forEach(b=>b.addEventListener("click",e=>{if(e.target.dataset.gdel){delGroup(e.target.dataset.gdel);}else if(e.target.dataset.gdis){toggleGroupDisabled(e.target.dataset.gdis);}else if(e.target.dataset.gedit){renameGroup(e.target.dataset.gedit);}else{if(b.dataset.gid==="__all"){activeGroupId=null;__setCardActiveGid(K,null);}else{activeGroupId=b.dataset.gid;__setCardActiveGid(K,b.dataset.gid);}renderCards();renderSettingsSelect();}}));
@@ -12629,7 +12642,16 @@ function miniInput(title,hint,def,cb){
 function miniInputClose(){$("mini-input-overlay").classList.remove("show");mibCb=null;}
 function toggleGroupDisabled(id){
   const g=groupById(id);if(!g)return;
-  g.disabled=!g.disabled;save();renderCards();
+  g.disabled=!g.disabled;
+  /* 屏蔽整组时，把「信件/评论用哪些组」和「回复用哪个组」里的这一组一起清掉，
+     否则界面上选中一个已经被屏蔽的组，抽卡时又抽不到，看起来像屏蔽没生效/设置错乱。 */
+  if(g.disabled){
+    try{if(state.settings.ltGroups)state.settings.ltGroups=state.settings.ltGroups.filter(function(x){return x!==id;});}catch(_){}
+    try{if(state.settings.mcGroups)state.settings.mcGroups=state.settings.mcGroups.filter(function(x){return x!==id;});}catch(_){}
+    try{if(state.settings.replyGroupId===id)state.settings.replyGroupId=null;}catch(_){}
+    try{if(activeGroupId===id)activeGroupId=null;}catch(_){}
+  }
+  save();renderCards();renderSettingsSelect();
   toast(g.disabled?"已屏蔽分组："+g.name:"已恢复分组："+g.name);
 }
 function toggleCardDisabled(id){
@@ -12950,8 +12972,10 @@ if($("batch-overlay"))$("batch-overlay").addEventListener("click",function(e){if
 
 /* ===== 设置 ===== */
 function renderSettingsSelect(){
-  const sel=$("set-reply-group");
-  let html='<option value="">所有分组</option>'+groupsOfKind("chat").map(g=>'<option value="'+g.id+'"'+(state.settings.replyGroupId===g.id?" selected":"")+'>'+esc(g.name)+'</option>').join("");
+  const sel=$("set-reply-group");if(!sel)return;
+  const gs=groupsOfKind("chat");
+  if(state.settings.replyGroupId&&!gs.some(function(g){return g.id===state.settings.replyGroupId&&!g.disabled;}))state.settings.replyGroupId=null;
+  let html='<option value="">所有分组</option>'+gs.filter(function(g){return !g.disabled;}).map(g=>'<option value="'+g.id+'"'+(state.settings.replyGroupId===g.id?" selected":"")+'>'+esc(g.name)+'</option>').join("");
   sel.innerHTML=html;
   sel.value=state.settings.replyGroupId||"";
 }
@@ -14450,7 +14474,7 @@ $("btn-clear-msgs").addEventListener("click",()=>{
 $("btn-reset-all").addEventListener("click",()=>{
   if(!confirm("一键重置：将清空全部聊天、动态、留言、信件、字卡、表情、问卷等所有数据，并恢复默认设置。此操作不可撤销。确认重置？"))return;
   try{
-    ["privateChat","uiPrefs.v1","lockFree","__aboutAck","__announceAck","draft.v1","callSave","cp2EmojiLib","cp2Opt.v1","cp2PhotoSize","cp2PhotoUserSize","pendingLetterReplies","ltRead.v1","me1Sizes","me1OrigIcons","__noticeSync","ltReadAt","__pw1026m","__pwForce","__pwFixed"]
+    ["privateChat","uiPrefs.v1","lockFree","__aboutAck","__announceAck","draft.v1","callSave","cp2EmojiLib","cp2Opt.v1","cp2PhotoSize","cp2PhotoUserSize","pendingLetterReplies","pendingNoteReplies","pendingCommentReplies","ltRead.v1","me1Sizes","me1OrigIcons","__noticeSync","ltReadAt","__pw1026m","__pwForce","__pwFixed"]
       .forEach(function(k){try{localStorage.removeItem(k);}catch(_e){}});
     /* 歌单歌词缓存 / 搜索缓存这类按前缀存的键，一并清掉 */
     try{
@@ -14714,7 +14738,50 @@ function __chatEntryGuard(){
   }catch(e){return false;}
 }
 window.__chatEntryGuard=__chatEntryGuard;
+/* 页面切换用「旧页原位淡出」收尾：聊天页/目标页已经在下面画好，
+   旧页直接撤掉时白底→深色或列表重排会闪一下；保留 110ms 淡出，亮度渐变过去。 */
+function __cancelViewFade(el){
+  if(!el)return;
+  try{el.__fadeToken=(Number(el.__fadeToken)||0)+1;}catch(_){}
+  try{if(el.__fadeTimer){clearTimeout(el.__fadeTimer);el.__fadeTimer=null;}}catch(_){}
+  try{el.style.transition="";el.style.opacity="";el.style.pointerEvents="";}catch(_){}
+}
+function __fadeOutView(el,ms){
+  if(!el)return;
+  try{__cancelViewFade(el);}catch(_){}
+  try{
+    var _tk=(Number(el.__fadeToken)||0)+1;el.__fadeToken=_tk;
+    el.style.pointerEvents="none";
+    el.style.transition="opacity "+(Math.max(60,Number(ms)||110)/1000)+"s cubic-bezier(.2,.8,.2,1)";
+    el.style.opacity="1";
+    requestAnimationFrame(function(){try{el.style.opacity="0";}catch(_){}});
+    el.__fadeTimer=setTimeout(function(){
+      try{if(el.__fadeToken!==_tk)return;}catch(_){}
+      try{el.classList.remove("open");}catch(_){}
+      try{el.style.transition="";el.style.opacity="";el.style.pointerEvents="";}catch(_){}
+      try{el.__fadeTimer=null;}catch(_){}
+    },Math.max(80,Number(ms)||110)+30);
+  }catch(_){try{el.classList.remove("open");}catch(__){}}
+}
+function __fadeOutDiary(ms){
+  var el=document.getElementById("diary-view");if(!el)return;
+  try{if(!el.classList.contains("show")){el.classList.remove("writing");return;}}catch(_){}
+  try{
+    var _tk=(Number(el.__fadeToken)||0)+1;el.__fadeToken=_tk;
+    el.style.pointerEvents="none";
+    el.style.transition="opacity "+(Math.max(60,Number(ms)||110)/1000)+"s cubic-bezier(.2,.8,.2,1)";
+    el.style.opacity="1";
+    requestAnimationFrame(function(){try{el.style.opacity="0";}catch(_){}});
+    el.__fadeTimer=setTimeout(function(){
+      try{if(el.__fadeToken!==_tk)return;}catch(_){}
+      try{el.classList.remove("show");el.classList.remove("writing");}catch(_){}
+      try{el.style.transition="";el.style.opacity="";el.style.pointerEvents="";}catch(_){}
+      try{el.__fadeTimer=null;}catch(_){}
+    },Math.max(80,Number(ms)||110)+30);
+  }catch(_){try{el.classList.remove("show");el.classList.remove("writing");}catch(__){}}
+}
 function showView(id){
+  try{var _vt=document.getElementById(id);if(_vt)__cancelViewFade(_vt);}catch(_){}
   /* 切页/返回桌面时，先撤掉所有“长按进入编辑”的计时器和编辑态：
      否则手指在返回手势里按住超过 480ms，回到桌面就会误进卡片编辑。 */
   try{
@@ -14802,43 +14869,15 @@ function showView(id){
   /* 只切换「上一个 / 当前」两个视图的 open 类，避免每次都让 11 个整屏视图重算样式与布局 */
   try{
     var _was=window.__curView;
-    if(_was&&_was!==id&&$(_was)){
-      var _prevView=$(_was);
-      if(id==="view-chat"&&_was!=="view-chat"){
-        /* 聊天页本来就常驻、在旧页盖着时已经画好底图；再等一帧才撤旧页，
-           旧页会多露一帧（就是点进聊天时看到的那一下“闪”）。
-           这里先记下旧页，等 chat 的 open 加上后同一帧撤掉，中间不留空档。
-           从画画页回来时例外：画纸是白的，聊天多数是深色，直接一帧切过去
-           就是从一大片白突然变成全黑，肉眼就是“闪”。这里让画画页在原位
-           淡出 140ms，聊天页一直在下面当底，亮度是渐变过去的。 */
-        if(_was==="view-game")window.__chatFadeView=_prevView;
-        else window.__chatPrevView=_prevView;
-      }else{_prevView.classList.remove("open");}
-    }
+    var _fadeFrom=null;
+    if(_was&&_was!==id&&$(_was))_fadeFrom=$(_was);
     if(!window.__viewInit){window.__viewInit=1;["view-chat","view-me","view-cards","view-settings","view-letters","view-guestbook","view-moments","view-redpacket","view-game","view-music","view-couple"].forEach(function(v){if(v!==id&&$(v))$(v).classList.remove("open");});}
     $(id).classList.add("open");window.__curView=id;
+    /* 所有页面切换统一用旧页淡出：旧页不立刻撤，先在原位淡掉，
+       目标页在下面已经画好；返回聊天、返回主页都不会再有一帧空白/亮暗突变。 */
+    if(_fadeFrom){try{__fadeOutView(_fadeFrom,110);}catch(_){}}
     try{document.body.classList.add("app-ready");}catch(_){}
     try{if(document.getElementById("boot-veil"))window.__bootDone&&window.__bootDone();}catch(_){}
-    /* 聊天页已挂载并预画：新页 open 加完立即撤旧页，同一帧切换，不等 rAF */
-    if(id==="view-chat"&&window.__chatPrevView){
-      try{window.__chatPrevView.classList.remove("open");}catch(_){}
-      window.__chatPrevView=null;
-    }
-    /* 画画页 → 聊天页：保留画画页做底，淡出后再移除；避免白画纸一帧切成深色聊天 */
-    if(id==="view-chat"&&window.__chatFadeView){
-      try{
-        var _gf=window.__chatFadeView;
-        window.__chatFadeView=null;
-        _gf.style.pointerEvents="none";
-        _gf.style.transition="opacity .095s cubic-bezier(.2,.8,.2,1)";
-        _gf.style.opacity="1";
-        requestAnimationFrame(function(){try{_gf.style.opacity="0";}catch(_){}});
-        setTimeout(function(){
-          try{_gf.classList.remove("open");}catch(_){}
-          try{_gf.style.opacity="";_gf.style.transition="";_gf.style.pointerEvents="";}catch(_){}
-        },120);
-      }catch(_){}
-    }
     try{document.body.classList.toggle("away-chat",id!=="view-chat");}catch(e){}
     if(id==="view-chat"){
       /* 进聊天不是进输入：先把上一个页面残留的焦点收掉，否则 iOS 会按“还在打字”
@@ -15024,6 +15063,23 @@ function closePlus(){$("plus-overlay").classList.remove("show");window.__plusRet
    主页入口进来的页面没有这个标记，仍按各自原来的返回目标走。 */
 function __plusMark(){window.__plusReturnTo="view-chat";}
 function __plusReturnView(fallback){var v=window.__plusReturnTo||fallback||"view-chat";window.__plusReturnTo="";return v;}
+/* 安卓系统返回键：APK 通过 evaluateJavascript 调用它。
+   页面里的二级页（加号应用/设置/信件/留言/动态等）一律先回聊天页，
+   不要走 WebView 的浏览历史；否则会退到上一个 URL、白屏或直接退出。 */
+window.__androidBack=function(){
+  try{
+    var dv=document.getElementById("diary-view");
+    if(dv&&dv.classList.contains("show")){try{if(window.__closeDiary)window.__closeDiary();else{dv.classList.remove("show");dv.classList.remove("writing");}}catch(_){}return true;}
+    var po=document.getElementById("plus-overlay");
+    if(po&&po.classList.contains("show")){if(typeof closePlus==="function")closePlus();return true;}
+    var cur=window.__curView||"";
+    if(cur&&cur!=="view-chat"&&cur!=="view-me"){
+      if(typeof showView==="function")showView("view-chat");
+      return true;
+    }
+    return false;
+  }catch(e){return false;}
+};
 /* 加号面板：下滑取消 */
 (function(){
   const sheet=$("plus-sheet");
@@ -19548,8 +19604,8 @@ function renderLetterCardUI(){
   if(wrap)wrap.style.display=(src==="chat"||src==="mix")?"":"none";
   var box=document.getElementById("lt-groups");if(!box)return;
   var sel=state.settings.ltGroups||[];
-  var gs=groupsOfKind("chat");
-  if(!gs.length){box.innerHTML='<span class="set-sub">还没有聊天分组</span>';return;}
+  var gs=groupsOfKind("chat").filter(function(g){return !g.disabled;});
+  if(!gs.length){box.innerHTML='<span class="set-sub">没有可用的聊天分组；已被屏蔽的分组请到字卡页恢复</span>';return;}
   box.innerHTML=gs.map(function(g){
     var on=sel.indexOf(g.id)>=0;
     return '<button class="small-btn '+(on?"":"ghost")+'" data-ltg="'+g.id+'" style="font-size:12px;padding:6px 12px;border-radius:12px;">'+esc(g.name)+'</button>';
@@ -19620,8 +19676,8 @@ function renderMomentCommentUI(){
   if(wrap)wrap.style.display=(src==="chat"||src==="mix")?"":"none";
   var box=document.getElementById("mc-groups");if(!box)return;
   var sel=state.settings.mcGroups||[];
-  var gs=groupsOfKind("chat");
-  if(!gs.length){box.innerHTML='<span class="set-sub">还没有聊天分组</span>';return;}
+  var gs=groupsOfKind("chat").filter(function(g){return !g.disabled;});
+  if(!gs.length){box.innerHTML='<span class="set-sub">没有可用的聊天分组；已被屏蔽的分组请到字卡页恢复</span>';return;}
   box.innerHTML=gs.map(function(g){
     var on=sel.indexOf(g.id)>=0;
     return '<button class="small-btn '+(on?"":"ghost")+'" data-mcg="'+g.id+'" style="font-size:12px;padding:6px 12px;border-radius:12px;">'+esc(g.name)+'</button>';
@@ -19765,41 +19821,74 @@ function renderGuestbook(force){
   try{
   const list=$("note-list");
   const notes=state.guestbook;
-  // 配对：相邻两角色互为问答——我的留言+对方回复 / 对方留言+我的回复；无配对=单卡
-  const cards=[];
+  /* 配对优先看 replyTo，而不是看“谁挨着谁”：
+     自动留言、主动评论和真正的回复是三类东西；只按相邻位置猜，会把回复挂到
+     别的留言下面。新数据用 replyTo 精确挂到原留言，旧数据才退回相邻配对。 */
+  const cards=[], _gbById={}, _gbReplies={}, _gbUsed={};
+  for(let i=0;i<notes.length;i++){const n=notes[i];if(n&&n.id)_gbById[n.id]=n;}
   for(let i=0;i<notes.length;i++){
-    const n=notes[i];
-    const nxt=notes[i+1];
-    if(n.from==="me"){
-      if(nxt&&nxt.from==="partner"){cards.push({q:n,ans:nxt});i++;}
-      else cards.push({q:n,ans:null});
-    }else{
-      if(nxt&&nxt.from==="me"){cards.push({q:n,ans:nxt});i++;}
-      else cards.push({q:null,ans:n});
+    const n=notes[i];if(!n||!n.replyTo||n.replyTo===n.id)continue;
+    if(_gbById[n.replyTo]){(_gbReplies[n.replyTo]=_gbReplies[n.replyTo]||[]).push(n);}
+  }
+  for(let i=0;i<notes.length;i++){
+    const n=notes[i];if(!n||_gbUsed[n.id])continue;
+    const reps=(_gbReplies[n.id]||[]).filter(function(r){return !_gbUsed[r.id];});
+    if(reps.length){
+      cards.push({q:n,ans:reps[0],extra:reps.slice(1)});
+      _gbUsed[n.id]=1;reps.forEach(function(r){_gbUsed[r.id]=1;});
+      continue;
     }
+    /* 旧数据没有 replyTo：只在“我/对方”相邻且下一条本身不是回复时配对一次，
+       不再把一条主动留言硬当成上一条留言的回复。 */
+    const nxt=notes[i+1];
+    if(nxt&&!_gbUsed[nxt.id]&&!nxt.replyTo&&n.from!==nxt.from){
+      cards.push({q:n.from==="me"?n:n,ans:nxt,extra:[]});
+      _gbUsed[n.id]=1;_gbUsed[nxt.id]=1;continue;
+    }
+    if(n.from==="me")cards.push({q:n,ans:null,extra:[]});
+    else cards.push({q:null,ans:n,extra:[]});
+    _gbUsed[n.id]=1;
   }
   /* 「对方公开回答过的（N）」要跟下面真正列出来的条数对得上：
      原来只数「我提问-对方回答」的配对，数据里对方自己发的留言一条都不算，
      就会出现「显示 2、下面却一大片」或反过来「显示 4、下面 124 条」的错位。
      改成：只要这张卡里有对方的内容就算一条。 */
-  const answered=cards.filter(c=>(c.q&&c.q.from==="partner")||(c.ans&&c.ans.from==="partner")).length;
+  const answered=cards.filter(c=>(c.q&&c.q.from==="partner")||(c.ans&&c.ans.from==="partner")||((c.extra||[]).some(function(x){return x&&x.from==="partner";}))).length;
   const cnt=$("gb-ans-count");if(cnt)cnt.textContent=answered;
   const allCards=cards.slice().reverse();
   const GB_CHUNK=20;
   function gbCardHTML(c){
    try{
-    const del='<button class="qa-del" data-qdel="'+(c.q?c.q.id:"")+'" data-adel="'+(c.ans?c.ans.id:"")+'">×</button>';
+    const answers=[];
+    if(c.ans)answers.push(c.ans);
+    (c.extra||[]).forEach(function(x){if(x)answers.push(x);});
+    const ids=[];
+    if(c.q&&c.q.id)ids.push(c.q.id);
+    answers.forEach(function(x){if(x&&x.id)ids.push(x.id);});
+    const del='<button class="qa-del" data-qdel="'+ids.join(",")+'">×</button>';
     let nid=null;
-    if(c.q&&c.q.from==="partner")nid=c.q.id;
-    else if(c.q&&c.ans&&c.ans.from==="partner")nid=c.ans.id;
-    else if(!c.q&&c.ans)nid=c.ans.id;
+    if(c.q&&c.q.from==="partner"&&gbUnread.includes(c.q.id))nid=c.q.id;
+    else{
+      for(var _ai=0;_ai<answers.length;_ai++){
+        if(answers[_ai]&&answers[_ai].from==="partner"&&gbUnread.includes(answers[_ai].id)){nid=answers[_ai].id;break;}
+      }
+    }
     const isNew=nid&&gbUnread.includes(nid);
     let head,q,a,repId=null;
     if(c.q){
       const isPartner=c.q.from==="partner";
-      head='<div class="qa-head"><span class="qa-lock">'+(isPartner?'💬':'🔒')+'</span> '+(isPartner?'对方留言':'匿名问答')+'</div>';
+      head='<div class="qa-head"><span class="qa-lock">'+(isPartner?'💬':'🔒')+'</span> '+(isPartner?'对方留言':'我的留言')+'</div>';
       q='<div class="qa-q">'+esc(c.q.text)+'</div>';
-      a=c.ans?'<div class="qa-a"><div class="qa-a-label">'+(isPartner?'我的回复':'公开回复')+'</div><div class="qa-a-text">'+esc(c.ans.text)+'</div><div class="qa-a-meta">回答于 '+fmtTime(c.ans.time)+(c.ans.from==="me"?'<button class="qa-adel" data-adelonly="'+c.ans.id+'">删除我的回复</button>':'')+'</div></div>':'';
+      a=answers.map(function(x){
+        if(!x)return "";
+        var _mine=x.from==="me";
+        var _lab=_mine?"我的回复":"对方回复";
+        var _dell=_mine?'<button class="qa-adel" data-adelonly="'+x.id+'">删除我的回复</button>':'';
+        return '<div class="qa-a"><div class="qa-a-label">'+_lab+'</div><div class="qa-a-text">'+esc(String(x.text==null?"":x.text))+'</div><div class="qa-a-meta">回复于 '+fmtTime(x.time)+_dell+'</div></div>';
+      }).join("");
+      /* 对方留言可以继续回复；我的留言已经有回复时不再叠一个回复入口，
+         避免把“对方回复我”又变成“我回复我自己”。 */
+      if(isPartner)repId=c.q.id;
     }else{
       head='<div class="qa-head"><span class="qa-lock">💬</span> 对方留言</div>';
       q='<div class="qa-q">'+esc(c.ans.text)+'</div>';
@@ -19814,7 +19903,7 @@ function renderGuestbook(force){
      try{
        var _t=c&&(c.q||c.ans)||{};
        return '<div class="qa-card">'
-         +'<div class="qa-head"><span class="qa-lock">💬</span> '+(c&&c.q&&c.q.from==="partner"?"对方留言":(c&&c.q?"匿名问答":"对方留言"))+'</div>'
+         +'<div class="qa-head"><span class="qa-lock">💬</span> '+(c&&c.q&&c.q.from==="partner"?"对方留言":(c&&c.q?"我的留言":"对方留言"))+'</div>'
          +'<div class="qa-q">'+esc(String(_t.text==null?"":_t.text))+'</div>'
          +'</div>';
      }catch(_e){return "";}
@@ -19825,8 +19914,19 @@ function renderGuestbook(force){
       if(b.__gbQ)return;b.__gbQ=1;
       b.addEventListener("click",e=>{
         e.stopPropagation();
-        const ids=[b.dataset.qdel,b.dataset.adel].filter(Boolean);
+        let ids=String(b.dataset.qdel||"").split(",").filter(Boolean);
         if(!ids.length){return;}
+        /* 删整张卡时，把挂在它下面的所有回复（replyTo 指向卡内任一 id）一起删，
+           否则删完后回复会失去父节点，重绘时变成一条独立的“对方留言/我的留言”。 */
+        try{
+          let _more=true;
+          while(_more){
+            _more=false;
+            (state.guestbook||[]).forEach(function(x){
+              if(x&&x.id&&ids.indexOf(x.id)<0&&x.replyTo&&ids.indexOf(x.replyTo)>=0){ids.push(x.id);_more=true;}
+            });
+          }
+        }catch(_){}
         if(!confirm("删除这条留言？"))return;
         state.guestbook=state.guestbook.filter(x=>!ids.includes(x.id));
         try{if(window.__pruneSocialNotices&&window.__pruneSocialNotices()){window.__chatDirty=1;}}catch(e){}
@@ -19958,7 +20058,7 @@ function replyToPartner(pid,text){
   const pageBody=document.querySelector("#view-guestbook .v-body");
   const oldCard=__gbCardById(list,pid);
   const idx=state.guestbook.findIndex(x=>x.id===pid);
-  const nb={id:uid(),from:"me",text:text,time:Date.now()};
+  const nb={id:uid(),from:"me",text:text,time:Date.now(),replyTo:pid};
   if(idx>=0)state.guestbook.splice(idx+1,0,nb);else state.guestbook.push(nb);
   save();
   var done=false;
@@ -20011,8 +20111,10 @@ function __deliverNoteReply(rid,due){
     var list=state.pendingNoteReplies||[],idx=-1;
     for(var i=0;i<list.length;i++){if(list[i]&&list[i].id===rid){idx=i;break;}}
     if(idx<0)return;
+    var p=list[idx];
     list.splice(idx,1);
     state.pendingNoteReplies=list;
+    try{localStorage.setItem("pendingNoteReplies",JSON.stringify(list||[]));}catch(e){}
   }catch(e){return;}
   try{
     const total=state.cards.filter(c=>c.text&&String(c.text).trim()).length;
@@ -20022,16 +20124,48 @@ function __deliverNoteReply(rid,due){
     var card=total?joinCards(pickCardsN(cnt)):"";
     if(card){
       const nid=uid();
-      state.guestbook.push({id:nid,from:"partner",text:card,time:Number(due)||Date.now(),unread:true});
+      const note={id:nid,from:"partner",text:card,time:Number(due)||Date.now(),unread:true};
+      if(p&&p.replyTo)note.replyTo=p.replyTo;
+      /* 回复必须插到原留言下面，不能追加到留言板末尾：
+         原留言后面可能已经有别的留言，追加到末尾就会被界面当成另一条留言。 */
+      var pos=-1;
+      if(note.replyTo){
+        for(var gi=0;gi<state.guestbook.length;gi++){if(state.guestbook[gi]&&state.guestbook[gi].id===note.replyTo){pos=gi;break;}}
+        if(pos>=0){
+          var ins=pos+1;
+          while(ins<state.guestbook.length&&state.guestbook[ins]&&state.guestbook[ins].replyTo===note.replyTo)ins++;
+          state.guestbook.splice(ins,0,note);
+        }else pos=-1;
+      }
+      if(pos<0)state.guestbook.push(note);
       try{gbUnread.push(nid);}catch(e){}
       newN++;updateNewBadge();
       try{renderGuestbook();scrollNotes();}catch(e){}
+      try{
+        var _nrid=pushMsg("partner","sys","💬 对方回复了你的留言",{noteId:nid});
+        __appendChatMsg(_nrid);
+        if($("view-guestbook")&&$("view-guestbook").classList.contains("open"))toast("对方回复了你的留言");
+      }catch(e){}
     }
     save();
   }catch(e){save();}
 }
 function __scanPendingNoteReplies(){
   try{
+    /* 留言回复任务除了 state 存档，还同步写一份 localStorage；
+       关网页太快时 IndexedDB 还没写完，重开也能从 localStorage 补回来。 */
+    try{
+      var _ls=JSON.parse(localStorage.getItem("pendingNoteReplies")||"[]");
+      var list=state.pendingNoteReplies||[];
+      for(var li=0;li<_ls.length;li++){
+        var q=_ls[li];if(!q||!q.id)continue;
+        var dup=false;
+        for(var lj=0;lj<list.length;lj++){if(list[lj]&&list[lj].id===q.id){dup=true;break;}}
+        if(!dup)list.push(q);
+      }
+      state.pendingNoteReplies=list;
+      localStorage.setItem("pendingNoteReplies",JSON.stringify(list||[]));
+    }catch(_e){}
     var list=state.pendingNoteReplies||[];
     if(!list.length)return;
     var now=Date.now(),due=[];
@@ -20041,24 +20175,27 @@ function __scanPendingNoteReplies(){
 }
 function addNote(){
   const t=$("note-text").value.trim();if(!t)return;
-  state.guestbook.push({id:uid(),from:"me",text:t,time:Date.now()});
+  const _nid=uid();
+  state.guestbook.push({id:_nid,from:"me",text:t,time:Date.now()});
   $("note-text").value="";
   save();renderGuestbook();scrollNotes();toast("留言已发送");
-  // 对方从字卡选取内容回留言（字卡条数8~15条）
+  /* 回复概率只在“我发这条留言”时掷一次；抽不中就不排回复，
+     不会像旧代码那样先排进队列、到点再绕过概率。 */
   if(!wantPartner())return;
   const _nMin=Math.max(1,Math.round(Number(state.settings.replyNoteNMin)||1));
   const _nMax=Math.max(_nMin,Math.round(Number(state.settings.replyNoteNMax)||1));
   const _n=Math.round(rand(_nMin,_nMax));
   const _d0=socialDelay();
-  /* 留言回复也要落盘等待：以前只用 setTimeout，只要关掉网页/被系统回收，
-     这次已经抽中概率的回复就丢了；现在按 due 存在 state 里，重开后可补发。 */
+  /* 回复要记住自己回的是哪一条留言（replyTo）；
+     以前只按时间追加到末尾，界面靠“相邻两条”猜配对，所以会在别的留言下面出现。 */
   state.pendingNoteReplies=state.pendingNoteReplies||[];
   for(let _i=0;_i<_n;_i++){
     const _due=Date.now()+_d0+_i*rand(2000,6000);
     const rid=uid();
-    state.pendingNoteReplies.push({id:rid,due:_due});
+    state.pendingNoteReplies.push({id:rid,replyTo:_nid,due:_due});
     (function(r,d){setTimeout(function(){__deliverNoteReply(r,d);},Math.max(0,d-Date.now()));})(rid,_due);
   }
+  try{localStorage.setItem("pendingNoteReplies",JSON.stringify(state.pendingNoteReplies||[]));}catch(e){}
   save();
 }
 setInterval(__scanPendingNoteReplies,20000);
@@ -20742,10 +20879,14 @@ function bindMomentFeed(){
       var rn=Math.max(1,Math.round(rand(Number(state.settings.replyCommentNMin)||1,Number(state.settings.replyCommentNMax)||1)));
       state.pendingCommentReplies=state.pendingCommentReplies||[];
       for(var i3=0;i3<rn;i3++){
+        /* 每条回复单独掷一次“对方回复我的评论概率”；
+           掷不中就不排任务，避免到点再掷一次造成概率缩水。 */
+        if(!probPct("socialProbReplyComment"))continue;
         var due=Date.now()+replyCommentDelay()+i3*rand(2000,6000),rid=uid();
         state.pendingCommentReplies.push({id:rid,momentId:m3.id,commentId:myCid,due:due});
         (function(r,d){setTimeout(function(){__deliverCommentReply(r,d);},Math.max(0,d-Date.now()));})(rid,due);
       }
+      try{localStorage.setItem("pendingCommentReplies",JSON.stringify(state.pendingCommentReplies||[]));}catch(e){}
       save();return;}
   },false);
   feed.addEventListener("scroll",function(){
@@ -20971,11 +21112,27 @@ function __deliverCommentReply(rid,fallbackDue){
     if(idx<0)return;
     var p=list[idx];
     list.splice(idx,1);
-    partnerReplyComment(p.momentId,p.commentId,Number(p.due)||Number(fallbackDue)||Date.now());
+    state.pendingCommentReplies=list;
+    try{localStorage.setItem("pendingCommentReplies",JSON.stringify(list||[]));}catch(e){}
+    partnerReplyComment(p.momentId,p.commentId,Number(p.due)||Number(fallbackDue)||Date.now(),true);
   }catch(e){}
 }
 function __scanPendingCommentReplies(){
   try{
+    /* 和留言回复一样：state + localStorage 双写；关网页太快时 IndexedDB 没写完，
+       重开仍能把到点的评论回复补出来，不会静默丢掉。 */
+    try{
+      var _ls=JSON.parse(localStorage.getItem("pendingCommentReplies")||"[]");
+      var list=state.pendingCommentReplies||[];
+      for(var li=0;li<_ls.length;li++){
+        var q=_ls[li];if(!q||!q.id)continue;
+        var dup=false;
+        for(var lj=0;lj<list.length;lj++){if(list[lj]&&list[lj].id===q.id){dup=true;break;}}
+        if(!dup)list.push(q);
+      }
+      state.pendingCommentReplies=list;
+      localStorage.setItem("pendingCommentReplies",JSON.stringify(list||[]));
+    }catch(_e){}
     var list=state.pendingCommentReplies||[];
     if(!list.length)return;
     var now=Date.now(),due=[];
@@ -20985,12 +21142,12 @@ function __scanPendingCommentReplies(){
   }catch(e){}
 }
 setInterval(__scanPendingCommentReplies,20000);
-function partnerReplyComment(postId,targetCid,whenTs){
+function partnerReplyComment(postId,targetCid,whenTs,skipProb){
   const m=state.moments.find(x=>x.id===postId);if(!m)return;
-  /* 评论回复只看「对方回复我的评论概率」这一项。
-     旧写法先过一遍全局回复概率、再过一遍本项，填 100% 也会被全局概率再砍一次；
-     所以会出现“评论回复概率填 100，评论却经常不回”。 */
-  if(!probPct("socialProbReplyComment"))return;
+  /* 评论回复的概率在建任务时掷一次（见评论发送处）；到点补发时不再掷第二遍。
+     以前建任务不掷、到点才掷，而且 catch-up 时也会再掷，概率被平方，
+     填得再高也会“经常不回”。 */
+  if(!skipProb&&!probPct("socialProbReplyComment"))return;
   const _a=Math.max(1,Math.round(Number(state.settings.replyCommentCardMin)||1));
   const _b=Math.max(_a,Math.round(Number(state.settings.replyCommentCardMax)||_a));
   const card=joinCards(pickCommentCards(Math.round(rand(_a,_b))));if(!card)return;
@@ -24955,6 +25112,7 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
   window.__diaryBlurInput=__diaryBlurInput;
   window.__diaryOpen=function(){
     __diaryBlurInput();
+    try{var _dv=el("diary-view");if(_dv){__cancelViewFade(_dv);_dv.style.opacity="";_dv.style.transition="";_dv.style.pointerEvents="";}}catch(_){}
     D();maybePartnerFirst();
     try{var _tk=todayKey(),_tp=D().pages[_tk+"#p"];if(_tp&&String((_tp.partner&&_tp.partner.text)||"").trim())__diaryNotice(_tk+"#p");}catch(_){}
     var ks=keys();
@@ -24974,15 +25132,17 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
   };
   function closeDiary(){
     __diaryBlurInput();try{closeReplySheet();}catch(_){}
-    /* 先把页面铺在日记遮罩下面，再撤遮罩，避免空白闪一下；
-       日记是从聊天页加号进入的，返回就直接回聊天页，不再落回桌面。 */
+    /* 先把聊天页铺在日记遮罩下面，再让日记原位淡出；直接撤遮罩会从米黄纸页
+       一帧切成深色聊天，看起来就是“返回闪一下”。 */
     try{if(window.__e11ClearSub)window.__e11ClearSub();}catch(_){}
     try{showView("view-chat");}catch(_){}
-    el("diary-view").classList.remove("show");el("diary-view").classList.remove("writing");
+    try{__fadeOutDiary(110);}catch(_){el("diary-view").classList.remove("show");el("diary-view").classList.remove("writing");}
     if(writingTimer){clearTimeout(writingTimer);writingTimer=null;}
     try{window.__uiScaleSync&&window.__uiScaleSync();}catch(_){}
-    try{requestAnimationFrame(function(){try{__chatPinNow();}catch(e){}});}catch(_){}
+    setTimeout(function(){try{__chatPinNow();}catch(e){}} ,150);
   }
+  /* 安卓系统返回的 JS 入口在全局作用域，拿不到这个 IIFE 里的 closeDiary，这里挂一个引用 */
+  window.__closeDiary=closeDiary;
 
   try{
     var _dsc=el("ds-close"),_dsm=el("diary-summary");
