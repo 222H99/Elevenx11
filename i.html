@@ -2100,7 +2100,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-18v43-6b">
+<meta name="app-build" content="2026-11-19v43-6c">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3145,7 +3145,7 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
       <div class="ep-head">
         <span class="ep-title" id="ep-title">表情包</span>
         <div class="ep-head-btns">
-          <button class="ep-import ghost" id="btn-emoji-manage">管理</button>
+          <button class="ep-import ghost" id="btn-emoji-manage">多选</button>
           <button class="ep-import" id="btn-emoji-import"><svg class="icon" style="width:16px;height:16px"><use xlink:href="#i-import"/></svg>导入</button>
           <button class="ep-import ghost" id="btn-emoji-close">取消</button>
         </div>
@@ -3732,7 +3732,7 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
       <div class="set-group"><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
-<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-18v43-6b</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-19v43-6c</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5630,7 +5630,7 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-19",
-  noticeKey:"2026-11-18v43-6b",
+  noticeKey:"2026-11-19v43-6c",
   lead:"v43 全量修复：主站/预览补全 PWA 安装包，修复 Chrome 添加到主屏幕崩溃和进站黑白屏；登录恢复时先显示进入状态，网络超时自动用本地记录；日记/字卡返回固定回聊天页；数据先写本地快照，云端旧存档不再覆盖新改动；双击气泡贴表情可在设置关掉并调概率，主页评论/回复的输入框会跟着键盘上移。",
   items:[
     '<span class="an-gt">v43 · 启动 / PWA</span>',
@@ -5645,6 +5645,10 @@ var ANNOUNCE={
     '<span class="an-gt">v43 · 贴表情 / 键盘</span>',
     "双击气泡可贴 ❤️/👍/😂 等表情；设置里新增开关和对方贴表情概率，关掉后双击不再弹面板，长按菜单不受影响",
     "主页动态的评论和回复输入框会像留言板一样跟着键盘上移，键盘弹起后不会被挡住",
+    '<span class="an-gt">v43-6c · 收藏 / 返回 / 表情多选</span>',
+    "收藏改为点星后立即落盘，并补了五角星点击兜底；点完马上切页或刷新也不会丢",
+    "切页/返回桌面先清掉主页一、主页二、字卡的长按计时器和编辑态，返回时不再误进卡片编辑",
+    "表情包「管理」改为「多选」：进入多选后可逐张勾选、全选、取消全选、删除所选；全选会立刻重绘勾选状态",
     '<span class="an-gt">v43-6b · 安卓系统通知</span>',
     "APK 接入 Android 原生通知：设置页打开「消息通知」并允许系统权限后，来消息/动态/信件/留言会弹到通知栏，点通知直达聊天页",
     '<span class="an-gt">v43-6 · 音乐封面 / APK</span>',
@@ -5653,7 +5657,7 @@ var ANNOUNCE={
     '<span class="an-gt">v43 · 主动补发</span>',
     "主动动态、留言、信件的补发基准时间会立即落盘；这次没补出内容也会保存推进后的时间，避免重进后重复计算、等很久没动静或之后一次补一堆",
     '<span class="an-gt">v43 · 版本</span>',
-    "应用版本更新为 2026-11-18v43-6b，设置页和更新检查同步显示新版本",
+    "应用版本更新为 2026-11-19v43-6c，设置页和更新检查同步显示新版本",
     '<span class="an-gt">画画</span>',
     "聊天里收到的画不再被压成长条，图片按原比例完整显示",
     "画布恢复满宽，不再缩到 320；只压缩上下间距，底部两颗按钮仍完整可见",
@@ -12039,12 +12043,14 @@ function __epHidePreview(){var d=__epPvEl();d.style.display="none";__epPvCell=nu
   try{const tm=$("ep-tab-me"),tp=$("ep-tab-partner");if(tm&&tp){tm.classList.toggle("on",!isP);tp.classList.toggle("on",isP);}}catch(e){}
   const bar=$("emoji-selbar");
   bar.classList.toggle("hidden",!emojiEdit);
-  $("btn-emoji-manage").textContent=emojiEdit?"完成":"管理";
+  $("btn-emoji-manage").textContent=emojiEdit?"完成":"多选";
   $("btn-emoji-manage").classList.toggle("on",emojiEdit);
   $("btn-emoji-seldel").textContent="删除所选("+emojiSel.size+")";
+  try{$("btn-emoji-selall").textContent=(list.length&&emojiSel.size===list.length)?"取消全选":"全选";}catch(_){}
   /* 面板重复打开时不要每一次都把 31 张 base64 表情重新拼成 innerHTML；
      同一份列表/同一页签/同一管理模式直接复用已有格子，点表情的响应只走 click。 */
-  var _epSig=emojiSide+"|"+emojiEdit+"|"+list.length+"|"+list.map(function(e){var u=e.src||e.url||"";return e.id+":"+u.length+":"+u.slice(0,24)+":"+u.slice(-24)+":"+(e.__missing?1:0);}).join(",");
+  var _selSig=Array.from(emojiSel).sort().join(",");
+  var _epSig=emojiSide+"|"+emojiEdit+"|"+list.length+"|"+_selSig+"|"+list.map(function(e){var u=e.src||e.url||"";return e.id+":"+u.length+":"+u.slice(0,24)+":"+u.slice(-24)+":"+(e.__missing?1:0);}).join(",");
   if(g.dataset.epSig===_epSig && g.children.length)return;
   g.dataset.epSig=_epSig;
   if(!list.length){g.innerHTML='<div class="ep-empty" style="grid-column:1/-1">还没有'+(isP?"对方":"")+'表情包，点"导入"从相册添加图片表情。</div>';return;}
@@ -12100,6 +12106,7 @@ function __epHidePreview(){var d=__epPvEl();d.style.display="none";__epPvCell=nu
         cell.classList.toggle("sel",emojiSel.has(id));
         const chk=cell.querySelector(".emoji-chk");if(chk)chk.textContent=emojiSel.has(id)?"✓":"";
         $("btn-emoji-seldel").textContent="删除所选("+emojiSel.size+")";
+  try{$("btn-emoji-selall").textContent=(list.length&&emojiSel.size===list.length)?"取消全选":"全选";}catch(_){}
       }else if(!isP){
         const e=curEmojis().find(x=>x.id===id);
         if(!e)return;
@@ -12182,12 +12189,13 @@ function __epHidePreview(){var d=__epPvEl();d.style.display="none";__epPvCell=nu
 }
 $("ep-tab-me").addEventListener("click",()=>{emojiSide="me";emojiEdit=false;emojiSel.clear();renderEmojis();});
 $("ep-tab-partner").addEventListener("click",()=>{emojiSide="partner";emojiEdit=false;emojiSel.clear();renderEmojis();});
-$("btn-emoji-manage").addEventListener("click",()=>{emojiEdit=!emojiEdit;emojiSel.clear();renderEmojis();});
+$("btn-emoji-manage").addEventListener("click",()=>{emojiEdit=!emojiEdit;emojiSel.clear();renderEmojis();if(emojiEdit)toast("点表情可多选，再点删除所选");});
 $("btn-emoji-selall").addEventListener("click",()=>{
   const list=curEmojis();
   if(list.length&&emojiSel.size===list.length)emojiSel.clear();
   else{emojiSel.clear();list.forEach(e=>emojiSel.add(e.id));}
   renderEmojis();
+  $("btn-emoji-selall").textContent=(list.length&&emojiSel.size===list.length)?"取消全选":"全选";
 });
 $("btn-emoji-seldel").addEventListener("click",()=>{
   if(!emojiSel.size){toast("先勾选要删除的表情");return;}
@@ -12472,6 +12480,7 @@ function renderCards(){
     list.__cardLPBound=1;
     var __lp={t:null,x:0,y:0};
     var __lpClear=function(){if(__lp.t){clearTimeout(__lp.t);__lp.t=null;}};
+    window.__cardCancelPress=__lpClear;
     list.addEventListener("touchstart",function(e){
       if(cardSelMode)return;
       var row=e.target&&e.target.closest?e.target.closest(".card-item[data-id]"):null;
@@ -14642,6 +14651,15 @@ function __chatEntryGuard(){
 }
 window.__chatEntryGuard=__chatEntryGuard;
 function showView(id){
+  /* 切页/返回桌面时，先撤掉所有“长按进入编辑”的计时器和编辑态：
+     否则手指在返回手势里按住超过 480ms，回到桌面就会误进卡片编辑。 */
+  try{
+    if(window.__me1CancelPress)window.__me1CancelPress();
+    if(window.__cp2CancelPress)window.__cp2CancelPress();
+    if(window.__cardCancelPress)window.__cardCancelPress();
+    if(window.__me1ExitEdit)window.__me1ExitEdit();
+    if(window.__cp2ExitEdit)window.__cp2ExitEdit();
+  }catch(_eCancel){}
   /* 开屏声明/更新公告偶尔会残留 show：它们 z-index 比设置页高，会整块吃掉标签点击，
      表现就是“聊天/社交/外观点不动”。真正进入 App 页面后把残留层收掉。 */
   try{
@@ -18249,12 +18267,12 @@ function __toggleFavoriteMessage(id){
   var favs=state.favorites||(state.favorites=[]);
   var idx=-1;
   for(var i=0;i<favs.length;i++){if(favs[i]&&favs[i].id===id){idx=i;break;}}
-  if(idx>=0){favs.splice(idx,1);try{save();}catch(_){}return false;}
+  if(idx>=0){favs.splice(idx,1);try{save();__flushSave(true);}catch(_){}return false;}
   favs.unshift({
     id:m.id,kind:"msg",text:__favTextOfMsg(m),from:m.from||"me",
     time:Number(m.time)||Date.now(),tag:""
   });
-  try{save();}catch(_){}
+  try{save();__flushSave(true);}catch(_){}
   return true;
 }
 window.__toggleFavoriteMessage=__toggleFavoriteMessage;
@@ -18323,7 +18341,7 @@ $("fav-list")&&$("fav-list").addEventListener("click",function(e){
     e.preventDefault();e.stopPropagation();
     var id=del.dataset.favDel;
     state.favorites=(state.favorites||[]).filter(function(f){return !f||f.id!==id;});
-    try{save();}catch(_){}
+    try{save();__flushSave(true);}catch(_){}
     __renderFavSheet();
     toast("已删除这条收藏");
     return;
@@ -18335,7 +18353,7 @@ $("fav-list")&&$("fav-list").addEventListener("click",function(e){
 $("fav-clear")&&$("fav-clear").addEventListener("click",function(){
   if(!confirm("清空全部收藏？"))return;
   state.favorites=[];
-  try{save();}catch(_){}
+  try{save();__flushSave(true);}catch(_){}
   __renderFavSheet();
   toast("收藏已清空");
 });
@@ -18570,7 +18588,7 @@ function __starToggle(kind,refId){
     var snap=__starSnap(kind,refId);if(!snap){toast("这条内容已经不在了");return;}
     a.unshift(snap);toast("已收藏，可在收藏夹查看");
   }
-  save();
+  try{save();__flushSave(true);}catch(_){}
   try{if($("fav-sheet")&&$("fav-sheet").classList.contains("show"))__renderFavSheet();}catch(e){}
   try{
     if(kind==="moment"){if(!__refreshMomentCard(refId))renderMoments();}
@@ -18585,6 +18603,13 @@ function __bindStarButtons(root){
     b.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();__starToggle(b.dataset.starKind,b.dataset.starId);});
   });
 }
+/* 五角星兜底：页面局部重绘/异步插入时，即使绑定函数没跑到，点星也能收藏 */
+document.addEventListener("click",function(e){
+  var b=e.target&&e.target.closest?e.target.closest("[data-star-kind]"):null;
+  if(!b)return;
+  e.preventDefault();e.stopPropagation();
+  __starToggle(b.dataset.starKind,b.dataset.starId);
+},false);
 function renderLetters(force){
   var _s="letters|"+__sigOfList(state.letters);
   if(!window.__rSig)window.__rSig={};
@@ -21885,6 +21910,9 @@ window.__dockTopPx=function(){try{if(window.__dockEl&&document.contains(window._
       !!t.closest("#cp2-photo-main, #cp2-photo-sub, #cp2-count-photo, #cp2-count-title, #cp2-count-num, #cp2-line, #cp2-names, #cp2-av-me, #cp2-av-partner, #cp2-chat-partner-txt, #cp2-chat-me-txt");
   }
   function clearTimer(){if(longTimer){clearTimeout(longTimer);longTimer=null;}}
+  function cancelPress(){clearTimer();}
+  window.__cp2CancelPress=cancelPress;
+  window.__cp2ExitEdit=function(){cancelPress();try{if(editing)setEditing(false);}catch(_){}};
   function addDelBtn(el){
     if(!el||el.querySelector(".cp2-del"))return;
     el.style.position="absolute";
@@ -21912,6 +21940,7 @@ window.__dockTopPx=function(){try{if(window.__dockEl&&document.contains(window._
   }
   function setEditing(on){
     editing=on;
+    if(!on)clearTimer();
     var its=items();
     for(var i=0;i<its.length;i++){
       var o=its[i];
@@ -22212,12 +22241,20 @@ window.__dockTopPx=function(){try{if(window.__dockEl&&document.contains(window._
     el.addEventListener("pointerdown",function(e){
       if(isInteractive(e.target))return;
       clearTimer();
+      var px=e.clientX,py=e.clientY;
       longTimer=setTimeout(function(){
         if(!document.body.contains(el))return;
         if(!editing)setEditing(true);
         el.style.zIndex="60";
         var its=items();for(var i=0;i<its.length;i++){its[i].classList.toggle("cp-jiggle",its[i]===el);}
       },480);
+      var move=function(ev){
+        if(Math.abs(ev.clientX-px)>10||Math.abs(ev.clientY-py)>10){clearTimer();el.removeEventListener("pointermove",move);el.removeEventListener("pointerup",up);el.removeEventListener("pointercancel",up);}
+      };
+      var up=function(){clearTimer();el.removeEventListener("pointermove",move);el.removeEventListener("pointerup",up);el.removeEventListener("pointercancel",up);};
+      el.addEventListener("pointermove",move,{passive:true});
+      el.addEventListener("pointerup",up,{passive:true});
+      el.addEventListener("pointercancel",up,{passive:true});
     });
   }
   function reapply(){
@@ -22627,6 +22664,8 @@ setInterval(function(){try{
   },{passive:true});
   window.addEventListener("pointerup",function(){if(active&&cur)drop();clearTimer();});
   window.addEventListener("pointercancel",function(){if(active&&cur)drop();clearTimer();});
+  window.addEventListener("blur",clearTimer);
+  document.addEventListener("visibilitychange",function(){if(document.hidden)clearTimer();});
 })();
 
 // 页码圆点：原来在第二页内容末尾，会被固定栏盖住/裁掉点不到 → 改为固定显示在固定栏上方
@@ -23003,6 +23042,9 @@ setTimeout(function(){
   window.__applyMe1Sizes=applyMe1Sizes;
   applyMe1Sizes();applyIcons();
   var editing=false,cur=null,active=false,longTimer=null,startX=0,startY=0,orig={w:0,h:0};
+  function cancelPress(){if(longTimer){clearTimeout(longTimer);longTimer=null;}}
+  window.__me1CancelPress=cancelPress;
+  window.__me1ExitEdit=function(){cancelPress();try{if(editing)setEditing(false);}catch(_){}};
   var bar=document.createElement('div');
   bar.id='me1-bar';
   bar.style.cssText='position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:2100;display:none;align-items:center;gap:10px;background:rgba(255,255,255,.88);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);padding:8px 14px;border-radius:20px;box-shadow:0 8px 24px rgba(0,0,0,.16);';
@@ -23054,6 +23096,7 @@ setTimeout(function(){
     el.addEventListener('pointerdown',function(e){
       if(e.target&&e.target.closest&&e.target.closest('.cp2-resize'))return;
       clearTimeout(longTimer);
+      window.__me1PressX=e.clientX;window.__me1PressY=e.clientY;
       longTimer=setTimeout(function(){
         if(!document.body.contains(el))return;
         if(!editing)setEditing(true);
@@ -23066,6 +23109,7 @@ setTimeout(function(){
     el.addEventListener('pointerdown',function(e){
       if(e.target&&e.target.closest&&e.target.closest('.cp2-resize'))return;
       clearTimeout(longTimer);
+      window.__me1PressX=e.clientX;window.__me1PressY=e.clientY;
       longTimer=setTimeout(function(){
         if(!document.body.contains(el))return;
         if(!editing)setEditing(true);
@@ -23077,6 +23121,7 @@ setTimeout(function(){
     });
   });
   window.addEventListener('pointermove',function(e){
+    if(!active&&window.__me1PressX!==undefined&&(Math.abs(e.clientX-window.__me1PressX)>10||Math.abs(e.clientY-window.__me1PressY)>10))cancelPress();
     if(!active||!cur)return;
     var dx=e.clientX-startX;
     if(cur.id==='me-photos'){
@@ -23092,7 +23137,11 @@ setTimeout(function(){
       });
     }
   },{passive:true});
+  window.addEventListener('pointercancel',cancelPress);
+  window.addEventListener('blur',cancelPress);
+  document.addEventListener('visibilitychange',function(){if(document.hidden)cancelPress();});
   window.addEventListener('pointerup',function(){
+    window.__me1PressX=undefined;window.__me1PressY=undefined;
     if(active){
       active=false;
       if(cur){
