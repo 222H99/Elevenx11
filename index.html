@@ -642,7 +642,7 @@ body.ui-dark:not(.lt-preset) .env-card .ev-sig{color:rgba(255,255,255,.62) !impo
 .quote-input .qi-label{font-size:11px;color:#8E8E93;flex:0 0 auto;}
 .quote-input .qi-text{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .quote-input .qi-close{width:20px;height:20px;border:none;background:transparent;color:#8E8E93;cursor:pointer;flex:0 0 auto;display:flex;align-items:center;justify-content:center;}
-.msg-input{border:none;outline:none;background:transparent;flex:1;min-width:0;font-size:16px;padding:8px 10px;color:var(--ttext);resize:none;max-height:96px;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;min-height:22px;line-height:1.35;}
+.msg-input{border:none;outline:none;background:transparent;flex:1;min-width:0;font-size:16px;padding:8px 10px;color:var(--ttext);resize:none;max-height:96px;-webkit-touch-callout:none;-webkit-user-select:text;user-select:text;min-height:22px;line-height:1.35;}
 .msg-input::placeholder{color:#C7C7CC;}
 .mini-player{position:fixed;left:50%;top:64%;transform:translate(-50%,-50%);width:min(252px,84vw);z-index:70;display:none;border-radius:22px;background:linear-gradient(145deg,rgba(255,255,255,.62),rgba(255,255,255,.28));backdrop-filter:blur(30px) saturate(170%);-webkit-backdrop-filter:blur(30px) saturate(170%);border:1px solid rgba(255,255,255,.65);box-shadow:0 10px 34px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.9),inset 0 -1px 0 rgba(255,255,255,.45);padding:13px 15px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;}
 .mini-player.show{display:block;}
@@ -2120,7 +2120,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-19v43-6h">
+<meta name="app-build" content="2026-11-19v43-6i">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3046,6 +3046,9 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
 #rotate-guard .rg-s{font-size:13px;color:rgba(255,255,255,.6);}
 @media (orientation:landscape) and (max-height:500px) and (max-width:950px){#rotate-guard{display:flex!important;}}
 html.tablet-mode #rotate-guard,html.tablet-mode body #rotate-guard{display:none!important;}
+/* 正在输入时绝不显示竖屏提示：平板/手机键盘弹起会把可视区压短，
+   CSS 会瞬间把 orientation 判成 landscape，提示层就误弹出来挡住输入框。 */
+html.kb-typing #rotate-guard,html.kb-typing body #rotate-guard{display:none!important;}
 </style>
 </head>
 <body>
@@ -3753,7 +3756,7 @@ html.tablet-mode #rotate-guard,html.tablet-mode body #rotate-guard{display:none!
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
       <div class="set-group"><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
-<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-19v43-6h</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-19v43-6i</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5651,7 +5654,7 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-19",
-  noticeKey:"2026-11-19v43-6h",
+  noticeKey:"2026-11-19v43-6i",
   lead:"v43 全量修复：主站/预览补全 PWA 安装包，修复 Chrome 添加到主屏幕崩溃和进站黑白屏；登录恢复时先显示进入状态，网络超时自动用本地记录；日记/字卡返回固定回聊天页；数据先写本地快照，云端旧存档不再覆盖新改动；双击气泡贴表情可在设置关掉并调概率，主页评论/回复的输入框会跟着键盘上移。",
   items:[
     '<span class="an-gt">v43 · 启动 / PWA</span>',
@@ -5666,10 +5669,10 @@ var ANNOUNCE={
     '<span class="an-gt">v43 · 贴表情 / 键盘</span>',
     "双击气泡可贴 ❤️/👍/😂 等表情；设置里新增开关和对方贴表情概率，关掉后双击不再弹面板，长按菜单不受影响",
     "主页动态的评论和回复输入框会像留言板一样跟着键盘上移，键盘弹起后不会被挡住",
-    '<span class="an-gt">v43-6h · 平板横屏可用</span>',
-    "iPad / 安卓平板不再被「请竖屏使用 Eleven×11」黑底挡住，横屏可以正常进入；应用画布按屏幕宽度居中铺开，不会只挤成中间一条",
-    "手机横屏仍保留竖屏提示，避免手机上聊天栏和键盘挤在一起；手机竖屏、平板竖屏的原有缩放不变",
-    "PWA / 网页方向声明改成 auto，安装到桌面后旋转平板也不再强制锁竖屏；音乐并发取链、主页照片修复继续保留",
+    '<span class="an-gt">v43-6i · 平板打字不再被竖屏提示挡</span>',
+    "键盘一弹起就把可视区压短，页面会瞬间被 CSS 判成横屏，原来的竖屏提示层又冒出来挡住输入栏。现在只要正在输入，提示层一律隐藏",
+    "平板识别改成屏幕最短边 ≥600 / iPad / 安卓平板 UA 三重判断；平板横屏、分屏、键盘弹起都不再锁竖屏",
+    "聊天输入框恢复可选文本、可正常落光标；手机横屏不输入时仍提示竖屏，避免聊天栏和键盘挤在一起",
     '<span class="an-gt">v43-6b · 安卓系统通知</span>',
     "APK 接入 Android 原生通知：设置页打开「消息通知」并允许系统权限后，来消息/动态/信件/留言会弹到通知栏，点通知直达聊天页",
     '<span class="an-gt">v43-6 · 音乐封面 / APK</span>',
@@ -5678,7 +5681,7 @@ var ANNOUNCE={
     '<span class="an-gt">v43 · 主动补发</span>',
     "主动动态、留言、信件的补发基准时间会立即落盘；这次没补出内容也会保存推进后的时间，避免重进后重复计算、等很久没动静或之后一次补一堆",
     '<span class="an-gt">v43 · 版本</span>',
-    "应用版本更新为 2026-11-19v43-6h，设置页和更新检查同步显示新版本",
+    "应用版本更新为 2026-11-19v43-6i，设置页和更新检查同步显示新版本",
     '<span class="an-gt">画画</span>',
     "聊天里收到的画不再被压成长条，图片按原比例完整显示",
     "画布恢复满宽，不再缩到 320；只压缩上下间距，底部两颗按钮仍完整可见",
@@ -7369,6 +7372,24 @@ function initKeyboardFix(){
     }catch(_){}
   }
   window.__resetKbShift=resetKbShift;
+  /* 输入中标记：横屏提示层在键盘弹起时一律让路，失焦后 300ms 再恢复判断 */
+  var __kbTypingT=0;
+  function __setKbTyping(on){
+    try{
+      if(__kbTypingT){clearTimeout(__kbTypingT);__kbTypingT=0;}
+      if(on)document.documentElement.classList.add("kb-typing");
+      else __kbTypingT=setTimeout(function(){document.documentElement.classList.remove("kb-typing");},300);
+    }catch(_){}
+  }
+  document.addEventListener("focusin",function(e){
+    var t=e.target;
+    if(t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.isContentEditable))__setKbTyping(true);
+  },true);
+  document.addEventListener("focusout",function(e){
+    var t=e.target;
+    if(t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.isContentEditable))__setKbTyping(false);
+  },true);
+  window.__setKbTyping=__setKbTyping;
   document.addEventListener("focusout",function(){setTimeout(resetKbShift,250);});
   document.addEventListener("visibilitychange",function(){if(!document.hidden)setTimeout(resetKbShift,120);});
   window.addEventListener("orientationchange",function(){setTimeout(resetKbShift,300);});
@@ -7646,7 +7667,11 @@ window.__lockPortrait=__lockPortrait;
    短视口也不拦，否则 iPad/安卓平板一转屏或一起键盘就只剩一块黑底。 */
 try{
   var _sw0=Number(screen&&screen.width)||0,_sh0=Number(screen&&screen.height)||0;
-  if(_sw0&&_sh0&&Math.min(_sw0,_sh0)>=600)document.documentElement.classList.add("tablet-mode");
+  var _ua0=String(navigator.userAgent||"");
+  var _isTablet0=(_sw0&&_sh0&&Math.min(_sw0,_sh0)>=600)||
+                 /iPad|Tablet|PlayBook|Silk|Kindle/i.test(_ua0)||
+                 (/Android/i.test(_ua0)&&!/Mobile/i.test(_ua0));
+  if(_isTablet0)document.documentElement.classList.add("tablet-mode");
 }catch(_eTab){}
 try{__lockPortrait();}catch(_eL0){}
 try{document.addEventListener("DOMContentLoaded",function(){try{__lockPortrait();}catch(_){}});}catch(_){}
