@@ -2100,7 +2100,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-19v43-6c">
+<meta name="app-build" content="2026-11-19v43-6d">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3146,7 +3146,7 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
         <span class="ep-title" id="ep-title">表情包</span>
         <div class="ep-head-btns">
           <button class="ep-import ghost" id="btn-emoji-manage">多选</button>
-          <button class="ep-import" id="btn-emoji-import"><svg class="icon" style="width:16px;height:16px"><use xlink:href="#i-import"/></svg>导入</button>
+          <button class="ep-import" id="btn-emoji-import" title="一次可以选择多张图片导入"><svg class="icon" style="width:16px;height:16px"><use xlink:href="#i-import"/></svg>批量导入</button>
           <button class="ep-import ghost" id="btn-emoji-close">取消</button>
         </div>
       </div>
@@ -3732,7 +3732,7 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
       <div class="set-group"><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
-<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-19v43-6c</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-19v43-6d</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5630,7 +5630,7 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-19",
-  noticeKey:"2026-11-19v43-6c",
+  noticeKey:"2026-11-19v43-6d",
   lead:"v43 全量修复：主站/预览补全 PWA 安装包，修复 Chrome 添加到主屏幕崩溃和进站黑白屏；登录恢复时先显示进入状态，网络超时自动用本地记录；日记/字卡返回固定回聊天页；数据先写本地快照，云端旧存档不再覆盖新改动；双击气泡贴表情可在设置关掉并调概率，主页评论/回复的输入框会跟着键盘上移。",
   items:[
     '<span class="an-gt">v43 · 启动 / PWA</span>',
@@ -5645,10 +5645,10 @@ var ANNOUNCE={
     '<span class="an-gt">v43 · 贴表情 / 键盘</span>',
     "双击气泡可贴 ❤️/👍/😂 等表情；设置里新增开关和对方贴表情概率，关掉后双击不再弹面板，长按菜单不受影响",
     "主页动态的评论和回复输入框会像留言板一样跟着键盘上移，键盘弹起后不会被挡住",
-    '<span class="an-gt">v43-6c · 收藏 / 返回 / 表情多选</span>',
-    "收藏改为点星后立即落盘，并补了五角星点击兜底；点完马上切页或刷新也不会丢",
-    "切页/返回桌面先清掉主页一、主页二、字卡的长按计时器和编辑态，返回时不再误进卡片编辑",
-    "表情包「管理」改为「多选」：进入多选后可逐张勾选、全选、取消全选、删除所选；全选会立刻重绘勾选状态",
+    '<span class="an-gt">v43-6d · 批量导入 / 返回防误触</span>',
+    "表情包「导入」改为「批量导入」：一次可以选择多张图片，逐张导入并显示进度，已存在的自动跳过",
+    "返回主页/字卡页后的 420ms 内忽略背景卡片点击，同时清掉主页一、主页二、字卡的长按计时器和编辑态，不再误进卡片编辑",
+    "收藏点星后立即落盘，动态/信件/留言和聊天消息都补了兜底，切页或刷新不丢",
     '<span class="an-gt">v43-6b · 安卓系统通知</span>',
     "APK 接入 Android 原生通知：设置页打开「消息通知」并允许系统权限后，来消息/动态/信件/留言会弹到通知栏，点通知直达聊天页",
     '<span class="an-gt">v43-6 · 音乐封面 / APK</span>',
@@ -5657,7 +5657,7 @@ var ANNOUNCE={
     '<span class="an-gt">v43 · 主动补发</span>',
     "主动动态、留言、信件的补发基准时间会立即落盘；这次没补出内容也会保存推进后的时间，避免重进后重复计算、等很久没动静或之后一次补一堆",
     '<span class="an-gt">v43 · 版本</span>',
-    "应用版本更新为 2026-11-19v43-6c，设置页和更新检查同步显示新版本",
+    "应用版本更新为 2026-11-19v43-6d，设置页和更新检查同步显示新版本",
     '<span class="an-gt">画画</span>',
     "聊天里收到的画不再被压成长条，图片按原比例完整显示",
     "画布恢复满宽，不再缩到 320；只压缩上下间距，底部两颗按钮仍完整可见",
@@ -14156,6 +14156,7 @@ function __nativePick(id){
     var _pickPage=null,_pickTop=0;
     try{_pickPage=inp.closest?inp.closest(".set-page"):null;if(_pickPage)_pickTop=_pickPage.scrollTop;}catch(_){}
     try{document.body.appendChild(inp);}catch(_){}
+    if(id==="file-emoji"||id==="file-emojibatch")inp.multiple=true;
     inp.style.cssText="position:fixed;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;opacity:0;z-index:99999;display:block;border:0;padding:0;";
     inp.removeAttribute("hidden");
     var restore=function(){
@@ -14190,6 +14191,7 @@ function __pickLocalFile(accept,onFiles,opts){
     var inp=document.createElement("input");
     inp.type="file";inp.accept=accept||"image/*";
     if(opts&&opts.multiple)inp.multiple=true;
+    if(id==="file-emoji"||id==="file-emojibatch")inp.multiple=true;
     inp.style.cssText="position:fixed;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;opacity:0;z-index:99999;display:block;border:0;padding:0;";
     inp.setAttribute("data-qa-pick","1");
     var host=document.body;
@@ -14663,6 +14665,9 @@ function showView(id){
     if(window.__me1ExitEdit)window.__me1ExitEdit();
     if(window.__cp2ExitEdit)window.__cp2ExitEdit();
   }catch(_eCancel){}
+  /* 返回主页/字卡页后的 420ms 内，忽略落在背景卡片上的 pointerdown/click：
+     返回手势或页面切换动画还没结束时，手指容易误点到卡片，触发编辑/删除。 */
+  try{if(id==="view-me"||id==="view-cards")window.__navClickGuard=Date.now()+420;}catch(_){}
   /* 开屏声明/更新公告偶尔会残留 show：它们 z-index 比设置页高，会整块吃掉标签点击，
      表现就是“聊天/社交/外观点不动”。真正进入 App 页面后把残留层收掉。 */
   try{
@@ -22602,6 +22607,25 @@ window.__noteFit=__noteFit;
 var __fitLastKey=window.__fitKey();window.__fitLastW=window.__fitLastW||Math.round(window.innerWidth||0);
 window.__fitLastH=window.__fitLastH||Math.round(window.innerHeight||0);
 window.__fitLastDpr=window.__fitLastDpr||(window.devicePixelRatio||1);
+/* 页面切换后的短时间点击保护：只拦主页/字卡页背景卡片，不影响聊天和设置 */
+document.addEventListener("pointerdown",function(e){
+  try{
+    if(Date.now()>=(window.__navClickGuard||0))return;
+    var t=e.target;
+    if(t&&t.closest&&(t.closest("#view-me")||t.closest("#view-cards"))){
+      e.preventDefault();e.stopPropagation();
+    }
+  }catch(_){}
+},true);
+document.addEventListener("click",function(e){
+  try{
+    if(Date.now()>=(window.__navClickGuard||0))return;
+    var t=e.target;
+    if(t&&t.closest&&(t.closest("#view-me")||t.closest("#view-cards"))){
+      e.preventDefault();e.stopPropagation();
+    }
+  }catch(_){}
+},true);
 function __fitViewportChanged(){
   var key=window.__fitKey();
   var _w=Math.round(window.innerWidth||0),_h=Math.round(window.innerHeight||0),_dpr=Number(window.devicePixelRatio)||1;
