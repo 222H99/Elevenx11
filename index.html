@@ -12306,6 +12306,8 @@ $("file-emoji").addEventListener("change",e=>{
 /* ===== 字卡板块 ===== */
 let activeGroupId=null;
 let cardSelMode=false,cardSel=new Set();
+/* 离开字卡页时退出多选，避免返回桌面后点字卡还在“选中”状态 */
+window.__cardExitEdit=function(){try{cardSelMode=false;cardSel.clear();var _b=document.getElementById('card-sel-bar');if(_b)_b.classList.remove('show');}catch(_){}};
 /* 字卡分三类：聊天 / 信件 / 动态，各自独立的分组与字卡，互不影响 */
 let cardKindView="chat";
 const CARD_KIND_LABEL={chat:"聊天字卡",letter:"信件字卡",moment:"动态字卡"};
@@ -14657,6 +14659,7 @@ function showView(id){
     if(window.__me1CancelPress)window.__me1CancelPress();
     if(window.__cp2CancelPress)window.__cp2CancelPress();
     if(window.__cardCancelPress)window.__cardCancelPress();
+    if(window.__cardExitEdit)window.__cardExitEdit();
     if(window.__me1ExitEdit)window.__me1ExitEdit();
     if(window.__cp2ExitEdit)window.__cp2ExitEdit();
   }catch(_eCancel){}
