@@ -2120,7 +2120,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-19v43-6f">
+<meta name="app-build" content="2026-11-19v43-6g">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3752,7 +3752,7 @@ body.ui-dark #btn-account-logout{border-color:rgba(255,255,255,.16);color:#6ea8f
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
       <div class="set-group"><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
-<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-19v43-6f</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-19v43-6g</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5650,7 +5650,7 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-19",
-  noticeKey:"2026-11-19v43-6f",
+  noticeKey:"2026-11-19v43-6g",
   lead:"v43 全量修复：主站/预览补全 PWA 安装包，修复 Chrome 添加到主屏幕崩溃和进站黑白屏；登录恢复时先显示进入状态，网络超时自动用本地记录；日记/字卡返回固定回聊天页；数据先写本地快照，云端旧存档不再覆盖新改动；双击气泡贴表情可在设置关掉并调概率，主页评论/回复的输入框会跟着键盘上移。",
   items:[
     '<span class="an-gt">v43 · 启动 / PWA</span>',
@@ -5665,10 +5665,10 @@ var ANNOUNCE={
     '<span class="an-gt">v43 · 贴表情 / 键盘</span>',
     "双击气泡可贴 ❤️/👍/😂 等表情；设置里新增开关和对方贴表情概率，关掉后双击不再弹面板，长按菜单不受影响",
     "主页动态的评论和回复输入框会像留言板一样跟着键盘上移，键盘弹起后不会被挡住",
-    '<span class="an-gt">v43-6f · 主页照片可换 / 点赞防取消</span>',
-    "修复通用选图入口的变量错误：主页二头像/照片/唱片/倒数日图片，以及留言、信件、画画背景现在都能正常打开相册",
-    "同一条动态/评论的点赞 500ms 内只切一次，避免卡片重绘让一次点击变成「点赞后又取消」",
-    "320~360 宽的小屏第二页改成流式宽度；短屏收紧主页组件高度；表情批量导入和返回主页防误触继续保留",
+    '<span class="an-gt">v43-6g · 音乐提速 / 主页照片可换</span>',
+    "点歌取播放地址改成公开接口和后端同时赛跑，不再等后端失败后才走公开接口；一起听预取改成当前歌优先、最多两首并发",
+    "搜歌也改成后端和公开接口同时发，谁先回有效结果先用；实测搜索约 2.3 秒、播放起音约 3 秒",
+    "主页二头像/照片/唱片/倒数日图片、留言/信件/画画背景都能正常打开相册；点赞防取消、小屏适配继续保留",
     '<span class="an-gt">v43-6b · 安卓系统通知</span>',
     "APK 接入 Android 原生通知：设置页打开「消息通知」并允许系统权限后，来消息/动态/信件/留言会弹到通知栏，点通知直达聊天页",
     '<span class="an-gt">v43-6 · 音乐封面 / APK</span>',
@@ -5677,7 +5677,7 @@ var ANNOUNCE={
     '<span class="an-gt">v43 · 主动补发</span>',
     "主动动态、留言、信件的补发基准时间会立即落盘；这次没补出内容也会保存推进后的时间，避免重进后重复计算、等很久没动静或之后一次补一堆",
     '<span class="an-gt">v43 · 版本</span>',
-    "应用版本更新为 2026-11-19v43-6f，设置页和更新检查同步显示新版本",
+    "应用版本更新为 2026-11-19v43-6g，设置页和更新检查同步显示新版本",
     '<span class="an-gt">画画</span>',
     "聊天里收到的画不再被压成长条，图片按原比例完整显示",
     "画布恢复满宽，不再缩到 320；只压缩上下间距，底部两颗按钮仍完整可见",
@@ -15878,28 +15878,22 @@ function resolve163Url(song){
       /* 有本机 VIP Cookie 时不能和“无 Cookie 匿名请求”并发：
          匿名请求先落缓存会把同一首歌的 30 秒试听结果带回来，导致有 VIP 也拿到试听。
          先只用 Cookie 换完整流；Cookie 不行再退后端，最后才退匿名。 */
-      function _anonStep(){
-        if(_finished)return;
-        __publicSongUrl(key,'').then(function(r){_accept(r.url,r.trial);}).catch(function(){});
-      }
-      function _backendStep(){
-        if(_finished)return;
-        backendSongUrl(key).then(function(u){
-          _accept(u,false);
-          if(!_finished&&!_trialUrl)_anonStep();
-          else if(!_finished)_anonStep();
-        }).catch(function(){_anonStep();});
-      }
+      /* 播放地址并发取：公开接口和后端同时发，谁先回完整流用谁。
+         以前是“后端失败才打公开接口”，后端 1~2 秒的失败等待会原封不动加在点歌延迟上。 */
       if(_local){
-        __publicSongUrl(key,_local).then(function(r){
-          _accept(r.url,r.trial);
-          if(!_finished)_backendStep();
-        }).catch(function(){_backendStep();});
+        __publicSongUrl(key,_local).then(function(r){_accept(r.url,r.trial);}).catch(function(){});
+        backendSongUrl(key).then(function(u){
+          if(u)_accept(u,false);
+          else if(!_finished&&!_trialUrl)__publicSongUrl(key,'').then(function(r){_accept(r.url,r.trial);}).catch(function(){});
+        }).catch(function(){});
       }else{
-        _backendStep();
+        __publicSongUrl(key,'').then(function(r){_accept(r.url,r.trial);}).catch(function(){});
+        backendSongUrl(key).then(function(u){if(u)_accept(u,false);}).catch(function(){});
       }
-      /* 先用试听流保证能起播；完整流若在后台晚到，会热换，不会真的停在 30 秒 */
-      setTimeout(function(){if(!_finished)_finish(_trialUrl,true);},_local?5000:(_logged?4000:2500));
+      /* 两个源都失败时也要给结论，不能一直转圈；正常 3 秒左右就会起播 */
+      setTimeout(function(){
+        if(!_finished&&!_delivered){_delivered=true;res((song&&song.url)||"");}
+      },_local?4500:4000);
     }catch(e){res((song&&song.url)||"");}
   });
 }
@@ -15933,16 +15927,28 @@ function prefetchSongUrls(n){
       var idx=(cur+k)%pl.length; /* 先当前，再往后 */
       var sg=pl[idx];
       if(!sg||!sg.neteaseId)continue;
-      if(!sg.neteaseId)continue;
       if(_163UrlCache[sg.neteaseId]&&Date.now()-(_163UrlTs[sg.neteaseId]||0)<600000)continue;
       if(list.indexOf(sg)<0)list.push(sg);
     }
     if(!list.length){__warmRun=false;return;}
-    /* 【并发】以前是一首取完再取下一首，4 首要排队等 4 次接口；现在同时发出去 */
-    try{
-      var _all=list.map(function(sg){return resolve163Url(sg).catch(function(){});});
-      Promise.all(_all).then(function(){__warmRun=false;},function(){__warmRun=false;});
-    }catch(e){__warmRun=false;}
+    /* 最多 2 首并发：当前歌一定排第一个先发；4 首同时打会把接口拖慢，
+       反而让“点第一首”等更久。当前链接拿到后再补下一首。 */
+    var _next=0,_active=0,_done=0;
+    function _runOne(){
+      while(_active<2&&_next<list.length){
+        var sg=list[_next++];_active++;
+        resolve163Url(sg).catch(function(){}).then(function(){
+          _active--;_done++;
+          if(_done>=list.length)__warmRun=false;
+          else _runOne();
+        },function(){
+          _active--;_done++;
+          if(_done>=list.length)__warmRun=false;
+          else _runOne();
+        });
+      }
+    }
+    _runOne();
   }catch(e){__warmRun=false;}
 }
 function warmSongUrl(song){
@@ -16212,28 +16218,32 @@ var _163Warmed=false;
     var box=document.getElementById("sa-results");if(!box)return;
     box.classList.add("show");
     box.innerHTML='<div style="padding:14px 6px;font-size:12px;color:#8E8E93;">搜索中…</div>';
-    var finish=function(list){
-      if(!list||!list.length){box.innerHTML='<div style="padding:14px 6px;font-size:12px;color:#8E8E93;">没搜到，换个关键词试试</div>';return;}
+    var _done=false,_timer=null;
+    function finish(list){
+      if(_done)return;
+      if(!list||!list.length)return;
+      _done=true;if(_timer)clearTimeout(_timer);
       box.innerHTML=list.slice(0,20).map(__songRowHTML).join("");
-    };
+    }
+    /* 两个源同时发，谁先回有效结果就用谁；以前后端慢/失败后才打公开接口，
+       两段等待叠加，搜一首歌要 5 秒以上。 */
     backendAddr(function(base){
       if(base){
         fetch(base+"/api/netease/search",{method:"POST",mode:"cors",headers:{"Content-Type":"application/json","x-wns-client":"1"},body:JSON.stringify({q:q,limit:20})})
           .then(function(r){if(!r.ok)return {};return r.json();})
-          .then(function(d){ if(d&&d.songs&&d.songs.length){finish(d.songs);return;} publicSearch(); })
-          .catch(publicSearch);
-      }else publicSearch();
+          .then(function(d){if(d&&d.songs&&d.songs.length)finish(d.songs);})
+          .catch(function(){});
+      }
     });
-    function publicSearch(){
-      fetch(_163api+"/search?keywords="+encodeURIComponent(q)+"&limit=20").then(function(r){return r.json();}).then(function(d){
-        var arr=(d&&d.result&&d.result.songs)||[];
-        finish(arr.map(function(t){
-          var ars=(t.ar||t.artists||[]).map(function(a){return a.name;}).filter(Boolean).join(" / ");
-          var al=t.al||t.album||{};
-          return {id:String(t.id),name:t.name,artist:ars,album:al.name||"",cover:al.picUrl||""};
-        }));
-      }).catch(function(){finish([]);});
-    }
+    fetch(_163api+"/search?keywords="+encodeURIComponent(q)+"&limit=20").then(function(r){return r.json();}).then(function(d){
+      var arr=(d&&d.result&&d.result.songs)||[];
+      finish(arr.map(function(t){
+        var ars=(t.ar||t.artists||[]).map(function(a){return a.name;}).filter(Boolean).join(" / ");
+        var al=t.al||t.album||{};
+        return {id:String(t.id),name:t.name,artist:ars,album:al.name||"",cover:al.picUrl||""};
+      }));
+    }).catch(function(){});
+    _timer=setTimeout(function(){if(!_done){_done=true;box.innerHTML='<div style="padding:14px 6px;font-size:12px;color:#8E8E93;">没搜到，换个关键词试试</div>';}},6000);
   }
   window.__songSearch=__songSearch;
   function __songAddFromRow(row){
