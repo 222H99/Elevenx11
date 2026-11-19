@@ -2120,7 +2120,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-19v43-6i">
+<meta name="app-build" content="2026-11-19v43-6j">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3756,7 +3756,7 @@ html.kb-typing #rotate-guard,html.kb-typing body #rotate-guard{display:none!impo
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
       <div class="set-group"><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
-<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-19v43-6i</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-19v43-6j</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5654,7 +5654,7 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-19",
-  noticeKey:"2026-11-19v43-6i",
+  noticeKey:"2026-11-19v43-6j",
   lead:"v43 全量修复：主站/预览补全 PWA 安装包，修复 Chrome 添加到主屏幕崩溃和进站黑白屏；登录恢复时先显示进入状态，网络超时自动用本地记录；日记/字卡返回固定回聊天页；数据先写本地快照，云端旧存档不再覆盖新改动；双击气泡贴表情可在设置关掉并调概率，主页评论/回复的输入框会跟着键盘上移。",
   items:[
     '<span class="an-gt">v43 · 启动 / PWA</span>',
@@ -5669,10 +5669,10 @@ var ANNOUNCE={
     '<span class="an-gt">v43 · 贴表情 / 键盘</span>',
     "双击气泡可贴 ❤️/👍/😂 等表情；设置里新增开关和对方贴表情概率，关掉后双击不再弹面板，长按菜单不受影响",
     "主页动态的评论和回复输入框会像留言板一样跟着键盘上移，键盘弹起后不会被挡住",
-    '<span class="an-gt">v43-6i · 平板打字不再被竖屏提示挡</span>',
-    "键盘一弹起就把可视区压短，页面会瞬间被 CSS 判成横屏，原来的竖屏提示层又冒出来挡住输入栏。现在只要正在输入，提示层一律隐藏",
-    "平板识别改成屏幕最短边 ≥600 / iPad / 安卓平板 UA 三重判断；平板横屏、分屏、键盘弹起都不再锁竖屏",
-    "聊天输入框恢复可选文本、可正常落光标；手机横屏不输入时仍提示竖屏，避免聊天栏和键盘挤在一起",
+    '<span class="an-gt">v43-6j · 加号应用统一返回聊天</span>',
+    "从聊天加号进字卡板块、设置、一起听、接力画画，返回键固定回聊天页；以前一起听可能被主页入口记录带偏，退到主页",
+    "刚进字卡页的 420ms 防误触保护不再拦返回键和顶栏/底栏，点进去马上返回也能一次退成功",
+    "收藏夹、问卷、搜索、红包、拍一拍、日记这些面板关闭后仍留在聊天页；从主页入口进的页面保持原来的返回目标",
     '<span class="an-gt">v43-6b · 安卓系统通知</span>',
     "APK 接入 Android 原生通知：设置页打开「消息通知」并允许系统权限后，来消息/动态/信件/留言会弹到通知栏，点通知直达聊天页",
     '<span class="an-gt">v43-6 · 音乐封面 / APK</span>',
@@ -5681,7 +5681,7 @@ var ANNOUNCE={
     '<span class="an-gt">v43 · 主动补发</span>',
     "主动动态、留言、信件的补发基准时间会立即落盘；这次没补出内容也会保存推进后的时间，避免重进后重复计算、等很久没动静或之后一次补一堆",
     '<span class="an-gt">v43 · 版本</span>',
-    "应用版本更新为 2026-11-19v43-6i，设置页和更新检查同步显示新版本",
+    "应用版本更新为 2026-11-19v43-6j，设置页和更新检查同步显示新版本",
     '<span class="an-gt">画画</span>',
     "聊天里收到的画不再被压成长条，图片按原比例完整显示",
     "画布恢复满宽，不再缩到 320；只压缩上下间距，底部两颗按钮仍完整可见",
@@ -14993,7 +14993,11 @@ function showView(id){
   $("plus-overlay").classList.remove("show");
   $("music-bg-sheet").classList.remove("show");
 }
-function closePlus(){$("plus-overlay").classList.remove("show");}
+function closePlus(){$("plus-overlay").classList.remove("show");window.__plusReturnTo="";}
+/* 加号里的应用统一记住「回聊天」，每页返回时消费一次；
+   主页入口进来的页面没有这个标记，仍按各自原来的返回目标走。 */
+function __plusMark(){window.__plusReturnTo="view-chat";}
+function __plusReturnView(fallback){var v=window.__plusReturnTo||fallback||"view-chat";window.__plusReturnTo="";return v;}
 /* 加号面板：下滑取消 */
 (function(){
   const sheet=$("plus-sheet");
@@ -15062,9 +15066,9 @@ try{
   var _tnb=document.getElementById("top-name-btn");if(_tnb)_tnb.addEventListener("click",_openPartnerHome);
   var _tav=document.getElementById("top-avatar-partner");if(_tav)_tav.addEventListener("click",_openPartnerHome);
 }catch(e){}
-$("plus-cards").addEventListener("click",()=>{closePlus();showView("view-cards");});
-$("plus-game").addEventListener("click",()=>{closePlus();if($("view-game").classList.contains("open"))return;/* 我邀请：总是先弹邀请确认，不再被旧 session 标记拦住 */drawInviteShown=false;pendingDrawInvId=null;drawInviteShown=true;drawInviteOpen("me");});
-$("plus-music").addEventListener("click",()=>{closePlus();if($("view-music").classList.contains("open")){return;}
+$("plus-cards").addEventListener("click",()=>{closePlus();__plusMark();showView("view-cards");});
+$("plus-game").addEventListener("click",()=>{closePlus();__plusMark();if($("view-game").classList.contains("open"))return;/* 我邀请：总是先弹邀请确认，不再被旧 session 标记拦住 */drawInviteShown=false;pendingDrawInvId=null;drawInviteShown=true;drawInviteOpen("me");});
+$("plus-music").addEventListener("click",()=>{closePlus();__plusMark();if($("view-music").classList.contains("open")){return;}
   /* 已经在听歌（不管有没有走过邀请流程）都不再发邀请；只有真的暂停/退出后才重新邀请 */
   var _au=musicAudio();
   if(musicSession||state.musicSession||(!_au.paused&&state.musicCur>=0)){
@@ -17597,7 +17601,7 @@ function stxt(t){var e=document.getElementById('ny-st'); if(e)e.textContent=t;}
     };
     rd.readAsDataURL(f);e.target.value="";
   });
-  $("btn-music-back").addEventListener("click",()=>{try{musicSession=(state&&state.musicSession)?true:musicSession;}catch(e){}showView(_musicFrom||"view-me");});
+  $("btn-music-back").addEventListener("click",()=>{try{musicSession=(state&&state.musicSession)?true:musicSession;}catch(e){}showView(__plusReturnView(_musicFrom||"view-me"));});
   $("btn-music-bg").addEventListener("click",function(e){
     /* 刚点过歌词页 ✕：这次是关闭后穿透下来的幽灵点击，不打开背景 */
     if(Date.now()-(window.__lyricCloseGuard||0)<600){
@@ -18308,7 +18312,7 @@ $("btn-game-back").addEventListener("click",()=>{
   var _to="view-chat";
   try{if(window.__gameReturn==="view-me"&&!$("view-chat").classList.contains("open"))_to="view-me";}catch(e){}
   try{window.__gameReturn="";}catch(e){}
-  showView(_to);
+  showView(__plusReturnView(_to));
 });
 if($("game-canvas")){bindGameCanvas();}
 /* 窗口/键盘尺寸变化后重排画布；只在画画页打开时做，避免影响聊天页 */
@@ -18429,8 +18433,8 @@ $("fav-clear")&&$("fav-clear").addEventListener("click",function(){
   toast("收藏已清空");
 });
 
-$("plus-settings").addEventListener("click",()=>{closePlus();window.__settingsEntryView="view-chat";window.__settingsBackTo="view-chat";_settingsFrom="view-chat";showView("view-settings");});
-$("btn-cards-back").addEventListener("click",()=>{try{window.__e11ClearSub&&window.__e11ClearSub();}catch(_){};showView("view-chat");});
+$("plus-settings").addEventListener("click",()=>{closePlus();__plusMark();window.__settingsEntryView="view-chat";window.__settingsBackTo="view-chat";_settingsFrom="view-chat";showView("view-settings");});
+$("btn-cards-back").addEventListener("click",()=>{try{window.__e11ClearSub&&window.__e11ClearSub();}catch(_){};showView(__plusReturnView("view-chat"));});
 /* 旧版情侣空间页的返回按钮原本没有绑定，顺手补上，避免进去后退不出来 */
 $("btn-couple-back").addEventListener("click",()=>showView("view-me"));
 /* 情侣空间背景：原来「背景」按钮没有事件，点了完全没反应 */
@@ -18462,6 +18466,7 @@ function __settingsBackView(){
 $("btn-settings-back").addEventListener("click",function(){
   var v=__settingsBackView();
   try{sessionStorage.removeItem("e11_settings_from");}catch(_){}
+  window.__plusReturnTo="";
   showView(v);
 });
 $("btn-letters-back").addEventListener("click",()=>showView("view-me"));
@@ -18486,7 +18491,7 @@ $("mom-name").addEventListener("click",function(){
   if(mpSide==="partner"){openPartnerProfile();return;}
   openMeEdit();
 });
-$("btn-redpacket-back").addEventListener("click",()=>showView("view-me"));
+$("btn-redpacket-back").addEventListener("click",()=>showView(__plusReturnView("view-me")));
 
 /* ===== 信件模板（开头 / 结尾字卡） ===== */
 var LT_TPL_OPEN=["展信佳","见字如面","展信舒颜","见字如晤","近来可好"];
@@ -22685,6 +22690,9 @@ document.addEventListener("pointerdown",function(e){
   try{
     if(Date.now()>=(window.__navClickGuard||0))return;
     var t=e.target;
+    /* 返回键、顶栏、底栏永远放行：以前整页 420ms 防误触把「返回」也拦住，
+       从加号进字卡后立刻点返回会以为按钮坏了。 */
+    if(t&&t.closest&&t.closest(".back-btn,.topbar,.top-btn,.bottombar,.send-btn,.bb-btn"))return;
     if(t&&t.closest&&(t.closest("#view-me")||t.closest("#view-cards"))){
       e.preventDefault();e.stopPropagation();
     }
@@ -22694,6 +22702,9 @@ document.addEventListener("click",function(e){
   try{
     if(Date.now()>=(window.__navClickGuard||0))return;
     var t=e.target;
+    /* 返回键、顶栏、底栏永远放行：以前整页 420ms 防误触把「返回」也拦住，
+       从加号进字卡后立刻点返回会以为按钮坏了。 */
+    if(t&&t.closest&&t.closest(".back-btn,.topbar,.top-btn,.bottombar,.send-btn,.bb-btn"))return;
     if(t&&t.closest&&(t.closest("#view-me")||t.closest("#view-cards"))){
       e.preventDefault();e.stopPropagation();
     }
