@@ -2178,7 +2178,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-20v43-7">
+<meta name="app-build" content="2026-11-20v43-8">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3118,7 +3118,15 @@ html.kb-typing #rotate-guard,html.kb-typing body #rotate-guard{display:none!impo
   </div>
   <style>@keyframes __veilSpin{to{transform:rotate(360deg)}}</style>
 </div>
-<script>setTimeout(function(){var v=document.getElementById("__veil");if(v)v.remove();},10000);</script>
+<script>
+window.__veilDone=function(){
+  var v=document.getElementById("__veil");if(!v)return;
+  v.style.transition="opacity .18s";v.style.opacity="0";
+  setTimeout(function(){if(v&&v.parentNode)v.parentNode.removeChild(v);},200);
+};
+/* 最多盖 4.5 秒；正常情况下账号层/声明页会提前撤掉 */
+setTimeout(function(){try{window.__veilDone();}catch(e){}},4500);
+</script>
 <!-- SVG 图标 -->
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="display:none">
   <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.3"/><path d="m15.6 15.6 5.4 5.4"/></symbol>
@@ -3821,7 +3829,7 @@ html.kb-typing #rotate-guard,html.kb-typing body #rotate-guard{display:none!impo
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-20v43-7</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-20v43-8</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5104,6 +5112,7 @@ html.kb-typing #rotate-guard,html.kb-typing body #rotate-guard{display:none!impo
   function bodyLock(on){try{document.body.classList.toggle("auth-locked",!!on);}catch(e){}}
   function setMsg(id,txt){var el=$(id);if(el)el.textContent=String(txt||"");}
   function setWait(title,sub){
+    try{window.__veilDone&&window.__veilDone();}catch(_e){}
     if(waitCard)waitCard.style.display="block";
     if(card)card.style.display="none";
     if(pwdCard)pwdCard.style.display="none";
@@ -5114,18 +5123,21 @@ html.kb-typing #rotate-guard,html.kb-typing body #rotate-guard{display:none!impo
     try{window.__bootDone&&window.__bootDone();}catch(_){}
   }
   function showLoginCard(){
+    try{window.__veilDone&&window.__veilDone();}catch(_e){}
     if(waitCard)waitCard.style.display="none";
     if(pwdCard)pwdCard.classList.remove("show");
     if(card)card.style.display="block";
     if(gate)gate.classList.add("show");bodyLock(true);
     try{window.__bootDone&&window.__bootDone();}catch(_){}
   }
-  function hideGate(){try{var _ae=document.activeElement;if(_ae&&(_ae.tagName==="INPUT"||_ae.tagName==="TEXTAREA"||_ae.tagName==="SELECT"||_ae.isContentEditable))_ae.blur();}catch(_e0){};if(gate)gate.classList.remove("show");bodyLock(false);
+  function hideGate(){try{window.__veilDone&&window.__veilDone();}catch(_e){}
+  try{var _ae=document.activeElement;if(_ae&&(_ae.tagName==="INPUT"||_ae.tagName==="TEXTAREA"||_ae.tagName==="SELECT"||_ae.isContentEditable))_ae.blur();}catch(_e0){};if(gate)gate.classList.remove("show");bodyLock(false);
   /* 真正进入账号空间后才定最终主题：登录/读云端之前一直沿用第一帧的明暗，
      否则默认浅色存档会先把夜间页面刷白，再跳回黑色。 */
   try{window.__themeReady=1;if(typeof applySkin==="function")applySkin();}catch(_eT){}
   try{window.__bootDone&&window.__bootDone();}catch(_){}}
   function showPwdCard(){
+    try{window.__veilDone&&window.__veilDone();}catch(_e){}
     if(card)card.style.display="none";
     if(waitCard)waitCard.style.display="none";
     if(pwdCard)pwdCard.classList.add("show");
@@ -5170,7 +5182,7 @@ html.kb-typing #rotate-guard,html.kb-typing body #rotate-guard{display:none!impo
   }
   function refreshSession(s){
     if(!s||!s.refresh_token)return Promise.reject(new Error("登录已过期，请重新登录"));
-    return api("/auth/v1/token?grant_type=refresh_token",{method:"POST",body:{refresh_token:s.refresh_token},timeout:5000}).then(function(d){
+    return api("/auth/v1/token?grant_type=refresh_token",{method:"POST",body:{refresh_token:s.refresh_token},timeout:12000}).then(function(d){
       if(!d||!d.access_token)throw new Error("刷新登录失败");
       var ns={access_token:d.access_token,refresh_token:d.refresh_token||s.refresh_token,expires_at:Date.now()+(Number(d.expires_in)||3600)*1000,user:d.user||s.user};
       saveSession(ns);return ns;
@@ -5181,17 +5193,17 @@ html.kb-typing #rotate-guard,html.kb-typing body #rotate-guard{display:none!impo
     var pre=(Number(s.expires_at)||0)>Date.now()+60000;
     var p=pre?Promise.resolve(s):refreshSession(s);
     return p.then(function(cur){
-      return api("/auth/v1/user",{token:cur.access_token,timeout:5000}).then(function(u){
+      return api("/auth/v1/user",{token:cur.access_token,timeout:12000}).then(function(u){
         if(!u||!u.id)throw new Error("登录校验失败");
         cur.user=u;saveSession(cur);return cur;
       });
     }).catch(function(e){
-      if(e&&e.status===401){return refreshSession(s).then(function(ns){return api("/auth/v1/user",{token:ns.access_token,timeout:5000}).then(function(u){ns.user=u;saveSession(ns);return ns;});});}
+      if(e&&e.status===401){return refreshSession(s).then(function(ns){return api("/auth/v1/user",{token:ns.access_token,timeout:12000}).then(function(u){ns.user=u;saveSession(ns);return ns;});});}
       throw e;
     });
   }
   function login(email,password){
-    return api("/auth/v1/token?grant_type=password",{method:"POST",body:{email:email,password:password}}).then(function(d){
+    return api("/auth/v1/token?grant_type=password",{method:"POST",body:{email:email,password:password},timeout:25000}).then(function(d){
       if(!d||!d.access_token)throw new Error("登录失败");
       var ns={access_token:d.access_token,refresh_token:d.refresh_token,expires_at:Date.now()+(Number(d.expires_in)||3600)*1000,user:d.user};
       saveSession(ns);return ns;
@@ -5377,7 +5389,17 @@ html.kb-typing #rotate-guard,html.kb-typing body #rotate-guard{display:none!impo
     /* 有本地登录态时先立刻显示“正在进入”，不要等网络校验：
        否则启动幕撤掉后页面会停在空白/黑白屏，看起来像网站打不开。 */
     setWait("正在进入你的空间","正在恢复本机存档…");
+    /* 网络慢/后端冷启动时，最多等 6 秒就先放进本地；后台继续校验，不能把人一直锁在白色等待层 */
+    var _slowBoot=setTimeout(function(){
+      try{
+        if(window.__e11AuthOk)return;
+        session=s;window.__e11AuthOk=true;window.__e11SkipLock=1;
+        window.__e11CloudStatus="后台校验中";hideGate();chipSync();
+        try{toast("网络较慢，已先用本地记录进入");}catch(_){}
+      }catch(_){}
+    },6000);
     validSession(s).then(function(cur){
+      try{clearTimeout(_slowBoot);}catch(_){}
       session=cur;window.__e11AuthOk=true;window.__e11SkipLock=1;
       var must=!!(cur.user&&cur.user.user_metadata&&cur.user.user_metadata.must_change_password);
       if(must){setAction({uid:cur.user.id,mode:"login"});showPwdCard();return;}
@@ -5389,6 +5411,7 @@ html.kb-typing #rotate-guard,html.kb-typing body #rotate-guard{display:none!impo
         hideGate();chipSync();
       }
     }).catch(function(e){
+      try{clearTimeout(_slowBoot);}catch(_){}
       /* 401/403 才是登录失效；断网、超时、Supabase 暂停不能把本地记录锁在登录层外面 */
       if(e&&(e.status===401||e.status===403)){
         clearSession();showLoginCard();setMsg("auth-msg","登录已过期，请重新输入密码。");return;
@@ -5400,7 +5423,7 @@ html.kb-typing #rotate-guard,html.kb-typing body #rotate-guard{display:none!impo
 
   function onLogin(){
     if(busy)return;
-    var a=$("auth-account")?$("auth-account").value.trim():"";
+    var a=$("auth-account")?$("auth-account").value.trim().toLowerCase().replace(/\s+/g,""):"";
     var p=$("auth-password")?$("auth-password").value:"";
     if(!a){setMsg("auth-msg","先输入账号");return;}
     if(!p){setMsg("auth-msg","先输入密码");return;}
@@ -5411,7 +5434,8 @@ html.kb-typing #rotate-guard,html.kb-typing body #rotate-guard{display:none!impo
     }).catch(function(e){
       busy=false;if(btn)btn.disabled=false;
       var st=e&&e.status;
-      setMsg("auth-msg",st===400?"账号或密码不对":(st===429?"尝试太频繁，稍后再试":("登录失败："+(e&&e.message||"网络连接失败"))));
+      var _em=(e&&e.message)||"网络连接失败";
+      setMsg("auth-msg",st===400?"账号或密码不对。若你没改过密码，说明这个账号的初始密码已失效，需要站主重置。":(st===429?"尝试太频繁，被临时限流；等 1 分钟再试，不是账号被封。":(st?"登录失败："+_em:"网络超时或断网。账号没被锁定，检查网络后再点一次。")));
     });
   }
 
@@ -5719,7 +5743,7 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-20",
-  noticeKey:"2026-11-20v43-7",
+  noticeKey:"2026-11-20v43-8",
   lead:"v43-7：把网页做成真正可安装的 PWA（标准 manifest + 同源 Service Worker + 离线启动），修复安卓表情包图片失效；表情图改为小尺寸入库、IndexedDB + Cache Storage 双备份，并申请永久存储。安装入口在「设置 → 安装到桌面」。",
   items:[
     '<span class="an-gt">v43-7 · 完整 PWA / 表情图</span>',
@@ -15445,7 +15469,13 @@ function showView(id){
     try{__rememberView(id);}catch(_){}
     /* 所有页面切换统一用旧页淡出：旧页不立刻撤，先在原位淡掉，
        目标页在下面已经画好；返回聊天、返回主页都不会再有一帧空白/亮暗突变。 */
-    if(_fadeFrom){try{__fadeOutView(_fadeFrom,110);}catch(_){}}
+    if(_fadeFrom){
+      if(id==="view-chat"){
+        /* 聊天页在隐藏态已经把列表铺好。这里直接撤旧页，不再让旧页半透明地压着聊天页淡出，
+           否则真机上会看到一帧白/亮底，就是“点聊天闪一下”。 */
+        try{_fadeFrom.classList.remove("open");}catch(_){}
+      }else{try{__fadeOutView(_fadeFrom,110);}catch(_){}}
+    }
     try{document.body.classList.add("app-ready");}catch(_){}
     try{if(document.getElementById("boot-veil"))window.__bootDone&&window.__bootDone();}catch(_){}
     try{document.body.classList.toggle("away-chat",id!=="view-chat");}catch(e){}
@@ -16100,7 +16130,10 @@ window.__syncMediaSession=__syncMediaSession;
 var __miniCoverAsked={};
 function refreshMiniPlayer(){
   const mp=$("mini-player");
-  const show=state.musicCur>=0&&!$("view-music").classList.contains("open");
+  /* 不能看 .open：切页时旧页要 110ms 后才撤 open，这期间小弹窗会被误判成“还在音乐页”而藏起来，
+     之后 timeupdate 又只刷新已显示的弹窗，于是它就一直不见了。 */
+  const _cur=window.__curView||"";
+  const show=state.musicCur>=0&&_cur!=="view-music";
   mp.classList.toggle("show",show);
   if(!show)return;
   mp.classList.toggle("collapsed",!!state.miniCollapsed);
@@ -22028,6 +22061,8 @@ function initAbout(){
     setTimeout(_waitReady,100);
   };
   _waitReady();
+  /* 极端情况下 IndexedDB/旧存档读取会卡住：5 秒后强制放行，避免声明页白屏且按钮点不动 */
+  setTimeout(function(){try{if(!_dbReady){_dbReady=true;_tryEnable();}}catch(e){}},5000);
   function _tryEnable(){
     if(!_dbReady)return;
     btn.disabled=false;
