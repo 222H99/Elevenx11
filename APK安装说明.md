@@ -1,37 +1,37 @@
-# Eleven×11 安卓安装包（v43-6w）
+# Eleven×11 安卓安装包（v43-6x）
 
 ## 文件
 
-- `Eleven11-v43-6w.apk`（约 0.6MB，内置 assets/index.html = 当前 v43-6w 页面）
+- `Eleven11-v43-6x.apk`（约 0.6MB，内置 assets/index.html = 当前 v43-6x 页面）
 - 包名：`com.eleven.elevenx11`
-- 版本：`2026-11-20v43-6w`（versionCode 24）
+- 版本：`2026-11-20v43-6x`（versionCode 25）
 - 最低系统：Android 7.0（API 24），targetSdk 33
 - 签名：Android Debug 证书（仅用于直接安装测试，不能上架应用商店）
 
 ## 怎么装
 
-1. 把 `Eleven11-v43-6w.apk` 传到手机（微信/QQ/网盘/数据线都行）。
+1. 把 `Eleven11-v43-6x.apk` 传到手机（微信/QQ/网盘/数据线都行）。
 2. 点开文件安装；如果提示「未知来源」，在系统设置里允许当前应用安装未知应用。
 3. 装好后桌面出现「Eleven×11」图标，点开就是完整 App。
 
 ## 如果已经装过 v43-6b 或更早同签名版本
 
-v43-6w 与 v43-6b 使用同一个 Android Debug 签名，可以直接覆盖安装，不需要卸载，本地数据保留。
+v43-6x 与 v43-6b 使用同一个 Android Debug 签名，可以直接覆盖安装，不需要卸载，本地数据保留。
 
 如果装的是更早的 `Eleven11_bp101.apk`，签名不同，安卓会提示「签名不一致、无法覆盖安装」。请先：
 
 1. 打开旧 App → 设置 → 导出备份（全量导出，保存 JSON 到手机）。
 2. 卸载旧 App。
-3. 安装 `Eleven11-v43-6w.apk`。
+3. 安装 `Eleven11-v43-6x.apk`。
 4. 打开新 App → 设置 → 导入备份，选择刚才的 JSON。
 
 ## 网页 / APK 一致性
 
-- 网页和 APK 内置的是同一个 `index.html`（MD5 `69ffd4f7fc6bfa50abc0fd8395ea2c9b`），版本号、批量导入、收藏、返回防误触都完全一致。
+- 网页和 APK 内置的是同一个 `index.html`（MD5 `6355a24760a5b8c15fca9b4ba8beb766`），版本号、批量导入、收藏、返回防误触都完全一致。
 - APK 页面加载版本查询已改为 `?v=43-6t`，不会因为 WebView 缓存还显示旧版。
 - APK 只额外承接 WebView 做不到的系统能力（原生通知、保存文件、后端代理），界面和交互仍用同一份页面。
 
-## v43-6w 修了什么
+## v43-6x 修了什么
 
 - 新增「流畅模式」，APK 默认开启，关闭毛玻璃模糊减少滑动卡顿；聊天首屏收敛到 100 条。
 - 修复后台通知递归：未开通知权限时后台来消息不再反复回调导致栈溢出。
@@ -40,7 +40,7 @@ v43-6w 与 v43-6b 使用同一个 Android Debug 签名，可以直接覆盖安�
 - 聊天字卡页默认回到「全部分组」：不再拿「回复用字卡分组」当浏览默认；只有你在字卡页明确点过某一组，才会记住那一组。
 - 部分机型信件背景全黑：深色主题/系统强制深色时，信纸固定白纸 + 深色字，信件列表也固定白底。
 - 保留 v43-6q 的补发不重复、批量提示只留一条，以及 v43-6p 的保活、历史图片恢复、表情面板重建。
-- APK versionCode 24 / versionName `2026-11-20v43-6w`，内置 `assets/index.html` MD5 `69ffd4f7fc6bfa50abc0fd8395ea2c9b`。
+- APK versionCode 25 / versionName `2026-11-20v43-6x`，内置 `assets/index.html` MD5 `6355a24760a5b8c15fca9b4ba8beb766`。
 
 ## v43-6n 修了什么
 
@@ -106,7 +106,7 @@ v43-6w 与 v43-6b 使用同一个 Android Debug 签名，可以直接覆盖安�
 | 系统通知 | 授权后能弹 | 已接原生通知（Android 13+ 需授权） |
 | 通知点击进聊天 | 支持 | 已接 |
 | 后台保活 | 靠浏览器 | 切后台 WebView 可能被系统节流；彻底划掉不能收 |
-| 相册/文件导入 | 系统选择器 | 系统选择器（已接） |
+| 相册/文件导入 | 系统选择器 | 原生相册选择 + 原生解码（HEIC/超大图也能转成普通 JPG/PNG） |
 | 导出备份 | 浏览器下载 | 已接原生保存到「下载/Eleven11」 |
 
 ## 说明
@@ -118,4 +118,4 @@ v43-6w 与 v43-6b 使用同一个 Android Debug 签名，可以直接覆盖安�
 3. 如果没弹：到系统设置 → 通知 → Eleven×11，确认允许通知、允许横幅/锁屏通知。
 
 GitHub Release：
-https://github.com/222H99/Elevenx11/releases/tag/v43-6w
+https://github.com/222H99/Elevenx11/releases/tag/v43-6x
