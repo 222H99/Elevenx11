@@ -2178,7 +2178,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-20v43-8">
+<meta name="app-build" content="2026-11-20v43-9">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3829,7 +3829,7 @@ setTimeout(function(){try{window.__veilDone();}catch(e){}},4500);
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-20v43-8</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-20v43-9</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -4742,8 +4742,8 @@ setTimeout(function(){try{window.__veilDone();}catch(e){}},4500);
       <button class="m-addbtn" id="m-addbtn">＋ 添加歌曲链接</button>
       <button class="m-addbtn" id="m-import-163" style="margin-top:8px;border-color:rgba(52,120,246,.3);color:var(--accent,#3478F6);background:rgba(52,120,246,.06);">🎵 批量导入网易云歌曲（粘贴链接 / ID）</button>
       <button class="m-addbtn" id="ny-acct-btn" style="margin-top:8px;border-color:rgba(0,0,0,.10);">网易云账号 · 未登录</button>
-      <button class="m-addbtn" id="m-import-local" style="margin-top:8px;border-color:rgba(52,120,246,.3);color:var(--accent,#3478F6);background:rgba(52,120,246,.06);">📁 导入本地音乐</button>
-      <input type="file" id="file-music-local" accept="audio/*" hidden>
+      <button class="m-addbtn" id="m-import-local" style="margin-top:8px;border-color:rgba(52,120,246,.3);color:var(--accent,#3478F6);background:rgba(52,120,246,.06);">📁 导入音乐 / MP4</button>
+      <input type="file" id="file-music-local" accept="audio/*,video/mp4,.mp4,.m4v" hidden>
     </div>
     <audio id="music-audio" preload="metadata" playsinline></audio>
   </div>
@@ -5743,7 +5743,7 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-20",
-  noticeKey:"2026-11-20v43-8",
+  noticeKey:"2026-11-20v43-9",
   lead:"v43-7：把网页做成真正可安装的 PWA（标准 manifest + 同源 Service Worker + 离线启动），修复安卓表情包图片失效；表情图改为小尺寸入库、IndexedDB + Cache Storage 双备份，并申请永久存储。安装入口在「设置 → 安装到桌面」。",
   items:[
     '<span class="an-gt">v43-7 · 完整 PWA / 表情图</span>',
@@ -16142,10 +16142,12 @@ function refreshMiniPlayer(){
   const s=state.musicPlaylist[state.musicCur];
   var _nm=s?(s.name||"未知歌曲"):"未知歌曲";
   var _ar=s?(s.artist||""):"";
-  if($("mp-name").textContent!==_nm)$("mp-name").textContent=_nm;
-  if($("mp-artist").textContent!==_ar)$("mp-artist").textContent=_ar;
+  var _pname=$("mp-name"),_part=$("mp-artist");
+  if(_pname&&_pname.textContent!==_nm)_pname.textContent=_nm;
+  if(_part&&_part.textContent!==_ar)_part.textContent=_ar;
   var _playHref=au.paused?"#i-mplay":"#i-mpause";
-  if($("mp-play-use").getAttribute("xlink:href")!==_playHref)setSvgUse("mp-play-use",_playHref);
+  var _mpUse=$("mp-play-use");
+  if(_mpUse&&_mpUse.getAttribute("xlink:href")!==_playHref)setSvgUse("mp-play-use",_playHref);
   // 缩小唱片：封面优先用用户设置的歌曲封面
   /* 优先我设置的照片：唱片中心图 → 自己换的封面 → 歌曲封面 */
   const _customCover=state.musicDiscInnerImg||state.musicCoverImg;
@@ -16748,10 +16750,14 @@ function playMusic(i){
     return;
   }
   // 加载提示
-  var _loading=$("mp-play");if(_loading)_loading.textContent="⏳";
+  var _loading=$("mp-play");if(_loading)_loading.style.opacity=".55";
   au.volume=state.musicVol;au.loop=(state.settings.musicMode||"order")==="loop";
-  au.oncanplay=function(){if(_loading)_loading.innerHTML='<svg class="icon" style="width:18px;height:18px;fill:currentColor;stroke:none"><use xlink:href="#i-mpause"/></svg>';};
+  au.oncanplay=function(){if(_loading)_loading.style.opacity="1";try{refreshMiniPlayer();}catch(_){}};
   function _startPlay(url){
+    au.onerror=function(){
+      if(song&&song.local)toast("这个本地文件的音频编码当前浏览器不支持，请转成 M4A / MP3 再导入");
+      try{var _pb=$("mp-play");if(_pb)_pb.style.opacity="1";setSvgUse("mp-play-use","#i-mplay");}catch(_){}
+    };
     au.src=url;
     try{au.load();}catch(e){}
     au.play().catch(async()=>{
@@ -17340,9 +17346,14 @@ var _163Warmed=false;
     var f=this.files&&this.files[0];
     if(!f)return;
     this.value="";
-    /* 只收音频、限大小：以前把整首歌 base64 塞进 state，一次导入就能把存档撑爆、整站卡死 */
-    if(!(/^audio\//.test(f.type||"")||/\.(mp3|m4a|aac|wav|ogg|oga|flac|opus|weba)$/i.test(f.name||""))){toast("这不是音频文件，换一个试试");return;}
-    if(f.size>60*1024*1024){toast("音频超过 60MB，导入会卡住，请先压缩或剪短");return;}
+    /* 音频 + MP4：MP4 只取音轨播放（不保存画面），给从视频里扒下来的歌用。
+       仍然限大小：整首歌存 IndexedDB，太大的视频会把手机存储和播放拖垮。 */
+    var _fn=String(f.name||""),_ft=String(f.type||"");
+    var _isMp4=/^video\/mp4$/i.test(_ft)||/\.(mp4|m4v)$/i.test(_fn);
+    var _isAudio=/^audio\//i.test(_ft)||/\.(mp3|m4a|aac|wav|ogg|oga|flac|opus|weba|mp4|m4v)$/i.test(_fn);
+    if(!_isAudio&&!_isMp4){toast("这不是音频或 MP4 文件，换一个试试");return;}
+    var _max=_isMp4?120*1024*1024:60*1024*1024;
+    if(f.size>_max){toast(_isMp4?"MP4 超过 120MB，导入会卡住，请先剪短或压小":"音频超过 60MB，导入会卡住，请先压缩或剪短");return;}
     var name=f.name.replace(/\.[^.]+$/,"");
     var parts=name.split("-");
     var songName=name,artist="";
@@ -17363,7 +17374,7 @@ var _163Warmed=false;
       var it={id:uid(),name:songName,artist:artist,localBlob:key,local:1};
       state.musicPlaylist.push(it);try{save();}catch(e){}
       try{renderMusicList();}catch(e){}
-      toast("已导入："+songName);
+      toast((_isMp4?"已导入 MP4 音轨：":"已导入：")+songName);
       try{playMusic(state.musicPlaylist.length-1);}catch(e){}
       try{recognizeLocalSong(it);}catch(e){}
     }).catch(function(){fallbackMem("已导入（存储不足，重开需重新导入）");});
