@@ -2150,7 +2150,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-20v43-6s">
+<meta name="app-build" content="2026-11-20v43-6t">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3787,7 +3787,7 @@ html.kb-typing #rotate-guard,html.kb-typing body #rotate-guard{display:none!impo
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
       <div class="set-group"><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
-<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-20v43-6s</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-20v43-6t</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5685,10 +5685,10 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-20",
-  noticeKey:"2026-11-20v43-6s",
+  noticeKey:"2026-11-20v43-6t",
   lead:"v43 全量修复：主站/预览补全 PWA 安装包，修复 Chrome 添加到主屏幕崩溃和进站黑白屏；登录恢复时先显示进入状态，网络超时自动用本地记录；日记/字卡返回固定回聊天页；数据先写本地快照，云端旧存档不再覆盖新改动；双击气泡贴表情可在设置关掉并调概率，主页评论/回复的输入框会跟着键盘上移。",
   items:[
-    '<span class="an-gt">v43-6s · 启动桌面 / 信纸</span>',
+    '<span class="an-gt">v43-6t · 启动即桌面</span>',
     "APK 从主屏幕或别的应用切回来不再整页重载：回到上次的聊天页/主页，不退回公告；新增任务保留和大内存开关",
     "从后台回来表情面板先空白的问题：每次打开面板都重建格子，并立即把本机备份里的表情补回来",
     "对方发来的图片/画作/表情如果原图丢了，不再显示空白气泡，改成「图片已失效 / 表情已失效」并自动从本机副本恢复",
@@ -15305,6 +15305,15 @@ function __bootView(){
 }
 window.__bootView=__bootView;
 /* 安卓 onResume 调用：页面没有被系统杀掉时，不重载整页，只把可能空白的图和表情刷回来 */
+/* 安卓从桌面图标/最近任务把已开着的任务拉到前台：回到桌面首屏。
+   只走 onNewIntent 的普通启动 intent，不影响通知 open_chat 直达聊天。 */
+window.__androidLauncherHome=function(){
+  try{
+    try{if(window.__closeEnvelope)__closeEnvelope(document.getElementById("env-flip"));}catch(_){}
+    try{closePlus();}catch(_){}
+    if(window.__curView!=="view-me")showView("view-me");
+  }catch(_){}
+};
 window.__androidResume=function(){
   try{
     setTimeout(function(){
