@@ -2150,7 +2150,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-20v43-6u">
+<meta name="app-build" content="2026-11-20v43-6v">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3787,7 +3787,7 @@ html.kb-typing #rotate-guard,html.kb-typing body #rotate-guard{display:none!impo
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
       <div class="set-group"><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
-<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-20v43-6u</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-20v43-6v</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5685,10 +5685,10 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-20",
-  noticeKey:"2026-11-20v43-6u",
+  noticeKey:"2026-11-20v43-6v",
   lead:"v43 全量修复：主站/预览补全 PWA 安装包，修复 Chrome 添加到主屏幕崩溃和进站黑白屏；登录恢复时先显示进入状态，网络超时自动用本地记录；日记/字卡返回固定回聊天页；数据先写本地快照，云端旧存档不再覆盖新改动；双击气泡贴表情可在设置关掉并调概率，主页评论/回复的输入框会跟着键盘上移。",
   items:[
-    '<span class="an-gt">v43-6u · 启动即桌面</span>',
+    '<span class="an-gt">v43-6v · 启动即桌面</span>',
     "APK 从主屏幕或别的应用切回来不再整页重载：回到上次的聊天页/主页，不退回公告；新增任务保留和大内存开关",
     "从后台回来表情面板先空白的问题：每次打开面板都重建格子，并立即把本机备份里的表情补回来",
     "对方发来的图片/画作/表情如果原图丢了，不再显示空白气泡，改成「图片已失效 / 表情已失效」并自动从本机副本恢复",
@@ -5932,7 +5932,9 @@ function notifySystem(m,opts){
   /* 没有通知权限时不静默：退回 App 内弹窗，保证「总有一个提示」 */
   if(!("Notification" in window)||Notification.permission!=="granted"){
     if("Notification" in window&&Notification.permission==="default"){try{Notification.requestPermission();}catch(e){}}
-    try{if(typeof maybeShowIncomingPop==="function")maybeShowIncomingPop(m,true);}catch(e){}
+    /* 无通知权限时才退回 App 内提示；页面在后台时不能弹，否则
+       maybeShowIncomingPop(hidden) → notifySystem(无权限) → maybeShowIncomingPop 会递归到栈溢出 */
+    if(!document.hidden){try{if(typeof maybeShowIncomingPop==="function")maybeShowIncomingPop(m,true);}catch(e){}}
     return;
   }
   var _sil=!!(opts&&opts.silent);
@@ -6039,7 +6041,7 @@ function maybeShowIncomingPop(m,force,test){
      4) 30 秒前的旧消息/补发内容不弹，避免一进桌面就补一堆过期提示。 */
   if(!test){
     try{if(typeof window.__msgPopOn==="function"&&window.__msgPopOn()===false){hideIncomingPop();return;}}catch(_){}
-    if(document.hidden){if(!m.__notified)notifySystem(m,{silent:m.type==="poke"});return;}
+    if(document.hidden){if(!m.__notified){m.__notified=1;notifySystem(m,{silent:m.type==="poke"});}return;}
     if($("view-chat")&&$("view-chat").classList.contains("open"))return;
     var _mt=Number(m.time)||0;
     if(_mt&&Date.now()-_mt>30000&&!m.active)return;
