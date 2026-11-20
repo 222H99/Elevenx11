@@ -2130,7 +2130,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-20v43-6p">
+<meta name="app-build" content="2026-11-20v43-6q">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3767,7 +3767,7 @@ html.kb-typing #rotate-guard,html.kb-typing body #rotate-guard{display:none!impo
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
       <div class="set-group"><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
-<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-20v43-6p</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-20v43-6q</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5665,10 +5665,10 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-20",
-  noticeKey:"2026-11-20v43-6p",
+  noticeKey:"2026-11-20v43-6q",
   lead:"v43 全量修复：主站/预览补全 PWA 安装包，修复 Chrome 添加到主屏幕崩溃和进站黑白屏；登录恢复时先显示进入状态，网络超时自动用本地记录；日记/字卡返回固定回聊天页；数据先写本地快照，云端旧存档不再覆盖新改动；双击气泡贴表情可在设置关掉并调概率，主页评论/回复的输入框会跟着键盘上移。",
   items:[
-    '<span class="an-gt">v43-6p · 保活 / 图片 / 表情</span>',
+    '<span class="an-gt">v43-6q · 补发 / 保活 / 图片</span>',
     "APK 从主屏幕或别的应用切回来不再整页重载：回到上次的聊天页/主页，不退回公告；新增任务保留和大内存开关",
     "从后台回来表情面板先空白的问题：每次打开面板都重建格子，并立即把本机备份里的表情补回来",
     "对方发来的图片/画作/表情如果原图丢了，不再显示空白气泡，改成「图片已失效 / 表情已失效」并自动从本机副本恢复",
@@ -10776,8 +10776,9 @@ function catchUpSocial(){
     var mt=[];
     /* 先按时间轴把到点的次数全部取出来；每一次在下面单独掷一次概率。
        旧写法先整段掷一次、再在循环里为每次重掷一次，15% 实际变成 2.25%，所以会出现“几天都不发”。 */
-    if(Number(state.settings.socialProbMoments)>0){mt=dueList(state.settings.lastMomentsTime,state.settings.momentsMinMin,state.settings.momentsMinMax,capFor(state.settings.lastMomentsTime,state.settings.catchMomentsPerHour));}
-    else{try{state.settings.lastMomentsTime=now;}catch(e){}}
+    var _mCap=capFor(state.settings.lastMomentsTime,state.settings.catchMomentsPerHour);
+    if(Number(state.settings.socialProbMoments)>0&&_mCap>0){mt=dueList(state.settings.lastMomentsTime,state.settings.momentsMinMin,state.settings.momentsMinMax,_mCap);}
+    else if(Number(state.settings.socialProbMoments)<=0||_mCap<=0){try{state.settings.lastMomentsTime=now;}catch(e){}}
     for(var i=0;i<mt.length;i++){
       /* 补发也要按每一次动态的概率来掷骰子；只在进入时掷一次会把 15% 的间隔全补成动态，像刷屏。 */
       if(!probPct("socialProbMoments"))continue;
@@ -10789,11 +10790,14 @@ function catchUpSocial(){
       state.moments.push({id:uid(),from:"partner",text:_pp.text,img:_pp.img||"",repostOf:_pp.repostOf,likes:[],comments:[],time:mt[i],unread:true,unreadKind:"post"});
       newM++;momAdd++;changed=true;
     }
-    if(mt.length){try{state.settings.lastMomentsTime=mt[mt.length-1];}catch(e){}}else if(!Number(state.settings.lastMomentsTime)){try{state.settings.lastMomentsTime=now;}catch(e){}}
+    /* 补过一轮就把基准推进到“现在”，不留在最后一条旧时间：
+       否则每次切后台回来都从同一个旧基准再补一批，用户会看到同一段时间反复冒出留言/动态。 */
+    if(mt.length){try{state.settings.lastMomentsTime=now;}catch(e){}}else if(!Number(state.settings.lastMomentsTime)){try{state.settings.lastMomentsTime=now;}catch(e){}}
     /* 评论：分散补在我最新 3 条动态上，遵守每条动态上限；概率 0 时不补 */
     var ct=[];
-    if(Number(state.settings.socialProbMomentComment)>0){ct=dueList(state.settings.lastCommentTime,state.settings.commentMinMin,state.settings.commentMaxMin,capFor(state.settings.lastCommentTime,state.settings.catchCommentPerHour));}
-    else{try{state.settings.lastCommentTime=now;}catch(e){}}
+    var _cCap=capFor(state.settings.lastCommentTime,state.settings.catchCommentPerHour);
+    if(Number(state.settings.socialProbMomentComment)>0&&_cCap>0){ct=dueList(state.settings.lastCommentTime,state.settings.commentMinMin,state.settings.commentMaxMin,_cCap);}
+    else if(Number(state.settings.socialProbMomentComment)<=0||_cCap<=0){try{state.settings.lastCommentTime=now;}catch(e){}}
     var mine=(state.moments||[]).filter(function(x){return x.from==="me";}).sort(function(a,b){return b.time-a.time;});
     var top3=mine.slice(0,3);
     var perCap=Math.max(1,Math.round(Number(state.settings.commentPerPostMax)||3));
@@ -10811,11 +10815,12 @@ function catchUpSocial(){
       m2.comments.push({id:_cupId,from:"partner",text:joinCards(c),time:ct[j],likes:[],replies:[]});
       m2.unread=true;m2.unreadKind="comment";newM++;comAdd++;changed=true;
     }
-    if(ct.length){try{state.settings.lastCommentTime=ct[ct.length-1];}catch(e){}}else if(!Number(state.settings.lastCommentTime)){try{state.settings.lastCommentTime=now;}catch(e){}}
+    if(ct.length){try{state.settings.lastCommentTime=now;}catch(e){}}else if(!Number(state.settings.lastCommentTime)){try{state.settings.lastCommentTime=now;}catch(e){}}
     /* 留言：概率 0 时不补 */
     var nt=[];
-    if(Number(state.settings.socialProbNote)>0){nt=dueList(state.settings.lastNoteTime,state.settings.noteMinMin,state.settings.noteMaxMin,capFor(state.settings.lastNoteTime,state.settings.catchNotePerHour));}
-    else{try{state.settings.lastNoteTime=now;}catch(e){}}
+    var _nCap=capFor(state.settings.lastNoteTime,state.settings.catchNotePerHour);
+    if(Number(state.settings.socialProbNote)>0&&_nCap>0){nt=dueList(state.settings.lastNoteTime,state.settings.noteMinMin,state.settings.noteMaxMin,_nCap);}
+    else if(Number(state.settings.socialProbNote)<=0||_nCap<=0){try{state.settings.lastNoteTime=now;}catch(e){}}
     for(var k2=0;k2<nt.length;k2++){
       /* 每条留言单独掷骰子，避免补发时绕过“主动留言概率”一次刷一堆 */
       if(!probPct("socialProbNote"))continue;
@@ -10827,7 +10832,7 @@ function catchUpSocial(){
       try{gbUnread.push(pid);}catch(e){}
       newN++;noteAdd++;changed=true;
     }
-    if(nt.length){try{state.settings.lastNoteTime=nt[nt.length-1];}catch(e){}}else if(!Number(state.settings.lastNoteTime)){try{state.settings.lastNoteTime=now;}catch(e){}}
+    if(nt.length){try{state.settings.lastNoteTime=now;}catch(e){}}else if(!Number(state.settings.lastNoteTime)){try{state.settings.lastNoteTime=now;}catch(e){}}
     if(changed){
       try{updateNewBadge();}catch(e){}
       try{save();}catch(e){}
@@ -10876,14 +10881,14 @@ function catchUpMissed(){
     var a=Math.max(0,Number(state.settings.letterMinSec)||0);
     var b=Math.max(a,Number(state.settings.letterMaxSec)||a);
     var gap=function(){return Math.max(1000,Math.round(rand(a*1000,b*1000)));};
-    var due=last+gap(),sent=0,lastDue=0,tries=0;
+    var due=last+gap(),sent=0,tries=0;
     var _rawCap=state.settings.letterCatchMax;
     var _cap=Math.min(200,Math.max(0,Math.round(_rawCap===undefined||_rawCap===null||_rawCap===""?5:Number(_rawCap))));
     if(_cap<=0){state.settings.lastLetterTime=now;return;}
-    /* 每封到点的信单独掷概率；无论掷中与否都把基准推进到这次尝试的时刻，
-       否则一次没抽中，下次打开还会从同一个旧时刻重新补，越补越多。 */
+    /* 每封到点的信单独掷概率；只要这一轮真的尝试过，就把基准推进到“现在”。
+       只推进到最后一次旧时间的话，下次切后台回来还会从同一个旧基准继续补，
+       用户会看到同一段离开时间反复冒出信件。 */
     while(due<=now&&tries<_cap){
-      lastDue=due;
       tries++;
       if(!probPct("socialProbLetter")){due+=gap();continue;}
       var n=Math.max(1,Math.round(rand(Number(state.settings.activeLetterCountMin)||1,Number(state.settings.activeLetterCountMax)||1)));
@@ -10896,14 +10901,13 @@ function catchUpMissed(){
       }
       due+=gap();
     }
-    if(lastDue){state.settings.lastLetterTime=lastDue;}
+    if(tries){state.settings.lastLetterTime=now;}
     if(sent){
-      state.settings.lastLetterTime=lastDue;
       newL+=sent;updateNewBadge();renderLetters();
       /* 启动补发（人不在的时候到点的信）不算「刚刚发生」：只安静地插一条聊天提示，
          不弹顶部提示条、不发系统通知，否则每次打开网站都会先弹一次「对方给你写了封信」 */
       var _newlid=pushMsg("partner","sys","📮 对方给你写了封信",{quiet:true});__appendChatMsg(_newlid);save();
-    }else if(lastDue){save();}
+    }else if(tries){save();}
   }catch(e){}
 }
 /* 保活用的静音音频与状态（之前这几个变量没声明，导致保活实际没跑起来） */
@@ -21478,7 +21482,7 @@ function maybePartnerMomentPost(force){
   // 对方主动发新动态：一次触发按设置发 N 条，每条用 1~N 张字卡拼成
   if(!force&&!probPct("socialProbMoments"))return;
   const cnt=Math.max(1,Math.round(rand(Number(state.settings.momentBurstMin)||1,Number(state.settings.momentBurstMax)||1)));
-  const _used=[];
+  const _used=[];var sent=0;
   for(let i=0;i<cnt;i++){
     const n=Math.max(1,Math.round(rand(Number(state.settings.activeMomentsCountMin)||1,Number(state.settings.activeMomentsCountMax)||3)));
     let cards=pickCardsN(n,"moment");if(!cards||!cards.length)continue;
@@ -21496,10 +21500,15 @@ function maybePartnerMomentPost(force){
     const _pp=_rp||{text:joinCards(cards)};
     var _nid=uid();
     state.moments.push({id:_nid,from:"partner",text:_pp.text,img:_pp.img||"",repostOf:_pp.repostOf,likes:[],comments:[],time:Date.now(),unread:true,unreadKind:"post"});
-    newM++;updateNewBadge();
+    newM++;sent++;
+  }
+  if(sent){
+    /* 一次连发多条只提示一次，不按条数重复弹 toast / 重复追加聊天提示 */
+    try{updateNewBadge();}catch(e){}
     try{__momentNotice();}catch(e){}
-    save();renderMoments();
-    toast("对方发了新动态");save();
+    try{save();renderMoments();}catch(e){}
+    try{toast(sent>1?("对方发了 "+sent+" 条新动态"):"对方发了新动态");}catch(e){}
+    try{save();}catch(e){}
   }
 }
 function commentDelay(){
@@ -21538,7 +21547,7 @@ function maybePartnerLetter(force,immediate){
   /* 定时器已经按「信件最快/最慢」等过一次了，这里不能再等第二次：
      旧写法是 scheduleLetter 等 letterDelay，再调本函数又等 letterDelay，
      实际间隔变成设置的 2 倍，看起来就是“信件一直不来”。 */
-  const d0=immediate?0:letterDelay();
+  var sent=0;
   for(let i=0;i<cnt;i++){
     const body=joinCards(pickLetterCards(Math.max(1,Math.round(rand(Number(state.settings.activeLetterCountMin)||1,Number(state.settings.activeLetterCountMax)||1)))));if(!body)continue; // 写信条数区间（设置）
     const subjects=["想你","碎碎念","分享","无题","随笔","突然","想起","碎片","小记","日常","展信安","见信好"];
@@ -21547,17 +21556,22 @@ function maybePartnerLetter(force,immediate){
        定时器到点本身就是“发信时刻”，这里直接落盘。 */
     var _bs3=_borrowStyle();
     state.letters.push({id:uid(),from:"partner",subject:r,body:partnerLetterBody(body),time:Date.now(),paperBg:_bs3&&_bs3.paperBg,envBg:_bs3&&_bs3.envBg});
+    newL++;sent++;
+  }
+  if(sent){
     try{state.settings.lastLetterTime=Date.now();}catch(e){}
-    newL++;updateNewBadge();
-    try{var _lid=pushMsg("partner","sys","✉️ 对方给你写了一封信");__appendChatMsg(_lid);}catch(e){}
-    save();renderLetters();toast("对方给你来信了");save();
+    try{updateNewBadge();}catch(e){}
+    try{var _lid=pushMsg("partner","sys",sent>1?("✉️ 对方给你写了封信（"+sent+" 封）"):"✉️ 对方给你写了一封信");__appendChatMsg(_lid);}catch(e){}
+    try{save();renderLetters();}catch(e){}
+    try{toast(sent>1?("对方给你写了 "+sent+" 封信"):"对方给你来信了");}catch(e){}
+    try{save();}catch(e){}
   }
 }
 function maybePartnerNote(force,immediate){
   if(!force&&!probPct("socialProbNote"))return; // 对方主动留言概率（设置，force=按设定时间必发）
   const cnt=Math.max(1,Math.round(rand(Number(state.settings.noteBurstMin)||1,Number(state.settings.noteBurstMax)||1)));
   /* 定时器已经等过 noteDelay，这里立即发出，避免留言被拖成两倍间隔 */
-  const d0=immediate?0:noteDelay();
+  var sent=0;
   for(let i=0;i<cnt;i++){
     const card=joinCards(pickCardsN(Math.max(1,Math.round(rand(Number(state.settings.activeNoteCountMin)||1,Number(state.settings.activeNoteCountMax)||1)))));
     if(!card)continue; // 留言条数区间（设置）
@@ -21565,9 +21579,14 @@ function maybePartnerNote(force,immediate){
     const pid=uid();
     state.guestbook.push({id:pid,from:"partner",text:card,time:Date.now(),unread:true});
     gbUnread.push(pid);
-    newN++;updateNewBadge();
-    try{var _noteid=pushMsg("partner","sys","💬 对方给你留言了");__appendChatMsg(_noteid);}catch(e){}
-    save();renderGuestbook();scrollNotes();toast("对方给你留言了");save();
+    newN++;sent++;
+  }
+  if(sent){
+    try{updateNewBadge();}catch(e){}
+    try{var _noteid=pushMsg("partner","sys",sent>1?("💬 对方给你留了 "+sent+" 条留言"):"💬 对方给你留言了");__appendChatMsg(_noteid);}catch(e){}
+    try{save();renderGuestbook();scrollNotes();}catch(e){}
+    try{toast(sent>1?("对方给你留了 "+sent+" 条留言"):"对方给你留言了");}catch(e){}
+    try{save();}catch(e){}
   }
 }
 function noteDelay(){
