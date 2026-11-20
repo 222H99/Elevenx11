@@ -2152,7 +2152,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-20v43-6w">
+<meta name="app-build" content="2026-11-20v43-6x">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3789,7 +3789,7 @@ html.kb-typing #rotate-guard,html.kb-typing body #rotate-guard{display:none!impo
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
       <div class="set-group"><div class="set-row"><span class="set-label">流畅模式<div class="set-sub">关闭毛玻璃模糊，减少低配机/APK 的滑动卡顿；APK 默认开启，网页默认关闭</div></span><button class="switch" id="sw-perf"></button></div><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
-<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-20v43-6w</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-20v43-6x</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5687,10 +5687,10 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-20",
-  noticeKey:"2026-11-20v43-6w",
+  noticeKey:"2026-11-20v43-6x",
   lead:"v43 全量修复：主站/预览补全 PWA 安装包，修复 Chrome 添加到主屏幕崩溃和进站黑白屏；登录恢复时先显示进入状态，网络超时自动用本地记录；日记/字卡返回固定回聊天页；数据先写本地快照，云端旧存档不再覆盖新改动；双击气泡贴表情可在设置关掉并调概率，主页评论/回复的输入框会跟着键盘上移。",
   items:[
-    '<span class="an-gt">v43-6w · 启动即桌面</span>',
+    '<span class="an-gt">v43-6x · 启动即桌面</span>',
     "APK 从主屏幕或别的应用切回来不再整页重载：回到上次的聊天页/主页，不退回公告；新增任务保留和大内存开关",
     "从后台回来表情面板先空白的问题：每次打开面板都重建格子，并立即把本机备份里的表情补回来",
     "对方发来的图片/画作/表情如果原图丢了，不再显示空白气泡，改成「图片已失效 / 表情已失效」并自动从本机副本恢复",
@@ -7808,6 +7808,8 @@ function applySkin(){
 
   const r=document.documentElement.style,s=state.skin;
   const dark=__effectiveDark();
+  /* APK 系统栏/导航栏/WebView 底色同步：浅色主题不再保留黑底，减少启动和切页时的黑白闪 */
+  try{if(window.AndroidUI&&typeof AndroidUI.setTheme==="function")AndroidUI.setTheme(!!dark);}catch(_){}
   /* 记下当前真正生效的明暗，下次冷启动第一帧就能直接用这个底色，不再闪。
      只有最终存档已确定（__themeReady）才允许写；否则默认浅色会把夜间键覆盖成 light。 */
   try{if(window.__themeReady)localStorage.setItem("__theme.v1",dark?"dark":"light");}catch(_e){}
@@ -14476,10 +14478,52 @@ function __pickFile(accept,onFile){
 }
 /* 让页面上原有的隐藏 input 在点击瞬间挪到屏幕中间、变成 44×44，iOS 才会弹系统选择器。
    选完/取消后自动还原成 hidden，不改变各输入框已有的 change 逻辑。 */
+/* ===== Android 原生选图（HEIC/超大图/OEM 相册兼容） =====
+   网页版没有 AndroidUI.pickImage，完全走原来的 <input type=file>。
+   APK 里点换照片时先在原生解码成 JPEG/PNG，再回填给页面，避免“有些照片换不了”。 */
+window.__androidPickJobs=window.__androidPickJobs||{};
+window.__androidStartPick=function(job){
+  try{
+    if(!window.AndroidUI||typeof window.AndroidUI.pickImage!=="function")return false;
+    var token="ip"+Date.now().toString(36)+Math.floor(Math.random()*1e6);
+    window.__androidPickJobs[token]=job||{};
+    window.AndroidUI.pickImage(token);
+    return true;
+  }catch(e){return false;}
+};
+function __dataUrlToFile(dataUrl,name){
+  var comma=String(dataUrl).indexOf(",");if(comma<0)throw new Error("bad data url");
+  var head=String(dataUrl).slice(0,comma),mime=(/data:([^;]+)/.exec(head)||[])[1]||"image/jpeg";
+  var bin=atob(String(dataUrl).slice(comma+1)),u8=new Uint8Array(bin.length);
+  for(var i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);
+  return new File([u8],name||("photo."+(mime.indexOf("png")>=0?"png":"jpg")),{type:mime});
+}
+window.__androidPickedImage=function(token,dataUrl){
+  var job=window.__androidPickJobs[token];if(!job)return;delete window.__androidPickJobs[token];
+  try{
+    var file=__dataUrlToFile(dataUrl);
+    if(job.input){
+      var inp=document.getElementById(job.input);if(!inp)return;
+      try{
+        var dt=new DataTransfer();dt.items.add(file);inp.files=dt.files;
+      }catch(_e){
+        try{Object.defineProperty(inp,"files",{configurable:true,value:[file]});}catch(__e){}
+      }
+      inp.dispatchEvent(new Event("change",{bubbles:true}));
+    }else if(typeof job.fn==="function"){
+      job.fn([file]);
+    }
+  }catch(e){try{toast("这张照片处理失败，换一张 JPG/PNG 试试");}catch(_){}}
+};
+window.__androidPickCancel=function(token){try{delete window.__androidPickJobs[token];}catch(_){}};
+window.__androidPickError=function(token,msg){try{delete window.__androidPickJobs[token];}catch(_){};try{toast(msg||"这张照片读不出来，换一张试试");}catch(_){}};
+
 function __nativePick(id){
   var inp=document.getElementById(id);
   if(!inp){try{toast("找不到上传控件："+id);}catch(e){}return;}
   try{
+    /* 图片类输入统一交给原生解码；换头像/聊天发图/动态图都能用 */
+    if(/image/i.test(inp.accept||"")&&window.__androidStartPick({input:id}))return;
     inp.__oldStyle=inp.getAttribute("style")||"";
     /* 原来 input 挂在带 transform:scale 的舞台里，position:fixed 会以舞台为参照，
        iOS 上可能不在屏幕中间、系统选择器不弹。点之前临时挂到 body，选完再放回原位。 */
@@ -14521,6 +14565,8 @@ window.__nativePick=__nativePick;
    临时做成屏幕中央的 44×44 透明控件、挂进缩放舞台，选完或取消后自动移除。 */
 function __pickLocalFile(accept,onFiles,opts){
   try{
+    /* APK 里图片选择先走原生：支持 HEIC/超大图，也绕开部分厂商文件选择器返回空 URI */
+    if(/image/i.test(accept||"")&&!(opts&&opts.multiple)&&window.__androidStartPick({fn:onFiles}))return null;
     var inp=document.createElement("input");
     inp.type="file";inp.accept=accept||"image/*";
     if(opts&&opts.multiple)inp.multiple=true;
