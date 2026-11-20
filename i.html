@@ -637,8 +637,8 @@ body.ui-dark:not(.lt-preset) .env-card .ev-sig{color:rgba(255,255,255,.62) !impo
 }
 :where(.msg-row.me) .bubble{background:var(--mybubble);color:var(--mytext);border-bottom-right-radius:var(--tail);}
 :where(.msg-row.partner) .bubble{background:var(--partbubble);color:var(--parttext);border-bottom-left-radius:var(--tail);}
-.bubble img.bimg{max-width:100%;max-height:min(300px,calc(var(--ep-h,74px) * 2.4));border-radius:10px;display:block;}
-.msg-photo{max-width:200px;max-height:260px;width:auto;height:auto;border-radius:14px;display:block;object-fit:cover;background:rgba(120,120,128,.10);box-shadow:0 2px 10px rgba(0,0,0,.08);}
+.bubble img.bimg{max-width:100%;max-height:min(300px,calc(var(--ep-h,74px) * 2.4));border-radius:10px;display:block;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;}
+.msg-photo{max-width:200px;max-height:260px;width:auto;height:auto;border-radius:14px;display:block;object-fit:cover;background:rgba(120,120,128,.10);box-shadow:0 2px 10px rgba(0,0,0,.08);-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;}
 .msg-row.me .msg-photo{margin-left:auto;}
 .msg-imgfail{max-width:200px;min-width:132px;min-height:92px;padding:12px 14px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;text-align:center;background:rgba(120,120,128,.10);border:1px dashed rgba(120,120,128,.34);color:rgba(120,120,128,.92);font-size:13px;line-height:1.35;}
 .msg-imgfail b{font-size:13px;font-weight:600;}
@@ -2245,7 +2245,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-21v43-14">
+<meta name="app-build" content="2026-11-21v43-15">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3906,7 +3906,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-14</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-15</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5820,9 +5820,15 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-21",
-  noticeKey:"2026-11-21v43-14",
-  lead:"v43-14：对方答完问卷会像原问卷一样单独发一条「问卷答案」消息，原问卷只标记为已答；应用内确认框改成 iOS 风格；问卷解析加了缓存，答案消息走增量追加，不再整屏重绘。v43-13 的读信收起/回主页不黑屏继续保留。",
+  noticeKey:"2026-11-21v43-15",
+  lead:"v43-15：读信点「收起」只回到信件列表，再点左上返回才回主页，不再直接跳回桌面；聊天图片改成按住约 0.38 秒才打开全屏大图，单击不放大。v43-14 的问卷答案消息、iOS 弹窗和性能优化继续保留。",
   items:[
+    '<span class="an-gt">v43-15 · 读信返回 / 图片长按</span>',
+    "读完信点「收起」只关闭信封，页面停在信件列表；再点一次左上返回才回主页，不再一步跳回桌面",
+    "回主页仍走 v43-13 的交接绘制：旧页多停留两帧，主页画好后再撤，避免黑屏一闪",
+    "聊天图片按住约 0.38 秒才打开全屏大图；单击图片不会放大，只做普通点击",
+    "大图左上角「更多」可回到原来的消息菜单（撤回 / 删除 / 收藏 / 引用），右上角 × 或点空白关闭",
+    "长按聊天图片时压掉 WebView 原生长按菜单，不会同时弹出系统菜单",
     '<span class="an-gt">v43-14 · 问卷答案消息</span>',
     "对方答完问卷后，聊天里会多出一条和问卷同样样式的「对方 · 问卷答案」卡，点「查看答案」反复看每道题的选择",
     "原问卷卡只更新成「查看结果」，不再把答案和原题混在一张卡里",
@@ -8674,6 +8680,51 @@ function __photoDeckHTML(m){
   var dim=(m&&m.w&&m.h)?(' width="'+Math.round(m.w)+'" height="'+Math.round(m.h)+'"'):'';
   return '<img class="msg-photo" data-imgid="'+esc(m&&m.id||"")+'" src="'+esc(__blobUrl(src))+'" alt=""'+dim+' loading="eager" decoding="sync">';
 }
+/* 聊天图片：单击不放大，长按约 380ms 才打开全屏大图。
+   大图里点「更多」可以回到原来的消息菜单（撤回/删除/收藏/引用）。 */
+function __openImageViewer(src,mid,onClose){
+  if(!src)return;
+  var old=document.getElementById("e11-img-viewer");if(old){try{old.remove();}catch(e){}}
+  var wrap=document.createElement("div");wrap.id="e11-img-viewer";
+  wrap.setAttribute("data-img-viewer","");wrap.setAttribute("aria-label","图片预览");
+  wrap.style.cssText="position:fixed;inset:0;z-index:2147482000;background:rgba(0,0,0,.97);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .18s ease;touch-action:none;";
+  var im=document.createElement("img");
+  im.src=src;im.alt="";im.decoding="sync";
+  im.style.cssText="display:block;max-width:100vw;max-height:100vh;width:auto;height:auto;object-fit:contain;transform:scale(.96);transition:transform .18s cubic-bezier(.2,.8,.3,1);-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;";
+  wrap.appendChild(im);
+  var bar=document.createElement("div");
+  bar.style.cssText="position:absolute;left:0;right:0;top:0;display:flex;align-items:center;justify-content:space-between;padding:calc(env(safe-area-inset-top) + 12px) 14px 12px;pointer-events:none;";
+  if(mid){
+    var more=document.createElement("button");more.type="button";more.textContent="更多";
+    more.style.cssText="pointer-events:auto;height:34px;padding:0 14px;border:0;border-radius:17px;background:rgba(255,255,255,.16);color:#fff;font:600 14px -apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);";
+    more.addEventListener("click",function(e){e.stopPropagation();close();setTimeout(function(){try{openActions(mid);}catch(_){}},90);});
+    bar.appendChild(more);
+  }else{bar.appendChild(document.createElement("span"));}
+  var x=document.createElement("button");x.type="button";x.textContent="×";x.setAttribute("aria-label","关闭");
+  x.style.cssText="pointer-events:auto;width:36px;height:36px;border:0;border-radius:18px;background:rgba(255,255,255,.16);color:#fff;font:300 25px/34px -apple-system,BlinkMacSystemFont,sans-serif;text-align:center;";
+  x.addEventListener("click",function(e){e.stopPropagation();close();});
+  bar.appendChild(x);wrap.appendChild(bar);
+  var prevOverflow=document.documentElement.style.overflow;
+  document.documentElement.style.overflow="hidden";
+  document.body.appendChild(wrap);
+  var done=false;
+  function close(){
+    if(done)return;done=true;
+    wrap.style.opacity="0";im.style.transform="scale(.96)";
+    setTimeout(function(){
+      try{wrap.remove();}catch(e){}
+      document.documentElement.style.overflow=prevOverflow;
+      try{onClose&&onClose();}catch(e){}
+    },180);
+  }
+  wrap.addEventListener("click",function(e){if(e.target===wrap||e.target===im)close();});
+  wrap.addEventListener("contextmenu",function(e){e.preventDefault();});
+  requestAnimationFrame(function(){wrap.style.opacity="1";im.style.transform="scale(1)";});
+}
+/* 长按聊天图片打开大图；同时压掉 WebView 原生长按菜单 */
+document.addEventListener("contextmenu",function(e){
+  try{if(e.target&&e.target.closest&&e.target.closest("#msglist img.msg-photo,#msglist img.bimg"))e.preventDefault();}catch(_){}
+});
 function __msgRowRaw(m){
   let html="";
       if(m.recalled){
@@ -9539,10 +9590,20 @@ function bindLongPress(row,kind){
     try{
       if(e.target&&e.target.closest&&e.target.closest("button,input,textarea,a,.rp-act,.sq-act,.sq-opt,[data-act]"))return;
     }catch(_){}
+    /* 聊天图片：长按 380ms 直接看大图，不弹消息菜单；单击仍然只做普通点击 */
+    var _img=null;
+    try{_img=e.target&&e.target.closest?e.target.closest("img.msg-photo,img.bimg"):null;}catch(_){}
+    var _delay=_img?380:550;
     t=setTimeout(()=>{
       t=null;row._lp=true;
+      if(_img&&(_img.currentSrc||_img.src)){
+        var _src=_img.currentSrc||_img.src;
+        var _mid=_img.getAttribute("data-imgid")||row.dataset.id||"";
+        __openImageViewer(_src,_mid,function(){setTimeout(function(){row._lp=false;},320);});
+        return;
+      }
       openActions(row.dataset.id||row.dataset.sq||row.dataset.rp,kind);
-    },550);
+    },_delay);
   },{passive:true});
   row.addEventListener("touchmove",e=>{
     const tc=e.touches[0];
@@ -20129,14 +20190,8 @@ function applyLetterPageBackdrop(){
 function __closeEnvelope(ov){
   try{if(ov)ov.classList.remove("show","open","showcard");}catch(_){}
   try{window.__envCtx=null;}catch(_){}
-  /* 读完点“收起”直接回主页：不再先退回信件列表、再让用户点一次返回。
-     从信件列表进来才这样收；其它入口保留原来的页面。 */
-  try{
-    if(window.__curView==="view-letters"&&typeof showView==="function"){
-      /* 等这一帧把信封层撤掉，再切主页；主页用交接绘制，不再露出一帧黑底 */
-      requestAnimationFrame(function(){try{showView("view-me");}catch(_){}});
-    }
-  }catch(_){}
+  /* 收起信封只回到信件列表，不直接跳主页/桌面；用户再点一次返回才回主页。
+     回主页那一步仍走 v43-13 的 __chatHandoff，避免黑屏一闪。 */
 }
 function openEnvelope(id){
   var l=(state.letters||[]).filter(function(x){return x.id===id;})[0];if(!l)return;
