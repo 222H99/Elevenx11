@@ -407,6 +407,8 @@ body.ui-dark #view-moments #btn-moment-post{background:rgba(30,30,32,.72) !impor
 #view-chat{will-change:auto !important;}
 /* 每条消息自成一个布局容器，来新消息时不用给整屏 120 行重算布局 */
 .msg-row{contain:layout style;}
+/* 流畅模式：关闭毛玻璃模糊（WebView/低配机最贵的一层合成），其余样式不动 */
+body.perf-lite *{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;}
 body.ui-dark .msg-input{color:#FFFFFF;}
 body.ui-dark .msg-input::placeholder{color:rgba(255,255,255,.42);}
 body.ui-dark .sheet-title,body.ui-dark .edit-sheet-title,body.ui-dark .set-sec-title,body.ui-dark .card-title,
@@ -2150,7 +2152,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-20v43-6v">
+<meta name="app-build" content="2026-11-20v43-6w">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3786,8 +3788,8 @@ html.kb-typing #rotate-guard,html.kb-typing body #rotate-guard{display:none!impo
       <div class="set-group"><div class="set-row"><span class="set-label">网易云登录<div class="set-sub" id="ny-set-state">扫码或 Cookie 登录后可在音乐页听 VIP 完整歌曲</div></span><button class="small-btn" id="btn-ny-login" style="font-size:12px;padding:6px 12px;">登录</button></div></div>
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
-      <div class="set-group"><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
-<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-20v43-6v</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">流畅模式<div class="set-sub">关闭毛玻璃模糊，减少低配机/APK 的滑动卡顿；APK 默认开启，网页默认关闭</div></span><button class="switch" id="sw-perf"></button></div><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
+<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-20v43-6w</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5685,10 +5687,10 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-20",
-  noticeKey:"2026-11-20v43-6v",
+  noticeKey:"2026-11-20v43-6w",
   lead:"v43 全量修复：主站/预览补全 PWA 安装包，修复 Chrome 添加到主屏幕崩溃和进站黑白屏；登录恢复时先显示进入状态，网络超时自动用本地记录；日记/字卡返回固定回聊天页；数据先写本地快照，云端旧存档不再覆盖新改动；双击气泡贴表情可在设置关掉并调概率，主页评论/回复的输入框会跟着键盘上移。",
   items:[
-    '<span class="an-gt">v43-6v · 启动即桌面</span>',
+    '<span class="an-gt">v43-6w · 启动即桌面</span>',
     "APK 从主屏幕或别的应用切回来不再整页重载：回到上次的聊天页/主页，不退回公告；新增任务保留和大内存开关",
     "从后台回来表情面板先空白的问题：每次打开面板都重建格子，并立即把本机备份里的表情补回来",
     "对方发来的图片/画作/表情如果原图丢了，不再显示空白气泡，改成「图片已失效 / 表情已失效」并自动从本机副本恢复",
@@ -7136,7 +7138,7 @@ async function init(){
   try{state=migrate(state);}catch(_m){}
   try{__healState();}catch(_h){}
   try{__ltReadApply();}catch(e){}
-  try{__prefApply();}catch(e){}
+  try{__prefApply();}catch(e){}try{window.__perfApply&&window.__perfApply();}catch(_){}
   /* 首屏只做皮肤和顶栏：完整渲染等 IndexedDB 读完再做一次，避免启动时同一套界面渲染两遍 */
   try{applySkin();}catch(e){}
   try{__syncBuildLabel();}catch(e){}
@@ -7256,7 +7258,7 @@ async function init(){
           if((!_ssk[_bk]||__brokenImgVal(_ssk[_bk]))&&_lsk[_bk]&&!__brokenImgVal(_lsk[_bk]))_ssk[_bk]=_lsk[_bk];
         });
       }catch(_eSkinPhoto){}
-      state=migrate(s);try{__ltReadApply();}catch(e){}try{__prefApply();}catch(e){}window.__stateReady=1;/* 主题先别在这里定：这份还可能是默认浅色快照，等两份存档合并完（下面 6820 行）再 __themeReady，否则夜间用户会先被刷白 */applySkin();
+      state=migrate(s);try{__ltReadApply();}catch(e){}try{__prefApply();}catch(e){}try{window.__perfApply&&window.__perfApply();}catch(_){}window.__stateReady=1;/* 主题先别在这里定：这份还可能是默认浅色快照，等两份存档合并完（下面 6820 行）再 __themeReady，否则夜间用户会先被刷白 */applySkin();
       try{__restoreEmojiLibFromBackup();}catch(_eEmojiLib){}
       try{__backfillEmojiMessageIds();}catch(_eBf){}
       try{__mergeMediaSnapshots(state,s);}catch(_eMergeMedia2){}
@@ -8522,7 +8524,7 @@ function __msgRowRaw(m){
       }else{
         act='<div class="invite-wait">'+(m.status==="accepted"?(isMe?"对方接受了邀请 ✓":"你接受了邀请 ✓"):(m.status==="cancelled"?"你取消了邀请 ✕":(isMe?"对方拒绝了邀请 ✕":"你拒绝了邀请 ✕")))+'</div>';
       }
-      html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="sync" src="'+esc(__blobUrl(__avatarPick(isMe?"me":"partner")))+'" alt=""><div class="msg-col"><div class="invite-card"><div class="invite-title">'+tTitle+'</div><div class="invite-sub">'+tSub+'</div><div class="invite-act">'+act+'</div></div></div></div>';
+      html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="async" src="'+esc(__blobUrl(__avatarPick(isMe?"me":"partner")))+'" alt=""><div class="msg-col"><div class="invite-card"><div class="invite-title">'+tTitle+'</div><div class="invite-sub">'+tSub+'</div><div class="invite-act">'+act+'</div></div></div></div>';
       return html;
     }
     const side=m.from==="me"?"me":"partner";
@@ -8541,7 +8543,7 @@ function __msgRowRaw(m){
     meta+=fmtTime(m.time)+'</div>';
     if(m.type==="image"&&m.kind!=="emoji"&&m.kind!=="draw"){
       // 普通图片：不包裹气泡，直接显示图片
-      html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="sync" src="'+__blobUrl(av)+'" alt=""><div class="msg-col">'+__photoDeckHTML(m)+meta+'</div></div>';
+      html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="async" src="'+__blobUrl(av)+'" alt=""><div class="msg-col">'+__photoDeckHTML(m)+meta+'</div></div>';
       return html;
     }
     if(m.type==="image"&&(m.kind==="emoji"||m.kind==="draw")){
@@ -8551,20 +8553,20 @@ function __msgRowRaw(m){
       /* 老存档里如果这张图只剩空串/外置引用而图片本体没读回来，直接画 <img> 会是一条空白。
          这里明确画成「已失效」，至少用户知道是图没了，不会以为聊天界面坏了。 */
       if(_picBad){
-        html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="sync" src="'+__blobUrl(av)+'" alt=""><div class="msg-col">'+__imgFailHTML(m.id,m.kind==="emoji"?"表情已失效":"画作已失效")+meta+'</div></div>';
+        html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="async" src="'+__blobUrl(av)+'" alt=""><div class="msg-col">'+__imgFailHTML(m.id,m.kind==="emoji"?"表情已失效":"画作已失效")+meta+'</div></div>';
         return html;
       }
       const frame=m.kind==="draw"?'drawbox':'sticker';
       var _stkDim=(m.w&&m.h)?(' width="'+Math.round(m.w)+'" height="'+Math.round(m.h)+'"'):'';
-      html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="sync" src="'+__blobUrl(av)+'" alt=""><div class="msg-col"><div class="'+frame+'"><img loading="eager" decoding="sync" data-imgid="'+esc(m.id)+'"'+_stkDim+' src="'+esc(_msrc)+'" alt=""></div>'+meta+'</div></div>';
+      html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="async" src="'+__blobUrl(av)+'" alt=""><div class="msg-col"><div class="'+frame+'"><img loading="eager" decoding="sync" data-imgid="'+esc(m.id)+'"'+_stkDim+' src="'+esc(_msrc)+'" alt=""></div>'+meta+'</div></div>';
       return html;
     }    if(m.type==="voice"){
       const _d=Math.max(1,Math.round(Number(m.dur)||1));
       const _bars=Array.from({length:Math.min(24,Math.max(7,Math.round(_d*2.2)))}).map(function(_,i){return '<span class="vb-bar" style="height:'+(5+Math.round(Math.abs(Math.sin(i*1.7))*9))+'px"></span>';}).join("");
-      html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="sync" src="'+__blobUrl(av)+'" alt=""><div class="msg-col"><div class="bubble voice-bubble" data-voice="'+m.id+'"><span class="vb-tri"></span><span class="vb-wave">'+_bars+'</span><span class="vb-dur">'+_d+'"</span></div>'+meta+'</div></div>';
+      html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="async" src="'+__blobUrl(av)+'" alt=""><div class="msg-col"><div class="bubble voice-bubble" data-voice="'+m.id+'"><span class="vb-tri"></span><span class="vb-wave">'+_bars+'</span><span class="vb-dur">'+_d+'"</span></div>'+meta+'</div></div>';
       return html;
     }
-    html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="sync" src="'+__blobUrl(av)+'" alt=""><div class="msg-col"><div class="bubble">'+quoteBlock(m)+body+'</div>'+meta+'</div></div>';
+    html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="async" src="'+__blobUrl(av)+'" alt=""><div class="msg-col"><div class="bubble">'+quoteBlock(m)+body+'</div>'+meta+'</div></div>';
 
   return html;
 }
@@ -8591,7 +8593,7 @@ function showRecalledText(txt,anchorEl){
       wrap.className="msg-row partner rv-item";
       wrap.style.opacity="0.9";
       var av=state.partner.avatar||"";
-      wrap.innerHTML='<img class="msg-avatar" decoding="sync" src="'+__blobUrl(av)+'" alt=""><div class="msg-col"><div class="bubble" style="border-style:dashed;">'+esc(txt)+'</div><div class="meta"><span class="rv-tag">已撤回的原文</span></div></div>';
+      wrap.innerHTML='<img class="msg-avatar" decoding="async" src="'+__blobUrl(av)+'" alt=""><div class="msg-col"><div class="bubble" style="border-style:dashed;">'+esc(txt)+'</div><div class="meta"><span class="rv-tag">已撤回的原文</span></div></div>';
       if(anchorEl.parentNode)anchorEl.parentNode.insertBefore(wrap,anchorEl.nextSibling);
       if(wrap.scrollIntoView)try{wrap.scrollIntoView({block:"nearest"});}catch(e){}
       return;
@@ -8947,7 +8949,7 @@ function renderChat(force){
   }catch(e){}
   /* 默认只画最近 120 条：几百条记录不再一次性全铺进 DOM，进聊天更快、滚动更轻。
      往上翻到顶会自动补更早的 80 条，一条都不会少。 */
-  const CHAT_PAGE=120,CHAT_CHUNK=40;
+  const CHAT_PAGE=100,CHAT_CHUNK=40;
   const __idxFocus=_wantFocus?entries.findIndex(function(en){return (en.m&&en.m.id===_wantFocus)||(en.r&&en.r.id===_wantFocus);}):-1;
   var __start=0,__end=entries.length;
   if(__idxFocus>=0){
@@ -9987,7 +9989,7 @@ function redpacketRowHTML(r){
   const av=out?state.me.avatar:state.partner.avatar;
   const nm=out?state.me.name:state.partner.name;
   const stTxt=out?(r.status==="claimed"?"已领取":(r.status==="declined"?"对方拒领":"等待对方领取")):(r.status==="claimed"?"已领取":(r.status==="declined"?"已拒领":"去领取"));
-  return '<div class="msg-row '+side+'" data-rp="'+r.id+'"><img class="msg-avatar" decoding="sync" src="'+__blobUrl(av)+'" alt="">'
+  return '<div class="msg-row '+side+'" data-rp="'+r.id+'"><img class="msg-avatar" decoding="async" src="'+__blobUrl(av)+'" alt="">'
     +'<div class="msg-col"><div class="rp-shell">'
     +'<div class="rp-head"><img class="sq-hav" loading="lazy" src="'+__blobUrl(av)+'"><span class="sq-hname">'+esc(nm)+'</span><span class="sq-time">'+fmtTime(r.time)+'</span></div>'
     +'<div class="rp-body'+(r.status==="declined"?" declined":"")+'">'
@@ -10013,7 +10015,7 @@ function surveyRowHTML(m){
       else meta+='<span class="msg-read">'+(m.read?"已读":"已送达")+'</span>';
     }
   meta+=fmtTime(m.time)+'</div>';
-  return '<div class="msg-row '+side+'" data-sq="'+m.id+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="sync" src="'+__blobUrl(av)+'" alt="">'
+  return '<div class="msg-row '+side+'" data-sq="'+m.id+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="async" src="'+__blobUrl(av)+'" alt="">'
     +'<div class="msg-col"><div class="survey-shell">'
     +'<div class="sq-head"><img class="sq-hav" loading="lazy" src="'+__blobUrl(av)+'"><span class="sq-hname">'+esc(nm)+'</span><span class="sq-time">'+fmtTime(m.time)+'</span></div>'
     +'<div class="sq-card"><div class="sq-title">📋 '+(esc(s.title)||"问卷")+'</div>'
@@ -13887,6 +13889,20 @@ if($("sw-notify"))$("sw-notify").addEventListener("click",function(){
     }catch(e){toast("发送失败："+(e&&e.message||e));}
   });
 $("sw-keep-alive").addEventListener("click",e=>{state.settings.keepAlive=!state.settings.keepAlive;e.target.classList.toggle("on",state.settings.keepAlive);save();if(state.settings.keepAlive){ensureKeepAliveAudio();toast("已开启后台保活（静音音频已开始播放）");}else{stopKeepAliveAudio();toast("已关闭后台保活");}});
+/* 流畅模式：只关毛玻璃，不改布局。网页默认关；APK（AndroidUI）默认开 */
+window.__perfApply=function(){
+  try{
+    var st=(state&&state.settings)||{};
+    if(typeof st.perfLite!=="boolean")st.perfLite=!!window.AndroidUI;
+    document.body.classList.toggle("perf-lite",st.perfLite===true);
+    var sw=document.getElementById("sw-perf");if(sw)sw.classList.toggle("on",st.perfLite===true);
+  }catch(e){}
+};
+try{var _swPerf=document.getElementById("sw-perf");if(_swPerf)_swPerf.addEventListener("click",function(){
+  state.settings.perfLite=!state.settings.perfLite;window.__perfApply();save();
+  toast(state.settings.perfLite?"已开启流畅模式":"已关闭流畅模式");
+});}catch(_){}
+
 
 $("sw-bg-sound")&&$("sw-bg-sound").addEventListener("click",function(){
   state.settings.bgSoundOn=(state.settings.bgSoundOn!==true);
@@ -17817,7 +17833,7 @@ function stxt(t){var e=document.getElementById('ny-st'); if(e)e.textContent=t;}
       else if(m.type==="voice")inner='<span class="vb" data-vid="'+m.id+'" style="cursor:pointer;">▷ 语音 '+ (m.dur||1) +'″</span>';
       else inner=esc(m.text||"");
       html+='<div class="msg-row '+(mine?"me":"partner")+'">'+
-        '<img class="msg-avatar" decoding="sync" src="'+mlRoomAv(m.from)+'" alt="">'+
+        '<img class="msg-avatar" decoding="async" src="'+mlRoomAv(m.from)+'" alt="">'+
         '<div class="msg-col"><div class="bubble'+(m.type==="image"?" imgb":"")+'">'+inner+'</div></div>'+
       '</div>';
     });
@@ -22466,7 +22482,23 @@ window.__cp2Activate=__cp2Activate;
   function keyOf(el){return (el&&el.getAttribute)?el.getAttribute("data-cp2"):"";}
   var LAB={av:"头像",chat:"对话框",record:"唱片",count:"倒数日",photo:"照片框"};
   var ORDER=["av","chat","record","count","photo"];
-window.__dockTopPx=function(){try{if(window.__dockEl&&document.contains(window.__dockEl))return Math.round(window.__dockEl.getBoundingClientRect().top);}catch(e){}var a=document.querySelectorAll("div");for(var i=0;i<a.length;i++){var st=getComputedStyle(a[i]);if(st.position==="fixed"&&a[i].id!=="app"&&a[i].getBoundingClientRect().top>400&&(a[i].querySelector("#me-nav-settings")||a[i].querySelector("#me-nav-music"))){window.__dockEl=a[i];return Math.round(a[i].getBoundingClientRect().top);}}return 0;};
+window.__dockTopPx=function(){
+  try{if(window.__dockEl&&document.contains(window.__dockEl))return Math.round(window.__dockEl.getBoundingClientRect().top);}catch(e){}
+  /* 底部 dock 是固定元素，直接沿 me-dock-bar 往上找，别在第一次调用时扫全部 1000+ 个 div 做 getComputedStyle */
+  try{
+    var _bar=document.getElementById("me-dock-bar");
+    if(_bar){
+      var _el=_bar.parentElement;
+      while(_el&&_el!==document.body){
+        if(getComputedStyle(_el).position==="fixed"){window.__dockEl=_el;return Math.round(_el.getBoundingClientRect().top);}
+        _el=_el.parentElement;
+      }
+    }
+  }catch(e){}
+  var a=document.querySelectorAll("div");
+  for(var i=0;i<a.length;i++){var st=getComputedStyle(a[i]);if(st.position==="fixed"&&a[i].id!=="app"&&a[i].getBoundingClientRect().top>400&&(a[i].querySelector("#me-nav-settings")||a[i].querySelector("#me-nav-music"))){window.__dockEl=a[i];return Math.round(a[i].getBoundingClientRect().top);}}
+  return 0;
+};
   function defPos(id){
     var cw=page.clientWidth||348;
     switch(id){
