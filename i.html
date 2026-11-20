@@ -1288,6 +1288,14 @@ input[type=file][hidden]{display:block !important;position:fixed !important;left
 .lt-reply-form .lt-reply-send{border:none;background:linear-gradient(135deg,#3478F6,#5AC8FA);color:#fff;border-radius:14px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;flex:0 0 auto;}
 .lt-thread{position:relative;margin-top:10px;padding-left:14px;border-left:2px solid var(--glassborder,rgba(255,255,255,.25));display:flex;flex-direction:column;gap:8px;}
 .lt-sub{position:relative;border-radius:16px;padding:10px 12px;background:var(--glassinner,rgba(255,255,255,.14));}
+/* 信件列表按“纸”显示：不跟随深色主题，避免部分机型把 .lt-card 的 glass 变量渲染成黑块 */
+#view-letters .lt-card{background:#FFFFFF !important;border-color:rgba(0,0,0,.08) !important;}
+#view-letters .lt-card .lt-nm,#view-letters .lt-card .lt-subject,#view-letters .lt-card .lt-body{color:#1C1C1E !important;}
+#view-letters .lt-card .lt-time{color:#6B6B6B !important;}
+#view-letters .lt-card .lt-lock{color:#5A5A5A !important;background:rgba(0,0,0,.04) !important;border-color:rgba(0,0,0,.12) !important;}
+#view-letters .lt-card .lt-lock.unread{color:#1C1C1E !important;background:rgba(52,120,246,.10) !important;border-color:rgba(52,120,246,.35) !important;}
+#view-letters .lt-sub{background:#F7F7F9 !important;}
+#view-letters .lt-sub .lt-nm,#view-letters .lt-sub .lt-subject,#view-letters .lt-sub .lt-body{color:#1C1C1E !important;}
 /* 信件页顶部写信区（像正常写信） */
 .lt-write{position:relative;margin:0 0 14px;border-radius:22px;padding:14px;flex:0 0 auto;
   background:var(--glass,rgba(255,255,255,.24));-webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%);
@@ -1339,7 +1347,7 @@ body.ui-dark .about-agree{background:rgba(0,0,0,.92)!important;border-top-color:
 .about-agree-btn{display:block;width:100%;padding:14px 0;border:none;border-radius:16px;background:linear-gradient(135deg,#3478F6,#5AC8FA);color:#fff;font-size:15px;font-weight:600;cursor:pointer;}
 /* 夜间信件/来信详情：信纸强制深底，字才会看得见（白天预设不受影响） */
 /* 只有在「跟随主题」(0 号，无预设) 时才强制黑；用户选过彩色背景的，夜间也照旧显示 */
-body.ui-dark:not(.lt-preset) #view-letters{--lt-bg:#000 !important;--lt-paper:#0F0F10 !important;}
+body.ui-dark:not(.lt-preset) #view-letters{--lt-bg:#000 !important;--lt-paper:#FFFFFF !important;}
 body.ui-dark .env-card .ev-page{background:#0F0F10 !important;color:#FFFFFF !important;}
 body.ui-dark .env-card .ev-page .ev-line,body.ui-dark .env-card .ev-page .ev-sign,body.ui-dark .env-card .ev-page .ev-date,body.ui-dark .env-card .ev-page .ev-title,body.ui-dark .env-card .ev-page .ev-body,body.ui-dark .env-card .ev-page .ev-rep,body.ui-dark .env-card .ev-page .ev-head{color:#FFFFFF !important;}
 body.ui-dark .env-card .ev-page-head{background:rgba(0,0,0,.92) !important;color:#FFFFFF !important;border-bottom-color:rgba(255,255,255,.12) !important;}
@@ -1347,7 +1355,19 @@ body.ui-dark .env-card .ev-page-head{background:rgba(0,0,0,.92) !important;color
 body.ui-dark .env-card .ev-page{--ev-paper:#0F0F10;}
 body:not(.ui-dark) .env-card .ev-page{--ev-paper:#FFFFFF;}
 body.ui-dark .env-card .ev-page .ev-main:not(.ev-user-paper),
-body.ui-dark .env-card .ev-page .ev-rep:not(.ev-user-paper){background-color:#0F0F10 !important;background-image:none !important;color:#FFFFFF !important;}
+body.ui-dark .env-card .ev-page .ev-rep:not(.ev-user-paper){background-color:#FFFFFF !important;background-image:none !important;color:#1C1C1E !important;}
+body.ui-dark .env-card .ev-page .ev-main:not(.ev-user-paper) .ev-title,
+body.ui-dark .env-card .ev-page .ev-main:not(.ev-user-paper) .ev-body,
+body.ui-dark .env-card .ev-page .ev-main:not(.ev-user-paper) .ev-line,
+body.ui-dark .env-card .ev-page .ev-main:not(.ev-user-paper) .ev-sig,
+body.ui-dark .env-card .ev-page .ev-main:not(.ev-user-paper) .ev-sign,
+body.ui-dark .env-card .ev-page .ev-main:not(.ev-user-paper) .ev-date,
+body.ui-dark .env-card .ev-page .ev-rep:not(.ev-user-paper) .ev-title,
+body.ui-dark .env-card .ev-page .ev-rep:not(.ev-user-paper) .ev-body,
+body.ui-dark .env-card .ev-page .ev-rep:not(.ev-user-paper) .ev-line,
+body.ui-dark .env-card .ev-page .ev-rep:not(.ev-user-paper) .ev-sig,
+body.ui-dark .env-card .ev-page .ev-rep:not(.ev-user-paper) .ev-sign,
+body.ui-dark .env-card .ev-page .ev-rep:not(.ev-user-paper) .ev-date{color:#1C1C1E !important;}
 /* 自己选过信纸：不管白天黑夜都按你选的纸来，字色按纸的明暗走 */
 .ev-user-paper{background-image:inherit;}
 body.ui-dark .env-card .ev-page .ev-user-paper,
@@ -2130,7 +2150,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-20v43-6q">
+<meta name="app-build" content="2026-11-20v43-6r">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3767,7 +3787,7 @@ html.kb-typing #rotate-guard,html.kb-typing body #rotate-guard{display:none!impo
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
       <div class="set-group"><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
-<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-20v43-6q</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-20v43-6r</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5665,10 +5685,10 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-20",
-  noticeKey:"2026-11-20v43-6q",
+  noticeKey:"2026-11-20v43-6r",
   lead:"v43 全量修复：主站/预览补全 PWA 安装包，修复 Chrome 添加到主屏幕崩溃和进站黑白屏；登录恢复时先显示进入状态，网络超时自动用本地记录；日记/字卡返回固定回聊天页；数据先写本地快照，云端旧存档不再覆盖新改动；双击气泡贴表情可在设置关掉并调概率，主页评论/回复的输入框会跟着键盘上移。",
   items:[
-    '<span class="an-gt">v43-6q · 补发 / 保活 / 图片</span>',
+    '<span class="an-gt">v43-6r · 字卡 / 信纸 / 补发</span>',
     "APK 从主屏幕或别的应用切回来不再整页重载：回到上次的聊天页/主页，不退回公告；新增任务保留和大内存开关",
     "从后台回来表情面板先空白的问题：每次打开面板都重建格子，并立即把本机备份里的表情补回来",
     "对方发来的图片/画作/表情如果原图丢了，不再显示空白气泡，改成「图片已失效 / 表情已失效」并自动从本机副本恢复",
@@ -7799,7 +7819,8 @@ function applySkin(){
   let ltGrad=ltPreset?ltPreset:(dark?'linear-gradient(180deg,#000000,#000000)':'linear-gradient(180deg,#ffffff,#ffffff)');
   try{document.body.classList.toggle("lt-preset",!!ltPreset);}catch(e){}
   r.setProperty("--lt-bg",ltGrad);
-  r.setProperty("--lt-paper",ltGrad);
+  /* 页面背景可以跟主题黑，但信件纸本身默认必须白；只有用户主动选了彩色信件背景才用预设 */
+  r.setProperty("--lt-paper",ltPreset||"#FFFFFF");
   document.querySelectorAll(".lt-bg").forEach(el=>el.style.background=s.ltImage?('url("'+s.ltImage+'") center/cover no-repeat'):('var(--lt-bg)'));
   let momGrad=(s.momBg>0&&GB_PRESETS[s.momBg]&&GB_PRESETS[s.momBg].g?GB_PRESETS[s.momBg].g:grad);
   r.setProperty("--mom-bg",momGrad);
@@ -12593,8 +12614,9 @@ function activeGidOfKind(k){
      用户点过哪个分组要跟着存档走；如果存档里的分组已经被删了，也回到全部。 */
   var _saved=null;
   try{
+    /* 只认用户在本页明确点过的分组；replyGroupId 是“对方回复用哪个组”的设置，
+       不能拿来当字卡页的默认筛选，否则新用户/旧存档一进聊天字卡就落在某一组。 */
     _saved=(state.settings&&state.settings.cardActiveGid&&state.settings.cardActiveGid[k])||null;
-    if(!_saved&&k==="chat"&&state.settings&&state.settings.replyGroupId)_saved=state.settings.replyGroupId;
   }catch(_eS){}
   if(_saved&&gs.some(function(g){return g.id===_saved;}))_cardActiveGid[k]=_saved;
   else _cardActiveGid[k]=null;
@@ -19286,7 +19308,7 @@ function paperPresetOf(v){
 }
 function paperCssOf(v){ /* 没设置（或历史默认的米黄）就跟随主题：白天白纸，夜间黑纸 */
   if(v&&v.k==="cream"&&!v.img)v=null;
-  if(!v)return "background-color:var(--ev-paper,#ffffff);";
+  if(!v)return "background-color:#FFFFFF;color:#1C1C1E !important;";
   /* 注意：这段是塞进 HTML 的 style="..." 里的，图片地址必须用单引号，
      否则 dataURL 前面的双引号会把 style 属性截断 → 背景图变空 → 只剩 #111 黑底 */
   /* 图片信纸不能直接白字压图：浅色纸上会看不见。加一层 multiply 压暗 + 轻微描影 */
@@ -19310,9 +19332,9 @@ function applyPaperBg(override){
     rs.setProperty("--paper-bg","#ffffff");
     rs.setProperty("--paper-img",'url("'+v.img+'")');
   }else if(!v){
-    /* 没设置就跟随主题：白天白纸，夜间黑纸 */
-    var dk=document.body.classList.contains("ui-dark");
-    rs.setProperty("--paper-bg",dk?"#0F0F10":"#FFFFFF");
+    /* 信纸是“纸”：默认永远是白纸。系统深色/个别机型 WebView 强制深色时，
+       不能把纸也压成 #0F0F10，否则正文白字写在黑纸上，看起来就是信件背景全黑。 */
+    rs.setProperty("--paper-bg","#FFFFFF");
     rs.setProperty("--paper-img","none");
   }else{
     var p=paperPresetOf(v);
