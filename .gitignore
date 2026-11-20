@@ -2,3 +2,6 @@ accounts.csv
 supabase_setup/accounts.csv
 *.zip
 _backup/
+
+supabase_setup/service_role.txt
+supabase_setup/账号密码重置-*.csv

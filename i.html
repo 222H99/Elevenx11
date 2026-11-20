@@ -2202,7 +2202,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-21v43-11">
+<meta name="app-build" content="2026-11-21v43-12">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3863,7 +3863,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-11</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-12</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5777,9 +5777,15 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-21",
-  noticeKey:"2026-11-21v43-11",
-  lead:"v43-11：点进聊天页不再闪一下。切换时先让聊天层在旧页下面完成绘制，再做无感交接；同时去掉进页后的二次高度重算，并给聊天列表加绘制隔离。v43-10 的 GitHub PWA 整页缓存继续保留，慢网/间歇 503 时优先用本地完整页面打开。",
+  noticeKey:"2026-11-21v43-12",
+  lead:"v43-12：修「添加到主屏幕后不自动更新」。新 Service Worker 现在先抓取并校验新整页，确认完整才写缓存；接管后把真实版本号发给页面，主页没在输入时自动换版，聊天/写字时等切到后台再换。另外继续保留 v43-11 的聊天页无闪交接和性能优化。",
   items:[
+    '<span class="an-gt">v43-12 · 主屏幕自动更新 / 缓存校验</span>',
+    "根因一：新 SW 安装时先把「旧整页」接进新缓存，接管后页面刷新还是旧版；旧逻辑又立刻 reload，等于白更一次",
+    "根因二：新 SW 接管后没有把真实版本告诉页面，页面不知道要换；部分设备从桌面图标恢复时也不重新导航，于是一直停在旧版",
+    "改法：安装时优先抓新整页，校验长度、</html>、app-build 都完整才写缓存；抓不到完整新页才退回接旧页，不会写入半截页",
+    "改法：SW 接管后把缓存里的 app-build 发给页面；主页且没在输入时提示并自动重载，聊天/设置/写字时不打断，等切后台或下次打开再换",
+    "改法：去掉 controllerchange 里的无条件 reload，避免「刷新一次仍是旧版、还被锁死」；首次打开拿到半截 HTML 时显示可重试页，不再白屏",
     '<span class="an-gt">v43-11 · 聊天页不闪 / 性能</span>',
     "点聊天页闪一下：不再在同一个瞬间直接抽走旧页。旧页先保持 99.8% 不透明度停留约两帧（约 32–48ms），让下面的聊天层完成合成后再撤掉；肉眼几乎无感，也不会露出一帧白底",
     "进聊天页后 120ms 的第二次高度重算已去掉；软键盘失焦、尺寸校正全部移到页面显示之前，避免刚进页又缩一下/跳一下",
@@ -23965,30 +23971,9 @@ function renderAll(){
 })();
 
 init().catch(function(e){try{console.error(e);}catch(_){}try{window._dbReady=true;}catch(_){}try{if(typeof showView==="function")showView((window.__bootView&&window.__bootView())||"view-me");}catch(_){}try{window.__bootDone&&window.__bootDone();}catch(_){}});
-/* ===== 页面自缓存：把当前这一份完整 HTML 写进 Cache Storage =====
-   GitHub Pages 慢或偶发 503 时，第一次打开可能刚好没留下整页缓存。
-   这里从浏览器 HTTP 缓存取回同一份 HTML（max-age=600，不会再走网络），
-   校验确实完整后写入 SW 的整页缓存；下次打开就有完整页面可用。 */
-setTimeout(function(){
-  try{
-    if(!("caches" in window))return;
-    var u=new URL(location.href), p=u.pathname.replace(/\/i\.html$/,"/index.html");
-    if(!/index\.html$/.test(p))p=p.replace(/\/$/,"")+"/index.html";
-    var pageUrl=u.origin+p;
-    var b=(document.querySelector('meta[name="app-build"]')||{}).content||"";
-    var m=String(b).match(/v\d+-\d+$/);
-    var cacheName="eleven11-runtime-"+(m?m[0]:"v43-11");
-    fetch(location.href,{cache:"force-cache",credentials:"same-origin"}).then(function(res){
-      if(!res||!res.ok)return null;
-      return res.text().then(function(html){
-        if(!html||html.length<500000||html.indexOf("</html>")<0||html.indexOf('name="app-build"')<0)return null;
-        return caches.open(cacheName).then(function(c){
-          return c.put(pageUrl,new Response(html,{headers:{"Content-Type":"text/html; charset=utf-8"}}));
-        }).then(function(){window.__e11SelfCached=1;});
-      });
-    }).catch(function(){});
-  }catch(e){}
-},1200);
+/* 页面自缓存已移除：它按页面里的 app-build 自建 eleven11-runtime-vXX 缓存，
+   更新时会和新 SW 的缓存并存，反而可能让 caches.match 先命中旧页。
+   整页缓存统一由 sw.js 的 install / cacheFirstIndex 负责，只保留一份当前版本。 */
 /* 重进/刷新兜底：初始化中途报错时不能再留黑屏 */
 setTimeout(function(){
   try{
@@ -25126,22 +25111,19 @@ try{
     var __swReg=null;
     var __swAsk=function(){
       try{navigator.serviceWorker.getRegistration().then(function(r){if(r)r.update().catch(function(){});}).catch(function(){});}catch(e){}
+      try{navigator.serviceWorker.ready.then(function(r){
+        if(r&&r.active)r.active.postMessage({type:"query-build"});
+      }).catch(function(){});}catch(e){}
     };
-    __swAsk();
     document.addEventListener("visibilitychange",function(){if(!document.hidden)__swAsk();});
     window.addEventListener("pageshow",__swAsk);
     /* 后台发现新版本：记下来，等切到后台时静默重载成新版（下次点开就是最新） */
-    /* 新 sw 接管后立刻换到新页面一次；只换一次，避免反复刷。
-       首次安装时页面本来就没有 controller，不要 reload：那一下会把启动幕撤掉重来，
-       看起来就是进站黑白屏。只有「本来已经被旧 sw 接管」的更新才刷新。 */
+    /* 新 sw 接管后不再无条件 reload：新 SW 可能只是先接住旧整页，
+       立刻 reload 会又打开旧版，还被 sessionStorage 锁死。
+       由 SW activate 后 post 的 build 来判断：版本真的变了才换页。 */
     var __swHadController=!!navigator.serviceWorker.controller;
     navigator.serviceWorker.addEventListener("controllerchange",function(){
-      try{
-        if(!__swHadController){__swHadController=true;return;}
-        if(sessionStorage.getItem("e11.swReloaded")==="1")return;
-        sessionStorage.setItem("e11.swReloaded","1");
-        location.reload();
-      }catch(e){}
+      try{__swHadController=true;}catch(e){}
     });
     navigator.serviceWorker.addEventListener("message",function(ev){
       try{
@@ -25149,11 +25131,43 @@ try{
         var cur=(document.querySelector('meta[name="app-build"]')||{}).content||"";
         if(cur&&d.ver===cur)return;
         window.__pendingBuild=d.ver;
-        if(document.hidden){location.reload();}
+        if(document.hidden){window.__pendingBuild="";location.reload();return;}
+        /* 页面正开着：在主页且没在输入时才自动换版，避免聊天/写字时被刷新。
+           其它页面只记下新版本，等切到后台/下次打开再换。 */
+        try{
+          var ae=document.activeElement;
+          var typing=!!(ae&&(ae.tagName==="INPUT"||ae.tagName==="TEXTAREA"||ae.isContentEditable));
+          var typed=false;
+          try{
+            var ins=document.querySelectorAll('#auth-gate input, #auth-gate textarea');
+            for(var i=0;i<ins.length;i++){
+              var el=ins[i];
+              if(el&&el.type!=="checkbox"&&el.type!=="radio"&&String(el.value||"")){typed=true;break;}
+            }
+          }catch(_){}
+          var gate=document.getElementById('auth-gate');
+          var gateOpen=!!(gate&&gate.classList.contains('show'));
+          var safeHome=document.body.classList.contains("app-ready")&&
+            !document.body.classList.contains("auth-locked")&&
+            window.__curView==="view-me"&&!typing;
+          /* 登录页也可以换版：只要没在输入、也没有已经填好的账号/密码，
+             刷新不会丢内容；已经填了字就等切后台或下次打开。 */
+          var safeGate=gateOpen&&document.body.classList.contains("auth-locked")&&!typing&&!typed;
+          if(safeHome||safeGate){
+            try{toast("正在更新到新版本…");}catch(_){}
+            setTimeout(function(){
+              try{if(window.__pendingBuild){window.__pendingBuild="";location.reload();}}catch(_){}
+            },1200);
+          }
+        }catch(_){}
       }catch(e){}
     });
+    /* 进来先问一次 sw 里缓存的真实版本；如果缓存已换新而当前页还是旧版，
+       会按上面的安全时机自动重载。 */
+    setTimeout(__swAsk,600);
+    setTimeout(__swAsk,3000);
     document.addEventListener("visibilitychange",function(){
-      try{if(document.hidden&&window.__pendingBuild)location.reload();}catch(e){}
+      try{if(document.hidden&&window.__pendingBuild){window.__pendingBuild="";location.reload();}}catch(e){}
     });
   }catch(e){}
 })();

@@ -6,7 +6,7 @@
  * 3) 网络在后台更新缓存，下一次打开自然换成新版本；
  * 4) 连缓存都没有时，返回一个可重试的提示页，而不是空白 503。
  */
-const CACHE = "eleven11-runtime-v43-11";
+const CACHE = "eleven11-runtime-v43-12";
 const INDEX_URL = new URL("./index.html", self.location.href).href;
 
 const SHELL = [
@@ -23,13 +23,36 @@ function freshUrl(raw) {
   return u.href;
 }
 
-function cacheIndexResponse(res) {
-  if (!res || !res.ok || res.status !== 200 || res.redirected) return;
-  const copy = res.clone();
-  caches
-    .open(CACHE)
-    .then((cache) => cache.put(INDEX_URL, copy))
-    .catch(() => {});
+/* 只接受完整页面：GitHub Pages 会用 200 返回半截正文，
+   这种响应一旦写进缓存，之后每次打开都是残页。 */
+function validIndexHTML(text) {
+  return (
+    typeof text === "string" &&
+    text.length > 500000 &&
+    /<\/html\s*>/i.test(text) &&
+    /name=["']app-build["']/i.test(text)
+  );
+}
+
+async function putIndexText(text) {
+  const cache = await caches.open(CACHE);
+  await cache.put(
+    INDEX_URL,
+    new Response(text, { headers: { "Content-Type": "text/html; charset=utf-8" } })
+  );
+  return true;
+}
+
+async function cacheIndexResponse(res) {
+  if (!res || !res.ok || res.status !== 200) return false;
+  try {
+    const text = await res.text();
+    if (!validIndexHTML(text)) return false;
+    await putIndexText(text);
+    return true;
+  } catch (_) {
+    return false;
+  }
 }
 
 async function preCacheIndex() {
@@ -39,8 +62,10 @@ async function preCacheIndex() {
       credentials: "same-origin",
       redirect: "follow",
     });
-    cacheIndexResponse(res);
-  } catch (_) {}
+    return await cacheIndexResponse(res);
+  } catch (_) {
+    return false;
+  }
 }
 
 function offlinePage() {
@@ -69,25 +94,25 @@ async function cacheFirstIndex(request) {
       credentials: "same-origin",
       redirect: "follow",
     })
-      .then((res) => {
-        if (res && res.ok && res.status === 200) cacheIndexResponse(res);
+      .then(async (res) => {
+        if (await cacheIndexResponse(res)) await notifyBuild();
       })
       .catch(() => {});
     return hit;
   }
 
-  // 第一次打开、还没有缓存：只能走网络；失败时给可重试提示页，不返回空白
+  // 第一次打开、还没有缓存：只能走网络；失败/半截页时给可重试提示页，不返回空白
   try {
     const res = await fetch(freshUrl(request.url), {
       cache: "no-store",
       credentials: "same-origin",
       redirect: "follow",
     });
-    if (res && res.ok && res.status === 200) {
-      cacheIndexResponse(res.clone());
-      return res;
-    }
-    return offlinePage();
+    if (!res || !res.ok || res.status !== 200) return offlinePage();
+    const text = await res.text();
+    if (!validIndexHTML(text)) return offlinePage();
+    await putIndexText(text);
+    return new Response(text, { headers: { "Content-Type": "text/html; charset=utf-8" } });
   } catch (_) {
     return offlinePage();
   }
@@ -119,20 +144,29 @@ async function adoptExistingIndex() {
     const keys = await caches.keys();
     const cache = await caches.open(CACHE);
     const has = await cache.match(INDEX_URL, { ignoreSearch: true });
-    if (has) return true;
+    if (has) {
+      const text = await has.text();
+      if (validIndexHTML(text)) return true;
+      await cache.delete(INDEX_URL);
+    }
     for (const k of keys) {
       if (k.indexOf("eleven11-runtime-") !== 0 || k === CACHE) continue;
       const old = await caches.open(k);
       const hit = await old.match(INDEX_URL, { ignoreSearch: true });
       if (hit) {
-        await cache.put(INDEX_URL, hit.clone());
-        return true;
+        const text = await hit.text();
+        if (validIndexHTML(text)) {
+          await putIndexText(text);
+          return true;
+        }
       }
     }
   } catch (_) {}
   return false;
 }
 
+/* 新版本安装时优先抓「新」整页，抓到完整页面才写缓存；抓不到才退回接旧页。
+   以前是反过来：先接旧页，导致新 SW 立刻接管、页面刷新后仍是旧版。 */
 self.addEventListener("install", (event) => {
   event.waitUntil(
     (async () => {
@@ -143,38 +177,62 @@ self.addEventListener("install", (event) => {
           new Promise((resolve) => setTimeout(resolve, 2500)),
         ]);
       } catch (_) {}
-      await adoptExistingIndex();
-      /* 首次安装没有旧页可接：最多等 2.5 秒抓新页，抓不完就先接管，
-         页面导航时会再用 cacheFirstIndex 的首次网络逻辑补上。 */
-      if (!(await caches.match(INDEX_URL, { ignoreSearch: true }))) {
-        await Promise.race([
-          preCacheIndex(),
-          new Promise((resolve) => setTimeout(resolve, 2500)),
-        ]);
-      }
+      const gotFresh = await Promise.race([
+        preCacheIndex(),
+        new Promise((resolve) => setTimeout(() => resolve(false), 4000)),
+      ]);
+      if (!gotFresh) await adoptExistingIndex();
       await self.skipWaiting();
     })().catch(() => self.skipWaiting())
   );
 });
 
+async function cachedBuild() {
+  try {
+    const hit = await caches.match(INDEX_URL, { ignoreSearch: true });
+    if (!hit) return "";
+    const text = await hit.text();
+    const m = /<meta[^>]+name=["']app-build["'][^>]+content=["']([^"']+)["']/i.exec(text);
+    return (m && m[1]) || "";
+  } catch (_) {
+    return "";
+  }
+}
+
+async function notifyBuild() {
+  const ver = await cachedBuild();
+  if (!ver) return;
+  const list = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+  for (const c of list) {
+    try {
+      c.postMessage({ type: "build", ver });
+    } catch (_) {}
+  }
+}
+
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) =>
-        Promise.all(
-          keys
-            /* 只清运行时页面缓存；表情图镜像 eleven11-media-v1 必须保留 */
-            .filter((k) => k.indexOf("eleven11-runtime-") === 0 && k !== CACHE)
-            .map((k) => caches.delete(k))
-        )
-      )
-      .then(() => self.clients.claim())
+    (async () => {
+      const keys = await caches.keys();
+      /* 只清运行时页面缓存；表情图镜像 eleven11-media-v1 必须保留 */
+      await Promise.all(
+        keys
+          .filter((k) => k.indexOf("eleven11-runtime-") === 0 && k !== CACHE)
+          .map((k) => caches.delete(k))
+      );
+      await self.clients.claim();
+      /* 接管后把新缓存里的 app-build 告诉页面：
+         只有真的换了版本，页面才会在安全时机重载；接的是旧页时不会误刷新。 */
+      await notifyBuild();
+    })()
   );
 });
 
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SKIP_WAITING") self.skipWaiting();
+  if (event.data && event.data.type === "query-build") {
+    event.waitUntil(notifyBuild());
+  }
 });
 
 self.addEventListener("fetch", (event) => {
