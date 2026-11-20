@@ -1,14 +1,13 @@
-/* Eleven×11 Service Worker —— 在线取最新版；断网/慢网先给缓存，绝不停在黑屏
+/* Eleven×11 Service Worker —— 打开先用完整缓存秒进；网络在后台更新
  *
- * 修复“退出网站再进入黑屏”：
- * 1) 安装时主动缓存一份最新 index.html，换 SW 后不会出现缓存空窗；
- * 2) 打开页面网络优先，但最多等 1.5 秒；1.5 秒没回来立刻用缓存，不再一直黑着；
- * 3) 网络请求继续在后台完成，成功后更新缓存；
+ * 修复“打开一直白屏 / 有时打不开”：
+ * 1) 安装时主动缓存一份完整 index.html，换 SW 后不会出现缓存空窗；
+ * 2) 页面导航直接返回缓存整页，不再等慢网把 HTML 正文传完；
+ * 3) 网络在后台更新缓存，下一次打开自然换成新版本；
  * 4) 连缓存都没有时，返回一个可重试的提示页，而不是空白 503。
  */
-const CACHE = "eleven11-runtime-v43-9";
+const CACHE = "eleven11-runtime-v43-10";
 const INDEX_URL = new URL("./index.html", self.location.href).href;
-const NETWORK_WAIT_MS = 1500;
 
 const SHELL = [
   "./manifest.json",
@@ -59,39 +58,39 @@ function offlinePage() {
   );
 }
 
-async function networkFirstIndex(request) {
-  const net = fetch(freshUrl(request.url), {
-    cache: "no-store",
-    credentials: "same-origin",
-    redirect: "follow",
-  });
-
-  let fresh = null;
-  try {
-    fresh = await Promise.race([
-      net,
-      new Promise((resolve) => setTimeout(() => resolve(null), NETWORK_WAIT_MS)),
-    ]);
-  } catch (_) {
-    fresh = null;
-  }
-
-  if (fresh && fresh.ok && fresh.status === 200) {
-    cacheIndexResponse(fresh);
-    return fresh;
-  }
-
-  // 网络超过 1.5 秒或失败：先让用户看到上一次的页面，绝不停在黑屏
+/* 打开页面先给已经缓存好的整页；网络只在后台悄悄更新。
+   以前是“网络优先等 1.5 秒”，GitHub Pages 慢的时候响应头回来了、正文却
+   传不完，浏览器就会一直白着。整页缓存优先可以保证已安装用户秒开。 */
+async function cacheFirstIndex(request) {
   const hit = await caches.match(INDEX_URL, { ignoreSearch: true });
   if (hit) {
-    // 网络还在后台跑，成功后顺手更新缓存
-    net.then(cacheIndexResponse).catch(() => {});
+    fetch(freshUrl(request.url), {
+      cache: "no-store",
+      credentials: "same-origin",
+      redirect: "follow",
+    })
+      .then((res) => {
+        if (res && res.ok && res.status === 200) cacheIndexResponse(res);
+      })
+      .catch(() => {});
     return hit;
   }
 
-  // 连缓存都没有：给一个可重试的提示页；网络若随后回来，后台也会写入缓存
-  net.then(cacheIndexResponse).catch(() => {});
-  return offlinePage();
+  // 第一次打开、还没有缓存：只能走网络；失败时给可重试提示页，不返回空白
+  try {
+    const res = await fetch(freshUrl(request.url), {
+      cache: "no-store",
+      credentials: "same-origin",
+      redirect: "follow",
+    });
+    if (res && res.ok && res.status === 200) {
+      cacheIndexResponse(res.clone());
+      return res;
+    }
+    return offlinePage();
+  } catch (_) {
+    return offlinePage();
+  }
 }
 
 async function networkFirstAsset(request) {
@@ -112,17 +111,49 @@ async function networkFirstAsset(request) {
   }
 }
 
+/* 新版本安装时先把上一版的完整 index.html 接过来。
+   这样即使新页面在慢网下还没下载完，新 SW 也能立刻接管并用旧整页先开，
+   不会出现「旧 SW 被停、新 SW 没缓存」的空窗。 */
+async function adoptExistingIndex() {
+  try {
+    const keys = await caches.keys();
+    const cache = await caches.open(CACHE);
+    const has = await cache.match(INDEX_URL, { ignoreSearch: true });
+    if (has) return true;
+    for (const k of keys) {
+      if (k.indexOf("eleven11-runtime-") !== 0 || k === CACHE) continue;
+      const old = await caches.open(k);
+      const hit = await old.match(INDEX_URL, { ignoreSearch: true });
+      if (hit) {
+        await cache.put(INDEX_URL, hit.clone());
+        return true;
+      }
+    }
+  } catch (_) {}
+  return false;
+}
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    Promise.all([
-      caches
-        .open(CACHE)
-        .then((cache) => cache.addAll(SHELL).catch(() => {}))
-        .catch(() => {}),
-      preCacheIndex(),
-    ])
-      .then(() => self.skipWaiting())
-      .catch(() => self.skipWaiting())
+    (async () => {
+      try {
+        const cache = await caches.open(CACHE);
+        await Promise.race([
+          cache.addAll(SHELL).catch(() => {}),
+          new Promise((resolve) => setTimeout(resolve, 2500)),
+        ]);
+      } catch (_) {}
+      await adoptExistingIndex();
+      /* 首次安装没有旧页可接：最多等 2.5 秒抓新页，抓不完就先接管，
+         页面导航时会再用 cacheFirstIndex 的首次网络逻辑补上。 */
+      if (!(await caches.match(INDEX_URL, { ignoreSearch: true }))) {
+        await Promise.race([
+          preCacheIndex(),
+          new Promise((resolve) => setTimeout(resolve, 2500)),
+        ]);
+      }
+      await self.skipWaiting();
+    })().catch(() => self.skipWaiting())
   );
 });
 
@@ -161,7 +192,7 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (req.mode === "navigate") {
-    event.respondWith(networkFirstIndex(req));
+    event.respondWith(cacheFirstIndex(req));
     return;
   }
 
