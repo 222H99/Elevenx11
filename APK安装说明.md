@@ -1,35 +1,45 @@
-# Eleven×11 安卓安装包（v43-6z）
+# Eleven×11 安卓安装包（v43-7）
 
 ## 文件
 
-- `Eleven11-v43-6z.apk`（约 0.6MB，内置 assets/index.html = 当前 v43-6z 页面）
+- `Eleven11-v43-7.apk`（约 1.2MB，内置 assets/index.html = 当前 v43-7 页面）
 - 包名：`com.eleven.elevenx11`
-- 版本：`2026-11-20v43-6z`（versionCode 27）
+- 版本：`2026-11-20v43-7`（versionCode 28）
 - 最低系统：Android 7.0（API 24），targetSdk 33
 - 签名：Android Debug 证书（仅用于直接安装测试，不能上架应用商店）
 
 ## 怎么装
 
-1. 把 `Eleven11-v43-6z.apk` 传到手机（微信/QQ/网盘/数据线都行）。
+1. 把 `Eleven11-v43-7.apk` 传到手机（微信/QQ/网盘/数据线都行）。
 2. 点开文件安装；如果提示「未知来源」，在系统设置里允许当前应用安装未知应用。
 3. 装好后桌面出现「Eleven×11」图标，点开就是完整 App。
 
 ## 如果已经装过 v43-6b 或更早同签名版本
 
-v43-6z 与 v43-6b 使用同一个 Android Debug 签名，可以直接覆盖安装，不需要卸载，本地数据保留。
+v43-7 与 v43-6b 使用同一个 Android Debug 签名，可以直接覆盖安装，不需要卸载，本地数据保留。
 
 如果装的是更早的 `Eleven11_bp101.apk`，签名不同，安卓会提示「签名不一致、无法覆盖安装」。请先：
 
 1. 打开旧 App → 设置 → 导出备份（全量导出，保存 JSON 到手机）。
 2. 卸载旧 App。
-3. 安装 `Eleven11-v43-6z.apk`。
+3. 安装 `Eleven11-v43-7.apk`。
 4. 打开新 App → 设置 → 导入备份，选择刚才的 JSON。
 
 ## 网页 / APK 一致性
 
-- 网页和 APK 内置的是同一个 `index.html`（MD5 `f9d971757487d30518f1167458ee59bb`），版本号、批量导入、收藏、返回防误触都完全一致。
-- APK 页面加载版本查询已改为 `?v=43-6z`，不会因为 WebView 缓存还显示旧版。
+- 网页和 APK 内置的是同一个 `index.html`（MD5 `c4934ada9cee1576b0152eeae8d91acc`），版本号、批量导入、收藏、返回防误触都完全一致。
+- APK 页面加载版本查询已改为 `?v=43-7`，不会因为 WebView 缓存还显示旧版。
 - APK 只额外承接 WebView 做不到的系统能力（原生通知、保存文件、后端代理），界面和交互仍用同一份页面。
+
+## v43-7 修了什么
+
+- 网页版改成真正可安装的 PWA：真实 `manifest.json`（`start_url` / `scope` / 192/512/maskable 图标 / 快捷方式都有效），Chrome 不再报 `start-url-not-valid`。
+- Service Worker 同源注册，页面、图标、manifest 一起缓存；断网重开仍能进 App，不会停在浏览器错误页。
+- 设置新增「安装到桌面 / 永久存储 / 表情图体检」：安装后全屏运行，可申请系统不要回收图片。
+- 安卓表情包图片失效：静态表情入库长边从 1024 降到 800，编码后超过约 950KB 自动再压一档，避开 WebView 超大 data URL 解码失败。
+- 每张表情在 IndexedDB 之外，再镜像到 Cache Storage；本地库或备份丢了也能按表情 id 找回。Service Worker 升级不会清掉这个表情镜像。
+- 安卓批量导入表情不再走原生单选，一次可选多张，GIF 也不会被原生解码成静态首帧。
+- APK versionCode 28 / versionName `2026-11-20v43-7`，内置 `assets/index.html` MD5 `c4934ada9cee1576b0152eeae8d91acc`，APK MD5 `ef3f7d856702ff906d17aa15a096601a`。
 
 ## v43-6z 修了什么
 
