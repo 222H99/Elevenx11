@@ -15436,9 +15436,11 @@ function __chatHandoff(el){
     try{
       el.__handoffRaf1=requestAnimationFrame(function(){
         el.__handoffRaf1=null;
-        el.__handoffRaf2=requestAnimationFrame(function(){el.__handoffRaf2=null;_done();});
+        /* 再留约 32ms 给合成/栅格化做完：旧页只是 99.8% 不透明，肉眼仍像原页，
+           但这一小段足够聊天层从「被遮挡跳过绘制」变成「已经画好」。 */
+        el.__handoffTimer=setTimeout(_done,32);
       });
-    }catch(_){el.__handoffTimer=setTimeout(_done,34);}
+    }catch(_){el.__handoffTimer=setTimeout(_done,48);}
   }catch(_){try{el.classList.remove("open");}catch(__){}}
 }
 function __fadeOutDiary(ms){

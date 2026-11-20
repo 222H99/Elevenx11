@@ -2,7 +2,7 @@
 
 ## 文件
 
-- `Eleven11-v43-11.apk`（约 0.65MB，内置 assets/index.html = 当前 v43-11 页面）
+- `Eleven11-v43-11.apk`（约 1.2MB，内置 assets/index.html = 当前 v43-11 页面）
 - 包名：`com.eleven.elevenx11`
 - 版本：`2026-11-21v43-11`（versionCode 32）
 - 最低系统：Android 7.0（API 24），targetSdk 33
@@ -27,7 +27,7 @@ v43-11 与 v43-6b 使用同一个 Android Debug 签名，可以直接覆盖安�
 
 ## 网页 / APK 一致性
 
-- 网页和 APK 内置的是同一个 `index.html`（MD5 `34dd1e93e512c7fd2ee1479c62dd3a1a`），版本号、聊天、一起听、音乐导入都完全一致。
+- 网页和 APK 内置的是同一个 `index.html`（MD5 `23cb79258492961b82f49f5746aeed5f`），版本号、聊天、一起听、音乐导入都完全一致。
 - APK 页面加载版本查询已改为 `?v=43-11`，不会因为 WebView 缓存还显示旧版。
 - APK 只额外承接 WebView 做不到的系统能力（原生通知、保存文件、后端代理），界面和交互仍用同一份页面。
 
