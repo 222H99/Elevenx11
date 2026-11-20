@@ -959,10 +959,10 @@ body:not(.app-ready) #view-chat{visibility:hidden !important;}
 .card-sec{margin-bottom:20px;}
 .sec-label{font-size:13px;color:#8E8E93;margin-bottom:10px;font-weight:600;}
 .group-tabs{display:flex;flex-wrap:wrap;gap:8px;padding-bottom:4px;}
-.group-tab{flex:0 0 auto;border:1px solid var(--line);background:var(--panel);color:var(--ttext);padding:6px 6px 6px 12px;border-radius:16px;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:5px;min-height:42px;white-space:nowrap;}
+.group-tab{flex:0 0 auto;border:1px solid var(--line);background:var(--panel);color:var(--ttext);padding:6px 6px 6px 12px;border-radius:16px;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:5px;min-height:42px;white-space:nowrap;-webkit-user-select:none;user-select:none;}
 .group-tab .gt-name{display:inline-flex;align-items:center;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .group-tab .gt-acts{display:inline-flex;align-items:center;gap:4px;margin-left:2px;}
-.group-tab .gt-off,.group-tab .gt-edit,.group-tab .gt-del{width:auto;min-width:30px;height:24px;padding:0 5px;border-radius:12px;font-size:10px;display:inline-flex;align-items:center;justify-content:center;line-height:1;background:rgba(0,0,0,.12);color:inherit;border:none;flex:0 0 auto;}
+.group-tab .gt-off,.group-tab .gt-edit,.group-tab .gt-del{width:auto;min-width:36px;height:30px;padding:0 8px;border-radius:14px;font-size:11px;font-family:inherit;display:inline-flex;align-items:center;justify-content:center;line-height:1;background:rgba(0,0,0,.12);color:inherit;border:none;flex:0 0 auto;}
 .group-tab .gt-del{min-width:24px;padding:0 4px;}
 .group-tab.off{opacity:.72;box-shadow:inset 0 0 0 1px rgba(255,59,48,.28);}
 .group-hint{font-size:11px;line-height:1.5;color:var(--sub,#8E8E93);margin:-2px 0 8px;padding:0 2px;}
@@ -2152,7 +2152,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-20v43-6y">
+<meta name="app-build" content="2026-11-20v43-6z">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3789,7 +3789,7 @@ html.kb-typing #rotate-guard,html.kb-typing body #rotate-guard{display:none!impo
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
       <div class="set-group"><div class="set-row"><span class="set-label">流畅模式<div class="set-sub">关闭毛玻璃模糊，减少低配机/APK 的滑动卡顿；APK 默认开启，网页默认关闭</div></span><button class="switch" id="sw-perf"></button></div><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
-<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-20v43-6y</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-20v43-6z</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5687,10 +5687,10 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-20",
-  noticeKey:"2026-11-20v43-6y",
+  noticeKey:"2026-11-20v43-6z",
   lead:"v43 全量修复：主站/预览补全 PWA 安装包，修复 Chrome 添加到主屏幕崩溃和进站黑白屏；登录恢复时先显示进入状态，网络超时自动用本地记录；日记/字卡返回固定回聊天页；数据先写本地快照，云端旧存档不再覆盖新改动；双击气泡贴表情可在设置关掉并调概率，主页评论/回复的输入框会跟着键盘上移。",
   items:[
-    '<span class="an-gt">v43-6y · 启动即桌面</span>',
+    '<span class="an-gt">v43-6z · 启动即桌面</span>',
     "APK 从主屏幕或别的应用切回来不再整页重载：回到上次的聊天页/主页，不退回公告；新增任务保留和大内存开关",
     "从后台回来表情面板先空白的问题：每次打开面板都重建格子，并立即把本机备份里的表情补回来",
     "对方发来的图片/画作/表情如果原图丢了，不再显示空白气泡，改成「图片已失效 / 表情已失效」并自动从本机副本恢复",
@@ -9510,7 +9510,9 @@ function activeCards(){
   try{
     /* 默认就是「全部聊天字卡」，不跟浏览用的分组标签走；
        只有在「设置 → 对方回复用哪个分组」明确选了某一组，才只用那一组（那组没卡则照旧用全部） */
-    var _rg=(_cardActiveGid&&_cardActiveGid.chat)||(state.settings&&state.settings.replyGroupId);
+    /* 设置里明确选的「回复用字卡分组」优先；字卡页浏览分组只是兜底。
+       以前反过来，设置改成 B 后，只要字卡页还停在 A，聊天仍会抽 A。 */
+    var _rg=(state.settings&&state.settings.replyGroupId)||(_cardActiveGid&&_cardActiveGid.chat);
     if(_rg){
       var _rIn=pool.filter(function(c){return c.groupId===_rg;});
       if(_rIn.length)pool=_rIn;
@@ -12723,10 +12725,31 @@ function renderCards(){
   // 分组标签
   const tabs=$("group-tabs");
   let html='<button class="group-tab all-tab'+(!activeGroupId?" active":"")+'" data-gid="__all">全部字卡<span class="gt-all-n">'+cardsOfKind(K).length+'</span></button>';
-  html+=groups.map(g=>'<button class="group-tab'+(g.id===activeGroupId?" active":"")+(g.disabled?" off":"")+'" data-gid="'+g.id+'" title="'+esc(g.name)+'"><span class="gt-name">'+esc(g.name)+'</span><span class="gt-acts"><span class="gt-off" data-gdis="'+g.id+'" title="屏蔽/恢复该分组">'+(g.disabled?"恢复":"屏蔽")+'</span><span class="gt-edit" data-gedit="'+g.id+'" title="改名">改名</span>'+(state.groups.length>1?'<span class="gt-del" data-gdel="'+g.id+'" title="删除分组">删除</span>':"")+'</span></button>').join("");
+  html+=groups.map(g=>'<div class="group-tab'+(g.id===activeGroupId?" active":"")+(g.disabled?" off":"")+'" data-gid="'+g.id+'" role="button" tabindex="0" title="'+esc(g.name)+'"><span class="gt-name">'+esc(g.name)+'</span><span class="gt-acts"><button type="button" class="gt-off" data-gdis="'+g.id+'" title="屏蔽/恢复该分组">'+(g.disabled?"恢复":"屏蔽")+'</button><button type="button" class="gt-edit" data-gedit="'+g.id+'" title="改名">改名</button>'+(state.groups.length>1?'<button type="button" class="gt-del" data-gdel="'+g.id+'" title="删除分组">删除</button>':"")+'</span></div>').join("");
   html+='<button class="group-tab new-group-btn" id="grp-new" style="min-width:40px;">+ 分组</button>';
   tabs.innerHTML=html;
-  tabs.querySelectorAll(".group-tab[data-gid]").forEach(b=>b.addEventListener("click",e=>{if(e.target.dataset.gdel){delGroup(e.target.dataset.gdel);}else if(e.target.dataset.gdis){toggleGroupDisabled(e.target.dataset.gdis);}else if(e.target.dataset.gedit){renameGroup(e.target.dataset.gedit);}else{if(b.dataset.gid==="__all"){activeGroupId=null;__setCardActiveGid(K,null);}else{activeGroupId=b.dataset.gid;__setCardActiveGid(K,b.dataset.gid);}renderCards();renderSettingsSelect();}}));
+  tabs.querySelectorAll(".group-tab[data-gid]").forEach(b=>{
+    b.addEventListener("click",e=>{
+      var act=e.target&&e.target.closest?e.target.closest("[data-gdel],[data-gdis],[data-gedit]"):null;
+      if(act){
+        e.preventDefault();e.stopPropagation();
+        /* 触摸时全站“快速点击”会先派发一次 click，系统随后又补一次；
+           屏蔽/改名/删除都是开关或弹窗，连点两次会互相抵消。这里 450ms 内同一动作只认第一次。 */
+        var _gk=(act.dataset.gdel?"d:":act.dataset.gdis?"o:":"e:")+(act.dataset.gdel||act.dataset.gdis||act.dataset.gedit||"");
+        var _gt=Date.now();
+        if(window.__groupActGuard&&window.__groupActGuard.k===_gk&&_gt-window.__groupActGuard.t<450)return;
+        window.__groupActGuard={k:_gk,t:_gt};
+        if(act.dataset.gdel)delGroup(act.dataset.gdel);
+        else if(act.dataset.gdis)toggleGroupDisabled(act.dataset.gdis);
+        else if(act.dataset.gedit)renameGroup(act.dataset.gedit);
+        return;
+      }
+      if(b.dataset.gid==="__all"){activeGroupId=null;__setCardActiveGid(K,null);}
+      else{activeGroupId=b.dataset.gid;__setCardActiveGid(K,b.dataset.gid);}
+      renderCards();renderSettingsSelect();
+    });
+    b.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();b.click();}});
+  });
   $("grp-new").addEventListener("click",()=>{$("new-group-name").focus();});
   // 全部 / 本组字卡
   const list=$("card-list");const gname=groupById(activeGroupId)?groupById(activeGroupId).name:"";
@@ -23268,7 +23291,7 @@ document.addEventListener("pointerdown",function(e){
     /* 返回键、顶栏、底栏永远放行：以前整页 420ms 防误触把「返回」也拦住，
        从加号进字卡后立刻点返回会以为按钮坏了。 */
     if(t&&t.closest&&t.closest(".back-btn,.topbar,.top-btn,.bottombar,.send-btn,.bb-btn"))return;
-    if(t&&t.closest&&(t.closest("#view-me")||t.closest("#view-cards"))){
+    if(t&&t.closest&&(t.closest("#view-me")||t.closest("#card-list"))){
       e.preventDefault();e.stopPropagation();
     }
   }catch(_){}
@@ -23280,7 +23303,7 @@ document.addEventListener("click",function(e){
     /* 返回键、顶栏、底栏永远放行：以前整页 420ms 防误触把「返回」也拦住，
        从加号进字卡后立刻点返回会以为按钮坏了。 */
     if(t&&t.closest&&t.closest(".back-btn,.topbar,.top-btn,.bottombar,.send-btn,.bb-btn"))return;
-    if(t&&t.closest&&(t.closest("#view-me")||t.closest("#view-cards"))){
+    if(t&&t.closest&&(t.closest("#view-me")||t.closest("#card-list"))){
       e.preventDefault();e.stopPropagation();
     }
   }catch(_){}
