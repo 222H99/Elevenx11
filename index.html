@@ -5,6 +5,49 @@
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#fafafa" id="theme-color-meta">
 <script>
+/* ================= iOS 风格确认弹窗（网页和 APK 共用） ================= */
+var __iosConfirmClose=null;
+function __iosConfirm(message,opts){
+  opts=opts||{};
+  if(__iosConfirmClose){try{__iosConfirmClose(false);}catch(e){}__iosConfirmClose=null;}
+  return new Promise(function(resolve){
+    var dark=false;try{dark=!!(document.body&&document.body.classList.contains("ui-dark"));}catch(e){}
+    var wrap=document.createElement("div");wrap.setAttribute("data-ios-confirm","");
+    wrap.style.cssText="position:fixed;left:0;top:0;right:0;bottom:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;background:rgba(0,0,0,.30);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);opacity:0;transition:opacity .18s ease;";
+    var card=document.createElement("div");
+    card.style.cssText="width:270px;max-width:82vw;border-radius:14px;overflow:hidden;background:"+(dark?"rgba(44,44,46,.94)":"rgba(249,249,249,.94)")+";-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);box-shadow:0 16px 44px rgba(0,0,0,.26);transform:scale(.96);transition:transform .18s cubic-bezier(.2,.8,.3,1);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','PingFang SC','Helvetica Neue',Arial,sans-serif;";
+    var pad=document.createElement("div");pad.style.cssText="padding:19px 18px 17px;text-align:center;";
+    if(opts.title){var tt=document.createElement("div");tt.textContent=opts.title;tt.style.cssText="font-size:15px;line-height:19px;font-weight:600;color:"+(dark?"#f2f2f7":"#111")+";margin-bottom:6px;";pad.appendChild(tt);}
+    var tx=document.createElement("div");tx.textContent=String(message==null?"":message);
+    tx.style.cssText="font-size:13px;line-height:18px;color:"+(dark?"#f2f2f7":"#1c1c1e")+";max-height:42vh;overflow:auto;-webkit-overflow-scrolling:touch;word-break:break-word;";
+    pad.appendChild(tx);card.appendChild(pad);
+    var line=document.createElement("div");line.style.cssText="height:.5px;background:"+(dark?"rgba(255,255,255,.18)":"rgba(60,60,67,.22)")+";";card.appendChild(line);
+    var row=document.createElement("div");row.style.cssText="display:flex;height:44px;";
+    var cancel=document.createElement("button");cancel.type="button";cancel.textContent=opts.cancelText||"取消";
+    cancel.style.cssText="flex:1;border:0;background:transparent;padding:0;font-size:17px;color:#007AFF;font-family:inherit;-webkit-tap-highlight-color:transparent;cursor:pointer;";
+    var vline=document.createElement("div");vline.style.cssText="width:.5px;background:"+(dark?"rgba(255,255,255,.18)":"rgba(60,60,67,.22)")+";";
+    var ok=document.createElement("button");ok.type="button";ok.textContent=opts.okText||"确定";
+    ok.style.cssText="flex:1;border:0;background:transparent;padding:0;font-size:17px;font-weight:600;color:"+(opts.danger===false?"#007AFF":"#FF3B30")+";font-family:inherit;-webkit-tap-highlight-color:transparent;cursor:pointer;";
+    row.appendChild(cancel);row.appendChild(vline);row.appendChild(ok);card.appendChild(row);
+    wrap.appendChild(card);document.body.appendChild(wrap);
+    var done=false;
+    function close(v){
+      if(done)return;done=true;if(__iosConfirmClose===close)__iosConfirmClose=null;
+      wrap.style.opacity="0";card.style.transform="scale(.96)";
+      setTimeout(function(){try{wrap.remove();}catch(e){}resolve(v);},180);
+    }
+    __iosConfirmClose=close;
+    cancel.addEventListener("click",function(e){e.stopPropagation();close(false);});
+    ok.addEventListener("click",function(e){e.stopPropagation();close(true);});
+    wrap.addEventListener("click",function(e){if(e.target===wrap)close(false);});
+    var key=function(e){if(e.key==="Escape"){document.removeEventListener("keydown",key);close(false);}};
+    document.addEventListener("keydown",key);
+    requestAnimationFrame(function(){wrap.style.opacity="1";card.style.transform="scale(1)";});
+  });
+}
+try{window.__iosConfirm=__iosConfirm;}catch(e){}
+</script>
+<script>
 /* 第一帧就把底色定对：不然深色用户在重新打开时会先闪一下白屏（浅色用户会被系统深色闪一下黑屏） */
 (function(){try{
   var t=null;try{t=localStorage.getItem("__theme.v1");}catch(e){}
@@ -2202,7 +2245,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-21v43-13">
+<meta name="app-build" content="2026-11-21v43-14">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3863,7 +3906,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-13</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-14</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5493,8 +5536,8 @@ setTimeout(function(){
     });
   }
 
-  function logout(){
-    if(!confirm("退出后，本机会清空这个账号的本地缓存；云端存档保留。确定退出？"))return;
+  async function logout(){
+    if(!(await __iosConfirm("退出后，本机会清空这个账号的本地缓存；云端存档保留。确定退出？",{okText:"退出"})))return;
     window.__e11CloudPause=1;
     var finished=false;
     var finish=function(){
@@ -5505,8 +5548,8 @@ setTimeout(function(){
     };
     if(!authOk()){finish();return;}
     /* 先等最后一次上传结束，避免刚发的消息只留在本机就被清掉 */
-    window.__E11Cloud.uploadNow().then(finish).catch(function(){
-      if(confirm("云端保存失败，继续退出可能丢掉最后一次改动。仍然退出？"))finish();
+    window.__E11Cloud.uploadNow().then(finish).catch(async function(){
+      if(await __iosConfirm("云端保存失败，继续退出可能丢掉最后一次改动。仍然退出？",{okText:"仍然退出"}))finish();
     });
   }
 
@@ -5777,9 +5820,22 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-21",
-  noticeKey:"2026-11-21v43-13",
-  lead:"v43-13：读完信点「收起」直接回主页，不用先退回信件列表再点一次返回；回主页时先让旧页以 99.8% 多停留两帧，把主页逼出来画好再交接，避免黑屏一闪。v43-12 的主屏幕自动更新、v43-11 的聊天页无闪交接继续保留。",
+  noticeKey:"2026-11-21v43-14",
+  lead:"v43-14：对方答完问卷会像原问卷一样单独发一条「问卷答案」消息，原问卷只标记为已答；应用内确认框改成 iOS 风格；问卷解析加了缓存，答案消息走增量追加，不再整屏重绘。v43-13 的读信收起/回主页不黑屏继续保留。",
   items:[
+    '<span class="an-gt">v43-14 · 问卷答案消息</span>',
+    "对方答完问卷后，聊天里会多出一条和问卷同样样式的「对方 · 问卷答案」卡，点「查看答案」反复看每道题的选择",
+    "原问卷卡只更新成「查看结果」，不再把答案和原题混在一张卡里",
+    "问卷答案消息也计入未读红点和系统通知，不在聊天页时能收到提醒",
+    "防止重复触发：同一份问卷只发一次答案消息",
+    '<span class="an-gt">v43-14 · iOS 风格弹窗</span>',
+    "网页和 APK 里的确认框统一改成 iOS 警告框：毛玻璃遮罩、圆角卡片、蓝色取消 / 红色危险操作，深色模式同样适配",
+    "APK 原生 Toast 改成深色半透明胶囊、圆角、底部居中，不再用 Android 默认灰色提示",
+    "说明：系统相册选择器、权限授权框属于 Android 系统 UI，应用无法改成 iOS 外观",
+    '<span class="an-gt">v43-14 · bug 检查 / 性能</span>',
+    "问卷 JSON 改用 WeakMap 缓存，聊天重绘不再反复解析同一份问卷；文本一变自动失效，也不会写进存档",
+    "答案消息只增量插入新行并只保存一次，不再为了发一条答案整屏 renderChat",
+    "修正对方发来的答案卡顶部文案：应显示「对方已经填写」，不再误显示「你的作答」",
     '<span class="an-gt">v43-13 · 信件收起 / 回主页黑屏</span>',
     "读完信点「收起」直接回主页，不再先停在信件列表、还要再点一次返回",
     "回主页时旧页先以 99.8% 不透明度停留约两帧（32ms），强制被盖住的主页完成绘制后再撤旧页，不再露一帧黑底",
@@ -6362,9 +6418,9 @@ function __bkPaint(){
       return '<div class="set-row" style="justify-content:space-between;gap:10px;"><span class="set-label">'+t+'<div class="set-sub">'+(m.msgs||0)+' 条消息 · '+(m.letters||0)+' 封信 · '+(m.moments||0)+' 条动态</div></span><button class="small-btn" data-bk="'+m.slot+'">恢复</button></div>';
     }).join("");
     box.querySelectorAll("[data-bk]").forEach(function(b){
-      b.addEventListener("click",function(){
+      b.addEventListener("click",async function(){
         var slot=b.getAttribute("data-bk");
-        if(!confirm("用这份备份覆盖现在的全部数据？当前未备份的改动会丢失。"))return;
+        if(!(await __iosConfirm("用这份备份覆盖现在的全部数据？当前未备份的改动会丢失。")))return;
         dbGet("bk_slot_"+slot).then(function(v){
           if(!v||!v.state){toast("这份备份读不出来");return;}
           var st=v.state;
@@ -9870,15 +9926,27 @@ $("btn-bank-import").addEventListener("click",()=>{
 });
 
 /* —— 问卷：填写 —— */
+/* 问卷 JSON 解析缓存：聊天每次重绘都会重新拼问卷卡，长列表里反复 JSON.parse 很浪费。
+   用 WeakMap 挂在消息对象上，m.text 一变（作答/更新）自动失效，也不会被写进存档。 */
+var __surveyParseCache=new WeakMap();
+function surveyOf(m){
+  if(!m||typeof m.text!=="string")return null;
+  var c=__surveyParseCache.get(m);
+  if(c&&c.t===m.text)return c.v;
+  try{var v=JSON.parse(m.text);if(!v||!v.questions)return null;__surveyParseCache.set(m,{t:m.text,v:v});return v;}catch(e){return null;}
+}
 function openSurveyAnswer(id){
   /* 问卷只能由用户点开；不能再套聊天入场守卫，否则刚进聊天就点「查看」会被静默吞掉，看起来像点了没反应/闪一下 */
-  const m=msgById(id);if(!m)return;let s={};try{s=JSON.parse(m.text);}catch(e){return;}
+  const m=msgById(id);if(!m)return;const s=surveyOf(m);if(!s)return;
   $("survey-answer-title").textContent="📋 "+(s.title||"问卷");
   const _answered=!!s.answeredBy, _isMe=m.from==="me";
   /* 已作答（或是我自己发的问卷）：只读展示，题目和答案都能反复看 */
   if(_answered||_isMe){
-    $("survey-answer-submit").style.display="none";
-    var _tip=_answered?(_isMe?"对方已经填写":"你的作答"):"对方还没填写";
+    $("survey-answer-submit").style.display="none";$("survey-answer-cancel").textContent="关闭";
+    /* answeredBy 才是“谁答的”：我方问卷由对方答 → 对方已经填写；
+       对方发来的问卷由我答 → 你的作答；对方发来的答案卡也是“对方已经填写”。 */
+    var _byMe=_answered&&s.answeredBy==="me";
+    var _tip=_answered?(_byMe?"你的作答":"对方已经填写"):"对方还没填写";
     var _rows=(s.questions||[]).map(function(q,i){
       var k=q.kind||(q.mode==="custom"?"custom":q.type||"single");
       var kt=k==="custom"?"自定义":(k==="multi"?"多选":"单选");
@@ -9895,7 +9963,7 @@ function openSurveyAnswer(id){
     $("survey-answer-body").innerHTML='<div style="font-size:12px;color:#8E8E93;margin-bottom:10px;">'+_tip+' · 共 '+(s.questions||[]).length+' 题</div>'+_rows;
     $("survey-answer-overlay").classList.add("show");return;
   }
-  $("survey-answer-submit").style.display="";
+  $("survey-answer-submit").style.display="";$("survey-answer-cancel").textContent="取消";
   $("survey-answer-body").innerHTML=s.questions.map((q,i)=>{
     const k=q.kind||(q.mode==="custom"?"custom":q.type||"single");
     return '<div class="sq-q"><div class="sq-q-t">'+(i+1)+'. '+esc(q.text)+'</div>'
@@ -9912,7 +9980,7 @@ function openSurveyAnswer(id){
 }
 $("survey-answer-body").addEventListener("click",e=>{
   const chip=e.target.closest(".sq-chip");if(!chip)return;
-  const qrow=chip.closest(".sq-q");const m=msgById($("survey-answer-body")._qid);let s=JSON.parse(m.text);
+  const qrow=chip.closest(".sq-q");const m=msgById($("survey-answer-body")._qid);const s=surveyOf(m);if(!s)return;
   const qi=Array.prototype.indexOf.call(qrow.parentNode.children,qrow);
   const q=s.questions[qi];
   const k=q.kind||(q.mode==="custom"?"custom":q.type||"single");
@@ -9972,7 +10040,9 @@ $("survey-answer-submit").addEventListener("click",()=>{
   toast("问卷已提交");
 });
 function partnerAnswerSurvey(id){
-  const m=msgById(id);if(!m)return;let s={};try{s=JSON.parse(m.text);}catch(e){return;}
+  const m=msgById(id);if(!m)return;const s=surveyOf(m);if(!s)return;
+  if(s.answeredBy)return;
+  s.answeredBy="partner";s.answerSent=1;
   const cp=cardPool();
   for(const q of s.questions){
     const k=q.kind||(q.mode==="custom"?"custom":q.type||"single");
@@ -9987,9 +10057,20 @@ function partnerAnswerSurvey(id){
     else if(k==="multi"){const n=1+Math.floor(Math.random()*Math.min(2,q.options.length));q.picks=shuffle(q.options.slice()).slice(0,n);q.custom="";}
     else{q.picks=[q.options[Math.floor(Math.random()*q.options.length)]];q.custom="";}
   }
-  s.answeredBy="partner";m.text=JSON.stringify(s);save();
+  s.answeredBy="partner";s.answerSent=1;m.text=JSON.stringify(s);
+  /* 对方答完要单独发一条「问卷答案」消息，卡片外观和原问卷一致；
+     原问卷只更新为「查看结果」，答案消息可以反复查看。 */
+  var _copy={title:s.title||"问卷",questions:(s.questions||[]).map(function(q){
+    var c={text:q.text,kind:q.kind||(q.mode==="custom"?"custom":q.type||"single"),options:(q.options||[]).slice(),picks:(q.picks||[]).slice(),custom:q.custom||""};
+    if(q.id)c.id=q.id;return c;
+  }),answeredBy:"partner",answerCopy:true,answerTo:m.id};
+  var _aid=pushMsg("partner","survey",JSON.stringify(_copy));
+  save();
   if(!__refreshSurveyRow(m.id)){try{renderChat();}catch(e){}}
-  toast("对方填写了问卷");
+  if(_aid){
+    try{if(!__appendChatMsg(_aid))renderChat();}catch(e){try{renderChat();}catch(_){}}
+  }
+  toast("对方发来了问卷答案");
 }
 /* 对方主动发问卷：只从我导入的题库 + 我问过/发送过的问卷里出题，绝不用字卡兜底 */
 function maybePartnerSurvey(){
@@ -10128,14 +10209,14 @@ function redpacketRowHTML(r){
     +'<div class="msg-time">'+fmtTime(r.time)+'</div></div></div>';
 }
 function surveyRowHTML(m){
-  let s={};try{s=JSON.parse(m.text);}catch(e){return '';}
+  const s=surveyOf(m);if(!s)return '';
   const side=m.from==="me"?"me":"partner";
   const isMe=m.from==="me";
   const av=isMe?state.me.avatar:state.partner.avatar;
   const nm=isMe?state.me.name:state.partner.name;
   const qs=s.questions||[];
   const answered=!!s.answeredBy;
-  const actTxt=answered?"查看结果":(isMe?"对方还未回答":"去填写");
+  const actTxt=s.answerCopy?"查看答案":(answered?"查看结果":(isMe?"对方还未回答":"去填写"));
   let meta='<div class="msg-time">';
   if(isMe&&state.settings.readReceipt){
       /* 已读不回：和「主动」一样用气泡下的小标签；没有这个状态时才显示「已读 / 已送达」文字 */
@@ -10257,7 +10338,7 @@ function pushMsg(from,type,text,opts){
       else window.__playMsgSound&&window.__playMsgSound(from==="me"?"send":"recv");
     }
   }catch(e){}
-  if(from==="partner"&&(type==="text"||type==="image"||type==="rp")){
+  if(from==="partner"&&(type==="text"||type==="image"||type==="rp"||type==="survey")){
     var _vc=document.getElementById("view-chat");
     if(!(_vc&&_vc.classList.contains("open"))){newR++;updateNewBadge();}
   }
@@ -11762,9 +11843,9 @@ try{window.__msgSelEnter=__msgSelEnter;window.__msgSelExit=__msgSelExit;}catch(e
     if(__msgSelIds.length===allIds.length)__msgSelIds=[];else __msgSelIds=allIds;
     __msgSelPaint();
   });
-  if(dd)dd.addEventListener("click",function(){
+  if(dd)dd.addEventListener("click",async function(){
     var n=__msgSelIds.length;if(!n)return;
-    if(!confirm("删除选中的 "+n+" 条消息？此操作不可撤销。"))return;
+    if(!(await __iosConfirm("删除选中的 "+n+" 条消息？此操作不可撤销。")))return;
     var ids=__msgSelIds.slice();
     state.messages=state.messages.filter(function(m){return ids.indexOf(m.id)<0;});
     state.redpackets=(state.redpackets||[]).filter(function(r){return ids.indexOf(r.id)<0;});
@@ -12716,16 +12797,16 @@ $("btn-emoji-selall").addEventListener("click",()=>{
   renderEmojis();
   $("btn-emoji-selall").textContent=(list.length&&emojiSel.size===list.length)?"取消全选":"全选";
 });
-$("btn-emoji-seldel").addEventListener("click",()=>{
+$("btn-emoji-seldel").addEventListener("click",async()=>{
   if(!emojiSel.size){toast("先勾选要删除的表情");return;}
-  if(!confirm("删除选中的 "+emojiSel.size+" 个表情？"))return;
+  if(!(await __iosConfirm("删除选中的 "+emojiSel.size+" 个表情？")))return;
   setCurEmojis(curEmojis().filter(x=>!emojiSel.has(x.id)));
   emojiSel.clear();save();renderEmojis();toast("已删除所选表情");
 });
-$("btn-emoji-clearall").addEventListener("click",()=>{
+$("btn-emoji-clearall").addEventListener("click",async()=>{
   const list=curEmojis();
   if(!list.length)return;
-  if(!confirm("清空全部 "+list.length+" 个表情？"))return;
+  if(!(await __iosConfirm("清空全部 "+list.length+" 个表情？")))return;
   setCurEmojis([]);emojiSel.clear();save();renderEmojis();toast("已清空表情");
 });
 /* 表情大小设置已移除：不再绑定滑杆，尺寸固定默认 */
@@ -13079,10 +13160,10 @@ function addGroup(){
   const g={id:uid(),name:name,kind:K};state.groups.push(g);$("new-group-name").value="";
   activeGroupId=g.id;__setCardActiveGid(K,g.id);renderCards();toast("已创建分组："+name);
 }
-function delGroup(id){
+async function delGroup(id){
   var K=cardKindView, _gs=groupsOfKind(K);
   if(_gs.length<=1){toast("至少保留一个分组");return;}
-  if(!confirm("删除该分组及其全部字卡？"))return;
+  if(!(await __iosConfirm("删除该分组及其全部字卡？")))return;
   state.groups=state.groups.filter(g=>g.id!==id);
   state.cards=state.cards.filter(c=>c.groupId!==id);
   if(state.settings.replyGroupId===id){var rest=groupsOfKind("chat");state.settings.replyGroupId=rest.length?rest[0].id:null;}
@@ -13392,18 +13473,18 @@ $("btn-card-select-all").addEventListener("click",()=>{
   else cards.forEach(c=>cardSel.add(c.id));
   updateSelUI();
 });
-$("btn-card-del-selected").addEventListener("click",()=>{
+$("btn-card-del-selected").addEventListener("click",async()=>{
   if(!cardSel.size){toast("请先勾选字卡");return;}
-  if(!confirm("删除选中的 "+cardSel.size+" 条字卡？"))return;
+  if(!(await __iosConfirm("删除选中的 "+cardSel.size+" 条字卡？")))return;
   state.cards=state.cards.filter(c=>!cardSel.has(c.id));
   cardSel.clear();save();renderCards();toast("已删除选中字卡");
 });
 /* ===== 清空全部字卡（取消所有内置/历史残留字卡）===== */
-$("btn-card-clear-all").addEventListener("click",()=>{
+$("btn-card-clear-all").addEventListener("click",async()=>{
   var K=cardKindView;
   var _kc=cardsOfKind(K).length,_kg=groupsOfKind(K).length;
   if(!_kc&&_kg<=1){toast(CARD_KIND_LABEL[K]+"本来就是空的");return;}
-  if(!confirm("删除全部 "+_kc+" 张"+CARD_KIND_LABEL[K]+"，并清空该类别的分组（只保留一个“默认”组）？此操作不可撤销。"))return;
+  if(!(await __iosConfirm("删除全部 "+_kc+" 张"+CARD_KIND_LABEL[K]+"，并清空该类别的分组（只保留一个“默认”组）？此操作不可撤销。")))return;
   state.cards=state.cards.filter(function(c){return cardKindOf(c)!==K;});
   state.groups=state.groups.filter(function(g){return groupKind(g)!==K;});
   var ng={id:uid(),name:"默认",kind:K};state.groups.push(ng);
@@ -14574,8 +14655,8 @@ function renderStorageInfo(){
   }).catch(function(){_done=true;clearTimeout(_t);val.textContent="读取失败";});
 }
 if($("btn-storage-refresh"))$("btn-storage-refresh").addEventListener("click",renderStorageInfo);
-if($("btn-shrink-imgs"))$("btn-shrink-imgs").addEventListener("click",function(){
-  if(!confirm("会把已保存的图片重新压小（画质略降），可释放大量空间。继续？"))return;
+if($("btn-shrink-imgs"))$("btn-shrink-imgs").addEventListener("click",async function(){
+  if(!(await __iosConfirm("会把已保存的图片重新压小（画质略降），可释放大量空间。继续？",{danger:false})))return;
   toast("正在压缩…");shrinkAllImages();
 });
 /* 把 IndexedDB 里所有键读出来（导出用） */
@@ -15114,13 +15195,13 @@ $("file-import").addEventListener("change",e=>{
   r.onload=()=>{__importBackupText(r.result,f);};
   r.readAsText(f);e.target.value="";
 });
-$("btn-clear-msgs").addEventListener("click",()=>{
-  if(!confirm("确认清空全部聊天记录（含红包）？"))return;
+$("btn-clear-msgs").addEventListener("click",async()=>{
+  if(!(await __iosConfirm("确认清空全部聊天记录（含红包）？")))return;
   state.messages=[];state.redpackets=[];newR=0;updateNewBadge();
   save();renderChat();renderRedpackets();toast("聊天记录已清空");
 });
-$("btn-reset-all").addEventListener("click",()=>{
-  if(!confirm("一键重置：将清空全部聊天、动态、留言、信件、字卡、表情、问卷等所有数据，并恢复默认设置。此操作不可撤销。确认重置？"))return;
+$("btn-reset-all").addEventListener("click",async()=>{
+  if(!(await __iosConfirm("一键重置：将清空全部聊天、动态、留言、信件、字卡、表情、问卷等所有数据，并恢复默认设置。此操作不可撤销。确认重置？",{okText:"重置"})))return;
   try{
     ["privateChat","uiPrefs.v1","lockFree","__aboutAck","__announceAck","draft.v1","callSave","cp2EmojiLib","cp2Opt.v1","cp2PhotoSize","cp2PhotoUserSize","pendingLetterReplies","pendingNoteReplies","pendingCommentReplies","ltRead.v1","me1Sizes","me1OrigIcons","__noticeSync","ltReadAt","__pw1026m","__pwForce","__pwFixed"]
       .forEach(function(k){try{localStorage.removeItem(k);}catch(_e){}});
@@ -18939,8 +19020,8 @@ $("btn-game-undo").addEventListener("click",()=>{
   if(game.passing)return;
   game.strokes.pop();renderGame();
 });
-$("btn-game-clear").addEventListener("click",()=>{
-  if(!confirm("清空整幅画？"))return;
+$("btn-game-clear").addEventListener("click",async()=>{
+  if(!(await __iosConfirm("清空整幅画？")))return;
   game.strokes=[];game.turn="me";game.passing=false;renderGame();
 });
 function __dedupeDrawMsgs(){
@@ -19271,8 +19352,8 @@ $("fav-list")&&$("fav-list").addEventListener("click",function(e){
   if(!row)return;
   var tx=row.querySelector(".fav-tx");if(tx)tx.classList.toggle("fav-full");
 });
-$("fav-clear")&&$("fav-clear").addEventListener("click",function(){
-  if(!confirm("清空全部收藏？"))return;
+$("fav-clear")&&$("fav-clear").addEventListener("click",async function(){
+  if(!(await __iosConfirm("清空全部收藏？")))return;
   state.favorites=[];
   try{save();__flushSave(true);}catch(_){}
   __renderFavSheet();
@@ -19582,8 +19663,8 @@ function renderLetters(force){
     __bindStarButtons(root);
     root.querySelectorAll("[data-ldel]").forEach(b=>{
       if(b.__ltDelB)return;b.__ltDelB=1;
-      b.addEventListener("click",()=>{
-        if(!confirm("删除这封信？"))return;
+      b.addEventListener("click",async()=>{
+        if(!(await __iosConfirm("删除这封信？")))return;
         state.letters=state.letters.filter(x=>x.id!==b.dataset.ldel);
         try{if(window.__pruneSocialNotices&&window.__pruneSocialNotices()){window.__chatDirty=1;}}catch(e){}
         save();renderLetters();updateNewBadge();toast("信已删除");
@@ -20693,7 +20774,7 @@ function renderGuestbook(force){
   function bindGbCards(root){
     root.querySelectorAll("[data-qdel]").forEach(b=>{
       if(b.__gbQ)return;b.__gbQ=1;
-      b.addEventListener("click",e=>{
+      b.addEventListener("click",async e=>{
         e.stopPropagation();
         let ids=String(b.dataset.qdel||"").split(",").filter(Boolean);
         if(!ids.length){return;}
@@ -20708,7 +20789,7 @@ function renderGuestbook(force){
             });
           }
         }catch(_){}
-        if(!confirm("删除这条留言？"))return;
+        if(!(await __iosConfirm("删除这条留言？")))return;
         state.guestbook=state.guestbook.filter(x=>!ids.includes(x.id));
         try{if(window.__pruneSocialNotices&&window.__pruneSocialNotices()){window.__chatDirty=1;}}catch(e){}
         save();renderGuestbook();toast("留言已删除");
@@ -20716,9 +20797,9 @@ function renderGuestbook(force){
     });
     root.querySelectorAll("[data-adelonly]").forEach(b=>{
       if(b.__gbAO)return;b.__gbAO=1;
-      b.addEventListener("click",e=>{
+      b.addEventListener("click",async e=>{
         e.stopPropagation();
-        if(!confirm("删除你的这条回复？"))return;
+        if(!(await __iosConfirm("删除你的这条回复？")))return;
         state.guestbook=state.guestbook.filter(x=>x.id!==b.dataset.adelonly);
         try{if(window.__pruneSocialNotices&&window.__pruneSocialNotices()){window.__chatDirty=1;}}catch(e){}
         save();renderGuestbook();toast("已删除我的回复");
@@ -20855,9 +20936,9 @@ function replyToPartner(pid,text){
       oldCard.setAttribute("data-gbreply",pid);
       var del=oldCard.querySelector(".qa-del");if(del)del.dataset.adel=nb.id;
       var delReply=oldCard.querySelector('[data-adelonly="'+nb.id+'"]');
-      if(delReply)delReply.addEventListener("click",function(e){
+      if(delReply)delReply.addEventListener("click",async function(e){
         e.stopPropagation();
-        if(!confirm("删除你的这条回复？"))return;
+        if(!(await __iosConfirm("删除你的这条回复？")))return;
         state.guestbook=state.guestbook.filter(x=>x.id!==nb.id);
         try{if(window.__pruneSocialNotices&&window.__pruneSocialNotices()){window.__chatDirty=1;}}catch(_){}
         save();
@@ -21563,7 +21644,7 @@ function bindMomentFeed(){
       [80,240,520,900].forEach(function(ms){setTimeout(function(){try{if(window.__momentReplyInp===inp)keepMomentReplyVisible(inp);}catch(e){}},ms);});
     }catch(e){}
   }
-  feed.addEventListener("click",function(e){
+  feed.addEventListener("click",async function(e){
     var t=e.target;
     if(!t||!t.closest)return;
     var st=t.closest("[data-star-kind]");
@@ -21585,7 +21666,7 @@ function bindMomentFeed(){
       if(!m1.likes)m1.likes=[];var i1=m1.likes.indexOf("me");if(i1>-1)m1.likes.splice(i1,1);else m1.likes.push("me");
       save();if(!__refreshMomentCard(m1.id))renderMoments();toast(i1>-1?"已取消点赞":"已点赞");return;}
     var db=t.closest("[data-mdel]");
-    if(db){e.stopPropagation();if(!confirm("删除这条动态？"))return;
+    if(db){e.stopPropagation();if(!(await __iosConfirm("删除这条动态？")))return;
       state.moments=state.moments.filter(function(x){return x.id!==db.dataset.mdel;});
       try{if(window.__pruneSocialNotices&&window.__pruneSocialNotices()){window.__chatDirty=1;}}catch(e){}
       save();renderMoments();toast("动态已删除");return;}
@@ -21597,7 +21678,7 @@ function bindMomentFeed(){
     var dc=t.closest("[data-mdelc]");
     if(dc){e.preventDefault();e.stopPropagation();
       var cardD=cardOf(dc);if(!cardD)return;var mD=state.moments.find(function(x){return x.id===cardD.dataset.id;});if(!mD)return;
-      if(!confirm("删除这条回复？"))return;
+      if(!(await __iosConfirm("删除这条回复？")))return;
       if(__removeComment(mD,dc.dataset.mdelc)){
         if(replyCtx&&replyCtx.momentId===mD.id&&(!replyCtx.commentId||!findComment(mD,replyCtx.commentId)))replyCtx={momentId:null,commentId:null,name:""};
         momentFocusMid=null;
