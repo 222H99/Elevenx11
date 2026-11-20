@@ -545,6 +545,10 @@ body.ui-dark:not(.lt-preset) .env-card .ev-sig{color:rgba(255,255,255,.62) !impo
 .bubble img.bimg{max-width:100%;max-height:min(300px,calc(var(--ep-h,74px) * 2.4));border-radius:10px;display:block;}
 .msg-photo{max-width:200px;max-height:260px;width:auto;height:auto;border-radius:14px;display:block;object-fit:cover;background:rgba(120,120,128,.10);box-shadow:0 2px 10px rgba(0,0,0,.08);}
 .msg-row.me .msg-photo{margin-left:auto;}
+.msg-imgfail{max-width:200px;min-width:132px;min-height:92px;padding:12px 14px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;text-align:center;background:rgba(120,120,128,.10);border:1px dashed rgba(120,120,128,.34);color:rgba(120,120,128,.92);font-size:13px;line-height:1.35;}
+.msg-imgfail b{font-size:13px;font-weight:600;}
+.msg-imgfail small{font-size:11px;opacity:.72;}
+.msg-row.me .msg-imgfail{margin-left:auto;}
 /* 表情气泡宽度跟着「表情包大小」缩：默认 74 → 约 260px，调小/调大同步生效 */
 /* 表情气泡宽度＝「表情包大小」设的像素值，最大不超过这一列的宽度 */
 .sticker{width:min(var(--em-px,260px),76vw);max-width:100%;background:none;border:none;}
@@ -2126,7 +2130,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-20v43-6n">
+<meta name="app-build" content="2026-11-20v43-6p">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3763,7 +3767,7 @@ html.kb-typing #rotate-guard,html.kb-typing body #rotate-guard{display:none!impo
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
       <div class="set-group"><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
-<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-20v43-6n</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-20v43-6p</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5661,9 +5665,14 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-20",
-  noticeKey:"2026-11-20v43-6n",
+  noticeKey:"2026-11-20v43-6p",
   lead:"v43 全量修复：主站/预览补全 PWA 安装包，修复 Chrome 添加到主屏幕崩溃和进站黑白屏；登录恢复时先显示进入状态，网络超时自动用本地记录；日记/字卡返回固定回聊天页；数据先写本地快照，云端旧存档不再覆盖新改动；双击气泡贴表情可在设置关掉并调概率，主页评论/回复的输入框会跟着键盘上移。",
   items:[
+    '<span class="an-gt">v43-6p · 保活 / 图片 / 表情</span>',
+    "APK 从主屏幕或别的应用切回来不再整页重载：回到上次的聊天页/主页，不退回公告；新增任务保留和大内存开关",
+    "从后台回来表情面板先空白的问题：每次打开面板都重建格子，并立即把本机备份里的表情补回来",
+    "对方发来的图片/画作/表情如果原图丢了，不再显示空白气泡，改成「图片已失效 / 表情已失效」并自动从本机副本恢复",
+    "历史聊天图片失败：启动时在第一次渲染前按图片 id 扫三份自动备份、完整快照、未落库大图，能补的当场补回",
     '<span class="an-gt">v43-6n · 我的回复</span>',
     "对方留言下可以连续回复多条，不再回复一次就把入口收掉；每条回复都有自己的删除按钮",
     "删除其中一条不会重写其它回复的时间/删除按钮；删到最后一条后恢复「点击回复」",
@@ -5808,7 +5817,7 @@ function __entryStart(){
 function __entryHome(){
   /* 进入主页时声明页必须已经退场；即便 ack 判断出错，也不能让它继续盖住主页/设置 */
   try{var _abH=document.getElementById("about-screen");if(_abH)_abH.classList.remove("show");}catch(_eAbH){}
-  showView("view-me");
+  showView((window.__bootView&&window.__bootView())||"view-me");
   /* 锁屏密码是在 init 之后才解开的：先补离开期间到点的动态/评论/留言/来信，
      再启动各自的计时器。顺序反过来会把补发基准清掉。 */
   try{if(typeof catchUpSocial==="function")catchUpSocial();}catch(e){}
@@ -7107,7 +7116,7 @@ async function init(){
   setTimeout(function(){try{window.__fitCompute(false);}catch(e){}},220);
   try{if(typeof renderTopStatus==="function")renderTopStatus();}catch(e){}
   try{if(window.__idle){window.__idle(function(){try{preloadCp2Images();}catch(e){}});}else{setTimeout(function(){try{preloadCp2Images();}catch(e){}},120);}}catch(e){}
-  try{if(typeof showView==="function")showView(window.__wantChatOnReady?"view-chat":"view-me");}catch(e){}try{window.__bootDone&&window.__bootDone();}catch(_e){}
+  try{if(typeof showView==="function")showView((window.__bootView&&window.__bootView())||(window.__wantChatOnReady?"view-chat":"view-me"));}catch(e){}try{window.__bootDone&&window.__bootDone();}catch(_e){}
   try{if(typeof preloadCp2Images==="function")setTimeout(preloadCp2Images,180);}catch(e){}
   try{if(window.__cp2Reapply)window.__cp2Reapply();}catch(e){}
   try{window.__stateReady=1;}catch(e){}
@@ -7217,6 +7226,9 @@ async function init(){
       try{__restoreEmojiLibFromBackup();}catch(_eEmojiLib){}
       try{__backfillEmojiMessageIds();}catch(_eBf){}
       try{__mergeMediaSnapshots(state,s);}catch(_eMergeMedia2){}
+      /* 主库大图被配额清掉时，在第一次完整渲染前先把同 id 的本机副本补回来；
+         补不回来的会在聊天里显示「图片已失效」，不会出现整条空白。 */
+      try{await __recoverBrokenImages();}catch(_eBrokenBig){}
       try{setTimeout(function(){try{__restoreMePhotoFromBackup();}catch(_){}},0);}catch(_){}
       /* 恢复后写回必须用「引用版」：直接把带 dataURL 的整库写进 IndexedDB/localStorage，
          会把所有图片再复制一份（存储翻倍、还容易配额爆），这里沿用正常保存的 slim 逻辑 */
@@ -7256,6 +7268,7 @@ try{window.__scheduleCp2Render&&window.__scheduleCp2Render();}catch(e){}
     } else {
       /* 用的是 localStorage 那份：合并已经把图补回来了，这里给老表情消息补 id */
       try{__backfillEmojiMessageIds();}catch(_eBf3){}
+      try{await __recoverBrokenImages();}catch(_eBrokenBig2){}
     }
     /* 存档最终确定后再定主题，并补画一次；早先的首屏一直用 __bootDark，不会白闪 */
     try{/* 最终主题等 hideGate 再定，见 hideGate 注释 */applySkin();}catch(_eThemeFinal){}
@@ -7305,7 +7318,7 @@ try{window.__scheduleCp2Render&&window.__scheduleCp2Render();}catch(e){}
     }, 300);
     try{setTimeout(function(){window.__idle?window.__idle(function(){__bkAuto();}):__bkAuto();},2600);}catch(e){}
   }catch(e){window._dbReady=true;aboutLoadStatus("加载完成（离线模式）");try{__storageGuard();}catch(_eG2){}
-      try{if(window.__rebuildSocialNotices)window.__rebuildSocialNotices();}catch(e){}try{renderAll();}catch(_e){}try{if(typeof showView==="function")showView(window.__wantChatOnReady?"view-chat":"view-me");}catch(_e2){}try{window.__bootDone&&window.__bootDone();}catch(_e3){}try{setTimeout(function(){if(window.__prewarmChat)window.__prewarmChat();},260);}catch(_e3){}}
+      try{if(window.__rebuildSocialNotices)window.__rebuildSocialNotices();}catch(e){}try{renderAll();}catch(_e){}try{if(typeof showView==="function")showView((window.__bootView&&window.__bootView())||(window.__wantChatOnReady?"view-chat":"view-me"));}catch(_e2){}try{window.__bootDone&&window.__bootDone();}catch(_e3){}try{setTimeout(function(){if(window.__prewarmChat)window.__prewarmChat();},260);}catch(_e3){}}
   try{setTimeout(function(){
     window.__idle(function(){
       try{if(typeof catchUpSocial==="function")catchUpSocial();}catch(e){}
@@ -7712,6 +7725,28 @@ try{
 try{__lockPortrait();}catch(_eL0){}
 try{document.addEventListener("DOMContentLoaded",function(){try{__lockPortrait();}catch(_){}});}catch(_){}
 try{document.addEventListener("visibilitychange",function(){if(!document.hidden){try{__lockPortrait();}catch(_){}}});}catch(_){}
+/* 从主屏幕/别的应用切回来：不整页重载，只把可能停在“空白/失效”的图和表情补一次 */
+try{
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden)return;
+    setTimeout(function(){
+      try{
+        var _ep=document.getElementById("emoji-panel");
+        if(_ep&&_ep.classList.contains("open")){
+          try{document.getElementById("emoji-grid").dataset.epSig="";}catch(_){}
+          try{if(window.__recoverBrokenImages)window.__recoverBrokenImages();}catch(_){}
+          try{__repairEmojiState();}catch(_){}
+          try{renderEmojis();}catch(_){}
+        }
+        if(window.__bigBroken&&window.__bigBroken.length&&window.__recoverBrokenImages){
+          window.__recoverBrokenImages().then(function(ch){
+            if(ch&&window.__curView==="view-chat"){try{renderChat(true);}catch(_){}}
+          });
+        }
+      }catch(_){}
+    },120);
+  });
+}catch(_){}
 try{window.addEventListener("orientationchange",function(){setTimeout(function(){try{__lockPortrait();}catch(_){}},80);});}catch(_){}
 try{document.addEventListener("pointerdown",function once(){try{__lockPortrait();}catch(_){}},{once:true,passive:true});}catch(_){}
 try{
@@ -8042,6 +8077,94 @@ function __repairAvatars(){
   }catch(e){try{renderTopStatus();}catch(_){}return Promise.resolve(false);}
 }
 function __brokenImgVal(v){return typeof v==="string"&&v.length>8&&(v.slice(0,8)==="\u0000bigref:"||v.indexOf("blob:")===0);}
+/* ===== 悬空大图引用恢复 =====
+   历史聊天图/表情在写盘时被换成 \u0000bigref:<id>，原图在 IndexedDB 的 bigimg:<id>。
+   如果主库那一条被配额清掉，__hydrateBig 就换不回来，页面只剩空 <img>。
+   这里按「dataURL 的稳定 id」扫所有本机副本（localStorage 完整快照、切后台紧急快照、
+   未落库大图、三份自动备份、表情独立库），把同 id 的原图补回当前 state。
+   备份里如果也只有引用、没有原图，就补不回来，页面会明确显示「图片已失效」，不再空白。 */
+function __scanBigDataInto(root,map){
+  try{
+    (function walk(v){
+      if(typeof v==="string"){
+        if(v.length>800&&v.slice(0,11)==="data:image/"){
+          try{map[__bigId(v)]=v;}catch(_){}
+        }
+        return;
+      }
+      if(!v||typeof v!=="object"||v instanceof Date||v instanceof Blob)return;
+      if(Array.isArray(v)){for(var i=0;i<v.length;i++)walk(v[i]);}
+      else for(var k in v){if(Object.prototype.hasOwnProperty.call(v,k))walk(v[k]);}
+    })(root);
+  }catch(_){}
+}
+function __recoverBrokenImages(){
+  try{
+    if(window.__recoveringBrokenImages)return window.__recoveringBrokenImages;
+    var refs=[];
+    try{
+      (function walk(v,parent,key){
+        if(typeof v==="string"){
+          if(v.length>8&&v.slice(0,8)===__BIG_REF&&parent)refs.push({p:parent,k:key,id:v.slice(8)});
+          return;
+        }
+        if(!v||typeof v!=="object"||v instanceof Date||v instanceof Blob)return;
+        if(Array.isArray(v)){for(var i=0;i<v.length;i++)walk(v[i],v,i);}
+        else for(var k in v){if(Object.prototype.hasOwnProperty.call(v,k))walk(v[k],v,k);}
+      })(state,null,null);
+    }catch(_){}
+    try{
+      (window.__bigBroken||[]).forEach(function(r){
+        if(r&&r.p&&typeof r.k!=="undefined"&&r.id){
+          var _already=false;
+          for(var i=0;i<refs.length;i++){if(refs[i].p===r.p&&refs[i].k===r.k){_already=true;break;}}
+          if(!_already)refs.push(r);
+        }
+      });
+    }catch(_){}
+    if(!refs.length)return Promise.resolve(false);
+    var map={};
+    function parseLocal(k){
+      try{var raw=localStorage.getItem(k);if(raw)__scanBigDataInto(JSON.parse(raw),map);}catch(_){}
+    }
+    parseLocal("privateChat");parseLocal("cp2EmojiLib");
+    try{var em=sessionStorage.getItem("privateChat__emergency");if(em)__scanBigDataInto(JSON.parse(em),map);}catch(_){}
+    try{
+      var bp=localStorage.getItem("bigPending")||sessionStorage.getItem("bigPending__emergency");
+      if(bp)JSON.parse(bp).forEach(function(x){if(x&&x[0]&&typeof x[1]==="string")map[String(x[0]).replace("bigimg:","")]=x[1];});
+    }catch(_){}
+    var jobs=[];
+    try{if(db&&typeof dbGet==="function"){
+      jobs.push(dbGet("emojiLib").then(function(v){if(v)__scanBigDataInto(v,map);}).catch(function(){}));
+      if(typeof __bkMeta==="function"){
+        jobs.push(__bkMeta().then(function(meta){
+          return Promise.all((meta||[]).map(function(m){return dbGet("bk_slot_"+m.slot).catch(function(){return null;});}));
+        }).then(function(rows){rows.forEach(function(bv){if(bv&&bv.state)__scanBigDataInto(bv.state,map);});}).catch(function(){}));
+      }
+    }}catch(_){}
+    window.__recoveringBrokenImages=Promise.all(jobs).then(function(){
+      var changed=false;
+      refs.forEach(function(r){
+        var data=map[r.id];
+        if(typeof data==="string"&&data.length>800&&data.slice(0,11)==="data:image/"){
+          try{r.p[r.k]=data;changed=true;/* 从快照/备份补回的原图要重新写进 bigimg 主库，不能标记成“已存过” */window.__bigStore.stored.delete(r.id);window.__bigStore.ids.set(data,r.id);}catch(_){}
+        }
+      });
+      if(changed){
+        try{window.__bigBroken=(window.__bigBroken||[]).filter(function(r){
+          return !(typeof r.p[r.k]==="string"&&r.p[r.k].slice(0,11)==="data:image/");
+        });}catch(_){}
+        try{__repairEmojiState();}catch(_){}
+        try{__repairEmojiMessages();}catch(_){}
+        try{save();__flushSave(true);}catch(_){}
+      }
+      window.__recoveringBrokenImages=null;
+      return changed;
+    }).catch(function(){window.__recoveringBrokenImages=null;return false;});
+    return window.__recoveringBrokenImages;
+  }catch(_){window.__recoveringBrokenImages=null;return Promise.resolve(false);}
+}
+window.__recoverBrokenImages=__recoverBrokenImages;
 /* 主页头像 / 主页照片 / 情侣页照片如果已经变成悬空引用，尝试从最近的自动备份槽补回来；
    补不到就交给 renderMe 显示占位（不再出现浏览器的破图图标）。 */
 /* 主存档、localStorage、表情库都没有图时，最后一层：扫三份自动备份槽，
@@ -8049,7 +8172,11 @@ function __brokenImgVal(v){return typeof v==="string"&&v.length>8&&(v.slice(0,8)
 function __recoverMediaFromBackups(){
   try{
     if(!db||typeof __bkMeta!=="function")return Promise.resolve(false);
-    return __bkMeta().then(function(meta){
+    var brokenChanged=false;
+    return __recoverBrokenImages().then(function(rc){
+      brokenChanged=!!rc;
+      return __bkMeta();
+    }).then(function(meta){
       var i=0,changed=false;
       function step(){
         if(i>=meta.length)return changed;
@@ -8067,7 +8194,7 @@ function __recoverMediaFromBackups(){
       }
       return step();
     }).then(function(changed){
-      if(changed){
+      if(changed||brokenChanged){
         try{__backfillEmojiMessageIds();}catch(_){}
         try{__repairEmojiMessages();}catch(_){}
         try{renderTopStatus();}catch(_){}
@@ -8078,7 +8205,7 @@ function __recoverMediaFromBackups(){
         try{renderEmojis();}catch(_){}
         try{save();__flushSave(true);}catch(_){}
       }
-      return changed;
+      return changed||brokenChanged;
     }).catch(function(){return false;});
   }catch(_){return Promise.resolve(false);}
 }
@@ -8272,6 +8399,40 @@ function __blobUrl(src){
     return url;
   }catch(e){return src;}
 }
+/* 图片地址是否还能直接显示：空串、悬空 bigref、失效的旧 blob 都不算。
+   这里只做「是否有地址」的轻判断；真正的解码失败由全局 error 捕获兜底。 */
+function __imgSrcOk(src){
+  var v=String(src||"");
+  if(v.length<12)return false;
+  if(v.slice(0,8)===__BIG_REF)return false;
+  if(v.slice(0,11)==="data:image/")return true;
+  if(v.indexOf("https://")===0||v.indexOf("http://")===0)return true;
+  if(v.indexOf("blob:")===0)return true;
+  return false;
+}
+function __imgFailHTML(id,label){
+  return '<div class="msg-imgfail" data-imgfail="'+esc(String(id||""))+'"><b>'+esc(label||"图片已失效")+'</b><small>正在从本机备份找图…</small></div>';
+}
+/* 图片元素解码失败：不要留浏览器破图图标，也不要一条空白，换成可读占位并触发一次本机恢复 */
+function __replaceBrokenImg(im){
+  try{
+    if(!im||im.__imgFailDone)return;im.__imgFailDone=1;
+    var row=im.closest&&im.closest(".msg-row");
+    var id=(row&&row.dataset&&row.dataset.id)||im.getAttribute("data-imgid")||"";
+    var box=document.createElement("div");
+    box.className="msg-imgfail";box.setAttribute("data-imgfail",id);
+    box.innerHTML='<b>图片加载失败</b><small>正在从本机备份找图…</small>';
+    if(im.parentNode)im.parentNode.replaceChild(box,im);
+    try{if(window.__recoverBrokenImages)window.__recoverBrokenImages().then(function(ch){if(ch&&window.__curView==="view-chat")renderChat(true);});}catch(_){}
+  }catch(_){}
+}
+try{
+  document.addEventListener("error",function(e){
+    var t=e&&e.target;
+    if(!t||t.tagName!=="IMG")return;
+    if(t.classList&&(t.classList.contains("msg-photo")||t.classList.contains("bimg")))__replaceBrokenImg(t);
+  },true);
+}catch(_){}
 var __avPrewarmKey="";
 function __prewarmAvatarDecode(){
   try{
@@ -8288,9 +8449,11 @@ function __prewarmAvatarDecode(){
 window.__prewarmAvatarDecode=__prewarmAvatarDecode;
 function __photoDeckHTML(m){
   var src=(m&&m.src)||(m&&m.srcs&&m.srcs[0])||"";
+  /* 图片本体没读回来（悬空 bigref/空串）时不要生成空 <img>：明确提示并继续尝试本机恢复 */
+  if(!__imgSrcOk(src))return __imgFailHTML(m&&m.id,"图片已失效");
   /* 有真实宽高就写进去：浏览器先按比例留好位置，图片解码完不会把整列往上顶（那就是发图/进聊天时的闪） */
   var dim=(m&&m.w&&m.h)?(' width="'+Math.round(m.w)+'" height="'+Math.round(m.h)+'"'):'';
-  return '<img class="msg-photo" src="'+esc(__blobUrl(src))+'" alt=""'+dim+' loading="eager" decoding="sync">';
+  return '<img class="msg-photo" data-imgid="'+esc(m&&m.id||"")+'" src="'+esc(__blobUrl(src))+'" alt=""'+dim+' loading="eager" decoding="sync">';
 }
 function __msgRowRaw(m){
   let html="";
@@ -8349,15 +8512,16 @@ function __msgRowRaw(m){
     if(m.type==="image"&&(m.kind==="emoji"||m.kind==="draw")){
       // 表情包 / 画作：不包裹气泡，直接显示
       var _msrc=String(m.src||"");
-      /* 老存档里如果这张表情只剩空串/外置引用而图片本体没读回来，直接画 <img> 会是一条空白。
-         这里明确画成「表情已失效」，至少用户知道是图没了，不会以为聊天界面坏了。 */
-      if(m.kind==="emoji"&&!__emojiSrcOk(_msrc)){
-        html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="sync" src="'+__blobUrl(av)+'" alt=""><div class="msg-col"><div class="bubble">表情已失效</div>'+meta+'</div></div>';
+      var _picBad=(m.kind==="emoji")?!__emojiSrcOk(_msrc):!__imgSrcOk(_msrc);
+      /* 老存档里如果这张图只剩空串/外置引用而图片本体没读回来，直接画 <img> 会是一条空白。
+         这里明确画成「已失效」，至少用户知道是图没了，不会以为聊天界面坏了。 */
+      if(_picBad){
+        html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="sync" src="'+__blobUrl(av)+'" alt=""><div class="msg-col">'+__imgFailHTML(m.id,m.kind==="emoji"?"表情已失效":"画作已失效")+meta+'</div></div>';
         return html;
       }
       const frame=m.kind==="draw"?'drawbox':'sticker';
       var _stkDim=(m.w&&m.h)?(' width="'+Math.round(m.w)+'" height="'+Math.round(m.h)+'"'):'';
-      html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="sync" src="'+__blobUrl(av)+'" alt=""><div class="msg-col"><div class="'+frame+'"><img loading="eager" decoding="sync"'+_stkDim+' src="'+_msrc+'" alt=""></div>'+meta+'</div></div>';
+      html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="sync" src="'+__blobUrl(av)+'" alt=""><div class="msg-col"><div class="'+frame+'"><img loading="eager" decoding="sync" data-imgid="'+esc(m.id)+'"'+_stkDim+' src="'+esc(_msrc)+'" alt=""></div>'+meta+'</div></div>';
       return html;
     }    if(m.type==="voice"){
       const _d=Math.max(1,Math.round(Number(m.dur)||1));
@@ -9285,12 +9449,16 @@ function renderMsgBody(m){
       +'<div class="rp-sub">'+st+'</div></div>';
   }
   if(m.type==="image"){
+    /* 图片本体丢失时不再输出空 <img>；先占位并尝试从本机副本恢复 */
+    if(!__imgSrcOk(m.src))return __imgFailHTML(m.id,"图片已失效");
     /* 先把原图宽高写进 <img>：图片还没解码时气泡已经有正确高度，
        不会先插一个 0 高空白、图片到了再突然撑开（发送图片那一下闪/跳）。 */
     var _dim=(m.w&&m.h)?(' width="'+m.w+'" height="'+m.h+'" style="height:auto;aspect-ratio:'+m.w+'/'+m.h+';"'):'';
-    return '<img class="bimg" loading="lazy" decoding="async"'+_dim+' src="'+m.src+'" alt="">';
+    return '<img class="bimg" data-imgid="'+esc(m.id)+'" loading="lazy" decoding="async"'+_dim+' src="'+esc(__blobUrl(m.src))+'" alt="">';
   }
-  return esc(m.text);
+  var _txt=String(m.text==null?"":m.text);
+  if(!_txt.trim())return '<div class="bubble msg-empty">（这条消息没有内容）</div>';
+  return esc(_txt);
 }
 
 /* —— 问卷：创建 —— */
@@ -12316,6 +12484,10 @@ function toggleEmojiPanel(force){
   window.__syncEmojiKb=__syncEmojiKb;
   if(open){
     try{__repairEmojiState();}catch(_){}
+    /* 每次打开面板都重建一次格子：从后台切回来/主存档刚恢复时，旧格子可能停在
+       “图片已失效”或空白状态，复用 dataset 签名会把坏状态一直留在页面上。 */
+    try{document.getElementById("emoji-grid").dataset.epSig="";}catch(_){}
+    try{if(window.__recoverBrokenImages)window.__recoverBrokenImages();}catch(_){}
     /* 键盘还开着时打开表情面板，可视高只剩三百多，面板会被挤成一行。
        表情按钮本身就是切换输入方式，先收起键盘，让面板按真实屏高铺开。 */
     try{
@@ -14896,6 +15068,7 @@ function showView(id){
     if(_was&&_was!==id&&$(_was))_fadeFrom=$(_was);
     if(!window.__viewInit){window.__viewInit=1;["view-chat","view-me","view-cards","view-settings","view-letters","view-guestbook","view-moments","view-redpacket","view-game","view-music","view-couple"].forEach(function(v){if(v!==id&&$(v))$(v).classList.remove("open");});}
     $(id).classList.add("open");window.__curView=id;
+    try{__rememberView(id);}catch(_){}
     /* 所有页面切换统一用旧页淡出：旧页不立刻撤，先在原位淡掉，
        目标页在下面已经画好；返回聊天、返回主页都不会再有一帧空白/亮暗突变。 */
     if(_fadeFrom){try{__fadeOutView(_fadeFrom,110);}catch(_){}}
@@ -15086,6 +15259,52 @@ function closePlus(){$("plus-overlay").classList.remove("show");window.__plusRet
    主页入口进来的页面没有这个标记，仍按各自原来的返回目标走。 */
 function __plusMark(){window.__plusReturnTo="view-chat";}
 function __plusReturnView(fallback){var v=window.__plusReturnTo||fallback||"view-chat";window.__plusReturnTo="";return v;}
+/* 记住最后停留的页面：APK 被系统回收后重建（或从主屏幕切回触发重载）时，
+   直接回到上次的聊天/主页，不再先落回公告或主页。 */
+function __rememberView(id){
+  try{
+    if(!id||String(id).indexOf("view-")!==0)return;
+    localStorage.setItem("e11.lastView.v1",JSON.stringify({id:id,t:Date.now()}));
+  }catch(_){}
+}
+window.__rememberView=__rememberView;
+function __bootView(){
+  try{
+    if(window.__wantChatOnReady)return "view-chat";
+    if(String(location.hash||"").replace("#","")==="chat")return "view-chat";
+    var raw=localStorage.getItem("e11.lastView.v1");
+    if(raw){
+      var o=JSON.parse(raw)||{};
+      var t=Number(o.t)||0;
+      if(t&&Date.now()-t<6*60*60*1000){
+        if(o.id==="view-chat"||o.id==="view-me")return o.id;
+        /* 上次停在加号应用/设置/信箱等二级页：重开后回聊天页，不把用户丢在设置里 */
+        if(String(o.id||"").indexOf("view-")===0)return "view-chat";
+      }
+    }
+  }catch(_){}
+  return "view-me";
+}
+window.__bootView=__bootView;
+/* 安卓 onResume 调用：页面没有被系统杀掉时，不重载整页，只把可能空白的图和表情刷回来 */
+window.__androidResume=function(){
+  try{
+    setTimeout(function(){
+      try{
+        if(window.__bigBroken&&window.__bigBroken.length&&window.__recoverBrokenImages){
+          window.__recoverBrokenImages().then(function(ch){if(ch&&window.__curView==="view-chat")renderChat(true);});
+        }
+        var ep=document.getElementById("emoji-panel");
+        if(ep&&ep.classList.contains("open")){
+          try{document.getElementById("emoji-grid").dataset.epSig="";}catch(_){}
+          try{__repairEmojiState();}catch(_){}
+          try{renderEmojis();}catch(_){}
+        }
+        if(window.__curView==="view-chat"){try{renderChat(true);}catch(_){}}
+      }catch(_){}
+    },160);
+  }catch(_){}
+};
 /* 安卓系统返回键：APK 通过 evaluateJavascript 调用它。
    页面里的二级页（加号应用/设置/信件/留言/动态等）一律先回聊天页，
    不要走 WebView 的浏览历史；否则会退到上一个 URL、白屏或直接退出。 */
@@ -23196,7 +23415,7 @@ function renderAll(){
   setTimeout(initNumSteppers,900);
 })();
 
-init().catch(function(e){try{console.error(e);}catch(_){}try{window._dbReady=true;}catch(_){}try{if(typeof showView==="function")showView("view-me");}catch(_){}try{window.__bootDone&&window.__bootDone();}catch(_){}});
+init().catch(function(e){try{console.error(e);}catch(_){}try{window._dbReady=true;}catch(_){}try{if(typeof showView==="function")showView((window.__bootView&&window.__bootView())||"view-me");}catch(_){}try{window.__bootDone&&window.__bootDone();}catch(_){}});
 /* 重进/刷新兜底：初始化中途报错时不能再留黑屏 */
 setTimeout(function(){
   try{
