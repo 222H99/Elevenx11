@@ -6,7 +6,7 @@
  * 3) 网络请求继续在后台完成，成功后更新缓存；
  * 4) 连缓存都没有时，返回一个可重试的提示页，而不是空白 503。
  */
-const CACHE = "eleven11-runtime-v43-6z";
+const CACHE = "eleven11-runtime-v43-7";
 const INDEX_URL = new URL("./index.html", self.location.href).href;
 const NETWORK_WAIT_MS = 1500;
 
@@ -133,7 +133,8 @@ self.addEventListener("activate", (event) => {
       .then((keys) =>
         Promise.all(
           keys
-            .filter((k) => k.indexOf("eleven11") === 0 && k !== CACHE)
+            /* 只清运行时页面缓存；表情图镜像 eleven11-media-v1 必须保留 */
+            .filter((k) => k.indexOf("eleven11-runtime-") === 0 && k !== CACHE)
             .map((k) => caches.delete(k))
         )
       )
