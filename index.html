@@ -2126,7 +2126,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-20v43-6m">
+<meta name="app-build" content="2026-11-20v43-6n">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3763,7 +3763,7 @@ html.kb-typing #rotate-guard,html.kb-typing body #rotate-guard{display:none!impo
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
       <div class="set-group"><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
-<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-20v43-6m</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+<div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-20v43-6n</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5661,9 +5661,12 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-20",
-  noticeKey:"2026-11-20v43-6m",
+  noticeKey:"2026-11-20v43-6n",
   lead:"v43 全量修复：主站/预览补全 PWA 安装包，修复 Chrome 添加到主屏幕崩溃和进站黑白屏；登录恢复时先显示进入状态，网络超时自动用本地记录；日记/字卡返回固定回聊天页；数据先写本地快照，云端旧存档不再覆盖新改动；双击气泡贴表情可在设置关掉并调概率，主页评论/回复的输入框会跟着键盘上移。",
   items:[
+    '<span class="an-gt">v43-6n · 我的回复</span>',
+    "对方留言下可以连续回复多条，不再回复一次就把入口收掉；每条回复都有自己的删除按钮",
+    "删除其中一条不会重写其它回复的时间/删除按钮；删到最后一条后恢复「点击回复」",
     '<span class="an-gt">v43-6m · 留言配对 / 快速返回 / 保存</span>',
     "对方主动发的留言不再被相邻位置误认成「我的回复」；只有 replyTo 或明确的旧回复标记才配对",
     "快速返回又马上点进同一页时，不再因为残留的淡出动画把页面留成透明；设置/日记等页面仍然正常显示",
@@ -19906,10 +19909,12 @@ function renderGuestbook(force){
         var _dell=_mine?'<button class="qa-adel" data-adelonly="'+x.id+'">删除我的回复</button>':'';
         return '<div class="qa-a"><div class="qa-a-label">'+_lab+'</div><div class="qa-a-text">'+esc(String(x.text==null?"":x.text))+'</div><div class="qa-a-meta">回复于 '+fmtTime(x.time)+_dell+'</div></div>';
       }).join("");
-      /* 对方留言可以继续回复；已经有回复的卡片不再挂“点击回复”入口，
-         避免增量回复时把已有回复的“删除我的回复/时间”一起重写。
-         我的留言也不叠回复入口，避免把“对方回复我”变成“我回复我自己”。 */
-      if(isPartner&&!answers.length)repId=c.q.id;
+      /* 对方留言可以连续回复多次；我的留言不叠回复入口，
+         避免把“对方回复我”变成“我回复我自己”。 */
+      if(isPartner){
+        repId=c.q.id;
+        if(!answers.length)a='<div class="qa-a-meta" style="margin-top:8px;">点击回复</div>';
+      }
     }else{
       head='<div class="qa-head"><span class="qa-lock">💬</span> 对方留言</div>';
       q='<div class="qa-q">'+esc(c.ans.text)+'</div>';
@@ -20086,10 +20091,13 @@ function replyToPartner(pid,text){
   if(oldCard&&oldCard.isConnected){
     try{
       var form=oldCard.querySelector(".qa-reply-form");if(form)form.remove();
-      var oldMeta=oldCard.querySelector(".qa-a-meta");if(oldMeta)oldMeta.remove();
+      /* 只移除“点击回复”提示，不能移除已有回复自己的时间/删除按钮 */
+      var hadAnswers=oldCard.querySelectorAll(".qa-a").length>0;
+      if(!hadAnswers){var oldMeta=oldCard.querySelector(".qa-a-meta");if(oldMeta)oldMeta.remove();}
       var replyHTML='<div class="qa-a"><div class="qa-a-label">我的回复</div><div class="qa-a-text">'+esc(text)+'</div><div class="qa-a-meta">回答于 '+fmtTime(nb.time)+'<button class="qa-adel" data-adelonly="'+nb.id+'">删除我的回复</button></div></div>';
       oldCard.insertAdjacentHTML("beforeend",replyHTML);
-      oldCard.removeAttribute("data-gbreply");
+      /* 保留 data-gbreply：同一张对方留言可以继续回复下一条 */
+      oldCard.setAttribute("data-gbreply",pid);
       var del=oldCard.querySelector(".qa-del");if(del)del.dataset.adel=nb.id;
       var delReply=oldCard.querySelector('[data-adelonly="'+nb.id+'"]');
       if(delReply)delReply.addEventListener("click",function(e){
@@ -20100,9 +20108,9 @@ function replyToPartner(pid,text){
         save();
         try{
           var block=delReply.closest(".qa-a");if(block)block.remove();
-          var p=state.guestbook.find(function(x){return x.id===pid;});
           oldCard.setAttribute("data-gbreply",pid);
-          oldCard.insertAdjacentHTML("beforeend",'<div class="qa-a-meta" style="margin-top:8px;">发布于 '+fmtTime(p?p.time:nb.time)+' <span class="qa-reply-hint">· 点击回复</span></div>');
+          var remain=oldCard.querySelectorAll(".qa-a").length;
+          if(!remain)oldCard.insertAdjacentHTML("beforeend",'<div class="qa-a-meta" style="margin-top:8px;">点击回复</div>');
           var whole=oldCard.querySelector(".qa-del");if(whole)whole.dataset.adel="";
           if(window.__rSig)window.__rSig["guest"]=null;
         }catch(_){renderGuestbook();}
