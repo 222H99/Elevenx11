@@ -2,7 +2,7 @@
 
 ## 文件
 
-- `Eleven11-v43-10.apk`（约 0.65MB，内置 assets/index.html = 当前 v43-10 页面）
+- `Eleven11-v43-10.apk`（约 1.2MB，内置 assets/index.html = 当前 v43-10 页面）
 - 包名：`com.eleven.elevenx11`
 - 版本：`2026-11-20v43-10`（versionCode 31）
 - 最低系统：Android 7.0（API 24），targetSdk 33
@@ -27,7 +27,7 @@ v43-10 与 v43-6b 使用同一个 Android Debug 签名，可以直接覆盖安�
 
 ## 网页 / APK 一致性
 
-- 网页和 APK 内置的是同一个 `index.html`（MD5 `72af4beed94bfe8e37dda78877e50543`），版本号、聊天、一起听、音乐导入都完全一致。
+- 网页和 APK 内置的是同一个 `index.html`（MD5 `4bab44bef2689c46686b0d72075be062`），版本号、聊天、一起听、音乐导入都完全一致。
 - APK 页面加载版本查询已改为 `?v=43-10`，不会因为 WebView 缓存还显示旧版。
 - APK 只额外承接 WebView 做不到的系统能力（原生通知、保存文件、后端代理），界面和交互仍用同一份页面。
 
@@ -39,7 +39,7 @@ v43-10 与 v43-6b 使用同一个 Android Debug 签名，可以直接覆盖安�
 - 启动层只有在页面真正解析完或界面铺好后才会撤掉；慢网时显示“正在载入”，不会再提前撤成白底。12 秒还没载入完会给“重新载入”按钮。
 - 首次安装、没有任何缓存时仍然走网络；失败会显示可重试提示页，不再留纯白屏。
 - 页面自己也会把当前完整 HTML 补写进 Cache Storage：首次打开即使 Service Worker 还没装好，下一次打开也能直接用整页缓存。
-- APK versionCode 31 / versionName `2026-11-20v43-10`，内置 `assets/index.html` MD5 `72af4beed94bfe8e37dda78877e50543`，APK MD5 `0baeb5e047fda60ecf8eac8dc25a1c60`。
+- APK versionCode 31 / versionName `2026-11-20v43-10`，内置 `assets/index.html` MD5 `4bab44bef2689c46686b0d72075be062`，APK MD5 `e5850e88aa9d45c300b4d499ef8214db`。
 
 ## v43-9 修了什么
 
