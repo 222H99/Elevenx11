@@ -23910,6 +23910,30 @@ function renderAll(){
 })();
 
 init().catch(function(e){try{console.error(e);}catch(_){}try{window._dbReady=true;}catch(_){}try{if(typeof showView==="function")showView((window.__bootView&&window.__bootView())||"view-me");}catch(_){}try{window.__bootDone&&window.__bootDone();}catch(_){}});
+/* ===== 页面自缓存：把当前这一份完整 HTML 写进 Cache Storage =====
+   GitHub Pages 慢或偶发 503 时，第一次打开可能刚好没留下整页缓存。
+   这里从浏览器 HTTP 缓存取回同一份 HTML（max-age=600，不会再走网络），
+   校验确实完整后写入 SW 的整页缓存；下次打开就有完整页面可用。 */
+setTimeout(function(){
+  try{
+    if(!("caches" in window))return;
+    var u=new URL(location.href), p=u.pathname.replace(/\/i\.html$/,"/index.html");
+    if(!/index\.html$/.test(p))p=p.replace(/\/$/,"")+"/index.html";
+    var pageUrl=u.origin+p;
+    var b=(document.querySelector('meta[name="app-build"]')||{}).content||"";
+    var m=String(b).match(/v\d+-\d+$/);
+    var cacheName="eleven11-runtime-"+(m?m[0]:"v43-10");
+    fetch(pageUrl,{cache:"force-cache",credentials:"same-origin"}).then(function(res){
+      if(!res||!res.ok)return null;
+      return res.text().then(function(html){
+        if(!html||html.length<500000||html.indexOf("</html>")<0||html.indexOf('name="app-build"')<0)return null;
+        return caches.open(cacheName).then(function(c){
+          return c.put(pageUrl,new Response(html,{headers:{"Content-Type":"text/html; charset=utf-8"}}));
+        }).then(function(){window.__e11SelfCached=1;});
+      });
+    }).catch(function(){});
+  }catch(e){}
+},1200);
 /* 重进/刷新兜底：初始化中途报错时不能再留黑屏 */
 setTimeout(function(){
   try{
