@@ -187,7 +187,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-22v43-63";
+window.__E11_BUILD="2026-11-22v43-64";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2484,7 +2484,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-22v43-63">
+<meta name="app-build" content="2026-11-22v43-64">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4171,7 +4171,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-63</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-64</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -8030,6 +8030,7 @@ function __prefSave(){
     try{localStorage.setItem("uiPrefs.v1",JSON.stringify(_obj));_lsOk=true;}catch(e){_lsOk=false;}
     /* localStorage 满了（图片多时常见）就转存一份到 IndexedDB，刷新后仍然按这里的值恢复 */
     try{if(typeof dbSet==="function"&&(db||!_lsOk))dbSet("uiPrefs.v1",_obj).catch(function(){});}catch(e){}
+    try{if(typeof __settingsBackup==="function")__settingsBackup();}catch(_sb0){}
   }catch(e){}
 }
 /* 从偏好对象里套用字号/头像/气泡/头像形状 */
@@ -8052,12 +8053,19 @@ function __prefApplyObject(p){
     return true;
   }catch(e){return false;}
 }
-/* v43-63：设置整份单独落一个小键。云端旧档、更新后首次启动、刷新/退出再进，
+/* v43-64：设置整份单独落一个小键。云端旧档、更新后首次启动、刷新/退出再进，
    都先按这个键里较新的设置恢复，不再只依赖 privateChat 大档和 5 个界面偏好。 */
 function __settingsBackup(){
   try{
     if(typeof state==="undefined"||!state||!state.settings)return;
-    var obj={ts:Number(state.settings.__ts)||Date.now(),settings:state.settings};
+    var ss={},src=state.settings||{};
+    Object.keys(src).forEach(function(k){
+      var v=src[k];
+      /* 通知铃声/录音这类 dataURL 可能有几 MB，不塞进小键，避免把整个设置备份顶爆 */
+      if(typeof v==="string"&&/(Data|data)$/.test(k)&&v.length>4000)return;
+      ss[k]=v;
+    });
+    var obj={ts:Number(Number(src.__ts)||Date.now()),settings:ss};
     localStorage.setItem("e11.settings.v1",JSON.stringify(obj));
   }catch(_){}
 }
@@ -8105,7 +8113,7 @@ function __prefReapplyAll(){
 }
 
 function save(){
-  /* v43-63：资料单独打修改时间。以前 profile 没有 __ts，云端只要存着一份非空的默认资料，
+  /* v43-64：资料单独打修改时间。以前 profile 没有 __ts，云端只要存着一份非空的默认资料，
      本机改过的昵称/签名就会被 applySnapshot 判成“云端有内容”而恢复默认。 */
   try{
     var _psig=JSON.stringify(state.profile||{});
@@ -13348,7 +13356,10 @@ try{window.__msgSelEnter=__msgSelEnter;window.__msgSelExit=__msgSelExit;}catch(e
   });
   /* 生成长图最常用的是最近一段聊天：一键勾最后 20 条，避免在长列表里一条条点。 */
   if(recent)recent.addEventListener("click",function(){
-    __msgSelIds=(state.messages||[]).slice(-20).map(function(m){return m.id;});
+    var entries=(state.messages||[]).map(function(m){return {id:m.id,t:Number(m.time)||0};})
+      .concat((state.redpackets||[]).map(function(r){return {id:r.id,t:Number(r.time)||0};}));
+    entries.sort(function(a,b){return a.t-b.t;});
+    __msgSelIds=entries.slice(-20).map(function(x){return x.id;});
     __msgSelPaint();toast("已勾选最近 "+__msgSelIds.length+" 条");
   });
   var lng=$("msb-long");
@@ -13408,7 +13419,7 @@ function __lsMsgText(m){
     return String(m.text||msgPreviewText(m)||"");
   }catch(_){return "[消息]";}
 }
-/* v43-63：长图里的红包 / 问卷 / 推歌 / 邀请不再退化成一行文字，
+/* v43-64：长图里的红包 / 问卷 / 推歌 / 邀请不再退化成一行文字，
    按聊天里真实的卡片版式单独绘制，尺寸固定，不随屏幕缩放改变。 */
 function __lsCardSpec(m,K){
   try{
@@ -13454,7 +13465,7 @@ function __lsBoxCss(m){
   try{
     var id=String(m&&m.id||"").replace(/"/g,"");
     if(!id)return null;
-    var row=document.querySelector('#msglist .msg-row[data-id="'+id+'"]');
+    var row=document.querySelector('#msglist .msg-row[data-id="'+id+'"]')||document.querySelector('#msglist [data-rp="'+id+'"]');
     if(!row)return null;
     function bx(el){
       if(!el)return null;
@@ -13473,6 +13484,13 @@ function __lsBoxCss(m){
 function __msgSelLongShot(ids){
   try{
     var ms=(state.messages||[]).filter(function(m){return m&&ids.indexOf(m.id)>=0&&!m.recalled;});
+    /* 红包在 migrate 后已经不在 messages 里，而是 state.redpackets；多选栏能勾到它们，
+       长图也必须一起收进来，否则选红包会生成失败或被静默漏掉。 */
+    var _rps=(state.redpackets||[]).filter(function(r){return r&&ids.indexOf(r.id)>=0;}).map(function(r){
+      return {id:r.id,type:"redpacket",from:r.dir==="out"?"me":"partner",
+        text:JSON.stringify({amount:r.amount,note:r.note,status:r.status}),time:r.time,__rp:true};
+    });
+    ms=ms.concat(_rps);
     if(!ms.length){toast("选中的消息里没有可生成的内容");return;}
     ms.sort(function(a,b){return (Number(a.time)||0)-(Number(b.time)||0);});
     var loads=ms.map(function(m){
@@ -29571,7 +29589,7 @@ body{margin:0;background:var(--bg,#fafafa);}
          此时 root.top 不能跟着 voffY 走，否则整页会被抬上去、工具条压住日记字 */
       if(_diaryOpen){voffX=0;voffY=0;}
       var _landView=(w>h*1.12&&w>=560);
-      /* v43-63：舞台只按屏幕宽度铺，不再把整站放大到 1.3 倍。
+      /* v43-64：舞台只按屏幕宽度铺，不再把整站放大到 1.3 倍。
          尺寸锁死为 1，390/430/480 宽的手机上按钮、字号、间距都保持设计稿原大小；
          旧版存过的 __uiKLock 比例（1.05~1.3）全部作废，避免“换大屏手机后整页变大”。 */
       window.__uiKLock=1;
