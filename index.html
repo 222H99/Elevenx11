@@ -187,7 +187,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-22v43-62";
+window.__E11_BUILD="2026-11-22v43-63";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2484,7 +2484,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-22v43-62">
+<meta name="app-build" content="2026-11-22v43-63">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4171,7 +4171,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-62</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-63</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -6162,7 +6162,16 @@ setTimeout(function(){
     try{window.__e11TombstoneMute=1;window.__e11SetState&&window.__e11SetState(st);}catch(e){}finally{try{window.__e11TombstoneMute=0;}catch(_){}}
     try{window.__profileSaveSig=JSON.stringify((st&&st.profile)||{});}catch(_eProfSig){}
     try{window.__settingsSaveSig=JSON.stringify((st&&st.settings)||{});}catch(_eSetSig){}
-    try{if(_localSkin){st.skin=st.skin||{};st.skin.dark=!!_localSkin.dark;if(_localSkin.themeMode)st.skin.themeMode=_localSkin.themeMode;}}catch(_eKeepSkin){}
+    try{window.__skinSaveSig=JSON.stringify((st&&st.skin)||{});}catch(_eSkinSig){}
+    try{
+      if(_localSkin){
+        st.skin=st.skin||{};
+        var _lsts=Number(_localSkin.__ts)||0,_csts=Number(st.skin.__ts)||0;
+        st.skin.dark=!!_localSkin.dark;if(_localSkin.themeMode)st.skin.themeMode=_localSkin.themeMode;
+        if(_lsts>_csts+1000)st.skin=Object.assign({},st.skin,_localSkin);
+        else if(_localSkin.bgImage)st.skin.bgImage=_localSkin.bgImage;
+      }
+    }catch(_eKeepSkin){}
     /* 云端快照可能只存了文字/旧版本，图在别的槽里；先用本机同账号的好图把空图补回来，
        避免“登录/恢复云存档后表情包和头像全变成失效图”。只补坏图，不覆盖用户删掉的内容。 */
     try{if(localState&&window.__mergeMediaSnapshots)window.__mergeMediaSnapshots(st,localState);}catch(_){}
@@ -8027,6 +8036,8 @@ function __prefSave(){
 function __prefApplyObject(p){
   if(!p)return false;
   try{
+    var __curTs=Number(state&&state.settings&&state.settings.__ts)||0;
+    if(Number(p.ts||0)<__curTs)return false;
     state.settings=state.settings||{};
     ["fontSize","avatarSize","bubbleScale","avatarShape","showChatAvatar"].forEach(function(k){
       if(p[k]!==undefined&&p[k]!==null)state.settings[k]=p[k];
@@ -8041,11 +8052,37 @@ function __prefApplyObject(p){
     return true;
   }catch(e){return false;}
 }
+/* v43-63：设置整份单独落一个小键。云端旧档、更新后首次启动、刷新/退出再进，
+   都先按这个键里较新的设置恢复，不再只依赖 privateChat 大档和 5 个界面偏好。 */
+function __settingsBackup(){
+  try{
+    if(typeof state==="undefined"||!state||!state.settings)return;
+    var obj={ts:Number(state.settings.__ts)||Date.now(),settings:state.settings};
+    localStorage.setItem("e11.settings.v1",JSON.stringify(obj));
+  }catch(_){}
+}
+function __settingsBackupRestore(){
+  try{
+    var p=JSON.parse(localStorage.getItem("e11.settings.v1")||"null");
+    if(!p||!p.settings)return false;
+    var cur=Number(state.settings&&state.settings.__ts)||0,ts=Number(p.ts)||0;
+    if(ts>cur+500){
+      state.settings=Object.assign({},state.settings||{},p.settings);
+      state.settings.__ts=ts;
+      return true;
+    }
+  }catch(_){}
+  return false;
+}
+window.__settingsBackup=__settingsBackup;
+window.__settingsBackupRestore=__settingsBackupRestore;
 window.__prefApplyObject=__prefApplyObject;
 function __prefApply(){
   var p=null;try{p=JSON.parse(localStorage.getItem("uiPrefs.v1")||"null");}catch(e){p=null;}
   if(!p)return;
   try{
+    var __curTs=Number(state&&state.settings&&state.settings.__ts)||0;
+    if(Number(p.ts||0)<__curTs)return;
     state.settings=state.settings||{};
     ["fontSize","avatarSize","bubbleScale","avatarShape","showChatAvatar"].forEach(function(k){
       if(p[k]!==undefined&&p[k]!==null)state.settings[k]=p[k];
@@ -8068,7 +8105,7 @@ function __prefReapplyAll(){
 }
 
 function save(){
-  /* v43-62：资料单独打修改时间。以前 profile 没有 __ts，云端只要存着一份非空的默认资料，
+  /* v43-63：资料单独打修改时间。以前 profile 没有 __ts，云端只要存着一份非空的默认资料，
      本机改过的昵称/签名就会被 applySnapshot 判成“云端有内容”而恢复默认。 */
   try{
     var _psig=JSON.stringify(state.profile||{});
@@ -8086,9 +8123,22 @@ function save(){
       else if(_ssig!==window.__settingsSaveSig){
         state.settings=state.settings||{};state.settings.__ts=Date.now();
         window.__settingsSaveSig=JSON.stringify(state.settings);
+        try{__settingsBackup();}catch(_sb){}
       }
     }
   }catch(_eSetTs){}
+  /* 换肤、聊天背景、气泡颜色等也单独打时间：更新后云端旧 skin 不能把这些冲回默认。 */
+  try{
+    if(!window.__e11CloudPause&&!window.__restoring){
+      var _ksig=JSON.stringify(state.skin||{});
+      if(window.__skinSaveSig===undefined)window.__skinSaveSig=_ksig;
+      else if(_ksig!==window.__skinSaveSig){
+        state.skin=state.skin||{};state.skin.__ts=Date.now();
+        window.__skinSaveSig=JSON.stringify(state.skin);
+        try{__settingsBackup();}catch(_sb2){}
+      }
+    }
+  }catch(_eSkinTs){}
   try{window.__e11TombstoneScan&&window.__e11TombstoneScan(false);}catch(_){}
   /* 正在「一键恢复」时禁止任何写盘：刷新前页面的自动保存会把旧数据再写一遍，
      时间戳一更新，启动时就会用回旧存档——这是恢复看起来没生效的根因 */
@@ -8531,7 +8581,7 @@ async function init(){
   try{state=migrate(state);}catch(_m){}
   try{__healState();}catch(_h){}
   try{__ltReadApply();}catch(e){}
-  try{__prefApply();}catch(e){}try{window.__perfApply&&window.__perfApply();}catch(_){}
+  try{__prefApply();}catch(e){}try{__settingsBackupRestore();}catch(e){}try{window.__perfApply&&window.__perfApply();}catch(_){}
   /* 首屏只做皮肤和顶栏：完整渲染等 IndexedDB 读完再做一次，避免启动时同一套界面渲染两遍 */
   try{applySkin();}catch(e){}
   try{__syncBuildLabel();}catch(e){}
@@ -13358,26 +13408,26 @@ function __lsMsgText(m){
     return String(m.text||msgPreviewText(m)||"");
   }catch(_){return "[消息]";}
 }
-/* v43-62：长图里的红包 / 问卷 / 推歌 / 邀请不再退化成一行文字，
+/* v43-63：长图里的红包 / 问卷 / 推歌 / 邀请不再退化成一行文字，
    按聊天里真实的卡片版式单独绘制，尺寸固定，不随屏幕缩放改变。 */
-function __lsCardSpec(m){
+function __lsCardSpec(m,K){
   try{
-    var isMe=m&&m.from==="me";
+    var isMe=m&&m.from==="me";K=Number(K)||1;
     if(m.type==="redpacket"||m.type==="rp"){
       var r=__cardObj(m)||{};
       var st=r.status==="claimed"||r.opened?"已领取":(r.status==="declined"?"已拒领":"待领取");
-      return {kind:"redpacket",w:326,h:152,kicker:"红包",title:String(r.note||"恭喜发财，大吉大利"),amount:"¥"+fmtAmt(r.amount||0),sub:st};
+      return {kind:"redpacket",w:Math.round(230*K),h:Math.round(215*K),kicker:"红包",title:String(r.note||"恭喜发财，大吉大利"),amount:"¥"+fmtAmt(r.amount||0),sub:st};
     }
     if(m.type==="survey"||m.type==="sq"){
       var s={};try{s=JSON.parse(m.text||"{}");}catch(_){}
       var qs=s.questions||[];
       var st2=s.answeredBy?(s.answeredBy==="me"?"我已填写":"对方已填写"):"待填写";
       var kinds=qs.map(function(q){return q.kind==="custom"?"自定义":((q.kind==="multi"||q.type==="multi")?"多选":"单选");});
-      return {kind:"survey",w:414,h:184,kicker:"问卷",title:String(s.title||"问卷"),sub:"共 "+qs.length+" 题 · "+(kinds.join(" / ")||"单选"),status:st2,btn:s.answeredBy?"查看结果":(isMe?"等待对方填写":"去填写")};
+      return {kind:"survey",w:Math.round(264*K),h:Math.round(165*K),kicker:"问卷",title:String(s.title||"问卷"),sub:"共 "+qs.length+" 题 · "+(kinds.join(" / ")||"单选"),status:st2,btn:s.answeredBy?"查看结果":(isMe?"等待对方填写":"去填写")};
     }
     if(m.type==="song"&&m.song){
       var sg=m.song||{};
-      return {kind:"song",w:408,h:118,kicker:isMe?"💌 你推给了 TA":"💌 TA 推给你",title:String(__songName(sg)||"未命名歌曲"),sub:String(sg.artist||"点击听这首歌"),note:String(m.note||"")};
+      return {kind:"song",w:Math.round(250*K),h:Math.round(76*K),kicker:isMe?"💌 你推给了 TA":"💌 TA 推给你",title:String(__songName(sg)||"未命名歌曲"),sub:String(sg.artist||"点击听这首歌"),note:String(m.note||"")};
     }
     if(m.type==="invite"){
       var music=m.inv==="music";
@@ -13387,7 +13437,7 @@ function __lsCardSpec(m){
       if(m.status==="accepted")st3=isMe?"对方接受了邀请 ✓":"你接受了邀请 ✓";
       else if(m.status==="cancelled")st3="已取消邀请";
       else if(m.status==="declined")st3=isMe?"对方拒绝了邀请":"你拒绝了邀请";
-      return {kind:"invite",w:404,h:132,kicker:music?"🎧 一起听歌":"🎨 一起画画",title:title,sub:sub,status:st3};
+      return {kind:"invite",w:Math.round(200*K),h:Math.round(112*K),kicker:music?"🎧 一起听歌":"🎨 一起画画",title:title,sub:sub,status:st3};
     }
   }catch(_){}
   return null;
@@ -13397,6 +13447,28 @@ function __lsFitText(ctx,text,maxW){
   if(ctx.measureText(s).width<=maxW)return s;
   while(s.length&&ctx.measureText(s+"…").width>maxW)s=s.slice(0,-1);
   return s+"…";
+}
+/* 读聊天里真实 DOM 的尺寸（头像/气泡/卡片/图片），长图按同一比例绘制，
+   用户自定义 CSS 改了大小也会跟着变，不再用一套写死的近似值。 */
+function __lsBoxCss(m){
+  try{
+    var id=String(m&&m.id||"").replace(/"/g,"");
+    if(!id)return null;
+    var row=document.querySelector('#msglist .msg-row[data-id="'+id+'"]');
+    if(!row)return null;
+    function bx(el){
+      if(!el)return null;
+      var r=el.getBoundingClientRect();
+      if(!r||!r.width||!r.height)return null;
+      return {w:r.width,h:r.height};
+    }
+    var av=row.querySelector(".msg-avatar"),card=row.querySelector(".rp-shell,.survey-shell,.song-push-card,.invite-card"),bub=row.querySelector(".bubble"),pic=row.querySelector("img.bimg,img.msg-photo");
+    var bcs=bub?getComputedStyle(bub):null;
+    return {av:bx(av),card:bx(card),bub:bx(bub),pic:bx(pic),
+      font:bcs?parseFloat(bcs.fontSize)||0:0,
+      padx:bcs?parseFloat(bcs.paddingLeft)||0:0,
+      pady:bcs?parseFloat(bcs.paddingTop)||0:0};
+  }catch(_){return null;}
 }
 function __msgSelLongShot(ids){
   try{
@@ -13454,8 +13526,20 @@ function __msgSelLongShot(ids){
         }
       }catch(_){}
       var darkBg=(!!bgImg&&bgLum<132)||(!bgImg&&!!(state.skin&&state.skin.dark));
-      var CW=750,PAD=34,CONTENT=CW-PAD*2,HEAD=118,FOOT=72;
-      var AV=34,AVG=12;
+      /* 长图宽度固定 750，所有尺寸按聊天页真实宽度等比放大：头像 30→约58、气泡字 15→约29、
+         红包卡 230→约440、问卷卡 264→约505，和聊天里看到的一样。 */
+      var _chatEl=document.getElementById("msglist");
+      var _chatW=Math.max(280,(_chatEl&&_chatEl.clientWidth)||390);
+      var K=750/_chatW;
+      var CW=750,PAD=Math.round(18*K),CONTENT=CW-PAD*2,HEAD=Math.round(92*K),FOOT=Math.round(54*K);
+      var _fb=__lsBoxCss(ms[0]);
+      var _avCss=_fb&&_fb.av?_fb.av.w:(Number(state.settings&&state.settings.avatarSize)||30);
+      var AV=Math.round(_avCss*K),AVG=Math.round(8*K);
+      var _fsv=parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--fs"))||1;
+      var _bubfv=parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--bubfx"))||1;
+      var FONT=15*_fsv*_bubfv*K,LH=FONT*1.34;
+      var PADX=12*_bubfv*K,PADY=6*_bubfv*K,MAXCOL=Math.round(CW*.76);
+      var META=Math.round(15*K);
       var _sk=state.skin||{};
       var _accent=String(_sk.accent||"#3478F6");
       var _myB=String(_sk.mybubble||"#3478F6");
@@ -13471,25 +13555,34 @@ function __msgSelLongShot(ids){
         var isMe=m.from==="me";
         var pic=pics[idx];
         var b={m:m,isMe:isMe,h:0,lines:[],pic:pic,av:avImgs[isMe?0:1],songCover:songImgs[idx]};
+        var box=__lsBoxCss(m);
         if(pic){
-          var maxW=showAv?410:470,maxH=620;
-          var iw=pic.width||maxW,ih=pic.height||maxW;
-          var sc=Math.min(1,maxW/iw,maxH/ih);
-          b.iw=Math.max(1,Math.round(iw*sc));b.ih=Math.max(1,Math.round(ih*sc));
-          b.bw=b.iw;b.bh=b.ih;b.h=28+b.bh+38;
-        }else if(__lsCardSpec(m)){
-          var card=__lsCardSpec(m);
-          b.card=card;b.bw=card.w;b.bh=card.h;b.h=28+b.bh+38;
+          var cssIW=box&&box.pic?box.pic.w:(pic.width||MAXCOL);
+          var cssIH=box&&box.pic?box.pic.h:(pic.height||MAXCOL);
+          var maxW=MAXCOL,maxH=Math.round(430*K);
+          var sc=Math.min(1,maxW/(cssIW*K),maxH/(cssIH*K));
+          b.iw=Math.max(1,Math.round(cssIW*K*sc));b.ih=Math.max(1,Math.round(cssIH*K*sc));
+          b.bw=b.iw;b.bh=b.ih;
+        }else if(__lsCardSpec(m,K)){
+          var card=__lsCardSpec(m,K);
+          if(box&&box.card){b.bw=Math.round(box.card.w*K);b.bh=Math.round(box.card.h*K);}
+          else{b.bw=card.w;b.bh=card.h;}
+          b.card=card;
         }else{
           var txt=__lsMsgText(m)||"[消息]";
+          var cfont=box&&box.font?box.font*K:FONT;
+          var cpadx=box&&box.padx?box.padx*K:PADX;
+          var cpady=box&&box.pady?box.pady*K:PADY;
           var c=document.createElement("canvas").getContext("2d");
-          c.font=_lsFont;
-          b.lines=__lsWrap(c,txt,showAv?420:470);
+          c.font="400 "+cfont+"px -apple-system,BlinkMacSystemFont,'PingFang SC','Helvetica Neue',Arial,sans-serif";
+          var textMax=Math.max(60,Math.min(MAXCOL-2*cpadx,(box&&box.bub?box.bub.w*K:MAXCOL)-2*cpadx));
+          b.lines=__lsWrap(c,txt,textMax);
           var lw=0;b.lines.forEach(function(l){lw=Math.max(lw,c.measureText(l).width);});
-          b.bw=Math.min(showAv?452:502,Math.max(96,Math.ceil(lw)+36));
-          b.bh=Math.max(52,b.lines.length*39+30);
-          b.h=28+b.bh+38;
+          b.bw=box&&box.bub?Math.round(box.bub.w*K):Math.min(MAXCOL,Math.max(Math.round(96*K),Math.ceil(lw)+2*cpadx));
+          b.bh=Math.max(box&&box.bub?Math.round(box.bub.h*K):0,b.lines.length*(cfont*1.34)+2*cpady);
+          b.font=cfont;b.padx=cpadx;b.pady=cpady;
         }
+        b.h=b.bh+META+Math.round(8*K);
         blocks.push(b);h+=b.h;
       });
       var total=h+FOOT;
@@ -13539,15 +13632,10 @@ function __msgSelLongShot(ids){
           if(st.length>40)st=st.slice(0,40)+"…";
           x.fillText(st,CW/2,cur+21);x.textAlign="left";cur+=b.h;return;
         }
-        var label=(isMe?"我":String((state.partner&&state.partner.name)||"TA"));
-        x.font="600 18px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
-        x.fillStyle=darkBg?"rgba(255,255,255,.82)":"rgba(80,85,100,.55)";x.textBaseline="middle";
-        x.textAlign=isMe?"right":"left";
-        x.fillText(label,isMe?CW-PAD:PAD,cur+12);
-        x.textAlign="left";
-        var by=cur+28,bw=b.bw,bx=isMe?CW-PAD-(showAv?AV+AVG:0)-bw:PAD+(showAv?AV+AVG:0),bh=b.bh;
+        /* 聊天里一对一不显示昵称行，长图也不画，避免多出一条聊天里没有的内容。 */
+        var by=cur+Math.round(2*K),bw=b.bw,bx=isMe?CW-PAD-(showAv?AV+AVG:0)-bw:PAD+(showAv?AV+AVG:0),bh=b.bh;
         if(showAv){
-          var ax=isMe?CW-PAD-AV:PAD, ay=by+bh-AV;
+          var ax=isMe?CW-PAD-AV:PAD, ay=by;
           try{
             x.save();x.beginPath();x.arc(ax+AV/2,ay+AV/2,AV/2,0,Math.PI*2);x.closePath();x.clip();
             if(b.av){x.drawImage(b.av,ax,ay,AV,AV);}
@@ -13559,116 +13647,124 @@ function __msgSelLongShot(ids){
         }
         if(b.pic){
           x.save();
-          __lsRoundRect(x,bx,by,bw,bh,18);x.clip();
+          __lsRoundRect(x,bx,by,bw,bh,Math.round(18*K));x.clip();
           x.fillStyle="#E9EBF0";x.fillRect(bx,by,bw,bh);
           x.drawImage(b.pic,bx,by,bw,bh);
           x.restore();
-          x.strokeStyle="rgba(0,0,0,.08)";x.lineWidth=1;__lsRoundRect(x,bx,by,bw,bh,18);x.stroke();
+          x.strokeStyle="rgba(0,0,0,.08)";x.lineWidth=1;__lsRoundRect(x,bx,by,bw,bh,Math.round(18*K));x.stroke();
         }else if(b.card){
           var ca=b.card;
-          x.save();__lsRoundRect(x,bx,by,bw,bh,22);x.clip();
+          var cDark=!!_sk.dark;
+          var cBg=cDark?"#1C1C1E":"#FFFFFF";
+          var cTxt=cDark?"#F2F2F7":"#111111";
+          var cSub=cDark?"rgba(235,235,245,.62)":"#8E8E93";
+          var cLine=cDark?"rgba(255,255,255,.12)":"rgba(0,0,0,.08)";
+          x.save();__lsRoundRect(x,bx,by,bw,bh,Math.round(16*K));x.clip();
+          x.fillStyle=cBg;x.fillRect(bx,by,bw,bh);
+          var _k13=Math.round(13*_fsv*K),_k11=Math.round(11*_fsv*K),_k125=Math.round(12*_fsv*K);
+          /* 红包/问卷和聊天一样：白色卡壳 + 顶部头像/昵称/时间 + 分隔线 + 内容 + 底部按钮 */
+          if(ca.kind==="redpacket"||ca.kind==="survey"){
+            var headH=Math.round(52*K),hav=Math.round(32*K);
+            var hx=bx+Math.round(12*K),hy=by+Math.round(10*K);
+            try{
+              x.save();x.beginPath();x.arc(hx+hav/2,hy+hav/2,hav/2,0,Math.PI*2);x.clip();
+              if(b.av)x.drawImage(b.av,hx,hy,hav,hav);else{x.fillStyle=isMe?"#3478F6":"#E9E9EB";x.fillRect(hx,hy,hav,hav);}
+              x.restore();
+            }catch(_eHav){}
+            var nm=isMe?String((state.me&&state.me.name)||"我"):String((state.partner&&state.partner.name)||"TA");
+            x.fillStyle=cTxt;x.font="600 "+_k13+"px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
+            x.textAlign="left";x.textBaseline="middle";
+            x.fillText(__lsFitText(x,nm,bw-Math.round(150*K)),hx+hav+Math.round(8*K),hy+hav/2);
+            x.fillStyle=cSub;x.font="500 "+_k11+"px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
+            x.textAlign="right";x.fillText(fmtTime(m.time||Date.now()),bx+bw-Math.round(12*K),hy+hav/2);x.textAlign="left";
+            x.strokeStyle=cLine;x.lineWidth=1;x.beginPath();x.moveTo(bx,by+headH);x.lineTo(bx+bw,by+headH);x.stroke();
+          }
+          var btnH=Math.round(31*K),btnY=by+bh-Math.round(12*K)-btnH;
           if(ca.kind==="redpacket"){
-            var rg=x.createLinearGradient(bx,by,bx+bw,by+bh);
-            rg.addColorStop(0,"#E9553B");rg.addColorStop(.55,"#F06A42");rg.addColorStop(1,"#F8A05C");
-            x.fillStyle=rg;x.fillRect(bx,by,bw,bh);
-            x.fillStyle="rgba(255,255,255,.13)";x.beginPath();x.arc(bx+bw-8,by+16,64,0,Math.PI*2);x.fill();
-            x.beginPath();x.arc(bx+bw+8,by+bh+10,80,0,Math.PI*2);x.fill();
-            x.fillStyle="rgba(0,0,0,.18)";x.beginPath();x.arc(bx+40,by+38,22,0,Math.PI*2);x.fill();
-            x.fillStyle="#FFF";x.font="700 27px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
-            x.textAlign="center";x.textBaseline="middle";x.fillText("¥",bx+40,by+39);
-            x.textAlign="left";x.fillStyle="rgba(255,255,255,.74)";x.font="600 14px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
-            x.fillText("红包",bx+72,by+20);
-            x.fillStyle="#FFFFFF";x.font="700 22px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
-            x.fillText(__lsFitText(x,ca.title,bw-92),bx+72,by+44);
-            x.fillStyle="#FFFFFF";x.font="700 40px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
-            x.fillText(ca.amount,bx+22,by+94);
-            x.fillStyle="rgba(255,255,255,.82)";x.font="500 16px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
-            x.fillText("● "+ca.sub,bx+22,by+128);
+            var _cx=bx+bw/2,_ty=by+Math.round(52*K)+Math.round(18*K);
+            x.textAlign="center";
+            x.font=Math.round(28*K)+"px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
+            x.fillText("🧧",_cx,_ty+Math.round(14*K));
+            x.fillStyle=cTxt;x.font="600 "+_k13+"px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
+            x.fillText(__lsFitText(x,ca.title,bw-Math.round(24*K)),_cx,_ty+Math.round(47*K));
+            x.fillStyle=cSub;x.font="700 "+Math.round(22*_fsv*K)+"px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
+            x.fillText(ca.amount,_cx,_ty+Math.round(81*K));
+            x.textAlign="left";
+            x.fillStyle=_accent;__lsRoundRect(x,bx+Math.round(12*K),btnY,bw-Math.round(24*K),btnH,Math.round(9*K));x.fill();
+            x.fillStyle="#FFFFFF";x.font="600 "+_k13+"px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
+            x.textAlign="center";x.fillText(ca.sub,_cx,btnY+btnH/2);x.textAlign="left";
           }else if(ca.kind==="survey"){
-            x.fillStyle="#FFFFFF";x.fillRect(bx,by,bw,bh);
-            x.fillStyle=_accent;x.fillRect(bx,by,bw,5);
-            x.fillStyle="#DCEAFF";__lsRoundRect(x,bx+bw-96,by+16,78,26,13);x.fill();
-            x.fillStyle="#3478F6";x.font="600 13px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
-            x.textAlign="center";x.textBaseline="middle";x.fillText(ca.status,bx+bw-57,by+29);x.textAlign="left";
-            x.fillStyle="#3478F6";x.font="600 14px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
-            x.fillText("📋 问卷",bx+22,by+25);
-            x.fillStyle="#20222A";x.font="700 23px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
-            x.fillText(__lsFitText(x,ca.title,bw-140),bx+22,by+52);
-            x.fillStyle="#858A98";x.font="500 15px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
-            x.fillText(__lsFitText(x,ca.sub,bw-44),bx+22,by+83);
-            var sbg=x.createLinearGradient(bx+bw-158,by+bh-52,bx+bw-28,by+bh-20);
-            sbg.addColorStop(0,_accent);sbg.addColorStop(1,_accent);
-            x.fillStyle=sbg;__lsRoundRect(x,bx+bw-158,by+bh-52,130,32,16);x.fill();
-            x.fillStyle="#FFFFFF";x.font="600 14px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
-            x.textAlign="center";x.fillText(ca.btn,bx+bw-93,by+bh-33);x.textAlign="left";
-            x.fillStyle="#B7BFCE";x.font="500 12px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
-            x.fillText("Eleven × 11 问卷",bx+22,by+bh-34);
+            var sx=bx+Math.round(12*K),sy=by+Math.round(52*K)+Math.round(10*K),sw=bw-Math.round(24*K);
+            x.fillStyle=cTxt;x.font="600 "+Math.round(15*_fsv*K)+"px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
+            x.textAlign="left";x.textBaseline="top";
+            x.fillText(__lsFitText(x,"📋 "+(ca.title||"问卷"),sw),sx,sy);
+            x.fillStyle=cSub;x.font="500 "+_k125+"px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
+            x.fillText(__lsFitText(x,ca.sub,sw),sx,sy+Math.round(21*K));
+            x.fillStyle=cSub;x.fillText(__lsFitText(x,"状态："+ca.status,sw),sx,sy+Math.round(38*K));
+            x.fillStyle=_accent;__lsRoundRect(x,bx+Math.round(12*K),btnY,bw-Math.round(24*K),btnH,Math.round(9*K));x.fill();
+            x.fillStyle="#FFFFFF";x.font="600 "+_k13+"px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
+            x.textAlign="center";x.textBaseline="middle";x.fillText(ca.btn,bx+bw/2,btnY+btnH/2);x.textAlign="left";
           }else if(ca.kind==="song"){
-            var sg2=x.createLinearGradient(bx,by,bx+bw,by+bh);
-            sg2.addColorStop(0,"#23252C");sg2.addColorStop(1,"#3C404C");
-            x.fillStyle=sg2;x.fillRect(bx,by,bw,bh);
-            x.fillStyle="rgba(255,255,255,.10)";x.beginPath();x.arc(bx+52,by+59,39,0,Math.PI*2);x.fill();
+            var cov=Math.round(54*K),cx=bx+Math.round(11*K),cy=by+(bh-cov)/2;
+            x.fillStyle="#111";__lsRoundRect(x,cx,cy,cov,cov,Math.round(10*K));x.fill();
             if(b.songCover){
               try{
-                x.save();x.beginPath();x.arc(bx+52,by+59,38,0,Math.PI*2);x.clip();
-                var _cim=b.songCover,_iw=_cim.width||1,_ih=_cim.height||1,_sc=Math.max(76/_iw,76/_ih);
-                x.drawImage(_cim,bx+52-_iw*_sc/2,by+59-_ih*_sc/2,_iw*_sc,_ih*_sc);
-                x.restore();x.strokeStyle="rgba(255,255,255,.18)";x.lineWidth=1;x.beginPath();x.arc(bx+52,by+59,38,0,Math.PI*2);x.stroke();
+                x.save();__lsRoundRect(x,cx,cy,cov,cov,Math.round(10*K));x.clip();
+                var _iw=b.songCover.width||1,_ih=b.songCover.height||1,_sc=Math.max(cov/_iw,cov/_ih);
+                x.drawImage(b.songCover,cx+cov/2-_iw*_sc/2,cy+cov/2-_ih*_sc/2,_iw*_sc,_ih*_sc);
+                x.restore();
               }catch(_eCov){
-                x.fillStyle="#FFFFFF";x.font="700 32px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
-                x.textAlign="center";x.textBaseline="middle";x.fillText("♪",bx+52,by+59);x.textAlign="left";
+                x.fillStyle="#FFFFFF";x.font="700 "+Math.round(26*K)+"px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";x.textAlign="center";x.textBaseline="middle";x.fillText("♪",cx+cov/2,cy+cov/2);x.textAlign="left";
               }
             }else{
-              x.fillStyle="#FFFFFF";x.font="700 32px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
-              x.textAlign="center";x.textBaseline="middle";x.fillText("♪",bx+52,by+59);x.textAlign="left";
+              x.fillStyle="#FFFFFF";x.font="700 "+Math.round(26*K)+"px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";x.textAlign="center";x.textBaseline="middle";x.fillText("♪",cx+cov/2,cy+cov/2);x.textAlign="left";
             }
-            x.fillStyle="rgba(255,255,255,.60)";x.font="500 12px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
-            x.fillText(ca.kicker,bx+102,by+22);
-            x.fillStyle="#FFFFFF";x.font="700 21px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
-            x.fillText(__lsFitText(x,ca.title,bw-156),bx+102,by+48);
-            x.fillStyle="rgba(255,255,255,.68)";x.font="500 14px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
-            x.fillText(__lsFitText(x,ca.sub,bw-156),bx+102,by+72);
-            if(ca.note){x.fillStyle="rgba(255,255,255,.46)";x.font="500 12px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";x.fillText(__lsFitText(x,ca.note,bw-156),bx+102,by+93);}
-            x.fillStyle="#FFFFFF";x.beginPath();x.arc(bx+bw-34,by+bh/2,18,0,Math.PI*2);x.fill();
-            x.fillStyle="#24262D";x.beginPath();x.moveTo(bx+bw-30,by+bh/2-8);x.lineTo(bx+bw-30,by+bh/2+8);x.lineTo(bx+bw-20,by+bh/2);x.closePath();x.fill();
+            var ix=cx+cov+Math.round(10*K),iw2=bx+bw-cx-cov-Math.round(10*K)-Math.round(44*K);
+            x.fillStyle=_accent;x.font="600 "+_k11+"px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";x.textBaseline="top";x.fillText(__lsFitText(x,ca.kicker,iw2),ix,by+Math.round(11*K));
+            x.fillStyle=cTxt;x.font="600 "+Math.round(13.5*_fsv*K)+"px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";x.fillText(__lsFitText(x,ca.title,iw2),ix,by+Math.round(27*K));
+            x.fillStyle=cSub;x.font="500 "+Math.round(11.5*_fsv*K)+"px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";x.fillText(__lsFitText(x,ca.sub,iw2),ix,by+Math.round(46*K));
+            var pr=Math.round(34*K),px=bx+bw-Math.round(11*K)-pr/2,py=by+bh/2;
+            x.fillStyle=_accent;x.beginPath();x.arc(px,py,pr/2,0,Math.PI*2);x.fill();
+            x.fillStyle="#FFFFFF";x.beginPath();x.moveTo(px-Math.round(4*K),py-Math.round(8*K));x.lineTo(px-Math.round(4*K),py+Math.round(8*K));x.lineTo(px+Math.round(7*K),py);x.closePath();x.fill();
           }else if(ca.kind==="invite"){
             var ig=x.createLinearGradient(bx,by,bx+bw,by+bh);
-            ig.addColorStop(0,"#5360F2");ig.addColorStop(.55,"#6F63F4");ig.addColorStop(1,"#9A6AF4");
+            if(cDark){ig.addColorStop(0,"rgba(58,60,70,.72)");ig.addColorStop(1,"rgba(28,29,36,.58)");}
+            else{ig.addColorStop(0,"rgba(255,255,255,.96)");ig.addColorStop(1,"rgba(240,245,255,.90)");}
             x.fillStyle=ig;x.fillRect(bx,by,bw,bh);
-            x.strokeStyle="rgba(255,255,255,.14)";x.lineWidth=1.5;
-            x.beginPath();x.arc(bx+bw-18,by+18,58,0,Math.PI*2);x.stroke();
-            x.beginPath();x.arc(bx+bw-18,by+18,38,0,Math.PI*2);x.stroke();
-            x.fillStyle="rgba(255,255,255,.72)";x.font="600 14px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
-            x.fillText(ca.kicker,bx+22,by+24);
-            x.fillStyle="#FFFFFF";x.font="700 25px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
-            x.fillText(__lsFitText(x,ca.title,bw-44),bx+22,by+52);
-            x.fillStyle="rgba(255,255,255,.78)";x.font="500 14px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
-            x.fillText(__lsFitText(x,ca.sub,bw-44),bx+22,by+79);
-            var pw=Math.min(bw-44,Math.max(120,x.measureText(ca.status).width+34));
-            x.fillStyle="rgba(255,255,255,.18)";__lsRoundRect(x,bx+22,by+bh-34,pw,24,12);x.fill();
-            x.fillStyle="rgba(255,255,255,.92)";x.font="500 13px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
-            x.textAlign="center";x.fillText(ca.status,bx+22+pw/2,by+bh-21);x.textAlign="left";
+            x.fillStyle=isMe?"#6F63F4":"#3478F6";x.font="600 "+_k125+"px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
+            x.textAlign="left";x.textBaseline="top";x.fillText(ca.kicker,bx+Math.round(13*K),by+Math.round(11*K));
+            x.fillStyle=cTxt;x.font="700 "+Math.round(14*_fsv*K)+"px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
+            x.fillText(__lsFitText(x,ca.title,bw-Math.round(26*K)),bx+Math.round(13*K),by+Math.round(31*K));
+            x.fillStyle=cSub;x.font="500 "+_k125+"px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
+            x.fillText(__lsFitText(x,ca.sub,bw-Math.round(26*K)),bx+Math.round(13*K),by+Math.round(53*K));
+            var pw=Math.min(bw-Math.round(26*K),Math.max(Math.round(120*K),x.measureText(ca.status).width+Math.round(24*K)));
+            x.fillStyle=cDark?"rgba(255,255,255,.12)":"rgba(52,120,246,.10)";
+            __lsRoundRect(x,bx+Math.round(13*K),by+bh-Math.round(32*K),pw,Math.round(22*K),Math.round(11*K));x.fill();
+            x.fillStyle=cDark?"rgba(255,255,255,.86)":"#5A6070";x.font="500 "+Math.round(12*_fsv*K)+"px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
+            x.textAlign="center";x.textBaseline="middle";x.fillText(ca.status,bx+Math.round(13*K)+pw/2,by+bh-Math.round(21*K));x.textAlign="left";
           }
           x.restore();
-          x.strokeStyle="rgba(0,0,0,.10)";x.lineWidth=1;__lsRoundRect(x,bx,by,bw,bh,22);x.stroke();
+          x.strokeStyle=cLine;x.lineWidth=1;__lsRoundRect(x,bx,by,bw,bh,Math.round(16*K));x.stroke();
         }else{
           if(isMe){
             var mg=x.createLinearGradient(bx,by,bx+bw,by+bh);
             mg.addColorStop(0,_myB);mg.addColorStop(1,_myB);
             x.fillStyle=mg;
           }else{x.fillStyle=_partB;}
-          __lsRoundRect(x,bx,by,bw,bh,20);x.fill();
-          if(!isMe){x.strokeStyle="rgba(0,0,0,.055)";x.lineWidth=1;__lsRoundRect(x,bx,by,bw,bh,20);x.stroke();}
+          var br=Math.round(18*K);
+          __lsRoundRect(x,bx,by,bw,bh,br);x.fill();
+          if(!isMe){x.strokeStyle="rgba(0,0,0,.055)";x.lineWidth=1;__lsRoundRect(x,bx,by,bw,bh,br);x.stroke();}
           x.fillStyle=isMe?_myT:_partT;
-          x.font=_lsFont;
+          x.font="400 "+(b.font||FONT)+"px -apple-system,BlinkMacSystemFont,'PingFang SC','Helvetica Neue',Arial,sans-serif";
           x.textBaseline="top";
-          b.lines.forEach(function(line,i){x.fillText(line,bx+18,by+16+i*39);});
+          var _clh=(b.font||FONT)*1.34;
+          b.lines.forEach(function(line,i){x.fillText(line,bx+(b.padx||PADX),by+(b.pady||PADY)+i*_clh);});
         }
         try{
-          x.font="500 16px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
-          x.fillStyle=darkBg?"rgba(255,255,255,.55)":"rgba(90,95,110,.42)";
+          x.font="500 "+Math.round(10*_fsv*K)+"px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
+          x.fillStyle=darkBg?"rgba(255,255,255,.55)":"rgba(142,142,147,.85)";
           x.textAlign=isMe?"right":"left";x.textBaseline="middle";
-          x.fillText(fmtTime(m.time||Date.now()),isMe?bx+bw:bx,by+bh+15);
+          x.fillText(fmtTime(m.time||Date.now()),isMe?bx+bw:bx,by+bh+Math.round(5*K)+META/2);
           x.textAlign="left";
         }catch(_t){}
         cur+=b.h;
@@ -29475,7 +29571,7 @@ body{margin:0;background:var(--bg,#fafafa);}
          此时 root.top 不能跟着 voffY 走，否则整页会被抬上去、工具条压住日记字 */
       if(_diaryOpen){voffX=0;voffY=0;}
       var _landView=(w>h*1.12&&w>=560);
-      /* v43-62：舞台只按屏幕宽度铺，不再把整站放大到 1.3 倍。
+      /* v43-63：舞台只按屏幕宽度铺，不再把整站放大到 1.3 倍。
          尺寸锁死为 1，390/430/480 宽的手机上按钮、字号、间距都保持设计稿原大小；
          旧版存过的 __uiKLock 比例（1.05~1.3）全部作废，避免“换大屏手机后整页变大”。 */
       window.__uiKLock=1;
