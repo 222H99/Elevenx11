@@ -175,6 +175,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
+window.__E11_BUILD="2026-11-21v43-50";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2468,7 +2469,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-21v43-49">
+<meta name="app-build" content="2026-11-21v43-50">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4132,7 +4133,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-49</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-50</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5574,6 +5575,9 @@ setTimeout(function(){
   }
   function cloudUrl(){return "/storage/v1/object/vault/"+encodeURIComponent(session.user.id)+"/latest.json";}
   function cloudManifestUrl(){return "/storage/v1/object/vault/"+encodeURIComponent(session.user.id)+"/latest.manifest.json";}
+  /* 完整档自己的固定指纹：只由「完整档」更新，不会被设备把 latest 写小时的半完整指纹覆盖。
+     这样即使 latest.manifest 被旧版写成 866 张卡、9 首歌，启动时仍知道完整档有 934 张卡、11 首歌。 */
+  function cloudFullManifestUrl(){return "/storage/v1/object/vault/"+encodeURIComponent(session.user.id)+"/latest.full.manifest.json";}
   function __e11DefaultProfile(){try{return defaultState().profile||{};}catch(_){return {};}}
   function __e11IsImgRef(v){return typeof v==="string"&&(v.slice(0,5)==="data:"||v.slice(0,8)==="\u0000bigref:");}
   function __e11ProfileScore(p){
@@ -5599,13 +5603,29 @@ setTimeout(function(){
     return {savedAt:Number(payload&&payload.savedAt)||Date.now(),messages:ms.n,maxMsg:ms.max,counts:__e11RecordCounts(st),profileScore:__e11ProfileScore(st.profile),settingsScore:__e11SettingsScore(st.settings),build:(window.__E11_BUILD||"")};
   }
   function cloudManifestGet(){
-    return api(cloudManifestUrl(),{token:session.access_token,timeout:2500,retries:0}).catch(function(){return null;});
+    var p1=api(cloudManifestUrl(),{token:session.access_token,timeout:2500,retries:0}).catch(function(){return null;});
+    var p2=api(cloudFullManifestUrl(),{token:session.access_token,timeout:2500,retries:0}).catch(function(){return null;});
+    return Promise.all([p1,p2]).then(function(arr){
+      var a=arr[0],b=arr[1];if(!a)return b;if(!b)return a;
+      var out={savedAt:Math.max(Number(a.savedAt)||0,Number(b.savedAt)||0),messages:Math.max(Number(a.messages)||0,Number(b.messages)||0),maxMsg:Math.max(Number(a.maxMsg)||0,Number(b.maxMsg)||0),counts:{},profileScore:Math.max(Number(a.profileScore)||0,Number(b.profileScore)||0),settingsScore:Math.max(Number(a.settingsScore)||0,Number(b.settingsScore)||0),build:(b.build||a.build||"")};
+      var ca=a.counts||{},cb=b.counts||{};
+      Object.keys(ca).concat(Object.keys(cb)).forEach(function(k){out.counts[k]=Math.max(Number(ca[k])||0,Number(cb[k])||0);});
+      return out;
+    });
   }
   function cloudManifestPut(payload){
     try{
       if(!authOk()||!session||!session.access_token)return;
       var m=__e11ManifestOf(payload);
       fetch(cfg.url+cloudManifestUrl(),{method:"POST",headers:{"apikey":cfg.key,"Authorization":"Bearer "+session.access_token,"Content-Type":"application/json","x-upsert":"true","cache-control":"no-cache"},body:JSON.stringify(m),cache:"no-store"}).catch(function(){});
+    }catch(_){}
+  }
+  /* 只有完整档才写这个指纹：它记录完整档的上限，不会被设备保存半完整档时压低。 */
+  function cloudFullManifestPut(payload){
+    try{
+      if(!authOk()||!session||!session.access_token)return;
+      var m=__e11ManifestOf(payload);
+      fetch(cfg.url+cloudFullManifestUrl(),{method:"POST",headers:{"apikey":cfg.key,"Authorization":"Bearer "+session.access_token,"Content-Type":"application/json","x-upsert":"true","cache-control":"no-cache"},body:JSON.stringify(m),cache:"no-store"}).catch(function(){});
     }catch(_){}
   }
   function __e11ManifestNeedsFull(st,man){
@@ -5665,17 +5685,28 @@ setTimeout(function(){
     Object.keys(b).forEach(function(k){if(o[k]===undefined||o[k]==="")o[k]=b[k];});
     return o;
   }
+  /* 同 id 合并时不能拿空字符串去覆盖已有内容：旧设备经常把歌曲名、封面、
+     信件正文写成空串，直接 Object.assign 会让完整档里的歌名/正文凭空消失。 */
+  function __e11FillFields(dst,src){
+    Object.keys(src||{}).forEach(function(k){
+      var v=src[k];
+      if(v===undefined||v===null||v==="")return;
+      if(Array.isArray(v)&&!v.length)return;
+      dst[k]=v;
+    });
+    return dst;
+  }
   function __e11MergeList(base,add){
     var A=base||[],B=add||[],by={},clean=[];
     A.forEach(function(x){
       if(x&&x.id){
-        if(by[x.id]!==undefined){clean[by[x.id]]=Object.assign({},clean[by[x.id]],x);return;}
+        if(by[x.id]!==undefined){clean[by[x.id]]=__e11FillFields(clean[by[x.id]],x);return;}
         by[x.id]=clean.length;
       }
       clean.push(x);
     });
     B.forEach(function(x){
-      if(x&&x.id&&by[x.id]!==undefined){clean[by[x.id]]=Object.assign({},clean[by[x.id]],x);}
+      if(x&&x.id&&by[x.id]!==undefined){clean[by[x.id]]=__e11FillFields(clean[by[x.id]],x);}
       else if(x&&x.id){by[x.id]=clean.length;clean.push(x);}
       else clean.push(x);
     });
@@ -5686,7 +5717,7 @@ setTimeout(function(){
     if(!latest||!latest.state)return full;
     var base=JSON.parse(JSON.stringify(full.state));
     var add=latest.state;
-    var ARR=["messages","letters","guestbook","moments","cards","groups","redpackets","musicPlaylist","emojis","partnerEmojis","surveyHistory","quizDeleted","hostMsgs","pendingLetterReplies","pendingCommentReplies","pendingNoteReplies"];
+    var ARR=["messages","letters","guestbook","moments","cards","groups","redpackets","musicPlaylist","emojis","partnerEmojis","surveyHistory","quizDeleted","hostMsgs","pendingLetterReplies","pendingCommentReplies","pendingNoteReplies","favorites"];
     ARR.forEach(function(k){
       if(!Array.isArray(base[k]))base[k]=[];
       if(!Array.isArray(add[k]))return;
@@ -5702,6 +5733,11 @@ setTimeout(function(){
       });
     }catch(_){}
     try{__e11MergeLocalDiary(base,add);}catch(_){}
+    try{
+      base.favorites=__e11MergeList(base.favorites||[],add.favorites||[]);
+      var _ft=[];((base.favTags||[]).concat(add.favTags||[])).forEach(function(x){if(x&&_ft.indexOf(x)<0)_ft.push(x);});
+      base.favTags=_ft;
+    }catch(_){}
     Object.keys(add).forEach(function(k){
       if(k==="diary"||k==="messages"||k==="__savedAt"||Array.isArray(add[k]))return;
       if(k==="profile"){base[k]=__e11MergeProfile(base[k],add[k]);return;}
@@ -5749,7 +5785,10 @@ setTimeout(function(){
         if(!need)return d;
         return cloudBackupGet().then(function(full){
           if(full&&full.state&&Array.isArray(full.state.messages)&&full.state.messages.length){
-            var merged=__e11MergeCloudFull(full,d);note(merged);return merged;
+            var merged=__e11MergeCloudFull(full,d);note(merged);
+            /* 合并后的这份就是完整档：把完整指纹抬到真实数量，下次启动就不用再下 5MB。 */
+            try{cloudFullManifestPut(merged);}catch(_eFM){}
+            return merged;
           }
           return d;
         });
@@ -5832,7 +5871,7 @@ setTimeout(function(){
   function __e11ContentScore(st){
     var n=0;
     try{
-      ["cards","groups","letters","guestbook","moments","musicPlaylist","emojis","partnerEmojis","redpackets"].forEach(function(k){if(Array.isArray(st&&st[k]))n+=st[k].length;});
+      ["cards","groups","letters","guestbook","moments","musicPlaylist","emojis","partnerEmojis","redpackets","favorites"].forEach(function(k){if(Array.isArray(st&&st[k]))n+=st[k].length;});
     }catch(_){}
     return n;
   }
@@ -5853,6 +5892,8 @@ setTimeout(function(){
     try{
       var cM=(cs&&cs.musicPlaylist||[]).length,lM=(local&&local.musicPlaylist||[]).length;
       if(cM>lM)return true;
+      var cF=(cs&&cs.favorites||[]).length,lF=(local&&local.favorites||[]).length;
+      if(cF>lF+2)return true;
     }catch(_){}
     if(__e11ProfileScore(cs&&cs.profile)>__e11ProfileScore(local&&local.profile)+2)return true;
     if(__e11SettingsScore(cs&&cs.settings)>__e11SettingsScore(local&&local.settings)+5)return true;
@@ -5906,6 +5947,15 @@ setTimeout(function(){
         la.forEach(function(x){if(x&&x.id&&!ids[x.id]){ca.push(x);ids[x.id]=1;}});
         st[k]=ca;
       });
+      /* 收藏夹是用户手动留下的内容，云端空数组绝不能把本机收藏冲掉。
+         同 id 以本机较新的文字为准，云端多出来的也保留。 */
+      try{
+        if(Array.isArray(localState.favorites)&&localState.favorites.length){
+          st.favorites=__e11MergeList(st.favorites||[],localState.favorites);
+        }
+        var _tags=[];((st.favTags||[]).concat((localState&&localState.favTags)||[])).forEach(function(x){if(x&&_tags.indexOf(x)<0)_tags.push(x);});
+        if(_tags.length)st.favTags=_tags;
+      }catch(_eFav){}
     }catch(_){}
   }
   function applySnapshot(snap,opt){
@@ -5951,6 +6001,9 @@ setTimeout(function(){
          把刚写进去的 534 条覆盖成空白，表现就是“恢复几次还是没数据”并无限重载。 */
       if(__reloading){window.__e11CloudPause=1;window.__restoring=1;return;}
       window.__e11CloudPause=0;
+      /* 云端恢复完成后马上预热当前歌单：以前预热只跑在启动 2.6 秒，云端 5MB 还没回来，
+         列表是空的，所以每次点歌都要重新等接口，听起来就是“播放慢”。 */
+      try{var _plr=(window.state&&window.state.musicPlaylist)||[];if(_plr.length&&typeof prefetchSongUrls==="function")setTimeout(function(){prefetchSongUrls(_plr.length);},900);}catch(_eWarmMusic){}
       /* 云端旧快照里如果是 bigref，本机库把图补齐后主动回传一次，
          让另一台设备（电脑网页）也能拿到真实头像/照片/表情，而不是一串引用编号。
          如果本机也没图，putVault 的关键图保护会拒绝覆盖，不会把云端弄坏。 */
@@ -6374,7 +6427,7 @@ function msgPreviewText(m){
   if(m.type==="survey")return "【问卷】";
   if(m.type==="redpacket")return "【红包】";
   if(m.type==="invite")return m.inv==="music"?"【一起听歌邀请】":"【一起画画邀请】";
-  if(m.type==="song")return "【推歌】"+String((m.song&&m.song.name)||"");
+  if(m.type==="song")return "【推歌】"+__songName(m.song);
   if(m.type==="sys")return _prevClip(m.text||"",48);
   return _prevClip(m.text||"",36);
 }
@@ -6529,9 +6582,15 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-21",
-  noticeKey:"2026-11-21v43-49",
-  lead:"v43-49：云端恢复改成按完整档逐项核对。进入时先读完整档条数指纹，最新档少了聊天、字卡、信件、留言、动态、歌曲、分组、表情、红包、资料或设置中的任何一块，就拉 `latest.full.json` 做全量并集；不再只看消息条数。资料里的名字、简介、账号、地区、相恋日期，以及一起听歌单和调整过的全部设置都会被保留。最新档达到指纹时不再下载完整档，恢复更快。",
+  noticeKey:"2026-11-21v43-50",
+  lead:"v43-50：把 v41 之后丢的东西修回来，并锁住完整档。云端现在单独保存一份完整档指纹，设备再写半完整档也不会把基线拉低；歌名、信件正文、封面不再被空字段覆盖，收藏和日记收藏参与并集合并。音乐播放地址会缓存到本机，重启后也能直接起播。读信夜间背景改成纯黑，系统提示和来消息弹窗不再自动消失。",
   items:[
+    '<span class="an-gt">v43-50 · 数据与体验修复</span>',
+    "歌单名字加多层兜底：即使云端某首歌 name 为空，也会按标题、文件名补回，不再出现空白歌名",
+    "播放地址缓存到本机 10 分钟；启动、恢复云端、进音乐页都会预热整个歌单，点歌更快",
+    "夜间读信背景改成纯黑，遮罩加深且不再模糊，和外面主页一致；白天和自定义信纸不变",
+    "「对方给你写了信 / 留言 / 动态」提示和来消息弹窗不再自动消失，只能点进聊天或手动关闭",
+    "收藏夹、日记收藏和完整档做并集，云端空数组不会再冲掉本机收藏；完整档指纹单独存 latest.full.manifest.json",
     '<span class="an-gt">v43-45 · 本月小结 / 日记自动保存</span>',
     "日记的「本月小结」拆成「我」和「对方」两栏：各自的心情分布、写下的天数、字数、贴纸数分开算，不再混在一起",
     "日记正文打字停下约 0.8 秒自动保存，页面提示「已自动保存 HH:MM」；关闭日记、切后台、刷新前也会强制写入本机，不用再点保存按钮",
@@ -7104,7 +7163,7 @@ function maybeShowIncomingPop(m,force,test){
   const p=$("incoming-pop");
   if(p){
     try{if(!test&&typeof window.__msgPopOn==="function"&&window.__msgPopOn()===false){p.classList.remove("show");return;}}catch(_){}
-    p.classList.add("show");clearTimeout(incomingPopTimer);incomingPopTimer=setTimeout(hideIncomingPop,5200);
+    p.classList.add("show");clearTimeout(incomingPopTimer);incomingPopTimer=null;
   }
 }
 $("incoming-pop").addEventListener("click",()=>{
@@ -9685,7 +9744,7 @@ function __msgRowRaw(m){
       var _sgNote=String(m.note||"").trim();
       return '<div class="msg-row '+_sideSong+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="async" src="'+esc(__blobUrl(__avatarPick(_isMeSong?"me":"partner")))+'" alt=""><div class="msg-col"><div class="song-push-card" data-song="'+m.id+'">'
         +'<img class="spc-cover" src="'+__escAttr(__coverSmall(_sgCover,108))+'" data-fb="'+__escAttr(__songFallbackCover(_sg))+'" onerror="this.onerror=null;this.src=this.dataset.fb" alt="" loading="lazy" decoding="async">'
-        +'<div class="spc-info"><div class="spc-kicker">'+(_isMeSong?"💌 你推给了 TA":"💌 TA 推给你")+'</div><div class="spc-name">'+esc(_sg.name||"未知歌曲")+'</div><div class="spc-artist">'+esc(_sg.artist||"点击听这首歌")+'</div>'+(_sgNote?'<div class="spc-artist" style="color:var(--ttext);opacity:.7;">'+esc(_sgNote)+'</div>':'')+'</div>'
+        +'<div class="spc-info"><div class="spc-kicker">'+(_isMeSong?"💌 你推给了 TA":"💌 TA 推给你")+'</div><div class="spc-name">'+esc(__songName(_sg))+'</div><div class="spc-artist">'+esc(_sg.artist||"点击听这首歌")+'</div>'+(_sgNote?'<div class="spc-artist" style="color:var(--ttext);opacity:.7;">'+esc(_sgNote)+'</div>':'')+'</div>'
         +'<button class="spc-play" type="button" data-song="'+m.id+'" title="播放">▶</button>'
         +'</div><div class="msg-time">'+fmtTime(m.time)+'</div></div></div>';
     }
@@ -9979,7 +10038,9 @@ function __pruneSocialNotices(){
       if(!idx.length)continue;
       var drop=[];
       /* 对应内容一条都不剩 → 提示全删；信件一封一条提示 → 多了就删超出的旧提示 */
-      if(kind.pool===0){drop=idx.slice();}
+      /* 用户明确要求「对方主动发消息的提示不要自己消失」：
+         即使对应内容已经读完/删掉，也保留最后一条提示，只去掉重复的。 */
+      if(kind.pool===0){continue;}
       else if(kind.exact&&idx.length>kind.pool){drop=idx.slice(0,idx.length-kind.pool);}
       for(var j=drop.length-1;j>=0;j--){ms.splice(drop[j],1);changed=true;}
     }
@@ -10040,7 +10101,7 @@ function __rebuildSocialNotices(){
       var t=String((ms[i]||{}).text||""),kind=-1;
       if(ms[i]&&ms[i].type==="sys"){for(var j=0;j<res.length;j++){if(res[j].test(t)){kind=j;break;}}}
       if(kind<0)continue;
-      if(!alive[kind]||flags[kind]){ms.splice(i,1);had=true;}
+      if(flags[kind]){ms.splice(i,1);had=true;}
       else flags[kind]=true;
     }
     if(unreadL&&!flags[0])pushMsg("partner","sys","📮 对方给你写了封信",{quiet:true});
@@ -10055,7 +10116,8 @@ function __rebuildSocialNotices(){
 window.__rebuildSocialNotices=__rebuildSocialNotices;
 function __cleanStaleLetterSys(){
   try{
-    if(!state)return false;
+    /* 读信/读完信后不再自动删掉「对方给你写了封信」的聊天提示，保留在聊天记录里。 */
+    return false;
     /* 清掉残留来信提示的条件：一封对方的信都没有，或者对方的信全都已读（等于「没信」） */
     var _pl=(state.letters||[]).filter(function(l){return l&&l.from==="partner"&&!l.deleted;});
     var _unread=_pl.filter(function(l){return !l.read;}).length;
@@ -12997,7 +13059,7 @@ function __lsMsgText(m){
     if(m.type==="voice")return "🎙 语音 "+Math.max(1,Math.round(Number(m.dur)||1))+"″";
     if(m.type==="redpacket"){var r={};try{r=JSON.parse(m.text||"{}");}catch(_){}
       return "🧧 红包"+(r.amount?(" · "+r.amount+" 元"):"")+(r.note?(" · "+r.note):"");}
-    if(m.type==="song"&&m.song)return "🎵 推歌 · "+String(m.song.name||"");
+    if(m.type==="song"&&m.song)return "🎵 推歌 · "+__songName(m.song);
     if(m.type==="invite")return m.inv==="music"?"🎧 一起听歌邀请":"🎨 一起画画邀请";
     if(m.type==="poke")return "👋 拍了拍";
     if(m.type==="survey")return "📋 问卷";
@@ -17178,7 +17240,7 @@ function showView(id){
   }
   if(id==="view-redpacket"){newR=0;updateNewBadge();renderRedpackets();}
   if(id==="view-game"){fillGamePlayers();try{game.stamp=null;window.__gSig="";}catch(e){}initGameCanvas();try{__fitGameCanvasSoon();}catch(e){}}
-  if(id==="view-music"){renderMusicList();setTimeout(maybePartnerMusicInvite,1200);try{if(typeof warm163==="function")warm163();}catch(e){};try{if(typeof prefetchSongUrls==="function")setTimeout(function(){prefetchSongUrls(4);},60);}catch(e){}
+  if(id==="view-music"){renderMusicList();setTimeout(maybePartnerMusicInvite,1200);try{if(typeof warm163==="function")warm163();}catch(e){};try{if(typeof prefetchSongUrls==="function")setTimeout(function(){prefetchSongUrls(((state&&state.musicPlaylist)||[]).length||4);},60);}catch(e){}
     try{var _ms=(state.musicPlaylist||[])[state.musicCur];if(_ms&&typeof warmSongUrl==="function")warmSongUrl(_ms);}catch(e){}}
   if(window.__resetKbShift)window.__resetKbShift();
   try{if(window.__placeMeDots)window.__placeMeDots();}catch(e){}
@@ -17721,7 +17783,7 @@ function __syncMediaSession(){
       if(src)art.push({src:src,sizes:"512x512",type:"image/png"});
       try{art.push({src:location.origin+"/icon-512.png",sizes:"512x512",type:"image/png"});}catch(e){}
       if(window.MediaMetadata){
-        navigator.mediaSession.metadata=new MediaMetadata({title:s.name||"一起听",artist:s.artist||"",album:"Eleven×11",artwork:art});
+        navigator.mediaSession.metadata=new MediaMetadata({title:__songName(s),artist:s.artist||"",album:"Eleven×11",artwork:art});
       }
     });
     try{navigator.mediaSession.playbackState=au.paused?"paused":"playing";}catch(e){}
@@ -17747,7 +17809,7 @@ function refreshMiniPlayer(){
   placeMini();
   const au=musicAudio();
   const s=state.musicPlaylist[state.musicCur];
-  var _nm=s?(s.name||"未知歌曲"):"未知歌曲";
+  var _nm=s?__songName(s,state.musicCur):"未知歌曲";
   var _ar=s?(s.artist||""):"";
   var _pname=$("mp-name"),_part=$("mp-artist");
   if(_pname&&_pname.textContent!==_nm)_pname.textContent=_nm;
@@ -17842,6 +17904,22 @@ function __songFallbackCover(sg){
   return url;
 }
 function __sgDisplayCover(sg){return __sgCover(sg)||__songFallbackCover(sg);}
+/* 歌名兜底：旧存档/合并失败时可能只剩 id、neteaseId 或 url，不能显示成空白。
+   优先原 name，其次 title/songName/fileName，最后从音频地址取文件名。 */
+function __songName(sg,i){
+  try{
+    if(!sg)return "歌曲"+(i!==undefined?(" "+(i+1)):"");
+    var n=String(sg.name||sg.title||sg.songName||sg.song||sg.fileName||"").trim();
+    if(n)return n;
+    var u=String(sg.url||"");
+    if(u){
+      var m=u.split("?")[0].split("#")[0].split("/").pop();
+      try{m=decodeURIComponent(m);}catch(_){}
+      if(m&&!/^[0-9a-f]{16,}$/i.test(m))return m.replace(/\.(mp3|m4a|flac|wav|ogg|aac)$/i,"");
+    }
+    return "歌曲"+(i!==undefined?(" "+(i+1)):"");
+  }catch(e){return "歌曲";}
+}
 /* 列表/卡片只要小图：网易云封面支持 ?param=120y120，别在聊天里拉 1500px 原图 */
 function __coverSmall(u,n){
   u=String(u||"");if(!u||u.slice(0,5)==="data:")return u;
@@ -18041,7 +18119,7 @@ function renderMusicList(){
   if(cur>=0){
     $("mu-head").style.display="";
     const song=pl[cur];
-    $("m-title").textContent=song.name||"未知歌曲";
+    $("m-title").textContent=__songName(song,cur);
     $("mu-no").textContent=(cur+1)+"/"+pl.length+(song.artist?"":" · 未知歌手");
     $("m-artist").textContent=song.artist||"";
     disc.classList.add("spin");
@@ -18061,7 +18139,7 @@ function renderMusicList(){
     cover.innerHTML=coverHtml(cov,'<span style="font-size:52px;">🎧</span>');
   }
   const list=$("m-list");
-  var _sig=pl.map(function(s){var c=String((s&&s.cover)||'');return String((s&&(s.id||s.neteaseId))||'')+'|'+String((s&&s.name)||'')+'|'+String((s&&s.artist)||'')+'|'+c.length+'|'+c.slice(0,24);}).join('~')+'#'+pl.length;
+  var _sig=pl.map(function(s){var c=String((s&&s.cover)||'');return String((s&&(s.id||s.neteaseId))||'')+'|'+String(__songName(s))+'|'+String((s&&s.artist)||'')+'|'+c.length+'|'+c.slice(0,24);}).join('~')+'#'+pl.length;
   var _reuse=pl.length>0&&list&&list.childElementCount===pl.length&&window.__musicListSig===_sig&&list.querySelector('[data-mi]');
   if(pl.length===0){list.innerHTML='<div style="text-align:center;color:var(--sub);font-size:13px;padding:14px;">列表为空，先添加一首歌吧</div>';window.__musicListSig='';}
   else if(_reuse){
@@ -18078,7 +18156,7 @@ function renderMusicList(){
     var _real=__sgCover(s);
     var _fb=__songFallbackCover(s);
     var _pic=_real||_fb;
-    li.innerHTML='<div class="ml-cover"><img src="'+__escAttr(_pic)+'" data-fb="'+__escAttr(_fb)+'" alt="" decoding="async" onerror="this.onerror=null;this.src=this.dataset.fb"></div><div class="ml-no">'+(i===cur?"♪":(i+1))+'</div><div class="ml-info"><div class="ml-name">'+esc(s.name||"歌曲")+'</div><div class="ml-src">'+esc(s.neteaseId?("网易云 · ID "+s.neteaseId):s.url)+'</div></div><button class="ml-del" data-d="'+i+'">✕</button>';
+    li.innerHTML='<div class="ml-cover"><img src="'+__escAttr(_pic)+'" data-fb="'+__escAttr(_fb)+'" alt="" decoding="async" onerror="this.onerror=null;this.src=this.dataset.fb"></div><div class="ml-no">'+(i===cur?"♪":(i+1))+'</div><div class="ml-info"><div class="ml-name">'+esc(__songName(s,i))+'</div><div class="ml-src">'+esc(s.neteaseId?("网易云 · ID "+s.neteaseId):s.url)+'</div></div><button class="ml-del" data-d="'+i+'">✕</button>';
     /* 先显示兜底封面，真实封面异步回来后直接替换这张图；失败则继续用兜底，不再留空白 */
     if(!_real&&s.neteaseId){
       var _im=li.querySelector(".ml-cover img");
@@ -18097,8 +18175,29 @@ function renderMusicList(){
 }
 var _163UrlCache={};
 var _163UrlTs={};
-window.__clear163UrlCache=function(){try{_163UrlCache={};_163UrlTs={};}catch(e){}};
-var _163Trial={};   /* 该账号对这首歌只有试听权限 */   /* 签名播放地址只放内存，绝不写进存档 */
+var _163Trial={};   /* 该账号对这首歌只有试听权限 */
+/* 播放地址只在本机 localStorage 缓存（不进云端存档）：重启 App 后第一首也能直接用，
+   不用每次点歌都重新等接口；超过 10 分钟自动作废。 */
+var _163LSCache='e11.163urls';
+try{
+  var _o163=JSON.parse(localStorage.getItem(_163LSCache)||'{}'),_n163=0;
+  Object.keys(_o163).forEach(function(k){
+    var v=_o163[k];
+    if(!v||!v.u||!isFinite(v.ts)||Date.now()-v.ts>=600000)return;
+    _163UrlCache[k]=v.u;_163UrlTs[k]=v.ts;_163Trial[k]=!!v.trial;_n163++;
+  });
+}catch(e){}
+function __save163Cache(){
+  try{
+    var o={},ts=_163UrlTs||{},n=0;
+    Object.keys(_163UrlCache).forEach(function(k){
+      var u=_163UrlCache[k];if(!u||Date.now()-(ts[k]||0)>=600000)return;
+      o[k]={u:u,ts:ts[k],trial:!!_163Trial[k]};n++;
+    });
+    localStorage.setItem(_163LSCache,JSON.stringify(o));
+  }catch(e){}
+}
+window.__clear163UrlCache=function(){try{_163UrlCache={};_163UrlTs={};_163Trial={};localStorage.removeItem(_163LSCache);}catch(e){}};
 function songSrcOf(song){
   try{
     if(!song)return "";
@@ -18174,7 +18273,7 @@ function backendSongUrl(id){
 /* 开机后顺手探一下：当前网站是不是自带后端 */
 setTimeout(function(){try{probeSameOriginBackend();}catch(e){}},800);
 /* 开机就预热一起听前几首的播放链接：等真正点播放时链接已经在缓存里，不用再等接口 */
-setTimeout(function(){try{var _pl=(state&&state.musicPlaylist)||[];if(_pl.length&&typeof prefetchSongUrls==="function")prefetchSongUrls(4);}catch(e){}},2600);
+setTimeout(function(){try{var _pl=(state&&state.musicPlaylist)||[];if(_pl.length&&typeof prefetchSongUrls==="function")prefetchSongUrls(_pl.length);}catch(e){}},2600);
 function __nyLocalCookie(){
   try{return String(localStorage.getItem('__nyCookieLocal')||'').trim();}catch(e){return '';}
 }
@@ -18246,19 +18345,19 @@ function resolve163Url(song){
           if(_delivered)return;
           _delivered=true;_settledTrial=true;
           try{_163Trial[key]=true;}catch(e){}
-          _163UrlCache[key]=u;_163UrlTs[key]=Date.now();
+          _163UrlCache[key]=u;_163UrlTs[key]=Date.now();try{__save163Cache();}catch(_eSC){}
           res(u);return;
         }
         if(_delivered){
           /* 已经用试听起播：完整流到了只更新缓存并热换，不再二次 resolve */
           try{_163Trial[key]=false;}catch(e){}
-          _163UrlCache[key]=u;_163UrlTs[key]=Date.now();
+          _163UrlCache[key]=u;_163UrlTs[key]=Date.now();try{__save163Cache();}catch(_eSC){}
           try{window.dispatchEvent(new CustomEvent("__elevenVipUrl",{detail:{id:key,url:u}}));}catch(_){}
           return;
         }
         _delivered=true;_finished=true;
         try{_163Trial[key]=false;}catch(e){}
-        _163UrlCache[key]=u;_163UrlTs[key]=Date.now();
+        _163UrlCache[key]=u;_163UrlTs[key]=Date.now();try{__save163Cache();}catch(_eSC){}
         res(u);
       }
       function _accept(u,trial){
@@ -18371,6 +18470,7 @@ function playMusic(i){
   }
   // 加载提示
   var _loading=$("mp-play");if(_loading){_loading.style.opacity=".55";_loading.classList.add("loading");}
+  try{au.preload="auto";}catch(_ePre){}
   au.volume=state.musicVol;au.loop=(state.settings.musicMode||"order")==="loop";
   au.oncanplay=function(){if(_loading){_loading.style.opacity="1";_loading.classList.remove("loading");}try{refreshMiniPlayer();}catch(_){}};
   function _startPlay(url){
@@ -18388,7 +18488,7 @@ function playMusic(i){
         if(r&&r.url&&!r.trial){
           var nu=r.url;
           if(nu.startsWith("http://"))nu="https://"+nu.slice(7);
-          _163UrlCache[song.neteaseId]=nu;_163UrlTs[song.neteaseId]=Date.now();au.src=nu;
+          _163UrlCache[song.neteaseId]=nu;_163UrlTs[song.neteaseId]=Date.now();try{__save163Cache();}catch(_eSC){}au.src=nu;
           await au.play().catch(()=>toast("播放失败"));
           return;
         }
@@ -18448,7 +18548,7 @@ function refreshMusicMedia(){
     var pl=(state&&state.musicPlaylist)||[];
     var s=(state.musicCur>=0)?pl[state.musicCur]:null;
     var cur=navigator.mediaSession.metadata;
-    var title=(s&&s.name)||(cur&&cur.title)||"一起听";
+    var title=(s&&__songName(s))||(cur&&cur.title)||"一起听";
     var artist=(s&&s.artist)||"一起听 · ECHO SETTLE";
     var _apply=function(artSrc){
       try{
@@ -18664,7 +18764,7 @@ var _163Warmed=false;
     var id=s.neteaseId||s.songId||s.id||"";
     var cover=String(s.cover||s.picUrl||s.coverUrl||"");
     if(cover.indexOf("http://")===0)cover="https://"+cover.slice(7);
-    return {id:String(s.id||s.neteaseId||""),neteaseId:String(s.neteaseId||s.songId||""),name:String(s.name||s.song||s.title||"未知歌曲"),artist:String(s.artist||s.singer||""),album:String(s.album||""),cover:cover,url:String(s.url||""),localBlob:s.localBlob||""};
+    return {id:String(s.id||s.neteaseId||""),neteaseId:String(s.neteaseId||s.songId||""),name:__songName(s),artist:String(s.artist||s.singer||""),album:String(s.album||""),cover:cover,url:String(s.url||""),localBlob:s.localBlob||""};
   }
   function __spRowHTML(s){
     s=__spNormSong(s);
@@ -18741,7 +18841,7 @@ var _163Warmed=false;
   }
   function __pushSongToPartner(song,note){
     song=__spNormSong(song);
-    if(!song.name)return;
+    if(!__songName(song))return;
     var _note=String(note==null?((document.getElementById("sp-note")||{}).value||""):note).trim().slice(0,60);
     var id=pushMsg("me","song","",{});
     var m=msgById(id);if(!m){toast("推歌失败");return;}
@@ -19912,14 +20012,14 @@ function stxt(t){var e=document.getElementById('ny-st'); if(e)e.textContent=t;}
   function renderNow(){
     var pl=state.musicPlaylist||[];var cur=Math.min(Math.max(state.musicCur,0),Math.max(0,pl.length-1));
     var song=pl[cur]||null;
-    $("mlw-title").textContent=song?(song.name||"未知歌曲"):"还没有歌";
+    $("mlw-title").textContent=song?__songName(song,state.musicCur):"还没有歌";
     $("mlw-sub").textContent=song?(song.artist||""):"";
     var list=$("mlw-list");
     if(!list)return;
     if(!pl.length){list.innerHTML='<div class="it" style="color:#9aa0a8;">列表为空</div>';return;}
     var html="";
     pl.forEach(function(x,i){
-      html+='<div class="it'+(i===cur?" on":"")+'" data-i="'+i+'">'+esc(x.name||"未知歌曲")+'</div>';
+      html+='<div class="it'+(i===cur?" on":"")+'" data-i="'+i+'">'+esc(__songName(x,i))+'</div>';
     });
     list.innerHTML=html;
     list.querySelectorAll("[data-i]").forEach(function(b){
@@ -21508,6 +21608,12 @@ function openLetterView(id){
     var _cv=ov.querySelector("#letter-view-card");
     var _pv=paperFor(root);
     var _dk=document.body.classList.contains("ui-dark");
+    /* 夜间读信：遮罩也一起压成纯黑，不再透出下面的彩色背景 */
+    try{
+      ov.style.background=_dk?"rgba(0,0,0,.94)":"rgba(0,0,0,.42)";
+      ov.style.webkitBackdropFilter=_dk?"none":"blur(6px)";
+      ov.style.backdropFilter=_dk?"none":"blur(6px)";
+    }catch(_eOvBg){}
     var _bg="#FFFFFF",_fg="#1C1C1E",_img="none";
     if(_pv&&_pv.img){_bg="#111111";_fg="#FFFFFF";_img='url("'+_pv.img+'")';}
     else if(_pv){
@@ -21519,7 +21625,7 @@ function openLetterView(id){
       var _lum=(0.299*_r+0.587*__g+0.114*_b)/255;
       _fg=_lum>0.6?"#1C1C1E":"#FFFFFF";
     }else{
-      _bg=_dk?"#0F0F10":"#FFFFFF";_fg=_dk?"#FFFFFF":"#1C1C1E";
+      _bg=_dk?"#000000":"#FFFFFF";_fg=_dk?"#FFFFFF":"#1C1C1E";
     }
     _cv.style.setProperty("--lv-bg",_bg);
     _cv.style.setProperty("--lv-fg",_fg);
