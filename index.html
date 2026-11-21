@@ -2324,7 +2324,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-21v43-28">
+<meta name="app-build" content="2026-11-21v43-29">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3987,7 +3987,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-28</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-29</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5424,6 +5424,14 @@ setTimeout(function(){
       throw e;
     });
   }
+  function cloudGetRecovery(){
+    var url="/storage/v1/object/vault/"+encodeURIComponent(session.user.id)+"/recovery_media.json";
+    var isMissing=function(e){return !!e&&(e.status===404||(e.status===400&&/not[_ ]?found|object not found/i.test(String(e.message||""))));};
+    return api(url,{token:session.access_token,timeout:45000}).then(function(d){return d;}).catch(function(e){
+      if(isMissing(e))return null;
+      throw e;
+    });
+  }
   function putVault(payload){
     if(!cfgReady())return Promise.reject(new Error("后端未配置"));
     /* 关键图（头像/主页照片/表情）如果还是 bigref，说明本机图片本体没恢复。
@@ -5547,7 +5555,7 @@ setTimeout(function(){
       });
     },1800);
   }
-  window.__E11Cloud={schedule:cloudSchedule,flush:function(){clearTimeout(cloudTimer);cloudSchedule();},uploadNow:function(){
+  window.__E11Cloud={schedule:cloudSchedule,flush:function(){clearTimeout(cloudTimer);cloudSchedule();},recoveryGet:cloudGetRecovery,uploadNow:function(){
     if(!authOk())return Promise.reject(new Error("未登录"));
     var snap=snapshot();
     return putVault(snap).then(function(){lastCloudHash=JSON.stringify(snap);window.__e11CloudStatus="已同步";chipSync();});
@@ -5605,6 +5613,7 @@ setTimeout(function(){
       if(typeof renderAll==="function")renderAll();
       chipSync();
       window.__bootDone&&window.__bootDone();
+      setTimeout(function(){try{window.__e11TryMediaRepair&&window.__e11TryMediaRepair();}catch(_){}},700);
     }catch(_e){}
   }
   function finishLogin(){
@@ -5659,6 +5668,7 @@ setTimeout(function(){
         doAction(act).catch(function(e){/* doAction 已经显示错误 */});
       }else{
         hideGate();chipSync();
+        setTimeout(function(){try{window.__e11TryMediaRepair&&window.__e11TryMediaRepair();}catch(_){}},700);
       }
     }).catch(function(e){
       try{clearTimeout(_slowBoot);}catch(_){}
@@ -6009,9 +6019,14 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-21",
-  noticeKey:"2026-11-21v43-28",
-  lead:"v43-28：头像、主页照片、表情包和歌曲封面不再被外置成空引用，换设备或清缓存不会只剩占位；电脑网页固定成一台 430×860 的手机窗口，主页照片框调好的尺寸不再被窗口缩放改小。",
+  noticeKey:"2026-11-21v43-29",
+  lead:"v43-29：登录后自动从只读修复包补齐历史头像、主页照片、表情包和歌曲封面；修复包不会被某一台设备的空存档冲掉。",
   items:[
+    '<span class="an-gt">v43-29 · 历史图片修复包</span>',
+    "登录/进入后先检查本机缺哪些历史图，只缺图时才拉取当前账号自己的 recovery_media.json，不会拖慢图片完整的账号",
+    "补齐范围：主头像、对方头像、主页照片、情侣头像/照片、主页封面、皮肤照片、31 个己方表情、25 个对方表情、歌曲封面、音乐背景",
+    "修复包是只读的独立文件，不参与日常云同步；就算手机端又保存了一次只有 7 个表情的空档，下次进入仍会重新补齐",
+    "补齐后只补坏图/空图，不覆盖你后来换的新头像、新照片、新表情；补完会正常回传云端一次",
     '<span class="an-gt">v43-28 · 历史图片 / 桌面固定</span>',
     "头像、主页照片、表情包和歌曲封面不再外置成 bigref 编号：直接留在存档里，换设备、清缓存或 IndexedDB 没恢复时也不会只剩空白占位",
     "云端旧存档里已经是 bigref 的，本机图库能把图补齐时会在登录后自动回传一次，让电脑网页也能拿到真实图片",
@@ -12780,6 +12795,102 @@ function __mergeMediaSnapshots(a,b){
   return changed;
 }
 window.__mergeMediaSnapshots=__mergeMediaSnapshots;
+
+/* v43-29 历史图片修复包：只在用户本机缺图时拉取当前账号自己的 recovery_media.json。
+   普通账号没有这个文件就是 404，不会影响启动；001 的头像/照片/表情/歌曲封面从这个包补齐。 */
+function __e11HasImg(v){return typeof v==="string"&&v.length>30&&/^data:image\//.test(v)&&!__brokenImgVal(v);}
+function __mergeMediaRepair(repair){
+  var src=repair&&repair.state||repair||null;
+  var t=window.__e11StateGet?window.__e11StateGet():null;
+  if(!t||!src)return false;
+  var changed=false;
+  function fix(obj,key,val,avatar){
+    if(!obj||typeof val!=="string"||!val)return;
+    var cur=obj[key];
+    if(avatar?(!__avatarReal(cur)&&__avatarReal(val)):(!__e11HasImg(cur)&&__e11HasImg(val))){obj[key]=val;changed=true;}
+  }
+  function photos(obj,val){
+    if(!obj||!Array.isArray(val)||!val.length)return;
+    if(!Array.isArray(obj.photos))obj.photos=[];
+    for(var i=0;i<val.length;i++){if(!__e11HasImg(obj.photos[i])&&__e11HasImg(val[i])){obj.photos[i]=val[i];changed=true;}}
+  }
+  try{
+    t.me=t.me||{};t.partner=t.partner||{};t.profile=t.profile||{};t.skin=t.skin||{};
+    fix(t.me,"avatar",src.me&&src.me.avatar,true);
+    fix(t.partner,"avatar",src.partner&&src.partner.avatar,true);
+    fix(t.partner,"cover",src.partner&&src.partner.cover,false);
+    photos(t.me,src.me&&src.me.photos);
+    photos(t.partner,src.partner&&src.partner.photos);
+    var pk=["meAvatar","cpMeAvatar","cpPartnerAvatar","cpPhotoAvatar","cpPhoto","cpPhotoCard","cpPhotoSub","cpRecord","partnerCover","partnerAvatar"];
+    pk.forEach(function(k){if(src.profile&&src.profile[k]!==undefined)fix(t.profile,k,src.profile[k],/Avatar$/.test(k));});
+    ["meImage","meTopImage","partnerImage"].forEach(function(k){if(src.skin&&src.skin[k]!==undefined)fix(t.skin,k,src.skin[k],false);});
+    ["musicBgImg","musicDiscInnerImg","musicDiscBgImg","musicCoverImg"].forEach(function(k){if(src[k]!==undefined)fix(t,k,src[k],false);});
+    function mergeEmoji(list,val,dedupeName){
+      if(!Array.isArray(val))return list;
+      if(!Array.isArray(list))list=[];
+      val.forEach(function(s){
+        if(!s)return;var sv=s.src||s.url||"";if(!__emojiSrcOk(sv))return;
+        var hit=null;
+        if(s.id)hit=list.filter(function(x){return x&&x.id===s.id;})[0];
+        if(!hit&&dedupeName&&s.name)hit=list.filter(function(x){return x&&x.name===s.name;})[0];
+        if(!hit){list.push({id:s.id,name:s.name,src:sv});changed=true;return;}
+        var tv=hit.src||hit.url||"";
+        if(!__emojiSrcOk(tv)){hit.src=sv;if(!hit.id&&s.id)hit.id=s.id;if(!hit.name&&s.name)hit.name=s.name;changed=true;}
+      });
+      return list;
+    }
+    t.emojis=mergeEmoji(t.emojis,src.emojis,true);
+    t.partnerEmojis=mergeEmoji(t.partnerEmojis,src.partnerEmojis,false);
+    if(Array.isArray(src.musicPlaylist)){
+      if(!Array.isArray(t.musicPlaylist))t.musicPlaylist=[];
+      src.musicPlaylist.forEach(function(sg){
+        if(!sg||!sg.name)return;
+        var hit=t.musicPlaylist.filter(function(x){return x&&x.name===sg.name;})[0];
+        if(!hit){t.musicPlaylist.push({name:sg.name,artist:sg.artist||"",cover:sg.cover||"",url:sg.url||""});changed=true;return;}
+        if(!__e11HasImg(hit.cover)&&__e11HasImg(sg.cover)){hit.cover=sg.cover;changed=true;}
+      });
+    }
+    if(Array.isArray(src.messages)&&Array.isArray(t.messages)){
+      var byId={};src.messages.forEach(function(m){if(m&&m.id)byId[m.id]=m.src;});
+      t.messages.forEach(function(m){
+        if(m&&m.type==="image"&&!__e11HasImg(m.src)&&byId[m.id]&&__e11HasImg(byId[m.id])){m.src=byId[m.id];changed=true;}
+      });
+    }
+  }catch(_e){}
+  return changed;
+}
+window.__mergeMediaRepair=__mergeMediaRepair;
+function __e11NeedsMediaRepair(st){
+  try{
+    if(!st)return false;
+    if(!__avatarReal(st.me&&st.me.avatar)||!__avatarReal(st.partner&&st.partner.avatar))return true;
+    if(!st.me||!Array.isArray(st.me.photos)||!__e11HasImg(st.me.photos[0]))return true;
+    var p=st.profile||{};
+    if(!__e11HasImg(p.cpPhoto)||!__e11HasImg(p.partnerCover)||!__avatarReal(p.cpMeAvatar))return true;
+    if(!__e11HasImg(st.skin&&st.skin.meImage)||!__e11HasImg(st.musicBgImg))return true;
+    if((st.emojis||[]).length<10||(st.partnerEmojis||[]).length<5)return true;
+    var pl=st.musicPlaylist||[];
+    for(var i=0;i<pl.length;i++){if(!__e11HasImg(pl[i]&&pl[i].cover))return true;}
+  }catch(_e){}
+  return false;
+}
+window.__e11TryMediaRepair=function(){
+  if(window.__e11RepairBusy)return;
+  if(!window.__E11Cloud||!window.__E11Cloud.recoveryGet)return;
+  var st=window.__e11StateGet?window.__e11StateGet():null;
+  if(!st||!__e11NeedsMediaRepair(st))return;
+  window.__e11RepairBusy=1;
+  window.__E11Cloud.recoveryGet().then(function(rep){
+    if(!rep||!rep.state)return;
+    var changed=window.__mergeMediaRepair(rep);
+    if(!changed)return;
+    try{window.__e11CloudPause=0;}catch(_){}
+    try{if(typeof save==="function")save();}catch(_){}
+    try{if(typeof renderAll==="function")renderAll();if(typeof applySkin==="function")applySkin();}catch(_){}
+    try{window.__E11Cloud&&window.__E11Cloud.flush&&window.__E11Cloud.flush();}catch(_){}
+    try{toast("历史头像、照片、表情和歌曲封面已恢复");}catch(_){}
+  }).catch(function(){}).then(function(){window.__e11RepairBusy=0;});
+};
 
 /* 旧版把大表情外置成 \u0000bigref:<id>，图片本体单独存 IndexedDB 的 bigimg:<id>。
    刷新后只要 bigimg 还在，这里就把引用换回真图；面板不会再整排「失效」。 */
