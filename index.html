@@ -2383,6 +2383,19 @@ body.vrec-on .bottombar{opacity:0;pointer-events:none;}
 .ds-bar .fl{height:100%;border-radius:6px;background:linear-gradient(90deg,#F3B7C1,#C9B6E4);}
 .ds-bar .ct{width:28px;text-align:right;color:#7C675F;font-size:11px;}
 .ds-foot{font-size:11px;color:#8A7268;line-height:1.65;border-top:1px dashed rgba(120,95,85,.25);padding-top:10px;}
+.ds-duo{display:flex;flex-direction:column;gap:9px;}
+.ds-person{padding:11px 12px;border-radius:16px;background:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.88);}
+.ds-person.partner{background:rgba(244,236,255,.55);}
+.ds-person-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:10.5px;color:#7C675F;border-bottom:1px solid rgba(120,95,85,.12);padding-bottom:7px;}
+.ds-person-head b{font-size:12.5px;color:#4A3A34;font-weight:600;}
+.ds-person-main{display:flex;align-items:center;gap:9px;padding-top:9px;}
+.ds-person-main .big{font-size:25px;line-height:1;}
+.ds-person-main b{font-size:12.5px;display:block;color:#4A3A34;}
+.ds-person-main span{font-size:10px;color:#7C675F;}
+.ds-person .ds-bars{margin-top:8px;gap:5px;}
+.ds-person .ds-bar{font-size:10px;gap:5px;}
+.ds-person .ds-bar .nm{width:58px;}
+.ds-person .ds-bar .ct{width:20px;}
 #ds-close{width:100%;margin-top:12px;height:40px;border:none;border-radius:14px;font-size:13px;
   background:linear-gradient(180deg,#5C4149,#47323A);color:#FFF4E6;}
 
@@ -2455,7 +2468,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-21v43-43">
+<meta name="app-build" content="2026-11-21v43-44">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4119,7 +4132,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-43</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-44</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5632,8 +5645,10 @@ setTimeout(function(){
     if(!l.n)return true;
     if(c.max>l.max)return true;
     if(c.max<l.max)return false;
-    if(c.n>l.n)return true;
-    if(c.n<l.n)return false;
+    /* 同一条最后消息时，只有云端多出很多条（>20）才算“云端历史更全”；
+       只差几条时以本机保存时间为准，避免刚改的日记/设置被云端旧档盖回去。 */
+    if(c.n>l.n+20)return true;
+    if(l.n>c.n+20)return false;
     return (Number(cloudTs)||0)>(Number(localTs)||0);
   }
   function snapshot(){
@@ -6244,10 +6259,13 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-21",
-  noticeKey:"2026-11-21v43-43",
-  lead:"v43-43：修掉新装/换机后用本机空白档覆盖云端的问题。现在启动先比对云端与本机谁的消息更完整，云端更多就先恢复云端；本机真正更新才上传。已知云端有记录时，0 条消息的空白档一律拒绝覆盖。",
+  noticeKey:"2026-11-21v43-44",
+  lead:"v43-44：本月小结分成「我」和「对方」两套数据分别展示；日记不再只靠保存按钮，打字停下约 0.8 秒自动写进本机并同步，关闭日记、切后台也会强制落盘。所有刚改过的内容优先保留，不会被云端旧档盖回去。",
   items:[
-    '<span class="an-gt">v43-43 · 云同步防止空白覆盖</span>',
+    '<span class="an-gt">v43-44 · 本月小结 / 日记自动保存</span>',
+    "日记的「本月小结」拆成「我」和「对方」两栏：各自的心情分布、写下的天数、字数、贴纸数分开算，不再混在一起",
+    "日记正文打字停下约 0.8 秒自动保存，页面提示「已自动保存 HH:MM」；关闭日记、切后台、刷新前也会强制写入本机，不用再点保存按钮",
+    "同一条最后消息时，只有云端多出 20 条以上才判云端更完整；刚改过的日记和设置保存时间更新时优先保留本机，避免改完又被旧云档盖回去",
     "新装 App、清数据或换设备后，本机默认档的时间是「现在」，旧逻辑会误判它比云端新，于是把云端几百条聊天覆盖成 0 条。v43-43 改成先比最后一条消息编号和消息条数，云端更完整就直接恢复云端",
     "启动时先核对云端再允许同步：本机旧档 486 条、云端 534 条时，先把云端 534 条拉回来，再让页面继续；本机确实更新（消息编号更大）才保留本机",
     "云端已知有聊天记录时，0 条消息的本机快照会被拒绝上传，并提示「云端已有聊天记录，已拒绝用空白存档覆盖」",
@@ -27333,6 +27351,7 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
   var STK=["⭐️","❤️","🌙","☁️","🌈","🌸","🍀","🎀","🐱","🐶","🍰","🍓"];
   var FILL=["今天过得很慢。","窗外的天色很好。","忽然想起你说过的一句话。","把今天记下来，免得以后忘了。","希望你今天也还好。","有点困，但还想多写两句。","路过那家店，人还是很多。","不知道你现在在做什么。","风比昨天凉了一点。","想说的事太多，写不完。","明天见。","晚安。"];
   var opened=false,curIdx=0,curKey="",stkSel="",writingTimer=null,unlockTimer=null,replyEditKey="",replyImgTemp="",replyLpTimer=null;
+  var diaryAutoTimer=null,diaryPartnerTimer=null;
   function D(){
     if(!state.diary||typeof state.diary!=="object")state.diary={};
     var d=state.diary;
@@ -27493,6 +27512,7 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
         p2.photos=(p2.photos||[]).filter(function(_,k){return k!==i;});save();renderPage();toast("删掉了一张照片");};
     });}catch(e){}
     bindReplyLongPress(paper,pg,isP,lockedP,exchangeReady(curKey));
+    try{__bindDiaryAuto(pg);}catch(_eAuto){}
     var layer=el("dp-stick-layer");
     if(!lockedP)(pg.stickers||[]).forEach(function(st){
       var sp=document.createElement("span");sp.className="dp-stick";
@@ -27818,23 +27838,94 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
     if(!force&&dD.lastSummary===key)return;
     var pages=monthPages(y,m);
     if(!pages.length){if(force)toast("这个月还没有日记");return;}
-    var cnt={},chars=0,stk=0,filled=0,seen={};
-    pages.forEach(function(item){
-      var p=item.p;
-      if(p&&p.author==="partner"&&Number(p.unlockAt||0)>Date.now())return;
-      var me=(p&&p.mine)||{},pa=(p&&p.partner)||{};var tm=String(me.text||"").trim(),tp=String(pa.text||"").trim();
-      if(tm||tp)seen[baseKey(item.k)]=1;
-      chars+=tm.length+tp.length;stk+=((p&&p.stickers)||[]).length;var e=(p&&p.author==="partner")?(pa.mood||""):(me.mood||pa.mood||"");if(e)cnt[e]=(cnt[e]||0)+1;});
-    filled=Object.keys(seen).length;
-    var sorted=Object.keys(cnt).sort(function(x,y2){return cnt[y2]-cnt[x];});
-    var top=sorted[0],topN=top?moodOf(top):null;
+    /* 本月小结分「我」和「对方」两套统计，不再把两个人的心情混成一条。 */
+    function __monthStats(who){
+      var out={chars:0,stk:0,cnt:{},days:{},filled:0};
+      var seen={};
+      var ordered=pages.slice().sort(function(a,b){
+        var ap=a.p&&a.p.author==="partner"?1:0,bp=b.p&&b.p.author==="partner"?1:0;return bp-ap;
+      });
+      ordered.forEach(function(item){
+        var p=item.p;if(!p)return;
+        if(p.author==="partner"&&Number(p.unlockAt||0)>Date.now())return;
+        var data=who==="me"?(p.mine||{}):(p.partner||{});
+        var txt=String((data&&data.text)||"").trim();
+        var base=baseKey(item.k);
+        /* 同一页可能同时存在主档和 #p 档，只算一次，避免 TA 的正文重复计数 */
+        if(seen[base])return;
+        if(!txt&&!(data&&data.mood))return;
+        seen[base]=1;
+        if(txt){out.chars+=txt.length;out.days[base]=1;}
+        if((who==="me"&&p.author!=="partner")||(who==="partner"&&p.author==="partner"))out.stk+=((p.stickers||[]).length);
+        var e=String((data&&data.mood)||"");if(e)out.cnt[e]=(out.cnt[e]||0)+1;
+      });
+      out.filled=Object.keys(out.days).length;
+      return out;
+    }
+    function __statCard(who,label,st){
+      if(!st.filled)return '<div class="ds-person '+who+'"><div class="ds-person-head"><b>'+esc(label)+'</b><span>这个月还没写</span></div></div>';
+      var sorted=Object.keys(st.cnt).sort(function(a,b){return st.cnt[b]-st.cnt[a];});
+      var top=sorted[0],topN=top?moodOf(top):null;
+      var max=st.cnt[sorted[0]]||1;
+      var bars=sorted.slice(0,4).map(function(e){var mm=moodOf(e),n=st.cnt[e];
+        return '<div class="ds-bar"><span class="nm">'+mm.e+" "+esc(mm.n)+'</span><span class="tk"><span class="fl" style="width:'+Math.max(12,Math.round(n/max*100))+'%;background:'+mm.c+'"></span></span><span class="ct">'+n+'</span></div>';}).join("");
+      return '<div class="ds-person '+who+'"><div class="ds-person-head"><b>'+esc(label)+'</b><span>'+st.filled+' 天 · '+st.chars+' 字</span></div>'+
+        '<div class="ds-person-main"><span class="big">'+(topN?topN.e:"🌙")+'</span><div><b>最多的是「'+(topN?esc(topN.n):"还没写")+'」</b><span>'+st.filled+' 天里写下 '+st.chars+' 个字'+(st.stk?' · 贴纸 '+st.stk+' 枚':'')+'</span></div></div>'+
+        (bars?'<div class="ds-bars">'+bars+'</div>':"")+'</div>';
+    }
+    var meName=String((state.profile&&(state.profile.mpName||state.profile.meName))||(state.me&&state.me.name)||"我").trim();
+    var paName=String((state.profile&&(state.profile.partnerMpName||state.profile.partnerName))||(state.partner&&state.partner.name)||"对方").trim();
+    var meStat=__monthStats("me"),paStat=__monthStats("partner");
     var body=el("ds-body"),maskEl=el("diary-summary");if(!body||!maskEl)return;
     el("ds-month").textContent=String(y).slice(-2)+"年"+(m+1)+"月";
-    var bars=sorted.slice(0,6).map(function(e){var mm=moodOf(e),n=cnt[e],max=cnt[sorted[0]]||1;
-      return '<div class="ds-bar"><span class="nm">'+mm.e+" "+esc(mm.n)+'</span><span class="tk"><span class="fl" style="width:'+Math.max(12,Math.round(n/max*100))+'%;background:'+mm.c+'"></span></span><span class="ct">'+n+'</span></div>';}).join("");
-    body.innerHTML='<div class="ds-hero"><span class="big">'+(topN?topN.e:"🌙")+'</span><div><b>这个月最多的是「'+(topN?esc(topN.n):"想念")+'」</b><span>写在 '+filled+' 天里 · 一共 '+chars+' 个字</span></div></div>'+(bars?'<div class="ds-bars">'+bars+'</div>':"")+'<div class="ds-foot">贴纸 '+stk+' 枚 · '+filled+' 页里，你把日子一页页写下来了。<br>下个月也继续写吧。</div>';
+    body.innerHTML='<div class="ds-duo">'+__statCard("me","我 · "+meName,meStat)+__statCard("partner","对方 · "+paName,paStat)+'</div>'+
+      '<div class="ds-foot">这个月你写了 '+meStat.filled+' 天、对方写了 '+paStat.filled+' 天，分开记着。<br>下个月也继续写吧。</div>';
     maskEl.classList.add("show");dD.lastSummary=key;try{save();}catch(_){}
   }
+  /* ---------- 自动保存 ---------- */
+  function __diaryFlush(opt){
+    clearTimeout(diaryAutoTimer);diaryAutoTimer=null;clearTimeout(diaryPartnerTimer);diaryPartnerTimer=null;
+    var ta=el("diary-mine");if(!ta)return false;
+    var p=pageOf(curKey);if(!p||p.author==="partner")return false;
+    if(ta.value!==String(p.mine.text||"")){p.mine.text=ta.value;p.mine.time=Date.now();}
+    if(!String(p.mine.text||"").trim()){try{save();}catch(_){}if(opt&&opt.hard){try{if(window.__flushSave)window.__flushSave(true);}catch(_){}}return true;}
+    try{schedulePartnerReply(curKey);}catch(_){}
+    try{save();}catch(_){}
+    if(opt&&opt.hard){try{if(window.__flushSave)window.__flushSave(true);}catch(_){}}
+    return true;
+  }
+  function __bindDiaryAuto(pg){
+    var ta=el("diary-mine");if(!ta||!pg||pg.author==="partner")return;
+    var _key=curKey;
+    var tip=ta.parentNode&&ta.parentNode.querySelector?ta.parentNode.querySelector(".dp-tip"):null;
+    function setTip(t,bad){if(!tip)return;tip.textContent=t;tip.style.color=bad?"#C56B5D":"";}
+    ta.addEventListener("input",function(){
+      if(pg.author==="partner")return;
+      pg.mine.text=ta.value;pg.mine.time=Date.now();
+      setTip("正在自动保存…",false);
+      clearTimeout(diaryAutoTimer);
+      diaryAutoTimer=setTimeout(function(){
+        try{save();}catch(_){}
+        var d=new Date(),hh=String(d.getHours()).padStart?String(d.getHours()).padStart(2,"0"):("0"+d.getHours()).slice(-2),mm=String(d.getMinutes()).padStart?String(d.getMinutes()).padStart(2,"0"):("0"+d.getMinutes()).slice(-2);
+        setTip("已自动保存 · "+hh+":"+mm,false);
+      },800);
+      clearTimeout(diaryPartnerTimer);
+      if(String(ta.value||"").trim()){
+        diaryPartnerTimer=setTimeout(function(){try{schedulePartnerReply(_key);}catch(_){}},3000);
+      }
+    });
+    ta.addEventListener("blur",function(){try{__diaryFlush({hard:true});}catch(_){}});
+  }
+  try{
+    document.addEventListener("visibilitychange",function(){
+      if(!document.hidden)return;
+      try{if(el("diary-view")&&el("diary-view").classList.contains("show"))__diaryFlush({hard:true});}catch(_){}
+    });
+    window.addEventListener("pagehide",function(){
+      try{if(el("diary-view")&&el("diary-view").classList.contains("show"))__diaryFlush({hard:true});}catch(_){}
+    });
+  }catch(_){}
+
   /* ---------- 打开/关闭 ---------- */
   function __diaryRevealText(){
     try{
@@ -27900,6 +27991,7 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
     var _now=Date.now();
     if(window.__e11BackLock&&_now-window.__e11BackLock<380)return;
     window.__e11BackLock=_now;
+    try{__diaryFlush();}catch(_eFlush){}
     __diaryBlurInput();try{closeReplySheet();}catch(_){}
     /* 先在日记遮罩下面铺好“打开日记之前的那一页”，再让日记原位淡出。
        从主页加号进日记就回主页，从聊天进就回聊天，不再固定绕一次聊天页。 */
@@ -28065,6 +28157,7 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
       var p=pageOf(curKey);
       /* TA 的页不能改；点保存给明确提示，而不是一个点了没反应的灰按钮 */
       if(p.author==="partner"){toast("这是 TA 的一页，点「回到今天」写你的");return;}
+      clearTimeout(diaryAutoTimer);diaryAutoTimer=null;clearTimeout(diaryPartnerTimer);diaryPartnerTimer=null;
       var ta=el("diary-mine");if(ta)p.mine.text=ta.value;
       p.mine.time=Date.now();
       if(!String(p.mine.text||"").trim()){toast("写两句再保存吧");return;}
