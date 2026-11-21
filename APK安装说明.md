@@ -1,3 +1,12 @@
+## v43-46（2026-11-21）
+
+- 修复“恢复云端记录要恢复好几次、最后还是没有数据”的死循环。根因不是云端丢档，而是手机本地 `localStorage` 已满/被限制时，3MB 的云端档写不进 `privateChat`；刷新后又读回空白档，于是反复重载。
+- `applySnapshot` 现在先把完整云端 state 写入 IndexedDB，再触发 reload；reload 前会设置 `__e11CloudPause/ __restoring`，禁止旧页面用空白档回写。
+- `localStorage` 写入失败时写入 `privateChat__emergency`，并设置 `__forceIdbRestore=1`，启动强制从 IndexedDB 读回 534 条，不再被空白档的时间戳顶掉。
+- 验证：用 Playwright 强制让 `privateChat` 写入抛 QuotaExceededError，修复前重载 6 次、最终只剩 1 条；修复后只重载 1 次，最终 532 条（migrate 过滤后），云端 534 条完整。
+- 回归：新装登录云 534 → 532 条并上传 532；本机 488 + 云端 534 + 新日记 → 恢复后 532 条且日记保留；本机 534 + 云端旧档不重载、改动保留；断网时 0 次上传、保持本地模式。
+- 版本：v43-46，Android versionCode 67，APK `Eleven11-v43-46.apk`，875,157 bytes，APK MD5 `962c0d2d84428f96d12403dbecbb2c03`，页面 MD5 `1d0168967a2adcdf68a55cb37d8d2341`。
+
 ## v43-45（2026-11-21）
 
 - 云端存档恢复改成「云端消息 + 本机新改动」合并：云端消息更完整时只取云端 `messages/seq`；本机保存时间更新的设置、资料、日记、动态、信件继续保留，不再整档覆盖。

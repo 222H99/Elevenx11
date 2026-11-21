@@ -2468,7 +2468,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-21v43-45">
+<meta name="app-build" content="2026-11-21v43-46">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4132,7 +4132,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-45</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-46</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5627,11 +5627,19 @@ setTimeout(function(){
      新装 App 的空白页 __savedAt 是“现在”，如果只比时间，会把云端 500 多条记录当成旧档覆盖掉。 */
   function __e11MsgStats(st){
     var n=0,max=0;
+    /* 启动时 migrate / __pruneSocialNotices 会删掉旧红包消息和已经失效的“信件/留言/动态/评论”系统提示。
+       如果这里还按云端原始条数算，云端 534、本机清理后 532，就会永远判云端更完整，
+       每次打开都恢复一次。统计必须和清理后的口径一致。 */
+    var staleSys=/对方给你写了(?:一)?封信|对方给你回信了|对方给你留了\s*\d*\s*条?留言|对方给你留言了|对方发了\s*\d*\s*条?新动态|对方发了一条新动态|对方评论了你的动态|对方回复了你的评论/;
     try{
-      var ms=(st&&st.messages)||[];n=ms.length;
+      var ms=(st&&st.messages)||[];
       for(var i=0;i<ms.length;i++){
-        var id=String((ms[i]&&ms[i].id)||"");
-        var m=/^m(\d+)/.exec(id);
+        var x=ms[i];if(!x)continue;
+        if(x.type==="redpacket")continue;
+        if(x.type==="text"&&String(x.text||"")==="在字卡板块给我准备一些回复吧，我会用它回你。")continue;
+        if(x.type==="sys"&&staleSys.test(String(x.text||"")))continue;
+        n++;
+        var id=String(x.id||"");var m=/^m(\d+)/.exec(id);
         if(m){var v=parseInt(m[1],10);if(isFinite(v)&&v>max)max=v;}
       }
     }catch(e){}
@@ -5685,8 +5693,9 @@ setTimeout(function(){
       if(!st.diary.cover&&ld.cover)st.diary.cover=ld.cover;
     }catch(_){}
   }
-  function applySnapshot(snap){
+  function applySnapshot(snap,opt){
     if(!snap||!snap.state)throw new Error("云端存档格式不对");
+    var __reloading=!!(opt&&opt.reloading);
     var st=snap.state;
     var localState=null;try{localState=window.__e11StateGet?window.__e11StateGet():null;}catch(_){}
     /* 云端消息更多时只拿云端消息；本机这次真的保存过（有聊天或日记，且保存时间更新），
@@ -5724,8 +5733,20 @@ setTimeout(function(){
       if(k.indexOf("e11.")===0||k==="privateChat")return;
       try{localStorage.setItem(k,extras[k]);}catch(e){}
     });
-    try{localStorage.setItem("privateChat",JSON.stringify(st));}catch(e){}
+    var __lsOk=false;
+    try{localStorage.setItem("privateChat",JSON.stringify(st));__lsOk=true;}catch(e){}
+    /* localStorage 满/被禁时，3MB 云端档写不进去，刷新又会读回空白，表现就是“恢复好几次还全没了”。
+       这里必须同步落一份完整 state 到 IndexedDB，再允许 reload；IDB 容量比 localStorage 大得多。 */
+    if(!__lsOk){
+      try{sessionStorage.setItem("privateChat__emergency",JSON.stringify(st));}catch(_eEmergency){}
+      /* localStorage 写不进去时，刷新后默认空白档的时间戳会比 IDB 里的 534 条更新；
+         启动逻辑必须被强制指定去读 IDB，否则又会选回空白档，循环重载。 */
+      try{sessionStorage.setItem("__forceIdbRestore","1");}catch(_eForceIdb){}
+    }
     var done=function(){
+      /* reload 前绝不能把本机旧档再写一遍：旧页面的 save/__flushSave 会抢在新页面读库前
+         把刚写进去的 534 条覆盖成空白，表现就是“恢复几次还是没数据”并无限重载。 */
+      if(__reloading){window.__e11CloudPause=1;window.__restoring=1;return;}
       window.__e11CloudPause=0;
       /* 云端旧快照里如果是 bigref，本机库把图补齐后主动回传一次，
          让另一台设备（电脑网页）也能拿到真实头像/照片/表情，而不是一串引用编号。
@@ -5738,7 +5759,15 @@ setTimeout(function(){
     /* 云端快照目前只保存文字/state；恢复时只合并写入，保留本机已有的 bigimg/emojiimg 原图。
        以前这里走“清空整库”，登录/云端恢复后表情原图会被一起删掉，表现为整排失效。 */
     var p=window.__e11RestoreIDB?window.__e11RestoreIDB(snap.idb||{state:st},{merge:true}):Promise.resolve(false);
-    return Promise.resolve(p).then(function(){done();return true;}).catch(function(){done();return false;});
+    return Promise.resolve(p).catch(function(_eRestore){return false;}).then(function(){
+      return new Promise(function(res){
+        if(!db){done();res(true);return;}
+        var __fin=false;
+        function __finish(){if(__fin)return;__fin=true;done();res(true);}
+        try{dbSet("state",st).then(__finish,__finish);}catch(_eDbSet){__finish();}
+        setTimeout(__finish,2500);
+      });
+    }).catch(function(){done();return false;});
   }
   function clearLocalApp(){
     window.__e11CloudPause=1;
@@ -5805,7 +5834,7 @@ setTimeout(function(){
         if(!cloud||!__e11CloudWins(cloud,local,Number(cloud.savedAt)||0,localTs))return false;
         window.__e11CloudPause=1;
         try{setWait("正在恢复云端记录","云端有更完整的聊天记录，先恢复再继续。");}catch(_){}
-        return applySnapshot(cloud).then(function(){location.reload();return true;});
+        return applySnapshot(cloud,{reloading:true}).then(function(){location.reload();return true;});
       });
     }).then(function(r){__e11PullBusy=0;return r?1:0;},function(e){__e11PullBusy=0;try{console.warn("[e11 pull]",e&&e.message||e);}catch(_){}return -1;});
   }
@@ -6296,8 +6325,8 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-21",
-  noticeKey:"2026-11-21v43-45",
-  lead:"v43-45：本月小结分成「我」和「对方」两套数据分别展示；日记打字停下约 0.8 秒自动保存，关闭日记、切后台强制落盘；云端消息更多时只拿云端消息，本机刚改的日记、设置和资料继续保留，不再被整档覆盖。",
+  noticeKey:"2026-11-21v43-46",
+  lead:"v43-46：本月小结分成「我」和「对方」两套数据分别展示；日记打字停下约 0.8 秒自动保存，关闭日记、切后台强制落盘；云端消息更多时只拿云端消息，本机刚改的日记、设置和资料继续保留，不再被整档覆盖。并修掉本地存储满时“恢复多次还空白”的死循环：云端档会先写进 IndexedDB 再重载。",
   items:[
     '<span class="an-gt">v43-45 · 本月小结 / 日记自动保存</span>',
     "日记的「本月小结」拆成「我」和「对方」两栏：各自的心情分布、写下的天数、字数、贴纸数分开算，不再混在一起",
