@@ -7898,13 +7898,11 @@ async function init(){
           _sme.photos=_sme.photos||[];_sme.photos[0]=_lph;
         }
       }catch(_eMePhoto){}
-      /* 以前设置的聊天/信件/留言/主页背景、头像同理：本地快照里还有、但新的
-         IndexedDB 快照里是空/坏图时，把这些图带过去，避免“以前导入的照片都不见”。 */
+      /* v43-39：背景图不再跨快照自动回填。
+         用户清掉背景/换成纯色后，空值就是他的新选择；旧快照里的图一旦补回来，
+         表现就是“我换过背景，一打开又变回以前那张”。 */
       try{
-        var _lsk=(state&&state.skin)||{},_ssk=(s.skin=s.skin||{});
-        ["bgImage","gbImage","ltImage","momImage","gameImage","meImage","meTopImage","coupleImage"].forEach(function(_bk){
-          if((!_ssk[_bk]||__brokenImgVal(_ssk[_bk]))&&_lsk[_bk]&&!__brokenImgVal(_lsk[_bk]))_ssk[_bk]=_lsk[_bk];
-        });
+        /* 头像、照片仍按下面的专门逻辑补；背景保持各自快照原样，不互相覆盖 */
       }catch(_eSkinPhoto){}
       state=migrate(s);try{__ltReadApply();}catch(e){}try{__prefApply();}catch(e){}try{window.__perfApply&&window.__perfApply();}catch(_){}window.__stateReady=1;/* 主题先别在这里定：这份还可能是默认浅色快照，等两份存档合并完（下面 6820 行）再 __themeReady，否则夜间用户会先被刷白 */applySkin();
       try{__restoreEmojiLibFromBackup();}catch(_eEmojiLib){}
@@ -13297,8 +13295,8 @@ function __mergeMediaSnapshots(a,b){
         if(pic){sg.cover=pic;delete sg.__coverRetry;changed=true;}
       });
     });
-    var sk=["bgImage","gbImage","ltImage","momImage","gameImage","meImage","meTopImage","coupleImage"];
-    copyObj(a.skin,b.skin,sk,false);copyObj(b.skin,a.skin,sk,false);
+    /* v43-39：背景图不再互相补。清空背景后，空值必须保留，不能被另一份旧快照补回旧图。 */
+    var sk=[];
     /* 头像本体与主页照片按位置补 */
     a.me=a.me||{};b.me=b.me||{};a.partner=a.partner||{};b.partner=b.partner||{};
     if(!__avatarReal(a.me.avatar)&&__avatarReal(b.me.avatar)){a.me.avatar=b.me.avatar;changed=true;}
