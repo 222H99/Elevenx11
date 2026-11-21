@@ -1,3 +1,12 @@
+## v43-38（2026-11-21）
+
+- 语音播放改成 WebAudio 优先、`<audio>` 兜底：点一下立即出声；iPhone 静音拨片下通过 `navigator.audioSession.type="playback"` 切到播放会话，静音档也能听到；解码失败会提示格式不兼容，不再“点了没反应”。语音气泡不再触发 550ms 长按消息菜单。
+- 对方回复字卡只认设置里显式选择的“回复用哪个分组”，默认始终是全部字卡；`activeCards()`、`pickCardsN()`、信件正文取卡都不再跟随字卡页最后浏览的分组。旧存档残留的具体回复组会在启动时迁移回所有分组；删组、清空全部字卡也不会再把回复锁到某一组。
+- 聊天顶栏 `#top-call` 的电话图标换成 `#i-cam` 摄像头图标，title 改为“视频通话”，点击仍进入原通话浮层。
+- 登录核查：001 账号存在、邮箱已验证、未封禁，最后登录 2026-11-21 12:00（本地），云端 `latest.json` 18:14 仍在更新；999 测试账号登录、Storage 读写均 200。CSV 中 001 的密码测试返回 Auth 400 `Invalid login credentials`，属于记录密码不匹配，不是账号损坏；未重置。
+- 验证：合成 5 秒 WAV 点击后 WebAudio `AudioContext=running`、buffer 5 秒、气泡进入 playing，播完自动清理，二次点击正常；旧存档 `replyGroupId=g2` 迁移为 null，字卡页浏览停在 g2 时 `replyCards()=3`、`activeCards()=3`、信件分组仍为全部；无 pageerror。
+- 版本：v43-38，Android versionCode 59，APK `Eleven11-v43-38.apk`，APK MD5 `a108bf1a97d4497db3fd9b580eb2d3ae`，页面 MD5 `a53b4876e839938d64920aee80291598`。
+
 ## v43-37（2026-11-21）
 
 - 聊天背景和桌面不再共用：聊天只用 `skin.bgImage` 和自己底色 `skin.bg`，桌面继续用 `skin.meImage`/`meBg`；没设聊天图时聊天是纯色底，不铺桌面图。

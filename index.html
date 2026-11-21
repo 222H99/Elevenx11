@@ -2443,7 +2443,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-21v43-37">
+<meta name="app-build" content="2026-11-21v43-38">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3462,7 +3462,7 @@ setTimeout(function(){
         <div class="top-status" id="top-status-partner"></div>
       </div>
       <div class="top-right">
-        <button class="top-btn" id="top-call" title="通话"><svg class="icon"><use xlink:href="#i-call"/></svg></button>
+        <button class="top-btn" id="top-call" title="视频通话"><svg class="icon"><use xlink:href="#i-cam"/></svg></button>
       </div>
     </div>
     <div class="msglist" id="msglist"></div>
@@ -4107,7 +4107,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-37</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-38</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -6139,9 +6139,15 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-21",
-  noticeKey:"2026-11-21v43-37",
-  lead:"v43-37：聊天背景和桌面分开了；多选里图片能正常勾选、删除，“生成长图”也真的能出图；日记“本月小结”可以反复点开；信件夜间换成夜玻璃；新建字卡分组后，回复仍默认用全部字卡。",
+  noticeKey:"2026-11-21v43-38",
+  lead:"v43-38：语音点一下就能出声（iPhone 静音键也出声）；字卡回复不管 APK 从哪个入口进去都用全部字卡；聊天顶栏电话图标换成摄像头。",
   items:[
+    '<span class="an-gt">v43-38 · 语音 / 全部字卡 / 摄像头图标</span>',
+    "语音播放改成 WebAudio 优先、audio 兜底：点一下就开始出声，iPhone 静音档也能听到；解码失败会明确提示格式不兼容，不会再点了没反应",
+    "语音长按不再误弹消息操作菜单；按住和轻点都能正常录音、播放",
+    "对方回复用哪组字卡只认设置里的显式选择；字卡页、信件页、动态页随手点到哪个分组，都不会再把回复缩小到那一组，默认始终是全部字卡",
+    "旧存档里残留的“回复分组”会自动恢复成所有分组；删除分组、清空全部字卡也不会再把回复锁到某个分组",
+    "聊天顶栏的电话图标换成摄像头同款图标，点进去仍是原来的通话浮层",
     '<span class="an-gt">v43-37 · 背景分开 / 多选长图 / 日记 / 夜玻璃 / 字卡</span>',
     "聊天背景和桌面不再共用：聊天只用自己的背景图/底色，桌面继续用自己的图；没单独设聊天背景时聊天用纯色底，不会再把桌面图铺进来",
     "多选模式下长按图片不会再弹出大图，点一下就是勾选/取消；批量删除图片、文字和长图消息都能正常删掉",
@@ -7448,6 +7454,12 @@ function migrate(s){
     if((!_ca||_ca.chat===undefined)&&s.settings.replyGroupId==="g1"&&s.settings.cardAllDefaultMigrated!==true){
       s.settings.replyGroupId=null;
       s.settings.cardAllDefaultMigrated=true;
+    }
+    /* v43-38：旧版本在字卡页切组会顺手把「回复分组」也改掉，云存档里因此残留了具体组。
+       只要用户没有在设置里显式点过“回复用哪个分组”，启动时统一恢复成「所有分组」。 */
+    if(s.settings.replyGroupId&&s.settings.replyGroupPinned!==true&&s.settings.replyGroupAllMigrated!==true){
+      s.settings.replyGroupId=null;
+      s.settings.replyGroupAllMigrated=true;
     }
   }catch(_){}
   if(s.settings.avatarSize===undefined)s.settings.avatarSize=30;
@@ -10120,7 +10132,7 @@ function bindLongPress(row,kind){
     try{if(__msgSelOn)return;}catch(_eSel){}
     /* 红包/问卷：单击卡片看详情；长按卡片本体才弹操作/多选，按在按钮上不抢点击 */
     try{
-      if(e.target&&e.target.closest&&e.target.closest("button,input,textarea,a,.rp-act,.sq-act,.sq-opt,[data-act]"))return;
+      if(e.target&&e.target.closest&&e.target.closest("button,input,textarea,a,[data-voice],.rp-act,.sq-act,.sq-opt,[data-act]"))return;
     }catch(_){}
     /* 聊天图片：长按 380ms 直接看大图，不弹消息菜单；单击仍然只做普通点击 */
     var _img=null;
@@ -10283,9 +10295,9 @@ function activeCards(){
   try{
     /* 默认就是「全部聊天字卡」，不跟浏览用的分组标签走；
        只有在「设置 → 对方回复用哪个分组」明确选了某一组，才只用那一组（那组没卡则照旧用全部） */
-    /* 设置里明确选的「回复用字卡分组」优先；字卡页浏览分组只是兜底。
-       以前反过来，设置改成 B 后，只要字卡页还停在 A，聊天仍会抽 A。 */
-    var _rg=(state.settings&&state.settings.replyGroupId)||(_cardActiveGid&&_cardActiveGid.chat);
+    /* v43-38：回复只认设置里的「回复用哪个分组」。字卡页随便点到哪个分组，
+       都不再影响对方回复；没设置就始终用全部聊天字卡。 */
+    var _rg=(state.settings&&state.settings.replyGroupId)||null;
     if(_rg){
       var _rIn=pool.filter(function(c){return c.groupId===_rg;});
       if(_rIn.length)pool=_rIn;
@@ -14102,7 +14114,7 @@ function addGroup(){
   const g={id:uid(),name:name,kind:K};state.groups.push(g);$("new-group-name").value="";
   activeGroupId=g.id;__setCardActiveGid(K,g.id);
   /* v43-37：新建分组后，回复字卡仍默认「所有分组」，不被新分组抢走 */
-  if(K==="chat"){state.settings.replyGroupId=null;try{renderSettingsSelect();}catch(_){}}
+  if(K==="chat"){state.settings.replyGroupId=null;state.settings.replyGroupPinned=false;try{renderSettingsSelect();}catch(_){}}
   renderCards();toast("已创建分组："+name);
 }
 async function delGroup(id){
@@ -14111,7 +14123,7 @@ async function delGroup(id){
   if(!(await __iosConfirm("删除该分组及其全部字卡？")))return;
   state.groups=state.groups.filter(g=>g.id!==id);
   state.cards=state.cards.filter(c=>c.groupId!==id);
-  if(state.settings.replyGroupId===id){var rest=groupsOfKind("chat");state.settings.replyGroupId=rest.length?rest[0].id:null;}
+  if(state.settings.replyGroupId===id){state.settings.replyGroupId=null;state.settings.replyGroupPinned=false;}
   if(activeGroupId===id){activeGroupId=null;__setCardActiveGid(K,null);}
   save();renderCards();
 }
@@ -14435,7 +14447,7 @@ $("btn-card-clear-all").addEventListener("click",async()=>{
   var ng={id:uid(),name:"默认",kind:K};state.groups.push(ng);
   cardSel.clear();
   activeGroupId=ng.id;__setCardActiveGid(K,ng.id);
-  if(K==="chat")state.settings.replyGroupId=ng.id;
+  if(K==="chat"){state.settings.replyGroupId=null;state.settings.replyGroupPinned=false;}
   if(cardSelMode){cardSelMode=false;const b=$("btn-card-multiselect");b.classList.remove("active");b.style.background="";b.style.color="";b.textContent="多选";}
   save();renderCards();toast("已清空全部字卡");
 });
@@ -15006,7 +15018,7 @@ $("set-survey-min-sec").addEventListener("change",e=>{state.settings.surveyMinSe
 $("set-survey-max-sec").addEventListener("change",e=>{state.settings.surveyMaxSec=Math.max(0,Math.round(Number(e.target.value)||0))*60;e.target.value=Math.round(state.settings.surveyMaxSec/60);save();});
 $("set-max-sec").addEventListener("change",e=>{state.settings.maxDelaySec=Math.max(0,Number(e.target.value)||0);e.target.value=state.settings.maxDelaySec;save();});
 $("set-min-sec").addEventListener("change",e=>{state.settings.minDelaySec=Math.max(0,Number(e.target.value)||0);e.target.value=state.settings.minDelaySec;save();});
-$("set-reply-group").addEventListener("change",e=>{state.settings.replyGroupId=e.target.value||null;save();});
+$("set-reply-group").addEventListener("change",e=>{state.settings.replyGroupId=e.target.value||null;state.settings.replyGroupPinned=!!e.target.value;state.settings.replyGroupAllMigrated=true;save();});
 $("sw-auto").addEventListener("click",e=>{state.settings.autoReply=!state.settings.autoReply;e.target.classList.toggle("on",state.settings.autoReply);save();toast(state.settings.autoReply?"自动回复已开启":"自动回复已关闭，对方不会自动回消息");});
 $("sw-chat-avatar")&&$("sw-chat-avatar").addEventListener("click",function(e){state.settings.showChatAvatar=(state.settings.showChatAvatar===false);e.target.classList.toggle("on",state.settings.showChatAvatar!==false);try{__prefSave();}catch(_){}save();try{applyChatAvatarVis();}catch(_){}toast(state.settings.showChatAvatar!==false?"聊天页显示头像已开启":"聊天页头像已隐藏，长图也不显示头像");});
 $("sw-read").addEventListener("click",e=>{state.settings.readReceipt=!state.settings.readReceipt;e.target.classList.toggle("on",state.settings.readReceipt);save();__refreshChatMeta();});
@@ -21699,8 +21711,8 @@ function chatGroupsForLetter(){
     var picked=gs.filter(function(g){return ids.indexOf(g.id)>=0;});
     if(picked.length)return picked;
   }
-  var _gid=__activeChatGroupId();
-  if(_gid&&gs.some(function(g){return g.id===_gid;}))return gs.filter(function(g){return g.id===_gid;});
+  /* v43-38：信件正文默认用全部聊天分组；只有上面信件页自己勾了分组才收窄。
+     不再跟随聊天字卡页最后浏览的分组，否则从 APK 哪个入口点进去都只回那一组。 */
   return gs;
 }
 function letterCardPool(){
@@ -21862,7 +21874,9 @@ function pickCardsN(n,kind){
     /* 每个 kind 页面里选中的那个分组，就是这一路该用的那套；
        没有选分组才用该 kind 的全部字卡。 */
     try{
-      const gid=activeGidOfKind(kk)||(kk==="chat"?__activeChatGroupId():null);
+      /* v43-38：动态 / 主动来信等抽取字卡时，默认用该类别全部字卡；
+         不再被「字卡页当前浏览的分组」限制。聊天只在设置里明确选了回复分组时收窄。 */
+      var gid=(kk==="chat"&&state.settings&&state.settings.replyGroupId)||null;
       if(gid){
         const inG=state.cards.filter(c=>okOf(c,kk)&&c.groupId===gid);
         if(inG.length)pool=inG;
@@ -26313,6 +26327,7 @@ try{
     return x>=r.left-6&&x<=r.right+6&&y>=r.top-10&&y<=r.bottom+10;
   }
   var __voiceURLs={};
+  var __voiceToken=0;
   function __voiceSrcURL(src){
     try{
       if(!src||!/^data:/i.test(src))return src||"";
@@ -26327,30 +26342,87 @@ try{
       var u=URL.createObjectURL(blob);__voiceURLs[src]=u;return u;
     }catch(e){return src||"";}
   }
+  /* v43-38：iPhone 静音键会让 <audio> 完全没声音。把音频会话切到 playback，
+     语音就能像音乐一样在静音档也出声（Safari 16.4+ 支持，其他环境自动忽略）。 */
+  function __voiceSession(){
+    try{if(navigator.audioSession)navigator.audioSession.type="playback";}catch(e){}
+  }
   function __stopVoiceAudio(){
+    __voiceToken++;
     try{
       if(window.__voiceAudio){
         try{window.__voiceAudio.pause();}catch(e){}
         try{window.__voiceAudio.remove&&window.__voiceAudio.remove();}catch(e){}
         window.__voiceAudio=null;
       }
+      if(window.__voiceNode){
+        try{window.__voiceNode.onended=null;}catch(e){}
+        try{window.__voiceNode.stop(0);}catch(e){}
+        try{window.__voiceNode.disconnect();}catch(e){}
+        window.__voiceNode=null;
+      }
     }catch(e){}
   }
-  function __voiceFallback(src,onEnd,onFail){
+  function __voiceAudioFallback(src,bubble,token,onFail){
     try{
-      var AC=window.AudioContext||window.webkitAudioContext;
-      if(!AC)return false;
-      var ctx=window.__voiceCtx||(window.__voiceCtx=new AC());
-      if(ctx.state==="suspended"){try{ctx.resume();}catch(e){}}
-      fetch(src).then(function(r){return r.arrayBuffer();}).then(function(ab){
-        return new Promise(function(res,rej){ctx.decodeAudioData(ab,res,rej);});
-      }).then(function(buf){
-        var node=ctx.createBufferSource();node.buffer=buf;node.connect(ctx.destination);
-        node.onended=function(){onEnd&&onEnd();};
-        window.__voiceNode=node;node.start(0);
-      }).catch(function(){onFail&&onFail();});
-      return true;
-    }catch(e){return false;}
+      var au=document.createElement("audio");
+      au.setAttribute("playsinline","true");au.preload="auto";au.src=src;
+      au.style.cssText="position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0;";
+      document.body.appendChild(au);window.__voiceAudio=au;
+      var done=function(){
+        if(token!==__voiceToken)return;
+        if(bubble)bubble.classList.remove("playing");
+        try{au.remove();}catch(e){}
+        if(window.__voiceAudio===au){window.__voiceAudio=null;}
+      };
+      au.onended=done;
+      au.onerror=function(){
+        done();
+        if(token===__voiceToken)onFail&&onFail();
+      };
+      var pr=au.play();
+      if(pr&&pr.then)pr.then(function(){if(token===__voiceToken&&bubble)bubble.classList.add("playing");}).catch(function(){
+        done();
+        if(token===__voiceToken)onFail&&onFail();
+      });
+    }catch(e){onFail&&onFail();}
+  }
+  /* 先用 WebAudio 解码：data URL / Blob URL 都能吃，AAC、MP4、WAV 在 iPhone 上都能解；
+     解不出来再退回 <audio>，两条路都失败才提示。 */
+  function __voiceFallback(src,onEnd,onFail){
+    var AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC){onFail&&onFail();return false;}
+    var token=__voiceToken;
+    var ctx=window.__voiceCtx||(window.__voiceCtx=new AC());
+    var ready=null;
+    if(ctx.state==="suspended"&&ctx.resume)ready=ctx.resume();
+    Promise.resolve(ready).then(function(){
+      return fetch(src).then(function(r){return r.arrayBuffer();});
+    }).then(function(ab){
+      return new Promise(function(res,rej){ctx.decodeAudioData(ab,res,rej);});
+    }).then(function(buf){
+      if(token!==__voiceToken)return;
+      __stopVoiceNodeOnly();
+      var node=ctx.createBufferSource();node.buffer=buf;node.connect(ctx.destination);
+      node.onended=function(){
+        if(token!==__voiceToken)return;
+        try{node.disconnect();}catch(e){}
+        if(window.__voiceNode===node)window.__voiceNode=null;
+        onEnd&&onEnd();
+      };
+      window.__voiceNode=node;node.start(0);
+    }).catch(function(){if(token===__voiceToken)onFail&&onFail();});
+    return true;
+  }
+  function __stopVoiceNodeOnly(){
+    try{
+      if(window.__voiceNode){
+        try{window.__voiceNode.onended=null;}catch(e){}
+        try{window.__voiceNode.stop(0);}catch(e){}
+        try{window.__voiceNode.disconnect();}catch(e){}
+        window.__voiceNode=null;
+      }
+    }catch(e){}
   }
   window.__voiceSrcURL=__voiceSrcURL;
   window.__stopVoiceAudio=__stopVoiceAudio;
@@ -26368,38 +26440,29 @@ try{
   window.__bindVoiceTap=__bindVoiceTap;
   window.playVoiceMsg=function(id,bubble){
     try{
+      __voiceSession();
       __stopVoiceAudio();
       document.querySelectorAll(".voice-bubble.playing").forEach(function(b){b.classList.remove("playing");});
       document.querySelectorAll(".fv-play.playing").forEach(function(b){b.classList.remove("playing");});
       var m=(state.messages||[]).filter(function(x){return x.id===id;})[0];
       if(!m||!m.src){toast("这条语音没有数据");return;}
       window.__voiceGuard={id:id,until:Date.now()+1000};
+      var token=__voiceToken;
       var src=__voiceSrcURL(m.src);
-      var au=document.createElement("audio");
-      au.setAttribute("playsinline","true");au.preload="auto";au.src=src;
-      au.style.cssText="position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0;";
-      document.body.appendChild(au);window.__voiceAudio=au;window.__voiceId=id;
-      au.onended=function(){
+      if(bubble)bubble.classList.add("playing");
+      var fail=function(){
+        if(token!==__voiceToken)return;
         if(bubble)bubble.classList.remove("playing");
-        try{au.remove();}catch(e){}
-        if(window.__voiceAudio===au){window.__voiceAudio=null;window.__voiceId=null;}
+        toast("这段语音播放失败了，可能是录音格式不兼容");
       };
-      au.onerror=function(){
-        if(__voiceFallback(src,function(){bubble&&bubble.classList.remove("playing");},function(){toast("这段语音播放失败了");})){
-          if(bubble)bubble.classList.add("playing");
-        }else toast("这段语音播放失败了");
-      };
-      try{au.currentTime=0;}catch(e){}
-      var pr=au.play();
-      if(pr&&pr.then){
-        pr.then(function(){bubble&&bubble.classList.add("playing");}).catch(function(){
-          /* 音频元素被系统拦下时，改用 WebAudio 解码再播一次 */
-          if(__voiceFallback(src,function(){bubble&&bubble.classList.remove("playing");},function(){toast("这段语音播放失败了");})){
-            if(bubble)bubble.classList.add("playing");
-          }else toast("再点一次试试播放");
-        });
-      }
-    }catch(e){}
+      var el=function(){__voiceAudioFallback(src,bubble,token,fail);};
+      if(!__voiceFallback(src,function(){
+        if(token!==__voiceToken)return;
+        if(bubble)bubble.classList.remove("playing");
+      },el))el();
+    }catch(e){
+      try{toast("这段语音播放失败了");}catch(_){}
+    }
   };
   (function(){
     var press={t:0,started:false,x0:0,y0:0};
