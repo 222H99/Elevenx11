@@ -130,35 +130,46 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
     window.__e11NativeApiFetch=1;
     var orig=window.fetch;
     var API_RE=/^https:\/\/elevenx11-production\.up\.railway\.app\/api\//;
+    var SUPA_RE=/^https:\/\/mqdrndfnftoagqarvmij\.supabase\.co\/(auth|storage)\/v1\//;
     window.fetch=function(input,init){
       var url="";
       try{url=typeof input==="string"?input:(input&&input.url)||"";}catch(e){}
-      if(!API_RE.test(url))return orig.apply(this,arguments);
-      try{
-        init=init||{};
-        var hs={};
+      var nativeOnly=API_RE.test(url), supa=SUPA_RE.test(url);
+      if(!nativeOnly&&!supa)return orig.apply(this,arguments);
+      function callNative(){
         try{
-          var h=init.headers;
-          if(h){
-            if(typeof h.forEach==="function")h.forEach(function(v,k){hs[String(k)]=String(v);});
-            else for(var k in h)hs[String(k)]=String(h[k]);
+          init=init||{};
+          var hs={};
+          try{
+            var h=init.headers;
+            if(h){
+              if(typeof h.forEach==="function")h.forEach(function(v,k){hs[String(k)]=String(v);});
+              else for(var k in h)hs[String(k)]=String(h[k]);
+            }
+          }catch(e){}
+          var body=init.body;
+          if(body!=null && typeof body!=="string"){
+            try{body=String(body);}catch(e){body="";}
           }
-        }catch(e){}
-        var body=init.body;
-        if(body!=null && typeof body!=="string"){
-          try{body=String(body);}catch(e){body="";}
+          var raw=AndroidUI.api(url,String(init.method||"GET"),JSON.stringify(hs),body||"");
+          var out=null;
+          try{out=JSON.parse(String(raw||"{}"));}catch(e){}
+          if(!out || typeof out.status==="undefined")throw new Error("native api empty");
+          var status=Number(out.status);
+          if(!isFinite(status))status=502;
+          /* 原生层网络失败返回 0：抛网络错误，让 api() 自动重试 */
+          if(status===0){var ne=new Error("native network error");ne.code="network";throw ne;}
+          if(status<200||status>599)status=502;
+          var resp=new Response(String(out.body||""),{status:status,headers:{"Content-Type":"application/json"}});
+          return Promise.resolve(resp);
+        }catch(e){
+          return Promise.reject(e);
         }
-        var raw=AndroidUI.api(url,String(init.method||"GET"),JSON.stringify(hs),body||"");
-        var out=null;
-        try{out=JSON.parse(String(raw||"{}"));}catch(e){}
-        if(!out || typeof out.status==="undefined")throw new Error("native api empty");
-        var status=Number(out.status)||502;
-        if(status<200||status>599)status=502;
-        var resp=new Response(String(out.body||""),{status:status,headers:{"Content-Type":"application/json"}});
-        return Promise.resolve(resp);
-      }catch(e){
-        return Promise.reject(e);
       }
+      if(nativeOnly)return callNative();
+      /* Supabase 先走 WebView 原生网络（异步、不卡 UI）；失败再退回 HttpURLConnection。
+         app.local 的 Origin 在部分机型会被 WebView 拦成 Failed to fetch，这一步专门兜底。 */
+      return orig.apply(this,arguments).catch(function(){return callNative();});
     };
   }catch(e){}
 })();
@@ -2444,7 +2455,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-21v43-41">
+<meta name="app-build" content="2026-11-21v43-42">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4108,7 +4119,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-41</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-42</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5488,24 +5499,36 @@ setTimeout(function(){
   function api(path,opt){
     opt=opt||{};
     if(!cfgReady())return Promise.reject({code:"no-config",message:"后端未配置：缺少 Supabase Project URL 或 anon key"});
-    var headers={"apikey":cfg.key,"Content-Type":"application/json"};
-    if(opt.token)headers["Authorization"]="Bearer "+opt.token;
-    if(opt.headers){Object.keys(opt.headers).forEach(function(k){headers[k]=opt.headers[k];});}
-    var ctrl=null,timer=null;
-    try{if(typeof AbortController!=="undefined"){ctrl=new AbortController();timer=setTimeout(function(){try{ctrl.abort();}catch(e){}},Number(opt.timeout)||9000);}}catch(e){}
-    var req=fetch(cfg.url+path,{method:opt.method||"GET",headers:headers,body:opt.body==null?undefined:JSON.stringify(opt.body),cache:"no-store",signal:ctrl?ctrl.signal:undefined});
-    return req.then(function(r){
-      if(timer){clearTimeout(timer);timer=null;}
-      return r.text().then(function(txt){
-        var d=null;try{d=txt?JSON.parse(txt):null;}catch(e){d=txt;}
-        if(!r.ok){var err=new Error((d&&(d.msg||d.message||d.error_description||d.error))||("HTTP "+r.status));err.status=r.status;err.data=d;throw err;}
-        return d;
+    var attempt=0;
+    var retries=opt.retries==null?((Number(opt.timeout)||9000)<=15000?1:0):Math.max(0,Number(opt.retries)||0);
+    function once(){
+      var headers={"apikey":cfg.key,"Content-Type":"application/json"};
+      if(opt.token)headers["Authorization"]="Bearer "+opt.token;
+      if(opt.headers){Object.keys(opt.headers).forEach(function(k){headers[k]=opt.headers[k];});}
+      var ctrl=null,timer=null;
+      try{if(typeof AbortController!=="undefined"){ctrl=new AbortController();timer=setTimeout(function(){try{ctrl.abort();}catch(e){}},Number(opt.timeout)||9000);}}catch(e){}
+      var req=fetch(cfg.url+path,{method:opt.method||"GET",headers:headers,body:opt.body==null?undefined:JSON.stringify(opt.body),cache:"no-store",signal:ctrl?ctrl.signal:undefined});
+      return req.then(function(r){
+        if(timer){clearTimeout(timer);timer=null;}
+        return r.text().then(function(txt){
+          var d=null;try{d=txt?JSON.parse(txt):null;}catch(e){d=txt;}
+          if(!r.ok){var err=new Error((d&&(d.msg||d.message||d.error_description||d.error))||("HTTP "+r.status));err.status=r.status;err.data=d;throw err;}
+          return d;
+        });
+      }).catch(function(e){
+        if(timer){clearTimeout(timer);timer=null;}
+        var isTimeout=!!(e&&(e.name==="AbortError"||e.code==="ABORT_ERR"));
+        var isNet=!isTimeout&&!(e&&e.status)&&!(e&&e.code==="no-config");
+        var isServer=!!(e&&e.status>=500);
+        if((isTimeout||isNet||isServer)&&attempt<retries){
+          attempt++;
+          return new Promise(function(res){setTimeout(res,1000+attempt*500);}).then(once);
+        }
+        if(isTimeout){var te=new Error("网络请求超时，请检查网络后重试");te.code="timeout";te.cause=e;throw te;}
+        throw e;
       });
-    },function(e){
-      if(timer){clearTimeout(timer);timer=null;}
-      if(e&&(e.name==="AbortError"||e.code==="ABORT_ERR")){var te=new Error("网络请求超时，请检查网络后重试");te.code="timeout";te.cause=e;throw te;}
-      throw e;
-    });
+    }
+    return once();
   }
   function refreshSession(s){
     if(!s||!s.refresh_token)return Promise.reject(new Error("登录已过期，请重新登录"));
@@ -5530,7 +5553,7 @@ setTimeout(function(){
     });
   }
   function login(email,password){
-    return api("/auth/v1/token?grant_type=password",{method:"POST",body:{email:email,password:password},timeout:25000}).then(function(d){
+    return api("/auth/v1/token?grant_type=password",{method:"POST",body:{email:email,password:password},timeout:15000,retries:1}).then(function(d){
       if(!d||!d.access_token)throw new Error("登录失败");
       var ns={access_token:d.access_token,refresh_token:d.refresh_token,expires_at:Date.now()+(Number(d.expires_in)||3600)*1000,user:d.user};
       saveSession(ns);return ns;
@@ -5816,7 +5839,7 @@ setTimeout(function(){
       busy=false;if(btn)btn.disabled=false;
       var st=e&&e.status;
       var _em=(e&&e.message)||"网络连接失败";
-      setMsg("auth-msg",st===400?"账号或密码不对。若你没改过密码，说明这个账号的初始密码已失效，需要站主重置。":(st===429?"尝试太频繁，被临时限流；等 1 分钟再试，不是账号被封。":(st?"登录失败："+_em:"网络超时或断网。账号没被锁定，检查网络后再点一次。")));
+      setMsg("auth-msg",st===400?"账号或密码不对。若你没改过密码，说明这个账号的初始密码已失效，需要站主重置。":(st===429?"尝试太频繁，被临时限流；等 1 分钟再试，不是账号被封。":(st>=500?"服务器暂时不可用，已自动重试；等半分钟再点一次。":(st?"登录失败："+_em:"网络超时或断网，已自动重试。账号没被锁定，检查网络后再点一次。"))));
     });
   }
 
@@ -5876,7 +5899,7 @@ setTimeout(function(){
     if(t.closest("#auth-login")){e.preventDefault();onLogin();}
     if(t.closest("#auth-pwd-go")){e.preventDefault();onPwd();}
     if(t.closest("#btn-account-logout")){e.preventDefault();logout();}
-    if(t.closest("#auth-force-update")){e.preventDefault();try{window.__forceE11Update&&window.__forceE11Update();}catch(_){}}
+    if(t.closest("#auth-force-update")){e.preventDefault();try{if(window.__e11CheckVersion)window.__e11CheckVersion(true);else location.reload();}catch(_){}}
   });
   document.addEventListener("keydown",function(e){
     if(e.key!=="Enter")return;
@@ -6140,10 +6163,14 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-21",
-  noticeKey:"2026-11-21v43-41",
-  lead:"v43-41：安卓 APK 补上录音权限，语音不再录成静音；录音时长按真实采集时间计算；PCM 抓不到声音时自动改用 MediaRecorder 的音频。",
+  noticeKey:"2026-11-21v43-42",
+  lead:"v43-42：打开页面就自动比对并更新，不再依赖手动检查；修复同一天 v43-x 版本被误判成同一个版本的问题。APK 打开自动检测新版并显示下载条；登录增加失败重试和安卓原生网络兜底。",
   items:[
-    '<span class="an-gt">v43-41 · 语音修复</span>',
+    '<span class="an-gt">v43-42 · 自动更新 / 登录网络</span>',
+    "打开页面后自动请求 version.json 比对版本，发现新版直接带时间戳换页；不再需要点「检查更新」，手动按钮也走同一条更可靠的版本文件检查",
+    "修掉版本比较只取 v43 的 bug：以前 v43-41 和 v43-42 会被判成同一个版本，所以同一天发新版时永远提示「已是最新」",
+    "APK 页面是本地资源，打开会自动向线上主站查版本；发现新版就弹出下载条，下载覆盖安装后聊天记录保留",
+    "登录请求遇到断网、超时或服务器 503 会自动重试一次；APK 里 Supabase 登录和存档请求增加原生 HttpURLConnection 兜底，绕开 WebView 的 Failed to fetch",
     "信箱「跟随主题」夜间改成纯黑 #000，不再铺深灰渐变；白天仍跟随浅色主题保持白色",
     "信件背景里的粉白、蓝白、米色、薰衣草、薄荷、蜜桃六个默认背景，夜间切换也会立刻生效，不再只在白天有反应",
     "选了彩色信件背景时，来信详情和信纸仍按对应纸色显示，字色自动保持可读",
@@ -15234,45 +15261,25 @@ $("sw-bg-sound")&&$("sw-bg-sound").addEventListener("click",function(){
 });
 /* 版本比较：app-build 形如 2026-11-18v38；日期相同再比 v 后缀 */
 function __cmpBuild(a,b){
-  function parse(x){var s=String(x||"");var m=/(\d{4}-\d{2}-\d{2})(?:v(\d+))?/i.exec(s);if(!m)return null;return {d:m[1],n:Number(m[2]||0)};}
+  /* v43-41 / v43-42 的第二段必须参与比较；以前只取 v 后面的 43，
+     导致同一天的所有 v43-x 全被判成同一个版本，检查更新永远说“已是最新”。 */
+  function parse(x){
+    var s=String(x||"");
+    var md=/(\d{4}-\d{2}-\d{2})/.exec(s);
+    var mv=/v(\d+)(?:-(\d+))?([a-z]*)/i.exec(s);
+    if(!mv)return null;
+    var major=Number(mv[1]||0),minor=Number(mv[2]||0),letter=String(mv[3]||"").toLowerCase();
+    var lv=letter?letter.charCodeAt(0)-96:0;
+    return {d:md?md[1]:"",n:major*100000+minor*100+lv};
+  }
   var x=parse(a),y=parse(b);if(!x||!y)return 0;
   if(x.d<y.d)return -1;if(x.d>y.d)return 1;
   return x.n<y.n?-1:x.n>y.n?1:0;
 }
 window.__cmpBuild=__cmpBuild;
 if($("btn-check-update"))$("btn-check-update").addEventListener("click",function(){
-  var b=window.__buildId||"";
   try{toast("正在检查…");}catch(e){}
-  var _chkUrl=location.pathname+"?__bust="+Date.now();
-  var _ctrl=null;
-  try{_ctrl=new AbortController();setTimeout(function(){try{_ctrl.abort();}catch(_){}},10000);}catch(_){}
-  /* 不能只信 HEAD 的 Last-Modified：豆包/CDN 线上可能不返回这个头，
-     旧逻辑就会一直「检查失败」或反复说发现新版本。直接取回 HTML 里的 app-build 比对。 */
-  fetch(_chkUrl,{cache:"no-store",credentials:"same-origin",redirect:"follow",signal:_ctrl&&_ctrl.signal}).then(function(r){
-    if(!r.ok)throw new Error("HTTP "+r.status);
-    return r.text();
-  }).then(function(txt){
-    var m=/<meta[^>]+name=["']app-build["'][^>]+content=["']([^"']+)["']/i.exec(txt);
-    var nb=(m&&m[1])||"";
-    if(!nb)throw new Error("服务器没有返回版本标记");
-    var cmp=__cmpBuild(nb,b);
-    if(cmp>0){
-      try{toast("发现新版本 "+nb+"，正在更新…");}catch(e){}
-      setTimeout(function(){
-        var u=new URL(location.href);
-        u.searchParams.set("v",nb.replace(/[^0-9]/g,""));
-        u.searchParams.set("t",Date.now());
-        u.searchParams.set("skipabout","1");
-        location.replace(u.href);
-      },320);
-    }else if(cmp<0){
-      try{toast("服务器版本较旧（"+nb+"），发布可能还在同步，稍后再试");}catch(e){}
-    }else{
-      try{toast("已是最新版本（"+b+"）");}catch(e){}
-    }
-  }).catch(function(e){
-    try{toast("检查失败："+((e&&e.name==="AbortError")?"请求超时":((e&&e.message)||e)));}catch(x){}
-  });
+  if(window.__e11CheckVersion)window.__e11CheckVersion(true);
 });
 
 /* ===== PWA 安装 / 永久存储 / 表情图体检 ===== */
@@ -26817,67 +26824,182 @@ try{
 })();
 </script>
 <script>
-/* 独立版本检查 + 强制更新：不依赖 sw.js 自己是否更新成功。
-   version.json 很小，带时间戳绕过 CDN/浏览器缓存；发现远端版本不同，
-   注销旧 SW、清掉十一的整页缓存，再带 __u 时间戳重载。 */
+/* 独立版本检查 + 自动更新：以 version.json 为准，不再靠手动点按钮。
+   网页/PWA 打开后自动比对；APK 页面是本地 assets，自动改查线上主站，
+   发现新版就显示下载条（安卓不允许静默覆盖安装）。 */
 (function(){
   if(!/^http/i.test(location.protocol))return;
+  var REMOTE_BASE="https://4mhd000knq3sz.doubao.link/app/app_17j7cuqfra0/";
+  var REMOTE_VER=REMOTE_BASE+"version.json";
   var running=false;
+  var pendingBuild="";
   var FORCE_KEY="__e11ForceAt";
+  var TRY_KEY="__e11UpdateTry";
+  function apkMode(){try{return !!(window.AndroidUI&&/^app\.local$/i.test(location.hostname));}catch(e){return false;}}
+  function build(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||"";}catch(e){return "";}}
   function canForce(){try{var t=+sessionStorage.getItem(FORCE_KEY)||0;return Date.now()-t>8000;}catch(e){return true;}}
   function markForce(){try{sessionStorage.setItem(FORCE_KEY,String(Date.now()));}catch(e){}}
-  function build(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||"";}catch(e){return "";}}
-  function safeForAuto(){
+  function recentTry(b){try{var x=JSON.parse(sessionStorage.getItem(TRY_KEY)||"null");return !!(x&&x.build===b&&Date.now()-x.t<600000);}catch(e){return false;}}
+  function markTry(b){try{sessionStorage.setItem(TRY_KEY,JSON.stringify({build:b,t:Date.now()}));}catch(e){}}
+  function autoSafe(){
     try{
-      if(document.body.classList.contains("auth-locked"))return true;
+      if(document.visibilityState==="hidden")return false;
+      if(document.body.classList.contains("auth-locked")){
+        var ae=document.activeElement;
+        var typing=!!(ae&&(ae.tagName==="INPUT"||ae.tagName==="TEXTAREA"||ae.isContentEditable));
+        var typed=false;
+        var ins=document.querySelectorAll('#auth-gate input, #auth-gate textarea');
+        for(var i=0;i<ins.length;i++){
+          var el=ins[i];
+          if(el&&el.type!=="checkbox"&&el.type!=="radio"&&String(el.value||"")){typed=true;break;}
+        }
+        return !typing&&!typed;
+      }
       var v=document.querySelector(".view.open");
       return !v||v.id==="view-me";
     }catch(e){return true;}
   }
-  function verNum(v){var m=/v(\d+)-(\d+)/.exec(v||"");return m?((+m[1])*1000+(+m[2])):-1;}
+  function pageUrl(){
+    var p=location.pathname||"/";
+    var target;
+    if(/\.html?$/i.test(p))target=p;
+    else if(/\/index$/i.test(p))target=p.replace(/\/index$/i,"/index.html");
+    else target=p.replace(/\/$/,"")+"/index.html";
+    try{return new URL(target,location.origin).href;}catch(e){return location.href.split("#")[0].split("?")[0];}
+  }
+  function bustUrl(extra){
+    var u;
+    try{u=new URL(pageUrl());}catch(e){u=new URL(location.href);}
+    u.searchParams.set("__u",Date.now().toString(36));
+    u.searchParams.set("__bust",Date.now().toString(36));
+    u.searchParams.set("skipabout","1");
+    if(extra)u.searchParams.set("v",String(extra).replace(/[^0-9]/g,""));
+    return u.href;
+  }
   async function clearRuntime(){
-    /* 注销 SW 要等它生效（否则旧 SW 仍可能拦导航）；清整页缓存放到后台，不阻塞换页。 */
     try{
       if(navigator.serviceWorker){
         var rs=await navigator.serviceWorker.getRegistrations();
-        await Promise.race([Promise.all(rs.map(function(r){return r.unregister().catch(function(){});})),new Promise(function(res){setTimeout(res,350);})]);
+        await Promise.race([Promise.all(rs.map(function(r){return r.unregister().catch(function(){});})),new Promise(function(res){setTimeout(res,400);})]);
       }
     }catch(_){}
     try{
       caches.keys().then(function(keys){
         keys.filter(function(k){return k.indexOf("eleven11-runtime-")===0;}).forEach(function(k){try{caches.delete(k);}catch(_){}});
-      });
+      }).catch(function(){});
     }catch(_){}
   }
-  window.__forceE11Update=function(manual){
-    if(running)return;
+  function forceUpdate(nb,manual){
     if(!manual&&!canForce())return;
-    running=true;
-    markForce();
+    if(recentTry(nb)){
+      if(manual)try{toast("更新已尝试过但页面还是旧版，请彻底关闭 App 再打开");}catch(_){}
+      return;
+    }
+    markForce();markTry(nb);pendingBuild="";
     try{localStorage.setItem("__aboutAck",build()||"1");}catch(_){}
     clearRuntime().finally(function(){
-      try{
-        var u=new URL(location.href);u.searchParams.set("__u",Date.now().toString(36));u.searchParams.set("__bust",Date.now().toString(36));
-        location.replace(u.href);
-      }catch(e){location.reload();}
+      try{location.replace(bustUrl(nb));}catch(e){try{location.reload();}catch(_){}}
     });
-  };
-  async function check(){
-    if(running||document.hidden)return;
+  }
+  function showApkUpdate(nb,apkUrl){
     try{
-      var res=await fetch("./version.json?__v="+Date.now().toString(36),{cache:"no-store",credentials:"same-origin"});
-      if(!res||!res.ok)return;
-      var j=await res.json();
-      var remote=String((j&&j.build)||"");
-      if(remote&&verNum(remote)>verNum(build())&&canForce()&&safeForAuto())window.__forceE11Update(false);
+      if(localStorage.getItem("__apkSkipBuild")===nb&&Date.now()-(+localStorage.getItem("__apkSkipAt")||0)<6*3600*1000)return;
+      var bar=document.getElementById("apk-update-bar");
+      if(!bar){
+        bar=document.createElement("div");bar.id="apk-update-bar";
+        bar.style.cssText="position:fixed;left:12px;right:12px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:100000;display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:16px;background:rgba(28,28,30,.94);color:#fff;font:500 13px -apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;box-shadow:0 10px 34px rgba(0,0,0,.38);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)";
+        document.body.appendChild(bar);
+      }
+      bar.innerHTML='';
+      var tx=document.createElement("div");tx.style.cssText="flex:1;min-width:0;line-height:1.35";
+      tx.innerHTML='发现新版本 <b style="font-weight:700">'+String(nb).replace(/[<>&]/g,"")+'</b><br><span style="opacity:.6;font-size:11px">下载后覆盖安装，聊天记录会保留</span>';
+      var go=document.createElement("button");go.textContent="下载更新";
+      go.style.cssText="flex:none;border:0;border-radius:11px;padding:8px 12px;background:#fff;color:#111;font:700 12px -apple-system,sans-serif";
+      go.onclick=function(){
+        try{
+          if(window.AndroidUI&&typeof AndroidUI.openUrl==="function")AndroidUI.openUrl(apkUrl);
+          else location.href=apkUrl;
+        }catch(e){try{location.href=apkUrl;}catch(_){}}
+      };
+      var x=document.createElement("button");x.textContent="×";
+      x.style.cssText="flex:none;border:0;background:transparent;color:#fff;font:400 18px -apple-system,sans-serif;padding:2px 4px";
+      x.onclick=function(){bar.style.display="none";try{localStorage.setItem("__apkSkipBuild",nb);localStorage.setItem("__apkSkipAt",String(Date.now()));}catch(_){}};
+      bar.appendChild(tx);bar.appendChild(go);bar.appendChild(x);
     }catch(_){}
   }
-  setTimeout(check,600);
-  setInterval(check,3000);
-  window.addEventListener("pageshow",function(){setTimeout(check,100);});
-  document.addEventListener("visibilitychange",function(){if(!document.hidden)setTimeout(check,100);});
-})();
-</script>
+  async function remoteInfo(){
+    var url=(apkMode()?REMOTE_VER:"./version.json")+"?__v="+Date.now().toString(36);
+    var ctrl=null,to=null;
+    try{
+      if(typeof AbortController!=="undefined"){ctrl=new AbortController();to=setTimeout(function(){try{ctrl.abort();}catch(_){}},8000);}
+      var r=await fetch(url,{cache:"no-store",credentials:"omit",signal:ctrl?ctrl.signal:undefined});
+      if(!r||!r.ok)throw new Error("HTTP "+(r&&r.status));
+      var j=await r.json();
+      var nb=String((j&&j.build)||"");
+      if(!nb)throw new Error("版本文件为空");
+      var apk=String((j&&j.apk)||"");
+      if(apk&&!/^https?:/i.test(apk))apk=REMOTE_BASE+apk.replace(/^\/+/,"");
+      return {build:nb,apk:apk};
+    }catch(e){
+      /* APK 的 WebView 偶尔会拦跨域；退回原生 HttpURLConnection */
+      if(apkMode()&&window.AndroidUI&&typeof AndroidUI.api==="function"){
+        try{
+          var raw=AndroidUI.api(REMOTE_VER+"?__v="+Date.now().toString(36),"GET","{}","");
+          var out=JSON.parse(String(raw||"{}"));
+          if(Number(out.status)===200){
+            var jj=JSON.parse(String(out.body||"{}"));
+            var ab=String(jj.build||"");
+            var au=String(jj.apk||"");
+            if(au&&!/^https?:/i.test(au))au=REMOTE_BASE+au.replace(/^\/+/,"");
+            return {build:ab,apk:au};
+          }
+        }catch(_){}
+      }
+      throw e;
+    }finally{
+      if(to)clearTimeout(to);
+    }
+  }
+  async function check(manual){
+    if(running)return;
+    running=true;
+    try{
+      var info=await remoteInfo();
+      var local=build();
+      var cmp=window.__cmpBuild?window.__cmpBuild(info.build,local):0;
+      if(cmp>0){
+        if(apkMode()){
+          var apkUrl=info.apk||"";
+          if(!apkUrl){var vm=/v(\d+)-(\d+)/.exec(info.build||"");if(vm)apkUrl="https://github.com/222H99/Elevenx11/releases/tag/v"+vm[1]+"-"+vm[2];}
+          if(apkUrl)showApkUpdate(info.build,apkUrl);
+          if(manual)try{toast(apkUrl?"发现新版本 "+info.build+"，请下载安装包":"发现新版本 "+info.build+"，请到发布页下载安装包");}catch(_){}
+        }else{
+          if(manual)try{toast("发现新版本 "+info.build+"，正在更新…");}catch(_){}
+          if(manual||autoSafe())forceUpdate(info.build,manual);
+          else{pendingBuild=info.build;try{toast("有新版本，切到后台后会自动更新");}catch(_){}}
+        }
+      }else{
+        if(manual)try{toast("已是最新版本（"+local+"）");}catch(_){}
+      }
+    }catch(e){
+      if(manual)try{toast("检查失败："+((e&&e.name==="AbortError")?"请求超时":((e&&e.message)||e)));}catch(_){}
+    }finally{
+      running=false;
+    }
+  }
+  window.__e11CheckVersion=check;
+  setTimeout(function(){check(false);},800);
+  setTimeout(function(){check(false);},5000);
+  setInterval(function(){if(!document.hidden)check(false);},15000);
+  window.addEventListener("pageshow",function(){setTimeout(function(){check(false);},150);});
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden){
+      if(pendingBuild){var b=pendingBuild;pendingBuild="";if(!apkMode())forceUpdate(b,true);}
+    }else{
+      setTimeout(function(){check(false);},150);
+    }
+  });
+})();</script>
 <!-- 真实 manifest.json 已在 head 里引用；不再注入 data URL manifest，避免浏览器装到旧图标/旧方向 -->
 
 <div id="diary-view">

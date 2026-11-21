@@ -1,3 +1,12 @@
+## v43-42（2026-11-21）
+
+- 检查更新失效根因：`__cmpBuild()` 只解析 `v` 后面的主段，`2026-11-21v43-41` 与 `2026-11-21v43-42` 都被当成 `v43`，比较结果永远是 0，所以手动检查一直提示“已是最新”。现在解析 `v主段-次段` 并保留旧 `v43-6p` 的字母后缀，同一天内的 v43-x 也能正确递增。
+- 打开自动更新：页面启动、回到前台、每 15 秒都会带时间戳请求 `version.json`；发现远端版本更高就走 `__forceE11Update` 同一套逻辑，注销旧 SW、清运行时缓存、带 `__u/__bust` 换页，不再等用户手点。正在聊天/输入时不打断，记下新版本，切后台或下次打开再换；同一版本 10 分钟内只尝试一次，避免“服务端版本文件已更新但整页还没同步”造成刷新循环。
+- APK 自动更新：APK 内置页是 `app.local` 本地资源，相对 `version.json` 永远是旧版，所以在 `app.local` 下改查线上主站 `https://4mhd000knq3sz.doubao.link/app/app_17j7cuqfra0/version.json`；发现新版在底部弹出“下载更新”条，按钮走 `AndroidUI.openUrl` 打开安装包地址，下载覆盖安装后聊天记录保留。安卓不允许 App 静默覆盖安装，这一步必须由用户点一次“安装”。
+- 登录网络兜底：`api()` 对断网、超时和 5xx 自动重试 1 次（400 密码错、429 限流不重试），登录超时 25s→15s；APK 内 Supabase Auth/Storage 请求先走 WebView，`Failed to fetch` 时退回原生 `HttpURLConnection`（新增 `auth/v1`、`storage/v1` 白名单和 PUT/PATCH/DELETE 支持），绕开部分机型 WebView 的跨域/网络异常。登录错误提示区分“密码不对 / 限流 / 服务器暂不可用 / 网络超时”。
+- 验证：`__cmpBuild('v43-42','v43-41')=1`、反向=-1、同版=0、`v43-6p<v43-38`；模拟远端 v43-42 时页面自动带 `__u` 换页；APK 模拟环境显示“发现新版本 / 下载更新”条，点击打开 `Eleven11-v43-42.apk`；登录 002 正常进首次改密卡，临时测试账号完成改密并进入；模拟首次 503、第二次成功时自动重试后进入；页面无 pageerror。
+- 版本：v43-42，Android versionCode 63，APK `Eleven11-v43-42.apk`，869,621 bytes，APK MD5 `548e47f8682c7db07c17722661768af3`，页面 MD5 `1af9663301a455bc28dbc7a752cc2352`。
+
 ## v43-41（2026-11-21）
 
 - 安卓 APK 语音录成静音：根因是 `AndroidManifest.xml` 从未声明 `android.permission.RECORD_AUDIO`，`MainActivity` 也没有实现 `WebChromeClient.onPermissionRequest`。WebView 里 `getUserMedia` 没有可用的录音权限，录出来的 mp4/WAV 电平接近零（云端 `m6825` max=159、`m6857` max=190，满幅 32767）。
