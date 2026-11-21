@@ -2468,7 +2468,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-21v43-44">
+<meta name="app-build" content="2026-11-21v43-45">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4132,7 +4132,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-44</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-45</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5664,10 +5664,47 @@ setTimeout(function(){
     }catch(e){}
     return {app:"privateChat",version:4,exportedAt:new Date().toISOString(),savedAt:Number(st.__savedAt)||Date.now(),state:st,extras:extras};
   }
+  function __e11MergeLocalDiary(st,localState){
+    try{
+      var ld=localState&&localState.diary;if(!ld||!ld.pages)return;
+      st.diary=st.diary||{};st.diary.pages=st.diary.pages||{};
+      var lp=ld.pages,cp=st.diary.pages;
+      Object.keys(lp).forEach(function(k){
+        var a=lp[k],b=cp[k];if(!a)return;
+        if(!b){cp[k]=a;return;}
+        var amt=Number(a.mine&&a.mine.time)||0,bmt=Number(b.mine&&b.mine.time)||0;
+        var apt=Number(a.partner&&a.partner.time)||0,bpt=Number(b.partner&&b.partner.time)||0;
+        if(amt>bmt){b.mine=a.mine;}
+        if(apt>bpt){b.partner=a.partner;}
+        if(amt>bmt||apt>bpt){
+          if(a.stickers!==undefined)b.stickers=a.stickers;
+          if(a.paperImg!==undefined)b.paperImg=a.paperImg;
+          if(a.writtenAt!==undefined)b.writtenAt=a.writtenAt;
+        }
+      });
+      if(!st.diary.cover&&ld.cover)st.diary.cover=ld.cover;
+    }catch(_){}
+  }
   function applySnapshot(snap){
     if(!snap||!snap.state)throw new Error("云端存档格式不对");
     var st=snap.state;
     var localState=null;try{localState=window.__e11StateGet?window.__e11StateGet():null;}catch(_){}
+    /* 云端消息更多时只拿云端消息；本机这次真的保存过（有聊天或日记，且保存时间更新），
+       其余设置/资料/日记保留本机，避免“刚改完就被云端旧档整档盖掉”。 */
+    var __keepLocal=false,__cloudTs=Number(snap.savedAt)||0,__localTs=Number(localState&&localState.__savedAt)||0;
+    try{
+      if(localState){
+        var __lp=localState.diary&&localState.diary.pages?Object.keys(localState.diary.pages).length:0;
+        __keepLocal=(__e11MsgStats(localState).n>0||__lp>0)&&__localTs>__cloudTs;
+      }
+    }catch(_k){}
+    if(__keepLocal){
+      Object.keys(localState).forEach(function(k){
+        if(k==="messages"||k==="seq"||k==="__savedAt"||k==="diary")return;
+        st[k]=localState[k];
+      });
+    }
+    __e11MergeLocalDiary(st,localState);
     try{st.__savedAt=Date.now();}catch(e){}
     window.__e11CloudPause=1;
     try{window.__e11SetState&&window.__e11SetState(st);}catch(e){}
@@ -6259,10 +6296,10 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-21",
-  noticeKey:"2026-11-21v43-44",
-  lead:"v43-44：本月小结分成「我」和「对方」两套数据分别展示；日记不再只靠保存按钮，打字停下约 0.8 秒自动写进本机并同步，关闭日记、切后台也会强制落盘。所有刚改过的内容优先保留，不会被云端旧档盖回去。",
+  noticeKey:"2026-11-21v43-45",
+  lead:"v43-45：本月小结分成「我」和「对方」两套数据分别展示；日记打字停下约 0.8 秒自动保存，关闭日记、切后台强制落盘；云端消息更多时只拿云端消息，本机刚改的日记、设置和资料继续保留，不再被整档覆盖。",
   items:[
-    '<span class="an-gt">v43-44 · 本月小结 / 日记自动保存</span>',
+    '<span class="an-gt">v43-45 · 本月小结 / 日记自动保存</span>',
     "日记的「本月小结」拆成「我」和「对方」两栏：各自的心情分布、写下的天数、字数、贴纸数分开算，不再混在一起",
     "日记正文打字停下约 0.8 秒自动保存，页面提示「已自动保存 HH:MM」；关闭日记、切后台、刷新前也会强制写入本机，不用再点保存按钮",
     "同一条最后消息时，只有云端多出 20 条以上才判云端更完整；刚改过的日记和设置保存时间更新时优先保留本机，避免改完又被旧云档盖回去",
