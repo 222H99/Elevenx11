@@ -6,7 +6,7 @@
 - 评论提示：`__rebuildSocialNotices` 只统计未读的顶层评论、以及挂在我评论下（`parentFrom==="me"` / `toMe`）的对方回复，重建时带 `momentId` / `commentId`；`__socialNoticeEmpty` 支持楼中楼回复；`__openMomentComment` 目标评论不存在时退到该动态最新对方评论，动态已删会 toast。
 - 新动态提示只认 `unreadKind==="post"`，评论/回复不会再额外冒一条“对方发了一条新动态”。
 - 验证：1200×1200 JPEG 背景换图后刷新仍为新图；伪造 `data:audio/mp4` 的 WAV 可正常走 WebAudio 播放；模拟录音 1.8 秒得到 `data:audio/wav` 并以 `__voiceNode` 播放；评论楼中楼回复通知带 `mom1/r1`，点击后动态打开并命中 `.mc-row[data-mc=r1]`；歌单删除后 `__mergeMediaRepair` 不复活；页面无 pageerror。
-- 版本：v43-39，Android versionCode 60，APK `Eleven11-v43-39.apk`，APK MD5 `8e790c97e1504564068e8f6d158237eb`，页面 MD5 `74ff12ead306c0244f60705cc609be69`。
+- 版本：v43-39，Android versionCode 60，APK `Eleven11-v43-39.apk`，APK MD5 `f6ee7d31ed993c58ddccc0c8967fa488`，页面 MD5 `fdf591c7885f625e50faa5284b35d070`。
 
 ## v43-38（2026-11-21）
 
