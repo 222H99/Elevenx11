@@ -1,3 +1,10 @@
+## v43-40（2026-11-21）
+
+- 信箱「跟随主题」夜间背景改为纯黑 `#000`：去掉 v43-37 的深灰渐变，`--lt-bg` 与 `.lt-bg` 实际都是 `rgb(0,0,0)`；白天仍跟随浅色主题为白色。
+- 信件背景的粉白、蓝白、米色、薰衣草、薄荷、蜜桃六个默认预设，夜间切换也立刻生效。根因是 `applySkin()` 只在 `!dark` 时给 `body` 加 `lt-preset`，夜间被 `body.ui-dark:not(.lt-preset)` 的黑色规则压住；现在只要选了预设就加 `lt-preset`，夜间由 `body.ui-dark.lt-preset` 分支按预设纸色显示。
+- 验证：夜间 `ltBg=0` 时 `.lt-bg` 为 `rgb(0,0,0)`；依次点 1–6 六个预设，`.lt-bg` 分别得到粉白/蓝白/米色/薰衣草/薄荷/蜜桃渐变；点回 0 恢复纯黑；无 pageerror。
+- 版本：v43-40，Android versionCode 61，APK `Eleven11-v43-40.apk`，APK MD5 `bb046df35c406b0b9adfb2220f1ae02a`，页面 MD5 `589bd72e29adf6ace6a2324bd11ee122`。
+
 ## v43-39（2026-11-21）
 
 - 背景持久化：`skin.bgImage` / `skin.meImage` 不再外置成 `bigref`，导入后立即 `__flushSave(true)` 并推云端；同时停掉历史图片修复里补 `meImage` / `meTopImage` 的分支，换过的背景重开、切后台、马上关掉都不会变回旧图。
