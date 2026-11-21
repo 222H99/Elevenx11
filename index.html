@@ -1578,6 +1578,95 @@ body.ui-dark.lt-preset .env-card .ev-page{background:var(--lt-paper,#FFFFFF) !im
 body.ui-dark.lt-preset .env-card .ev-page-head{background:rgba(255,255,255,.94) !important;color:#1C1C1E !important;border-bottom-color:rgba(0,0,0,.08) !important;}
 body.ui-dark.lt-preset .env-card .ev-page-title{color:#1C1C1E !important;}
 body.ui-dark.lt-preset .env-card .ev-page-head .small-btn.ghost{background:rgba(0,0,0,.06) !important;color:#1C1C1E !important;}
+/* ===== v43-37 信件夜间：夜玻璃 =====
+   夜间信件不再是一整块纯黑 + 白色信纸块，改成深色半透明玻璃：
+   底图仍透出一点，信纸/正文/来信详情统一成暗玻璃，字用近白色。 */
+body.ui-dark:not(.lt-preset) #view-letters{
+  --lt-bg:linear-gradient(160deg,#232733 0%,#101218 46%,#171a22 100%) !important;
+}
+body.ui-dark:not(.lt-preset) #env-flip.showcard .env-card{
+  background-color:rgba(9,11,16,.66) !important;
+  background-image:linear-gradient(155deg,rgba(44,48,60,.74),rgba(10,12,18,.66)) !important;
+  -webkit-backdrop-filter:blur(30px) saturate(155%) !important;
+  backdrop-filter:blur(30px) saturate(155%) !important;
+}
+body.ui-dark:not(.lt-preset) .env-card .ev-page{
+  background:linear-gradient(160deg,rgba(58,62,76,.46),rgba(13,15,21,.42)) !important;
+  border:1px solid rgba(255,255,255,.10) !important;
+  color:#F2F2F7 !important;
+  -webkit-backdrop-filter:blur(20px) saturate(150%);
+  backdrop-filter:blur(20px) saturate(150%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10);
+}
+body.ui-dark:not(.lt-preset) .env-card .ev-page-head{
+  background:linear-gradient(180deg,rgba(22,25,33,.80),rgba(14,16,22,.60)) !important;
+  color:#F2F2F7 !important;
+  border-bottom-color:rgba(255,255,255,.12) !important;
+  -webkit-backdrop-filter:blur(20px) saturate(160%);
+  backdrop-filter:blur(20px) saturate(160%);
+}
+body.ui-dark:not(.lt-preset) .env-card .ev-page .ev-main:not(.ev-user-paper),
+body.ui-dark:not(.lt-preset) .env-card .ev-page .ev-rep:not(.ev-user-paper){
+  background-color:rgba(255,255,255,.06) !important;
+  background-image:linear-gradient(145deg,rgba(255,255,255,.10),rgba(255,255,255,.04)) !important;
+  border:1px solid rgba(255,255,255,.12) !important;
+  color:#F2F2F7 !important;
+  box-shadow:0 8px 22px rgba(0,0,0,.20),inset 0 1px 0 rgba(255,255,255,.12) !important;
+  -webkit-backdrop-filter:blur(14px) saturate(150%);
+  backdrop-filter:blur(14px) saturate(150%);
+}
+body.ui-dark:not(.lt-preset) .env-card .ev-page .ev-main:not(.ev-user-paper) .ev-title,
+body.ui-dark:not(.lt-preset) .env-card .ev-page .ev-main:not(.ev-user-paper) .ev-body,
+body.ui-dark:not(.lt-preset) .env-card .ev-page .ev-main:not(.ev-user-paper) .ev-line,
+body.ui-dark:not(.lt-preset) .env-card .ev-page .ev-main:not(.ev-user-paper) .ev-sig,
+body.ui-dark:not(.lt-preset) .env-card .ev-page .ev-main:not(.ev-user-paper) .ev-sign,
+body.ui-dark:not(.lt-preset) .env-card .ev-page .ev-main:not(.ev-user-paper) .ev-date,
+body.ui-dark:not(.lt-preset) .env-card .ev-page .ev-rep:not(.ev-user-paper) .ev-title,
+body.ui-dark:not(.lt-preset) .env-card .ev-page .ev-rep:not(.ev-user-paper) .ev-body,
+body.ui-dark:not(.lt-preset) .env-card .ev-page .ev-rep:not(.ev-user-paper) .ev-line,
+body.ui-dark:not(.lt-preset) .env-card .ev-page .ev-rep:not(.ev-user-paper) .ev-sig,
+body.ui-dark:not(.lt-preset) .env-card .ev-page .ev-rep:not(.ev-user-paper) .ev-sign,
+body.ui-dark:not(.lt-preset) .env-card .ev-page .ev-rep:not(.ev-user-paper) .ev-date{color:#F2F2F7 !important;}
+body.ui-dark:not(.lt-preset) .env-card .ev-page .ev-main:not(.ev-user-paper) .ev-sig,
+body.ui-dark:not(.lt-preset) .env-card .ev-page .ev-rep:not(.ev-user-paper) .ev-sig,
+body.ui-dark:not(.lt-preset) .env-card .ev-page .ev-rep:not(.ev-user-paper) b{color:rgba(255,255,255,.62) !important;}
+body.ui-dark:not(.lt-preset) .env-card .ev-reply-ta{
+  background:rgba(255,255,255,.09) !important;
+  border-color:rgba(255,255,255,.14) !important;
+  color:#F2F2F7 !important;
+}
+/* 信件列表也换成夜玻璃卡片，别再用整张白纸 */
+body.ui-dark:not(.lt-preset) #view-letters .lt-card{
+  background-color:rgba(255,255,255,.055) !important;
+  background-image:linear-gradient(145deg,rgba(255,255,255,.10),rgba(255,255,255,.04)) !important;
+  border-color:rgba(255,255,255,.14) !important;
+  color:#F2F2F7 !important;
+  box-shadow:0 12px 28px rgba(0,0,0,.26),inset 0 1px 0 rgba(255,255,255,.12) !important;
+  -webkit-backdrop-filter:blur(22px) saturate(160%);
+  backdrop-filter:blur(22px) saturate(160%);
+}
+body.ui-dark:not(.lt-preset) #view-letters .lt-card .lt-nm,
+body.ui-dark:not(.lt-preset) #view-letters .lt-card .lt-subject,
+body.ui-dark:not(.lt-preset) #view-letters .lt-card .lt-body{color:#F2F2F7 !important;}
+body.ui-dark:not(.lt-preset) #view-letters .lt-card .lt-time{color:rgba(255,255,255,.58) !important;}
+body.ui-dark:not(.lt-preset) #view-letters .lt-card .lt-body{color:rgba(255,255,255,.72) !important;}
+body.ui-dark:not(.lt-preset) #view-letters .lt-card .lt-lock{
+  color:rgba(255,255,255,.68) !important;
+  background:rgba(255,255,255,.08) !important;
+  border-color:rgba(255,255,255,.14) !important;
+}
+body.ui-dark:not(.lt-preset) #view-letters .lt-card .lt-lock.unread{
+  color:#DCE9FF !important;
+  background:rgba(90,160,255,.20) !important;
+  border-color:rgba(90,160,255,.40) !important;
+}
+body.ui-dark:not(.lt-preset) #view-letters .lt-sub{
+  background:rgba(255,255,255,.07) !important;
+  border:1px solid rgba(255,255,255,.10);
+}
+body.ui-dark:not(.lt-preset) #view-letters .lt-sub .lt-nm,
+body.ui-dark:not(.lt-preset) #view-letters .lt-sub .lt-subject,
+body.ui-dark:not(.lt-preset) #view-letters .lt-sub .lt-body{color:#F2F2F7 !important;}
 /* ===== 进入密码锁屏 ===== */
 .lock-screen{position:fixed;inset:0;z-index:10000;display:none;flex-direction:column;align-items:center;justify-content:center;padding:40px;
   background:#FFFFFF;
@@ -2354,7 +2443,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-21v43-36">
+<meta name="app-build" content="2026-11-21v43-37">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4018,7 +4107,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-36</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-37</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -6050,9 +6139,16 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-21",
-  noticeKey:"2026-11-21v43-36",
-  lead:"v43-36：桌面和聊天背景现在真正共用同一张图/同一条渐变；语音加了独立麦克风按钮，长按更稳、录音体积更小；问卷叉号关掉不会再弹回来；推歌卡片和推歌面板都换成液态玻璃。",
+  noticeKey:"2026-11-21v43-37",
+  lead:"v43-37：聊天背景和桌面分开了；多选里图片能正常勾选、删除，“生成长图”也真的能出图；日记“本月小结”可以反复点开；信件夜间换成夜玻璃；新建字卡分组后，回复仍默认用全部字卡。",
   items:[
+    '<span class="an-gt">v43-37 · 背景分开 / 多选长图 / 日记 / 夜玻璃 / 字卡</span>',
+    "聊天背景和桌面不再共用：聊天只用自己的背景图/底色，桌面继续用自己的图；没单独设聊天背景时聊天用纯色底，不会再把桌面图铺进来",
+    "多选模式下长按图片不会再弹出大图，点一下就是勾选/取消；批量删除图片、文字和长图消息都能正常删掉",
+    "多选工具栏“生成长图”现在真的可用：按勾选顺序生成竖版聊天记录，文字、图片、语音、红包、推歌都能画进去，生成后可长按存相册或系统分享",
+    "日记“本月小结”改成手动点击每次都能打开；同一个月自动弹过一次也不会再挡住手动查看",
+    "信件夜间从“纯黑底 + 白纸块”换成夜玻璃：深色半透明信纸、正文和来信详情，字用近白色，选过彩色信纸预设的仍按预设走",
+    "新建字卡分组只切换当前浏览的分组，不再把“对方回复用哪组字卡”偷偷改成新分组；回复默认仍是所有分组",
     '<span class="an-gt">v43-36 · 共用背景 / 语音 / 问卷 / 推歌玻璃</span>',
     "桌面和聊天背景彻底共用：有自定义图时两边用同一张；没有自定义图时聊天也用桌面那条预设渐变，不再退回纯色/空白",
     "聊天输入栏新增麦克风按钮：轻点一下开始录，点浮层任意位置结束并发送；按住也能说话，松手发送。长按阈值缩短到 0.42 秒，先出录音浮层再等权限，不会按了半天没反应",
@@ -8375,7 +8471,8 @@ function applySkin(){
   /* 信件背景：0 号「跟随主题」白天白/夜间黑；1 号起的彩色预设照旧生效 */
   let ltPreset=(s.ltBg>0&&GB_PRESETS[s.ltBg]&&GB_PRESETS[s.ltBg].g)?GB_PRESETS[s.ltBg].g:null;
   let ltGrad=ltPreset?ltPreset:(dark?'linear-gradient(180deg,#000000,#000000)':'linear-gradient(180deg,#ffffff,#ffffff)');
-  try{document.body.classList.toggle("lt-preset",!!ltPreset);}catch(e){}
+  /* v43-37：夜间走「夜玻璃」，彩色信纸预设只在白天生效；切回浅色仍按用户选的纸 */
+  try{document.body.classList.toggle("lt-preset",!!ltPreset&&!dark);}catch(e){}
   r.setProperty("--lt-bg",ltGrad);
   /* 页面背景可以跟主题黑，但信件纸本身默认必须白；只有用户主动选了彩色信件背景才用预设 */
   r.setProperty("--lt-paper",ltPreset||"#FFFFFF");
@@ -8390,27 +8487,21 @@ function applySkin(){
   r.setProperty("--me-bg",meGrad);
   document.querySelectorAll(".me-bg").forEach(el=>el.style.background=s.meImage?('url("'+wallUrl(s.meImage)+'") center/cover no-repeat'):('var(--me-bg)'));
   /* 顶栏颜色交给 __syncSysBar() 按 App 当前明暗处理 */
-  /* v43-32：没有单独设聊天壁纸时，聊天背景直接共用主页/桌面背景（skin.meImage）。
-     以前这里写 none，聊天页就只剩纯色底；用户看到的“聊天背景不和桌面共用”就是这个。 */
-  /* v43-36：聊天背景不再自己拼一套，直接把桌面 .me-bg 已经画出来的背景
-     （自定义图、预设渐变、底色、cover 位置）原样拷到聊天页。
-     这样不管桌面用的是图还是默认渐变，聊天和桌面都是同一张。 */
-  var _wallSrc=s.meImage||"";
+  /* v43-37：聊天背景和桌面彻底分开。
+     聊天只认自己的 skin.bgImage / skin.bg；桌面继续用 skin.meImage / skin.meBg。
+     先清掉 v43-36 写在 #view-chat 上的内联背景，否则旧桌面图会一直残留。 */
+  var _wallSrc=s.bgImage||"";
   try{
     var _chatView=document.getElementById("view-chat");
-    var _meBgLayer=document.querySelector("#view-me .me-bg");
-    if(_chatView&&_meBgLayer){
-      var _mbcs=getComputedStyle(_meBgLayer);
-      var _mvcs=getComputedStyle(document.getElementById("view-me"));
-      /* 底色取桌面这一整页（图后面那层），这样半透明图/渐变也不会透出不同的底 */
-      _chatView.style.backgroundColor=_mvcs.backgroundColor||_mbcs.backgroundColor;
-      _chatView.style.backgroundImage=(_mbcs.backgroundImage&&_mbcs.backgroundImage!=="none")?_mbcs.backgroundImage:"none";
-      _chatView.style.backgroundSize=_mbcs.backgroundSize||"cover";
-      _chatView.style.backgroundPosition=_mbcs.backgroundPosition||"center";
-      _chatView.style.backgroundRepeat=_mbcs.backgroundRepeat||"no-repeat";
-      _chatView.style.backgroundAttachment=_mbcs.backgroundAttachment||"scroll";
+    if(_chatView){
+      _chatView.style.backgroundColor="";
+      _chatView.style.backgroundImage="";
+      _chatView.style.backgroundSize="";
+      _chatView.style.backgroundPosition="";
+      _chatView.style.backgroundRepeat="";
+      _chatView.style.backgroundAttachment="";
     }
-  }catch(_eWallCopy){}
+  }catch(_eWallReset){}
   r.setProperty("--wallimg",_wallSrc?'url("'+wallUrl(_wallSrc)+'")':"none");
   r.setProperty("--walltint","rgba(0,0,0,0)");
   /* 夜间/白天切换时，音乐页「跟随主题」的底色要跟着重画 */
@@ -8428,48 +8519,50 @@ function applySkin(){
   }catch(e){}
   // 墙纸兜底底色 = 背景图平均色：图未解码/未就绪的瞬间显示近似色，避免闪白或闪黑
   if(s.bgImage){
-    if(window._wallBgSrc!==s.bgImage){
-      window._wallBgSrc=s.bgImage;
+    const _bgSrcNow=s.bgImage;
+    if(window._wallBgSrc!==_bgSrcNow){
+      window._wallBgSrc=_bgSrcNow;
       try{
         const _ti=new Image();
         _ti.onload=function(){
+          /* 图还没解码完用户就换/删了背景：旧图的平均色不能回头覆盖新状态 */
+          if(s.bgImage!==_bgSrcNow)return;
           try{
             const _c=document.createElement("canvas");_c.width=6;_c.height=6;
             const _x=_c.getContext("2d");_x.drawImage(_ti,0,0,6,6);
             const _d=_x.getImageData(0,0,6,6).data;let _r=0,_g=0,_b=0,_n=0;
             for(let i=0;i<_d.length;i+=4){_r+=_d[i];_g+=_d[i+1];_b+=_d[i+2];_n++;}
-            if(_n){var _avg="rgb("+Math.round(_r/_n)+","+Math.round(_g/_n)+","+Math.round(_b/_n)+")";r.setProperty("--wallbg",_avg);
+            if(_n){var _avg="rgb("+Math.round(_r/_n)+","+Math.round(_g/_n)+","+Math.round(_b/_n)+")";r.setProperty("--wallbg",_avg);r.setProperty("--bootbg",_avg);
               try{document.documentElement.style.setProperty("background-color",_avg,"important");document.body.style.setProperty("background-color",_avg,"important");if(window.__themeReady)localStorage.setItem("e11.bootBg",_avg);}catch(_eA){}}
           }catch(e){}
         };
-        _ti.src=wallUrl(s.bgImage);
+        _ti.src=wallUrl(_bgSrcNow);
       }catch(e){}
     }
   }else if(s.meImage){
-    /* v43-30：主页背景图也算启动底色。没有聊天壁纸时，用主页图的平均色，
-       避免退出再进入先闪一块纯白/纯黑，再突然变成雨滴或粉色。 */
-    if(window._meBgSrc!==s.meImage){
-      window._meBgSrc=s.meImage;
+    /* 桌面图只用于冷启动/系统安全区的垫底色，绝不写进 --wallbg，聊天页不会因此和桌面共用。
+       这样既保留桌面雨滴/照片皮肤的近似底色，避免启动先闪白，又不影响聊天自己的背景。 */
+    r.removeProperty("--wallbg");
+    const _meSrcNow=s.meImage;
+    if(window._meBgSrc!==_meSrcNow){
+      window._meBgSrc=_meSrcNow;
       try{
         const _mi=new Image();
         _mi.onload=function(){
+          if(s.meImage!==_meSrcNow)return;
           try{
             const _c=document.createElement("canvas");_c.width=6;_c.height=6;
             const _x=_c.getContext("2d");_x.drawImage(_mi,0,0,6,6);
             const _d=_x.getImageData(0,0,6,6).data;let _r=0,_g=0,_b=0,_n=0;
             for(let i=0;i<_d.length;i+=4){_r+=_d[i];_g+=_d[i+1];_b+=_d[i+2];_n++;}
-            if(_n){var _avg="rgb("+Math.round(_r/_n)+","+Math.round(_g/_n)+","+Math.round(_b/_n)+")";
-              r.setProperty("--wallbg",_avg);
-              document.documentElement.style.setProperty("background-color",_avg,"important");
-              document.body.style.setProperty("background-color",_avg,"important");
-              if(window.__themeReady)localStorage.setItem("e11.bootBg",_avg);
-            }
+            if(_n){var _avg="rgb("+Math.round(_r/_n)+","+Math.round(_g/_n)+","+Math.round(_b/_n)+")";r.setProperty("--bootbg",_avg);
+              try{document.documentElement.style.setProperty("background-color",_avg,"important");document.body.style.setProperty("background-color",_avg,"important");if(window.__themeReady)localStorage.setItem("e11.bootBg",_avg);}catch(_eA){}}
           }catch(e){}
         };
-        _mi.src=wallUrl(s.meImage);
+        _mi.src=wallUrl(_meSrcNow);
       }catch(e){}
     }
-  }else{r.removeProperty("--wallbg");}
+  }else{r.removeProperty("--wallbg");r.removeProperty("--bootbg");}
   // 气泡样式预设：经典 / 圆润 / 圆角方块 / 描边
   const bs=s.bubbleStyle||"classic";
   let rad="18px",tail="4px",bw="0px solid transparent";
@@ -8526,8 +8619,8 @@ function applySkin(){
     try{
       /* v43-30：根/系统安全区底色用实际皮肤底色，而不是只分黑/白两档。
          有壁纸时优先用壁纸平均色 --wallbg；否则用 skin.bg。 */
-      var _wallc=(r.getPropertyValue("--wallbg")||"").trim();
-      var _bg=s.bgImage&&_wallc?_wallc:(s.bg||(dark?"#000000":"#fafafa"));
+      var _bootc=(r.getPropertyValue("--bootbg")||"").trim();
+      var _bg=_bootc||s.bg||(dark?"#000000":"#fafafa");
       document.documentElement.style.setProperty("background-color",_bg,"important");
       document.body.style.setProperty("background-color",_bg,"important");
       document.documentElement.style.setProperty("--sysbar-bg",_bg);
@@ -10023,6 +10116,8 @@ function bindLongPress(row,kind){
   const clear=()=>{if(t){clearTimeout(t);t=null;}};
   row.addEventListener("touchstart",e=>{
     const tc=e.touches[0];sx=tc.clientX;sy=tc.clientY;clear();
+    /* v43-37：多选模式下长按图片不能再放大图，交给点击做勾选/取消勾选 */
+    try{if(__msgSelOn)return;}catch(_eSel){}
     /* 红包/问卷：单击卡片看详情；长按卡片本体才弹操作/多选，按在按钮上不抢点击 */
     try{
       if(e.target&&e.target.closest&&e.target.closest("button,input,textarea,a,.rp-act,.sq-act,.sq-opt,[data-act]"))return;
@@ -12358,6 +12453,8 @@ function __msgSelPaint(){
   var cnt=$("msb-count");if(cnt)cnt.textContent="已选 "+n;
   var del=$("msb-del");
   if(del)del.disabled=!n;
+  var lng=$("msb-long");
+  if(lng)lng.disabled=!n;
   try{
     Array.prototype.forEach.call(document.querySelectorAll("#msglist .msg-row,#msglist .msg-sys"),function(el){
       var id=el.getAttribute("data-id")||el.getAttribute("data-sq")||el.getAttribute("data-rp");
@@ -12398,6 +12495,12 @@ try{window.__msgSelEnter=__msgSelEnter;window.__msgSelExit=__msgSelExit;}catch(e
     if(__msgSelIds.length===allIds.length)__msgSelIds=[];else __msgSelIds=allIds;
     __msgSelPaint();
   });
+  var lng=$("msb-long");
+  if(lng)lng.addEventListener("click",function(){
+    var ids=__msgSelIds.slice();
+    if(!ids.length){toast("先勾选要生成的消息");return;}
+    __msgSelLongShot(ids);
+  });
   if(dd)dd.addEventListener("click",async function(){
     var n=__msgSelIds.length;if(!n)return;
     if(!(await __iosConfirm("删除选中的 "+n+" 条消息？此操作不可撤销。")))return;
@@ -12410,6 +12513,184 @@ try{window.__msgSelEnter=__msgSelEnter;window.__msgSelExit=__msgSelExit;}catch(e
     toast("已删除 "+n+" 条消息");
   });
 })();
+/* ===== v43-37：多选「生成长图」真正可用 =====
+   不依赖第三方截图库：按选中的消息顺序，用 Canvas 画成一张竖图。
+   支持文字 / 图片 / 语音 / 红包 / 推歌 / 系统提示；生成后弹层里可长按存相册或系统分享。 */
+function __lsRoundRect(ctx,x,y,w,h,r){
+  r=Math.min(r,w/2,h/2);
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+}
+function __lsWrap(ctx,text,maxW){
+  var lines=[],line="";
+  String(text==null?"":text).split("\n").forEach(function(par){
+    if(!par){lines.push("");return;}
+    Array.from(par).forEach(function(ch){
+      var tryLine=line+ch;
+      if(line&&ctx.measureText(tryLine).width>maxW){lines.push(line);line=ch;}
+      else line=tryLine;
+    });
+  });
+  if(line||!lines.length)lines.push(line);
+  return lines;
+}
+function __lsMsgText(m){
+  try{
+    if(m.type==="voice")return "🎙 语音 "+Math.max(1,Math.round(Number(m.dur)||1))+"″";
+    if(m.type==="redpacket"){var r={};try{r=JSON.parse(m.text||"{}");}catch(_){}
+      return "🧧 红包"+(r.amount?(" · "+r.amount+" 元"):"")+(r.note?(" · "+r.note):"");}
+    if(m.type==="song"&&m.song)return "🎵 推歌 · "+String(m.song.name||"");
+    if(m.type==="invite")return m.inv==="music"?"🎧 一起听歌邀请":"🎨 一起画画邀请";
+    if(m.type==="poke")return "👋 拍了拍";
+    if(m.type==="survey")return "📋 问卷";
+    if(m.type==="sys")return String(m.text||"");
+    if(m.type==="image")return "";
+    return String(m.text||msgPreviewText(m)||"");
+  }catch(_){return "[消息]";}
+}
+function __msgSelLongShot(ids){
+  try{
+    var ms=(state.messages||[]).filter(function(m){return m&&ids.indexOf(m.id)>=0&&!m.recalled;});
+    if(!ms.length){toast("选中的消息里没有可生成的内容");return;}
+    ms.sort(function(a,b){return (Number(a.time)||0)-(Number(b.time)||0);});
+    var loads=ms.map(function(m){
+      return new Promise(function(resolve){
+        if(m.type!=="image"||!m.src||!/^(data:image\/|blob:|https?:)/i.test(String(m.src)))return resolve(null);
+        var im=new Image();
+        if(/^https?:/i.test(String(m.src)))im.crossOrigin="anonymous";
+        im.onload=function(){resolve(im);};
+        im.onerror=function(){resolve(null);};
+        try{im.src=m.src;}catch(_){resolve(null);}
+      });
+    });
+    Promise.all(loads).then(function(pics){
+      var CW=750,PAD=34,CONTENT=CW-PAD*2,HEAD=118,FOOT=72;
+      var blocks=[],h=HEAD;
+      ms.forEach(function(m,idx){
+        if(m.type==="sys"){
+          blocks.push({m:m,sys:true,h:42});h+=42;return;
+        }
+        var isMe=m.from==="me";
+        var pic=pics[idx];
+        var b={m:m,isMe:isMe,h:0,lines:[],pic:pic};
+        if(pic){
+          var maxW=470,maxH=620;
+          var iw=pic.width||maxW,ih=pic.height||maxW;
+          var sc=Math.min(1,maxW/iw,maxH/ih);
+          b.iw=Math.max(1,Math.round(iw*sc));b.ih=Math.max(1,Math.round(ih*sc));
+          b.bw=b.iw;b.bh=b.ih;b.h=28+b.bh+18;
+        }else{
+          var txt=__lsMsgText(m)||"[消息]";
+          var c=document.createElement("canvas").getContext("2d");
+          c.font="27px -apple-system,BlinkMacSystemFont,'PingFang SC','Helvetica Neue',Arial,sans-serif";
+          b.lines=__lsWrap(c,txt,470);
+          var lw=0;b.lines.forEach(function(l){lw=Math.max(lw,c.measureText(l).width);});
+          b.bw=Math.min(502,Math.max(96,Math.ceil(lw)+36));
+          b.bh=Math.max(52,b.lines.length*39+30);
+          b.h=28+b.bh+18;
+        }
+        blocks.push(b);h+=b.h;
+      });
+      var total=h+FOOT;
+      if(total>16000){toast("选得太多了，长图会超长，请少选几条");return;}
+      var DPR=total>5200?1:2;
+      var cv=document.createElement("canvas");cv.width=CW*DPR;cv.height=Math.round(total*DPR);
+      var x=cv.getContext("2d");x.scale(DPR,DPR);
+      var bg=x.createLinearGradient(0,0,CW,total);
+      bg.addColorStop(0,"#F7F8FC");bg.addColorStop(1,"#ECEEF5");
+      x.fillStyle=bg;x.fillRect(0,0,CW,total);
+      /* 顶部 */
+      var hd=x.createLinearGradient(0,0,CW,HEAD);
+      hd.addColorStop(0,"#1B1D26");hd.addColorStop(1,"#303645");
+      x.fillStyle=hd;x.fillRect(0,0,CW,HEAD);
+      x.fillStyle="rgba(255,255,255,.92)";x.font="700 34px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
+      x.textBaseline="middle";x.fillText("Eleven × 11",PAD,46);
+      var d=new Date(ms[0].time||Date.now());
+      var ds=d.getFullYear()+"."+("0"+(d.getMonth()+1)).slice(-2)+"."+("0"+d.getDate()).slice(-2);
+      x.fillStyle="rgba(255,255,255,.55)";x.font="20px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
+      x.fillText("聊天记录 · "+ds+" · "+ms.length+" 条",PAD,84);
+      var cur=HEAD;
+      blocks.forEach(function(b){
+        var m=b.m,isMe=b.isMe;
+        if(b.sys){
+          x.fillStyle="rgba(120,125,140,.10)";__lsRoundRect(x,PAD+120,cur+6,CONTENT-240,30,15);x.fill();
+          x.fillStyle="rgba(90,95,110,.62)";x.font="19px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
+          x.textAlign="center";x.textBaseline="middle";
+          var st=String(m.text||"").replace(/\s+/g," ").trim();
+          if(st.length>40)st=st.slice(0,40)+"…";
+          x.fillText(st,CW/2,cur+21);x.textAlign="left";cur+=b.h;return;
+        }
+        var label=(isMe?"我":String((state.partner&&state.partner.name)||"TA"));
+        x.font="600 18px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
+        x.fillStyle="rgba(80,85,100,.55)";x.textBaseline="middle";
+        x.textAlign=isMe?"right":"left";
+        x.fillText(label,isMe?CW-PAD:PAD,cur+12);
+        x.textAlign="left";
+        var by=cur+28,bw=b.bw,bx=isMe?CW-PAD-bw:PAD,bh=b.bh;
+        if(b.pic){
+          x.save();
+          __lsRoundRect(x,bx,by,bw,bh,18);x.clip();
+          x.fillStyle="#E9EBF0";x.fillRect(bx,by,bw,bh);
+          x.drawImage(b.pic,bx,by,bw,bh);
+          x.restore();
+          x.strokeStyle="rgba(0,0,0,.08)";x.lineWidth=1;__lsRoundRect(x,bx,by,bw,bh,18);x.stroke();
+        }else{
+          if(isMe){
+            var mg=x.createLinearGradient(bx,by,bx+bw,by+bh);
+            mg.addColorStop(0,"#3478F6");mg.addColorStop(1,"#2E6BE0");
+            x.fillStyle=mg;
+          }else{x.fillStyle="rgba(255,255,255,.96)";}
+          __lsRoundRect(x,bx,by,bw,bh,20);x.fill();
+          if(!isMe){x.strokeStyle="rgba(0,0,0,.055)";x.lineWidth=1;__lsRoundRect(x,bx,by,bw,bh,20);x.stroke();}
+          x.fillStyle=isMe?"#FFFFFF":"#20222A";
+          x.font="27px -apple-system,BlinkMacSystemFont,'PingFang SC','Helvetica Neue',Arial,sans-serif";
+          x.textBaseline="top";
+          b.lines.forEach(function(line,i){x.fillText(line,bx+18,by+16+i*39);});
+        }
+        cur+=b.h;
+      });
+      x.textAlign="center";x.fillStyle="rgba(90,95,110,.38)";x.font="18px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
+      x.textBaseline="middle";x.fillText("由 Eleven × 11 生成",CW/2,total-FOOT/2);
+      x.textAlign="left";
+      cv.toBlob(function(blob){
+        if(!blob){toast("长图生成失败，请重试");return;}
+        var url=URL.createObjectURL(blob);
+        var ov=document.createElement("div");
+        ov.id="longshot-ov";
+        ov.style.cssText="position:fixed;inset:0;z-index:12000;background:rgba(8,10,16,.76);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px;gap:10px;";
+        var tip=document.createElement("div");
+        tip.textContent="长图已生成 · 长按图片可保存到相册";
+        tip.style.cssText="color:rgba(255,255,255,.86);font-size:13px;text-align:center;";
+        var im=document.createElement("img");
+        im.src=url;im.alt="聊天长图";
+        im.style.cssText="max-width:92vw;max-height:66vh;object-fit:contain;border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.45);-webkit-touch-callout:default;";
+        var bar=document.createElement("div");bar.style.cssText="display:flex;gap:10px;";
+        var save=document.createElement("button");
+        save.textContent="保存 / 分享";save.style.cssText="border:none;border-radius:14px;padding:11px 22px;background:linear-gradient(135deg,#3478F6,#5AC8FA);color:#fff;font-size:14px;font-weight:600;";
+        var close=document.createElement("button");
+        close.textContent="关闭";close.style.cssText="border:1px solid rgba(255,255,255,.28);border-radius:14px;padding:11px 22px;background:rgba(255,255,255,.10);color:#fff;font-size:14px;";
+        var done=function(){try{ov.remove();}catch(_){}try{URL.revokeObjectURL(url);}catch(_){}};
+        close.onclick=done;
+        ov.onclick=function(e){if(e.target===ov)done();};
+        save.onclick=function(){
+          try{
+            var f=new File([blob],"Eleven11-chat-"+Date.now()+".png",{type:"image/png"});
+            if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:"Eleven × 11 聊天记录"}).catch(function(){});return;}
+          }catch(_){}
+          try{var a=document.createElement("a");a.href=url;a.download="Eleven11-chat-"+Date.now()+".png";document.body.appendChild(a);a.click();a.remove();}catch(_){}
+        };
+        bar.appendChild(save);bar.appendChild(close);
+        ov.appendChild(tip);ov.appendChild(im);ov.appendChild(bar);
+        document.body.appendChild(ov);
+      },"image/png");
+    }).catch(function(e){try{console.warn(e);}catch(_){}toast("长图生成失败，请重试");});
+  }catch(e){try{console.warn(e);}catch(_){}toast("长图生成失败，请重试");}
+}
+try{window.__msgSelLongShot=__msgSelLongShot;}catch(e){}
 /* 逐张保存：优先走系统分享（iOS 能直接存进相册），不支持时用下载 */
 /* 多选模式下点消息只做勾选，不触发打开图片/语音等原来的动作 */
 (function(){
@@ -13601,7 +13882,8 @@ function __setCardActiveGid(k,gid){
     state.settings=state.settings||{};
     state.settings.cardActiveGid=state.settings.cardActiveGid||{};
     state.settings.cardActiveGid[k]=gid||null;
-    if(k==="chat")state.settings.replyGroupId=gid||null;
+    /* v43-37：卡片页选中哪个分组，只影响当前浏览，不再偷偷改「对方回复用哪组字卡」。
+       回复分组只在设置里显式选择；默认保持「所有分组」。 */
     save();
   }catch(e){}
 }
@@ -13818,7 +14100,10 @@ function addGroup(){
   var K=cardKindView;
   if(groupsOfKind(K).some(g=>g.name===name)){toast("当前类别已有同名分组");return;}
   const g={id:uid(),name:name,kind:K};state.groups.push(g);$("new-group-name").value="";
-  activeGroupId=g.id;__setCardActiveGid(K,g.id);renderCards();toast("已创建分组："+name);
+  activeGroupId=g.id;__setCardActiveGid(K,g.id);
+  /* v43-37：新建分组后，回复字卡仍默认「所有分组」，不被新分组抢走 */
+  if(K==="chat"){state.settings.replyGroupId=null;try{renderSettingsSelect();}catch(_){}}
+  renderCards();toast("已创建分组："+name);
 }
 async function delGroup(id){
   var K=cardKindView, _gs=groupsOfKind(K);
@@ -27139,12 +27424,15 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
 
   /* ---------- 月末小结 ---------- */
   function monthPages(y,m){var out=[],pages=D().pages||{};Object.keys(pages).forEach(function(k){var a=baseKey(k).split("-");if(Number(a[0])===y&&Number(a[1])===m)out.push({k:k,p:pages[k]});});return out;}
-  function maybeMonthSummary(key){
+  function maybeMonthSummary(key,force){
     var a=String(key).split("-"),y=Number(a[0]),m=Number(a[1]),d=Number(a[2]);
     var last=new Date(y,m+1,0).getDate();
     if(d!==last)return;
-    var dD=D();if(dD.lastSummary===key)return;
-    var pages=monthPages(y,m);if(!pages.length)return;
+    var dD=D();
+    /* v43-37：手动点「本月小结」必须每次都能打开；只有自动弹出才用 lastSummary 去重 */
+    if(!force&&dD.lastSummary===key)return;
+    var pages=monthPages(y,m);
+    if(!pages.length){if(force)toast("这个月还没有日记");return;}
     var cnt={},chars=0,stk=0,filled=0,seen={};
     pages.forEach(function(item){
       var p=item.p;
@@ -27304,7 +27592,7 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
     var _pc=el("diary-paper-clear");
     if(_pc)_pc.addEventListener("click",function(){pageOf(curKey).paperImg="";save();renderPage();toast("这一页已还原成纸色");});
     var _sb=el("diary-stats-btn");
-    if(_sb)_sb.addEventListener("click",function(){var a=baseKey(curKey).split("-"),y=Number(a[0]),m=Number(a[1]);var last=new Date(y,m+1,0).getDate();maybeMonthSummary(y+"-"+m+"-"+last);});
+    if(_sb)_sb.addEventListener("click",function(){var a=baseKey(curKey).split("-"),y=Number(a[0]),m=Number(a[1]);var last=new Date(y,m+1,0).getDate();maybeMonthSummary(y+"-"+m+"-"+last,true);});
     var _ds=el("sw-diary-skin");
     if(_ds){_ds.classList.toggle("on",((state.settings||{}).diarySkin!==false));
       _ds.addEventListener("click",function(){state.settings.diarySkin=((state.settings||{}).diarySkin===false);_ds.classList.toggle("on",state.settings.diarySkin!==false);save();toast(state.settings.diarySkin!==false?"对方有 3% 概率套用我的内页":"已关闭对方套用内页");});}
