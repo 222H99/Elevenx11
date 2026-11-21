@@ -2468,7 +2468,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-21v43-47">
+<meta name="app-build" content="2026-11-21v43-48">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4132,7 +4132,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-47</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-48</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5582,6 +5582,43 @@ setTimeout(function(){
     var url="/storage/v1/object/vault/"+encodeURIComponent(session.user.id)+"/latest.full.json";
     return api(url,{token:session.access_token,timeout:12000}).catch(function(){return null;});
   }
+  function __e11MergeCloudFull(full,latest){
+    if(!full||!full.state)return latest;
+    if(!latest||!latest.state)return full;
+    var base=JSON.parse(JSON.stringify(full.state));
+    var add=latest.state;
+    var ARR=["messages","letters","guestbook","moments","cards","groups","redpackets","musicPlaylist","emojis","partnerEmojis","surveyHistory","quizDeleted","hostMsgs","pendingLetterReplies","pendingCommentReplies","pendingNoteReplies"];
+    ARR.forEach(function(k){
+      var A=base[k],B=add[k];
+      if(!Array.isArray(A)||!Array.isArray(B))return;
+      var ids={};A.forEach(function(x){if(x&&x.id)ids[x.id]=1;});
+      B.forEach(function(x){if(x&&x.id&&!ids[x.id]){A.push(x);ids[x.id]=1;}});
+      base[k]=A;
+    });
+    try{
+      if(Array.isArray(base.messages))base.messages.sort(function(a,b){
+        var ta=Number(a&&a.time)||0,tb=Number(b&&b.time)||0;
+        if(ta!==tb)return ta-tb;
+        var ia=parseInt(String(a&&a.id||"").replace(/^m/,""),10)||0;
+        var ib=parseInt(String(b&&b.id||"").replace(/^m/,""),10)||0;
+        return ia-ib;
+      });
+    }catch(_){}
+    try{__e11MergeLocalDiary(base,add);}catch(_){}
+    Object.keys(add).forEach(function(k){
+      if(k==="diary"||k==="messages"||k==="__savedAt"||Array.isArray(add[k]))return;
+      if(add[k]&&typeof add[k]==="object"){
+        var o={};Object.keys(base[k]||{}).forEach(function(x){o[x]=base[k][x];});
+        Object.keys(add[k]).forEach(function(x){o[x]=add[k][x];});
+        base[k]=o;
+      }else if(add[k]!==undefined)base[k]=add[k];
+    });
+    base.__savedAt=Math.max(Number(full.savedAt)||0,Number(latest.savedAt)||0,Number(base.__savedAt)||0);
+    var out=JSON.parse(JSON.stringify(full));out.state=base;
+    out.savedAt=base.__savedAt;out.extras=Object.assign({},full.extras||{},latest.extras||{});
+    out.exportedAt=latest.exportedAt||full.exportedAt||new Date().toISOString();
+    return out;
+  }
   function cloudGet(){
     var isMissing=function(e){return !!e&&(e.status===404||(e.status===400&&/not[_ ]?found|object not found/i.test(String(e.message||""))));};
     var note=function(d){try{window.__e11CloudMsgCount=d&&d.state&&d.state.messages?d.state.messages.length:0;}catch(_){}return d;};
@@ -5591,9 +5628,12 @@ setTimeout(function(){
          读一份只增不改的 latest.full.json 完整档；条件是消息明显偏少或社交数据为空。 */
       try{
         var st=d&&d.state;var mn=st&&Array.isArray(st.messages)?st.messages.length:0;
-        if(st&&Array.isArray(st.messages)&&(mn<100||(__e11SocialCount(st)===0&&mn<600))){
+        var cards=st&&Array.isArray(st.cards)?st.cards.length:0;
+        if(st&&Array.isArray(st.messages)&&(mn<100||cards<50||__e11SocialCount(st)===0)){
           return cloudBackupGet().then(function(full){
-            if(full&&full.state&&Array.isArray(full.state.messages)&&full.state.messages.length>mn){note(full);return full;}
+            if(full&&full.state&&Array.isArray(full.state.messages)&&full.state.messages.length){
+              var merged=__e11MergeCloudFull(full,d);note(merged);return merged;
+            }
             return d;
           });
         }
@@ -5668,6 +5708,13 @@ setTimeout(function(){
     }catch(e){}
     return {n:n,max:max};
   }
+  function __e11ContentScore(st){
+    var n=0;
+    try{
+      ["cards","groups","letters","guestbook","moments","musicPlaylist","emojis","partnerEmojis","redpackets"].forEach(function(k){if(Array.isArray(st&&st[k]))n+=st[k].length;});
+    }catch(_){}
+    return n;
+  }
   function __e11CloudWins(cloud,local,cloudTs,localTs){
     var cs=cloud&&cloud.state?cloud.state:cloud;
     var c=__e11MsgStats(cs),l=__e11MsgStats(local);
@@ -5680,6 +5727,11 @@ setTimeout(function(){
        只差几条时以本机保存时间为准，避免刚改的日记/设置被云端旧档盖回去。 */
     if(c.n>l.n+20)return true;
     if(l.n>c.n+20)return false;
+    /* 同一段聊天里，云端字卡/信件/动态/歌曲/表情明显更全时也算云端更完整；
+       否则本机只剩几十条时，云端 934 张字卡和 7 首歌永远不会被拉回来。 */
+    var cScore=__e11ContentScore(cs),lScore=__e11ContentScore(local);
+    if(cScore>lScore+50)return true;
+    if(lScore>cScore+50)return false;
     return (Number(cloudTs)||0)>(Number(localTs)||0);
   }
   function snapshot(){
@@ -5718,7 +5770,7 @@ setTimeout(function(){
   }
   function __e11MergeLocalSocial(st,localState){
     try{
-      ["letters","guestbook","moments"].forEach(function(k){
+      ["letters","guestbook","moments","cards","groups","redpackets","musicPlaylist","emojis","partnerEmojis"].forEach(function(k){
         var ca=st[k],la=localState&&localState[k];
         if(!Array.isArray(ca)||!Array.isArray(la)||!la.length)return;
         var ids={};ca.forEach(function(x){if(x&&x.id)ids[x.id]=1;});
@@ -6347,8 +6399,8 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-21",
-  noticeKey:"2026-11-21v43-47",
-  lead:"v43-47：本月小结分成「我」和「对方」两套数据分别展示；日记打字停下约 0.8 秒自动保存，关闭日记、切后台强制落盘；云端消息更多时只拿云端消息，本机刚改的日记、设置和资料继续保留，不再被整档覆盖。并修掉本地存储满时“恢复多次还空白”的死循环；进入时如果最新云端档只剩几条，会自动读完整备份 `latest.full.json`，信件、动态、留言按云端完整档恢复。",
+  noticeKey:"2026-11-21v43-48",
+  lead:"v43-48：本月小结分成「我」和「对方」两套数据分别展示；日记打字停下约 0.8 秒自动保存，关闭日记、切后台强制落盘；云端消息更多时只拿云端消息，本机刚改的日记、设置和资料继续保留，不再被整档覆盖。并修掉本地存储满时“恢复多次还空白”的死循环；进入时如果最新云端档只剩几条，会自动读完整备份 `latest.full.json`，信件、动态、留言、字卡、歌曲、分组、表情都按云端完整档恢复；完整备份里的旧消息和最新档里的新消息会合并，取并集。",
   items:[
     '<span class="an-gt">v43-45 · 本月小结 / 日记自动保存</span>',
     "日记的「本月小结」拆成「我」和「对方」两栏：各自的心情分布、写下的天数、字数、贴纸数分开算，不再混在一起",
