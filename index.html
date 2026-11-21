@@ -51,7 +51,15 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 /* 第一帧就把底色定对：不然深色用户在重新打开时会先闪一下白屏（浅色用户会被系统深色闪一下黑屏） */
 (function(){try{
   var t=null;try{t=localStorage.getItem("__theme.v1");}catch(e){}
-  var dark=(t==="dark")||(!t&&!!(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches));
+  /* 只有 App 自己明确保存过夜间才用黑底。系统深色不再决定首帧：
+     这就是“莫名开夜间模式 / 退出再进黑屏”的来源。 */
+  var dark=(t==="dark");
+  if(!t){
+    try{
+      var _st=JSON.parse(localStorage.getItem("privateChat")||"null");
+      dark=!!(_st&&_st.skin&&_st.skin.dark===true);
+    }catch(_eT){}
+  }
   var bg=dark?"#000":"#fafafa",fg=dark?"#f2f2f7":"#111";
   /* v43-30：上次真正生效的页面底色（不是只有黑/白）优先用于启动层和根背景，
      换肤成雨滴/粉色后退出再进入，不会先闪一块纯黑或纯白。 */
@@ -175,7 +183,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-21v43-53";
+window.__E11_BUILD="2026-11-21v43-55";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2469,7 +2477,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-21v43-53">
+<meta name="app-build" content="2026-11-21v43-55">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4115,6 +4123,26 @@ setTimeout(function(){
       <!-- 通知与后台 -->
       <div class="set-sec-title">通知与后台</div>
       <div class="set-group"><div class="set-row"><span class="set-label">后台保活<div class="set-sub">部署成网站后防止页面被挂起，回来补发错过的消息</div></span><button class="switch" id="sw-keep-alive"></button></div><div class="set-row"><span class="set-label">消息通知<div class="set-sub">对方来消息时用系统通知提醒；iOS 需先添加到主屏幕</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-notify-test" style="white-space:nowrap;">验证消息</button><button class="switch" id="sw-notify"></button></div></div><div class="set-row"><span class="set-label">通知状态<div class="set-sub" id="notify-diag">检查中…</div></span></div><div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;"><span class="set-label">系统通知提示音<div class="set-sub">后台来消息发通知时响；默认「苹果微信」消息提示音，可上传自己的音频替换</div></span><div class="snd-ops" style="justify-content:flex-end;margin-left:0;"><button class="small-btn ghost" id="btn-notify-snd-test">试听</button><button class="small-btn ghost" id="btn-notify-snd-up">上传</button><button class="switch on" id="sw-notify-snd"></button></div></div><div class="set-row"><span class="set-label">系统通知音量</span><div class="snd-vol"><input id="set-notify-snd-vol" type="range" min="0" max="100" step="1" value="90"><span class="snd-vol-val" id="notify-snd-vol-val">90%</span></div></div><input type="file" id="file-notify-snd" accept="audio/*" hidden><div class="set-row"><span class="set-label">后台也响提示音<div class="set-sub">开：切到后台后页面会尽量自己响一声（iOS 把页面挂起之后页面发不出声，此时只剩系统通知，而 iPhone 的网页通知本身不带声音）。关：后台完全不响</div></span><button class="switch" id="sw-bg-sound"></button></div><div class="set-row"><span class="set-label">来消息弹窗<div class="set-sub">App 内顶部弹出的提示条，点一下直达对应页面</div></span><div style="display:flex;gap:8px;align-items:center;"><button class="small-btn ghost" id="btn-pop-test" style="white-space:nowrap;">验证弹窗</button><button class="switch" id="sw-msgpop"></button></div></div></div>
+      <!-- 自定义 API / 云端语音 -->
+      <div class="set-sec-title">自己的 AI 接口</div>
+      <div class="set-group">
+        <div class="set-row"><span class="set-label">启用自定义接口<div class="set-sub">兼容 OpenAI Chat Completions。密钥只存本机，不进云端备份。</div></span><button class="switch" id="sw-api-on"></button></div>
+        <div class="set-row"><span class="set-label">接口地址<div class="set-sub">填到 /v1 即可，例：https://api.openai.com/v1</div></span><input class="set-input" id="set-api-base" type="url" inputmode="url" placeholder="https://api.example.com/v1" autocomplete="off" spellcheck="false" style="width:58%;min-width:160px;font-size:13px;text-align:left;"></div>
+        <div class="set-row"><span class="set-label">API Key</div><input class="set-input" id="set-api-key" type="password" placeholder="sk-..." autocomplete="off" spellcheck="false" style="width:58%;min-width:160px;font-size:13px;text-align:left;"></div>
+        <div class="set-row"><span class="set-label">模型</div><input class="set-input" id="set-api-model" type="text" placeholder="gpt-4o-mini" autocomplete="off" spellcheck="false" style="width:58%;min-width:160px;font-size:13px;text-align:left;"></div>
+        <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;"><span class="set-label">人设提示词<div class="set-sub">留空使用内置：短句、自然、不要解释自己是 AI</div></span><textarea id="set-api-prompt" class="set-input" rows="3" placeholder="你是「对方」，正在和「我」私聊……" style="width:100%;font-size:13px;line-height:1.6;text-align:left;resize:vertical;"></textarea></div>
+        <div class="set-row"><button class="small-btn" id="btn-api-test" style="font-size:12px;padding:6px 12px;">测试连接</button><span class="set-sub" id="api-test-sub" style="margin-left:10px;flex:1;">未测试</span></div>
+      </div>
+      <div class="set-sec-title">云端语音</div>
+      <div class="set-group">
+        <div class="set-row"><span class="set-label">对方可以发语音<div class="set-sub">关闭后对方只发文字；语音点击时才走云端合成，不把音频塞进云存档</div></span><button class="switch on" id="sw-partner-voice"></button></div>
+        <div class="set-row"><span class="set-label">发语音概率（%）</span><input class="set-input" id="set-voice-prob" type="number" min="0" max="100" value="12"></div>
+        <div class="set-row"><span class="set-label">云端语音合成 TTS<div class="set-sub">用同一个 API 的 /audio/speech；不支持 TTS 的接口可以关掉</div></span><button class="switch on" id="sw-cloud-voice"></button></div>
+        <div class="set-row"><span class="set-label">语音名 / Voice</span><input class="set-input" id="set-tts-voice" type="text" placeholder="alloy" autocomplete="off" style="width:42%;min-width:110px;font-size:13px;text-align:left;"></div>
+        <div class="set-row"><span class="set-label">TTS 模型<div class="set-sub">留空跟随上面的模型</div></span><input class="set-input" id="set-tts-model" type="text" placeholder="tts-1" autocomplete="off" style="width:42%;min-width:110px;font-size:13px;text-align:left;"></div>
+        <div class="set-row"><span class="set-label">语音接口地址<div class="set-sub">留空 = 上面的地址 + /audio/speech</div></span><input class="set-input" id="set-tts-base" type="url" inputmode="url" placeholder="可选" autocomplete="off" spellcheck="false" style="width:58%;min-width:160px;font-size:13px;text-align:left;"></div>
+        <div class="set-row"><button class="small-btn" id="btn-tts-test" style="font-size:12px;padding:6px 12px;">试听云端语音</button><span class="set-sub" id="tts-test-sub" style="margin-left:10px;flex:1;">未测试</span></div>
+      </div>
       <!-- 免打扰 -->
       <div class="set-sec-title">免打扰</div>
       <div class="set-group"><div class="set-row"><span class="set-label">免打扰时段<div class="set-sub">这段时间不弹窗、不发系统通知；聊天页照常收到</div></span><button class="switch" id="sw-dnd"></button></div><div class="set-row"><span class="set-label">开始</span><button class="set-input dnd-time" id="set-dnd-start" style="width:142px;min-width:142px;font-size:14px;text-align:right;">23:00</button></div><div class="set-row"><span class="set-label">结束</span><button class="set-input dnd-time" id="set-dnd-end" style="width:142px;min-width:142px;font-size:14px;text-align:right;">07:00</button></div></div>
@@ -4133,7 +4161,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-53</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-55</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5656,13 +5684,18 @@ setTimeout(function(){
     if(!st||!man)return false;
     try{
       var ms=__e11MsgStats(st);
-      if(Number(man.messages)>0&&ms.n<Number(man.messages)-2)return true;
-      if(Number(man.maxMsg)>0&&ms.max<Number(man.maxMsg))return true;
+      var _del=st.deletedIds||{};
+      var _tc=function(k){try{return Object.keys((_del&&_del[k])||{}).length;}catch(_){return 0;}};
+      if(Number(man.messages)>0&&ms.n<Number(man.messages)-2-_tc("messages"))return true;
+      if(Number(man.maxMsg)>0&&ms.max<Number(man.maxMsg)){
+        var _mx="m"+String(Number(man.maxMsg));
+        if(!(_del.messages&&_del.messages[_mx]))return true;
+      }
       var c=man.counts||{};
       var keys=Object.keys(c);
       for(var i=0;i<keys.length;i++){
         var k=keys[i];
-        if(!Array.isArray(st[k])||st[k].length<Number(c[k]||0))return true;
+        if(!Array.isArray(st[k])||st[k].length<Number(c[k]||0)-_tc(k))return true;
       }
       /* 资料/设置被旧版恢复成默认值时也算缺数据，拉完整档回来。 */
       if(Number(man.profileScore)>0&&__e11ProfileScore(st.profile)<Number(man.profileScore)-2)return true;
@@ -5686,6 +5719,7 @@ setTimeout(function(){
       var bv=b[k],av=o[k];
       if(av===undefined||av===""||av===null)o[k]=bv;
       else if(d[k]!==undefined&&av===d[k]&&bv!==d[k])o[k]=bv;
+      else if(String(k).indexOf("mp")===0&&bv!==undefined&&bv!==""&&bv!==null&&av===d[k])o[k]=bv;
     });
     return o;
   }
@@ -5736,6 +5770,49 @@ setTimeout(function(){
     });
     return clean;
   }
+  /* 删除也要同步：只靠“并集”会把用户删掉的聊天/字卡/信件又拉回来。
+     这里给每条被删掉的记录记一个墓碑（kind + id），云端日志和完整档合并后按墓碑过滤。 */
+  var __e11DeleteKinds=["messages","letters","guestbook","moments","cards","groups","musicPlaylist","favorites","emojis","partnerEmojis","redpackets","surveyHistory"];
+  function __e11IdOf(x){
+    try{if(x&&typeof x==="object"&&x.id!==undefined&&x.id!==null)return String(x.id);if(typeof x==="string"||typeof x==="number")return String(x);}catch(_){}
+    return "";
+  }
+  function __e11IdSet(st,k){
+    var set={};try{(st&&st[k]||[]).forEach(function(x){var id=__e11IdOf(x);if(id)set[id]=1;});}catch(_){}
+    return set;
+  }
+  function __e11MergeDeleted(a,b){
+    var out={};[a,b].forEach(function(src){try{Object.keys(src||{}).forEach(function(k){var ids=src[k]||{};out[k]=out[k]||{};Object.keys(ids).forEach(function(id){out[k][id]=Math.max(Number(out[k][id])||0,Number(ids[id])||Date.now());});});}catch(_){}});
+    return out;
+  }
+  function __e11TombstoneScan(init){
+    try{
+      if(window.__e11TombstoneMute)return;
+      var st=window.__e11StateGet?window.__e11StateGet():null;if(!st)return;
+      st.deletedIds=st.deletedIds||{};
+      var known=window.__e11KnownIds;
+      if(!known){known={};window.__e11KnownIds=known;}
+      __e11DeleteKinds.forEach(function(k){
+        var cur=__e11IdSet(st,k);var old=known[k];
+        if(old&&!init){
+          Object.keys(old).forEach(function(id){if(!cur[id]){st.deletedIds[k]=st.deletedIds[k]||{};if(!st.deletedIds[k][id])st.deletedIds[k][id]=Date.now();}});
+        }
+        known[k]=cur;
+      });
+    }catch(_eTomb){}
+  }
+  window.__e11TombstoneScan=__e11TombstoneScan;
+  function __e11ApplyDeleted(st){
+    try{
+      var d=st&&st.deletedIds;if(!d)return st;
+      __e11DeleteKinds.forEach(function(k){
+        if(!Array.isArray(st[k]))return;
+        var ids=d[k];if(!ids)return;
+        st[k]=st[k].filter(function(x){var id=__e11IdOf(x);return !(id&&ids[id]);});
+      });
+    }catch(_eApplyDel){}
+    return st;
+  }
   function __e11MergeCloudFull(full,latest){
     if(!full||!full.state)return latest;
     if(!latest||!latest.state)return full;
@@ -5771,9 +5848,17 @@ setTimeout(function(){
         var o={};Object.keys(base[k]||{}).forEach(function(x){o[x]=base[k][x];});
         Object.keys(add[k]).forEach(function(x){o[x]=add[k][x];});
         base[k]=o;
-      }else if(add[k]!==undefined)base[k]=add[k];
+      }else if(add[k]!==undefined){
+        /* 旧设备/半完整档经常把资料写成空串。空值不覆盖已有的非空资料，
+           尤其是“一起听”的距离、时长、备注、封面这些手工改过的字段。 */
+        var _av=add[k],_bv=base[k];
+        if((_av===""||_av===null)&&_bv!==undefined&&_bv!==null&&_bv!==""){/* keep base */}
+        else base[k]=_av;
+      }
     });
+    base.deletedIds=__e11MergeDeleted(base.deletedIds,add.deletedIds);
     base.__savedAt=Math.max(Number(full.savedAt)||0,Number(latest.savedAt)||0,Number(base.__savedAt)||0);
+    __e11ApplyDeleted(base);
     var out=JSON.parse(JSON.stringify(full));out.state=base;
     out.savedAt=base.__savedAt;out.extras=Object.assign({},full.extras||{},latest.extras||{});
     out.exportedAt=latest.exportedAt||full.exportedAt||new Date().toISOString();
@@ -5931,9 +6016,30 @@ setTimeout(function(){
     if(lScore>cScore+50)return false;
     return (Number(cloudTs)||0)>(Number(localTs)||0);
   }
+  function __e11MusicRoomBackup(st){
+    try{
+      var p=(st&&st.profile)||{};
+      var o={musicRoomNote:String((st&&st.musicRoomNote)||""),mpName:String(p.mpName||""),mpDist:p.mpDist,mpDur:String(p.mpDur||""),mpNote:String(p.mpNote||""),mpSong:String(p.mpSong||""),mpSongArtist:String(p.mpSongArtist||""),ts:Date.now()};
+      localStorage.setItem("e11.musicRoom",JSON.stringify(o));
+      return o;
+    }catch(_){return null;}
+  }
+  window.__e11MusicRoomBackup=__e11MusicRoomBackup;
+  function __e11MusicRoomRestore(st){
+    try{
+      var b=JSON.parse(localStorage.getItem("e11.musicRoom")||"null");if(!b)return;
+      var p=st.profile=st.profile||{};
+      if((st.musicRoomNote===undefined||st.musicRoomNote===null||st.musicRoomNote==="")&&b.musicRoomNote)st.musicRoomNote=b.musicRoomNote;
+      ["mpName","mpDur","mpNote","mpSong","mpSongArtist"].forEach(function(k){if((p[k]===undefined||p[k]===null||p[k]==="")&&b[k])p[k]=b[k];});
+      if((p.mpDist===undefined||p.mpDist===null||p.mpDist===""||Number(p.mpDist)===0)&&b.mpDist!==undefined&&b.mpDist!=="")p.mpDist=b.mpDist;
+    }catch(_){}
+  }
+  window.__e11MusicRoomRestore=__e11MusicRoomRestore;
   function snapshot(){
     var st=window.__e11StateGet?window.__e11StateGet():null;
     if(!st)throw new Error("本机数据还没准备好");
+    try{__e11MusicRoomBackup(st);}catch(_){}
+    try{__e11TombstoneScan(false);}catch(_){__e11ApplyDeleted(st);}
     var extras={};
     try{
       for(var i=0;i<localStorage.length;i++){
@@ -5990,13 +6096,56 @@ setTimeout(function(){
     var __reloading=!!(opt&&opt.reloading);
     var st=snap.state;
     var localState=null;try{localState=window.__e11StateGet?window.__e11StateGet():null;}catch(_){}
+    /* 主题是“这台手机自己的偏好”，不能拿云端旧档覆盖：以前恢复云端后突然变夜间/黑屏就是这个原因。 */
+    var _localSkin=null;try{if(localState&&localState.skin)_localSkin=JSON.parse(JSON.stringify(localState.skin));}catch(_eSkin){}
     /* 云端是完整备份，信件/动态/留言都以云端为准；本机只补“云端没有的新条目”，
        不能用本机空数组把云端 167 封信、175 条动态、237 条留言清掉。 */
     __e11MergeLocalSocial(st,localState);
     __e11MergeLocalDiary(st,localState);
+    /* 其他板块也按 id 合一次：云端旧档不能把本机刚加的字卡/歌单/红包/分组/收藏冲掉，
+       真正的删除由下面的墓碑过滤，不会因为合并又复活。 */
+    try{
+      /* cards/groups/歌单/红包/表情已由 __e11MergeLocalSocial 处理：云端同 id 优先，本机只补云端没有的。
+         这里只补剩下的队列和记录，顺序同样是「本机当底、云端覆盖」，保证云端是最新。 */
+      ["surveyHistory","hostMsgs","pendingLetterReplies","pendingCommentReplies","pendingNoteReplies"].forEach(function(k){
+        if(Array.isArray(localState&&localState[k])&&localState[k].length)st[k]=__e11MergeList(localState[k],Array.isArray(st[k])?st[k]:[]);
+        else if(!Array.isArray(st[k]))st[k]=[];
+      });
+      if(Array.isArray(localState&&localState.favTags)&&localState.favTags.length){
+        var _ft=[];((st.favTags||[]).concat(localState.favTags)).forEach(function(x){if(x&&_ft.indexOf(x)<0)_ft.push(x);});
+        st.favTags=_ft;
+      }
+    }catch(_eBoardMerge){}
+    /* 云端可能是另一台设备较早的档；本机还没同步出去的几条新消息不能丢。
+       两边按 id 取并集，随后再用墓碑过滤掉真正删掉的消息。 */
+    try{
+      if(localState&&Array.isArray(localState.messages)&&localState.messages.length){
+        st.messages=__e11MergeList(localState.messages,st.messages||[]);
+        st.messages.sort(function(a,b){var ta=Number(a&&a.time)||0,tb=Number(b&&b.time)||0;if(ta!==tb)return ta-tb;var ia=parseInt(String(a&&a.id||"").replace(/^m/,""),10)||0,ib=parseInt(String(b&&b.id||"").replace(/^m/,""),10)||0;return ia-ib;});
+      }
+    }catch(_eMsgMerge){}
+    /* 主页“一起听”卡片里手工改的资料：云端为空时保留本机，云端有内容时以云端为准。 */
+    try{
+      var _mrFields=["musicRoomNote","musicBgImg","musicCoverImg","musicDiscInnerImg"];
+      _mrFields.forEach(function(k){if((st[k]===undefined||st[k]===null||st[k]==="")&&localState&&localState[k])st[k]=localState[k];});
+      st.profile=st.profile||{};var _lp=(localState&&localState.profile)||{};
+      ["mpName","mpDist","mpDur","mpNote","mpAv1","mpAv2","mpSong","mpSongArtist","mpCover"].forEach(function(k){if((st.profile[k]===undefined||st.profile[k]===null||st.profile[k]==="")&&_lp[k])st.profile[k]=_lp[k];});
+      try{window.__e11MusicRoomRestore&&window.__e11MusicRoomRestore(st);}catch(_eMrB){}
+    }catch(_eMr){}
+    /* 本机设置如果比云端新，合并回来；否则云端设置为准。 */
+    try{
+      var _lts=Number(localState&&localState.settings&&localState.settings.__ts)||0;
+      var _cts=Number(st.settings&&st.settings.__ts)||0;
+      if(_lts>_cts+1000)st.settings=__e11MergeSettings(localState.settings,st.settings);
+    }catch(_eSetMerge){}
+    /* 本机删掉的东西必须继续算删掉：即使这次是云端赢，也要把本机墓碑带进合并结果。 */
+    try{st.deletedIds=__e11MergeDeleted(st.deletedIds,localState&&localState.deletedIds);}catch(_eDel){}
+    try{__e11ApplyDeleted(st);}catch(_eApply){}
+
     try{st.__savedAt=Date.now();}catch(e){}
     window.__e11CloudPause=1;
-    try{window.__e11SetState&&window.__e11SetState(st);}catch(e){}
+    try{window.__e11TombstoneMute=1;window.__e11SetState&&window.__e11SetState(st);}catch(e){}finally{try{window.__e11TombstoneMute=0;}catch(_){}}
+    try{if(_localSkin){st.skin=st.skin||{};st.skin.dark=!!_localSkin.dark;if(_localSkin.themeMode)st.skin.themeMode=_localSkin.themeMode;}}catch(_eKeepSkin){}
     /* 云端快照可能只存了文字/旧版本，图在别的槽里；先用本机同账号的好图把空图补回来，
        避免“登录/恢复云存档后表情包和头像全变成失效图”。只补坏图，不覆盖用户删掉的内容。 */
     try{if(localState&&window.__mergeMediaSnapshots)window.__mergeMediaSnapshots(st,localState);}catch(_){}
@@ -6010,7 +6159,7 @@ setTimeout(function(){
     }catch(_){}
     var extras=snap.extras&&typeof snap.extras==="object"?snap.extras:{};
     Object.keys(extras).forEach(function(k){
-      if(k.indexOf("e11.")===0||k==="privateChat")return;
+      if(k.indexOf("e11.")===0||k==="privateChat"||k==="__theme.v1")return;
       try{localStorage.setItem(k,extras[k]);}catch(e){}
     });
     var __lsOk=false;
@@ -6028,6 +6177,7 @@ setTimeout(function(){
          把刚写进去的 534 条覆盖成空白，表现就是“恢复几次还是没数据”并无限重载。 */
       if(__reloading){window.__e11CloudPause=1;window.__restoring=1;return;}
       window.__e11CloudPause=0;
+      try{__e11TombstoneScan(true);}catch(_eKnown){}
       /* 云端恢复完成后马上预热当前歌单：以前预热只跑在启动 2.6 秒，云端 5MB 还没回来，
          列表是空的，所以每次点歌都要重新等接口，听起来就是“播放慢”。 */
       try{var _plr=(window.state&&window.state.musicPlaylist)||[];if(_plr.length&&typeof prefetchSongUrls==="function")setTimeout(function(){prefetchSongUrls(_plr.length);},900);}catch(_eWarmMusic){}
@@ -6099,7 +6249,7 @@ setTimeout(function(){
   window.__E11Diag={merge:__e11MergeCloudFull,needsFull:__e11ManifestNeedsFull,profileScore:__e11ProfileScore,settingsScore:__e11SettingsScore,manifestOf:__e11ManifestOf,cloudGet:cloudGet,cloudWins:__e11CloudWins,setSession:function(s){session=s;}};
   window.__E11Cloud={schedule:cloudSchedule,flush:function(){clearTimeout(cloudTimer);cloudSchedule();},recoveryGet:cloudGetRecovery,uploadNow:function(){
     if(!authOk())return Promise.reject(new Error("未登录"));
-    if(window.__e11CloudHold)return Promise.reject(new Error("正在核对云端记录，请稍候"));
+    if(window.__e11CloudHold)return Promise.reject(new Error("正在同步云端，请稍候"));
     var snap=snapshot();
     return putVault(snap).then(function(){lastCloudHash=JSON.stringify(snap);window.__e11CloudStatus="已同步";chipSync();});
   }};
@@ -6115,17 +6265,24 @@ setTimeout(function(){
       var local=window.__e11StateGet?window.__e11StateGet():null;
       var localTs=Number(local&&local.__savedAt)||0;
       return cloudGet().then(function(cloud){
-        if(!cloud||!__e11CloudWins(cloud,local,Number(cloud.savedAt)||0,localTs))return false;
+        if(!cloud)return false;
+        var uid=(session&&session.user&&session.user.id)||"";
+        var meta=__e11CloudMetaGet(uid);
+        var cloudFresh=!meta||!Number(meta.savedAt)||Number(cloud.savedAt)>Number(meta.savedAt)+1;
+        /* 云端自从上次读取后变过，就合并一次：不再只靠“谁消息多”判断，
+           否则另一台设备只改了资料/字卡/设置，这边永远看不到最新云端内容。 */
+        if(!cloudFresh&&!__e11CloudWins(cloud,local,Number(cloud.savedAt)||0,localTs))return false;
         window.__e11CloudPause=1;
         /* 不再用整页等待层堵住入口：云端下载放到后台，用户已经进去了就原地更新。
            这样网络慢也不会“一直加载进不去”。 */
-        try{window.__e11CloudStatus="正在恢复云端";chipSync();}catch(_){}
+        try{window.__e11CloudStatus="";chipSync();}catch(_){}
         /* 关键：恢复云端后不再 location.reload()。以前“进主页 → 发现云端更新 → 整页重载 → 再进主页”
            会看起来加载两三次；这里把合并结果直接写进当前页面，原地渲染一次。 */
         return applySnapshot(cloud).then(function(){
           try{window.__e11CloudHold=0;window.__e11CloudStatus="已同步";chipSync();}catch(_){}
           try{
             if(!document.querySelector(".view.open")&&typeof __enterAfterAction==="function")__enterAfterAction();
+            else if(typeof window.__e11RefreshAllViews==="function")window.__e11RefreshAllViews();
             else if(typeof renderAll==="function")renderAll();
           }catch(_eRender){}
           return true;
@@ -6222,7 +6379,7 @@ setTimeout(function(){
     /* v41 的做法：本地档先直接进，认证和云端都放后台。
        之前启动先 setWait + validSession，网络慢就一直卡在“正在进入”。 */
     session=s;window.__e11AuthOk=true;
-    window.__e11CloudHold=1;window.__e11CloudStatus="本地模式 · 后台校验";
+    window.__e11CloudHold=1;window.__e11CloudStatus="";
     var _entered=false,_entryTimer=null;
     var _enterLocal=function(){
       if(_entered)return;_entered=true;
@@ -6233,7 +6390,7 @@ setTimeout(function(){
     };
     /* 等 init 把本机存档读出来再铺主页；最多 3.5 秒兜底，绝不再等云端。 */
     _entryTimer=setTimeout(_enterLocal,3500);
-    try{stateReady().then(function(ok){if(ok)_enterLocal();});}catch(_eReady){}
+    try{stateReady().then(function(ok){if(ok){try{__e11TombstoneScan(true);}catch(_){}_enterLocal();}});}catch(_eReady){}
     validSession(s).then(function(cur){
       session=cur;window.__e11AuthOk=true;window.__e11SkipLock=1;
       var must=!!(cur.user&&cur.user.user_metadata&&cur.user.user_metadata.must_change_password);
@@ -6244,7 +6401,7 @@ setTimeout(function(){
         doAction(act).catch(function(e){/* doAction 已经显示错误 */});
         return;
       }
-      window.__e11CloudStatus="核对云端（后台）";
+      window.__e11CloudStatus="";
       try{chipSync();}catch(_){}
       _enterLocal();
       pullCloudIfNewer().then(function(r){
@@ -6615,10 +6772,10 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-21",
-  noticeKey:"2026-11-21v43-53",
-  lead:"v43-53：像 v41 一样，启动不再等网络认证，直接读本机完整档进主页；账号校验和云端核对全部放后台，最多下载一次，恢复后原地更新。v43-52 的后台加载、v43-51 的一次加载逻辑保留：云端版本没变时只读几百字节指纹，直接使用本机完整档，不再每次下载 5MB。v43-50 的数据修复全部保留：云端现在单独保存一份完整档指纹，设备再写半完整档也不会把基线拉低；歌名、信件正文、封面不再被空字段覆盖，收藏和日记收藏参与并集合并。音乐播放地址会缓存到本机，重启后也能直接起播。读信夜间背景改成纯黑，系统提示和来消息弹窗不再自动消失。",
+  noticeKey:"2026-11-21v43-54",
+  lead:"v43-54：像 v41 一样启动直接进；新增删除墓碑，删掉的聊天/字卡/信件/动态/留言/收藏/歌曲不会再被云端完整档合并回来。恢复云端时不再覆盖本机主题，不再莫名开夜间模式；安卓原生启动页也强制浅色，系统深色时不再黑屏。云端版本没变时只读几百字节指纹，直接使用本机完整档，不再每次下载 5MB。v43-50 的数据修复全部保留：云端现在单独保存一份完整档指纹，设备再写半完整档也不会把基线拉低；歌名、信件正文、封面不再被空字段覆盖，收藏和日记收藏参与并集合并。音乐播放地址会缓存到本机，重启后也能直接起播。读信夜间背景改成纯黑，系统提示和来消息弹窗不再自动消失。",
   items:[
-    '<span class="an-gt">v43-53 · 像 v41 一样直接进</span>',
+    '<span class="an-gt">v43-54 · 删除不再复活</span>',
     "歌单名字加多层兜底：即使云端某首歌 name 为空，也会按标题、文件名补回，不再出现空白歌名",
     "播放地址缓存到本机 10 分钟；启动、恢复云端、进音乐页都会预热整个歌单，点歌更快",
     "夜间读信背景改成纯黑，遮罩加深且不再模糊，和外面主页一致；白天和自定义信纸不变",
@@ -7841,6 +7998,7 @@ function __prefReapplyAll(){
 }
 
 function save(){
+  try{window.__e11TombstoneScan&&window.__e11TombstoneScan(false);}catch(_){}
   /* 正在「一键恢复」时禁止任何写盘：刷新前页面的自动保存会把旧数据再写一遍，
      时间戳一更新，启动时就会用回旧存档——这是恢复看起来没生效的根因 */
   if(window.__restoring)return;
@@ -11475,7 +11633,7 @@ function pushMsg(from,type,text,opts){
   }
   const id="m"+(++state.seq);
   var _msgTime=Number(opts.time)||Date.now();if(_msgTime>Date.now())_msgTime=Date.now();
-  const m={id:id,from:from,type:type,text:text,src:opts.src||"",w:Number(opts.w)||0,h:Number(opts.h)||0,dur:opts.dur||0,sched:!!opts.sched,time:_msgTime,quoteId:opts.quoteId||null,kind:opts.kind||"",active:!!opts.active,catchup:!!opts.catchup,read:from!=="me",recalled:false,momentId:opts.momentId||"",commentId:opts.commentId||""};
+  const m={id:id,from:from,type:type,text:text,src:opts.src||"",w:Number(opts.w)||0,h:Number(opts.h)||0,dur:opts.dur||0,sched:!!opts.sched,time:_msgTime,quoteId:opts.quoteId||null,kind:opts.kind||"",active:!!opts.active,catchup:!!opts.catchup,read:from!=="me",recalled:false,momentId:opts.momentId||"",commentId:opts.commentId||"",ttsText:opts.ttsText||"",voice:opts.voice||""};
   state.messages.push(m);
   try{
     if(from==="me"&&(type==="text"||type==="image")&&!opts.catchup&&!opts.quiet&&!opts.sched){
@@ -11493,7 +11651,7 @@ function pushMsg(from,type,text,opts){
       else window.__playMsgSound&&window.__playMsgSound(from==="me"?"send":"recv");
     }
   }catch(e){}
-  if(from==="partner"&&(type==="text"||type==="image"||type==="rp"||type==="survey"||type==="song")){
+  if(from==="partner"&&(type==="text"||type==="image"||type==="voice"||type==="rp"||type==="survey"||type==="song")){
     var _vc=document.getElementById("view-chat");
     if(!(_vc&&_vc.classList.contains("open"))){newR++;updateNewBadge();}
   }
@@ -12841,6 +12999,9 @@ let replyTimers=[];
 function scheduleReply(){
   // 每条消息独立安排一次回复，互不取消 → 发几条回复几条（1:1，聊天每发必回）
   if(!state.settings.autoReply)return;
+  /* 配了自己的 API 就走真实模型；没配/调用失败自动回退字卡，聊天不会卡住。 */
+  try{if(!window.__e11ApiFallingBack&&window.__e11ApiSchedule&&window.__e11ApiReady&&window.__e11ApiReady()){if(window.__e11ApiSchedule())return;}}catch(_eApi){}
+
   const sec=Math.max(0,Number(state.settings.minDelaySec)||0);
   const max=Math.max(sec,Number(state.settings.maxDelaySec)||0);
   const ms=rand(sec*1000,max*1000);
@@ -13778,7 +13939,7 @@ function __mergeMediaSnapshots(a,b){
       var o=amById[m.id];if(!o)return;
       if(!__emojiSrcOk(m.src)&&__emojiSrcOk(o.src)){m.src=o.src;if(!m.emojiId&&o.emojiId)m.emojiId=o.emojiId;changed=true;}
     });
-    var pk=["meAvatar","partnerAvatar","cpMeAvatar","cpPartnerAvatar","cpPhotoAvatar"];
+    var pk=["meAvatar","partnerAvatar","cpMeAvatar","cpPartnerAvatar","cpPhotoAvatar","mpAv1","mpAv2"];
     copyObj(a.profile,b.profile,pk,true);copyObj(b.profile,a.profile,pk,true);
     var ik=["cpPhoto","cpPhotoCard","cpPhotoSub","cpRecord"];
     copyObj(a.profile,b.profile,ik,false);copyObj(b.profile,a.profile,ik,false);
@@ -15028,6 +15189,8 @@ function renderSettingsSelect(){
   sel.value=state.settings.replyGroupId||"";
 }
 function bindSetting(){
+  /* 绑定 API/语音设置的本机配置（密钥只在 localStorage，不进云存档） */
+  try{if(window.__e11ApiPaint)window.__e11ApiPaint();}catch(_eApiPaint){}
   /* 绑定时不要覆盖用户正在编辑的输入框：否则调一个开关会让旁边还没提交的数字跳回旧值 */
   var _bindActive=document.activeElement;
   var _bindActiveVal=(_bindActive&&_bindActive.matches&&_bindActive.matches('input,textarea,select'))?_bindActive.value:null;
@@ -25846,6 +26009,32 @@ $("me-edit-save").addEventListener("click",()=>{
 });
 
 /* ===== 渲染入口 ===== */
+/* 云端合并完成后：清掉各页面的签名缓存，并重画当前打开的板块。
+   以前只 renderAll（聊天/主页照片），用户停在信件、音乐、动态、留言、字卡时
+   画面还是旧数据，看起来就是“所有板块都不是最新云端”。 */
+function __e11RefreshAllViews(){
+  try{window.__rSig={};}catch(_){}
+  try{if(typeof _chatSig!=='undefined')_chatSig="";}catch(_){}
+  window.__cardsDirty=true;window.__chatDirty=true;
+  try{renderAll();}catch(_){}
+  var v="";try{v=window.__curView||"";}catch(_){}
+  function open(id){try{var e=document.getElementById(id);return !!(e&&e.classList.contains("open"));}catch(_){return false;}}
+  setTimeout(function(){
+    try{
+      if(v==="view-chat"||open("view-chat")||window.__chatDirty)renderChat(true);
+      if(v==="view-me"||open("view-me")){renderMe();renderMePhotos();try{renderCouple();}catch(_){}}
+      if(v==="view-cards"||open("view-cards")){window.__cardsDirty=false;renderCards();}
+      if(v==="view-letters"||open("view-letters"))renderLetters(true);
+      if(v==="view-guestbook"||open("view-guestbook"))renderGuestbook(true);
+      if(v==="view-moments"||open("view-moments")){renderMoments();try{renderMomentProfile();}catch(_){}}
+      if(v==="view-music"||open("view-music"))renderMusicList(true);
+      if(v==="view-redpackets"||open("view-redpackets"))renderRedpackets();
+      if(open("view-settings"))bindSetting();
+    }catch(_e){}
+  },30);
+  setTimeout(function(){try{renderAll();}catch(_){}},700);
+}
+window.__e11RefreshAllViews=__e11RefreshAllViews;
 function renderAll(){
   renderTopStatus();
   /* 启动时不铺整张聊天列表：默认停在主页，聊天行晚一点（空闲时）再预铺，避免刚点开就卡一下 */
@@ -29109,5 +29298,271 @@ body{margin:0;background:var(--bg,#fafafa);}
      表现为历史头像/照片/歌曲/表情一起变空。新上传头像仍会先压到 320px。 */
 })();
 </script>
+
+<script>
+/* ===== v43-55：自定义 OpenAI 兼容接口 + 云端语音 =====
+   密钥只存本机 localStorage（e11.apiCfg），不进入 snapshot/云端备份；
+   语音消息只存文本和 voice 名，点播放时才走 TTS，不把音频塞进 5MB 云档。 */
+(function(){
+  var KEY="e11.apiCfg";
+  var DEF={chatOn:false,base:"",key:"",model:"gpt-4o-mini",prompt:"",partnerVoiceOn:true,voiceProb:12,ttsOn:true,ttsVoice:"alloy",ttsModel:"",ttsBase:""};
+  function cfg(){
+    var o=Object.assign({},DEF);
+    try{var x=JSON.parse(localStorage.getItem(KEY)||"null");if(x&&typeof x==="object")Object.assign(o,x);}catch(e){}
+    return o;
+  }
+  function setCfg(patch){
+    var o=cfg();Object.assign(o,patch||{});
+    try{localStorage.setItem(KEY,JSON.stringify(o));}catch(e){}
+    return o;
+  }
+  function chatEndpoint(base){
+    base=String(base||"").trim().replace(/\/+$/,"");
+    if(!base)return "";
+    if(/\/chat\/completions$/i.test(base))return base;
+    if(/\/v1$/i.test(base))return base+"/chat/completions";
+    return base+"/v1/chat/completions";
+  }
+  function ttsEndpoint(c){
+    var b=String(c.ttsBase||"").trim().replace(/\/+$/,"");
+    if(b){return /\/audio\/speech$/i.test(b)?b:(/\/v1$/i.test(b)?b+"/audio/speech":b+"/v1/audio/speech");}
+    var chat=chatEndpoint(c.base);
+    return chat?chat.replace(/\/chat\/completions$/i,"/audio/speech"):"";
+  }
+  function ready(){
+    var c=cfg();
+    return !!(c.chatOn&&c.base&&c.key);
+  }
+  window.__e11ApiCfg=cfg;window.__e11ApiReady=ready;
+  /* APK 内置页是 https://app.local，第三方 AI/TTS 接口基本都不在它的 CORS 白名单里。
+     有原生桥时走 AndroidUI.apiAny（只允许 https），网页端仍旧用 fetch。 */
+  function extFetch(url,opts){
+    opts=opts||{};
+    if(!(window.AndroidUI&&typeof AndroidUI.apiAny==="function"))return fetch(url,opts);
+    var method=String(opts.method||"GET").toUpperCase();
+    var headers={};try{
+      var h=opts.headers||{};
+      if(typeof h.forEach==="function")h.forEach(function(v,k){headers[k]=v;});
+      else Object.keys(h).forEach(function(k){headers[k]=h[k];});
+    }catch(e){}
+    return new Promise(function(res,rej){
+      var raw="";
+      try{raw=AndroidUI.apiAny(String(url),method,JSON.stringify(headers),opts.body==null?"":String(opts.body));}
+      catch(e){rej(e);return;}
+      var out=null;try{out=JSON.parse(String(raw||"{}"));}catch(e){}
+      if(!out||typeof out.status==="undefined"){rej(new Error("原生接口没有返回内容"));return;}
+      var status=Number(out.status);
+      if(!isFinite(status)||status===0){rej(new Error(out.message||"网络连接失败"));return;}
+      var ct=String(out.contentType||"application/octet-stream");
+      var b64=String(out.body||"");
+      var bytes;
+      try{
+        var bin=atob(b64),arr=new Uint8Array(bin.length);
+        for(var i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);
+        bytes=arr;
+      }catch(e){rej(new Error("接口返回内容读取失败"));return;}
+      var body;
+      if(/json|text|xml|javascript|html/i.test(ct)){
+        try{body=new TextDecoder("utf-8").decode(bytes);}catch(e){body="";}
+      }else{
+        body=bytes;
+      }
+      try{res(new Response(body,{status:status,headers:{"Content-Type":ct}}));}catch(e){rej(e);}
+    });
+  }
+  window.__e11ExtFetch=extFetch;
+  window.__e11ApiChat=function(messages,timeout){
+    var c=cfg(),url=chatEndpoint(c.base);
+    if(!c.base||!c.key)return Promise.reject(new Error("还没填接口地址或 API Key"));
+    var ac=null;try{ac=new AbortController();}catch(_){}
+    var timer=setTimeout(function(){try{ac&&ac.abort();}catch(_){}},timeout||22000);
+    return extFetch(url,{method:"POST",cache:"no-store",headers:{"Content-Type":"application/json","Authorization":"Bearer "+c.key,},body:JSON.stringify({model:c.model||"gpt-4o-mini",messages:messages,temperature:0.8}),signal:ac?ac.signal:undefined}).then(function(r){
+      clearTimeout(timer);
+      if(!r.ok)return r.text().then(function(t){var e=new Error("HTTP "+r.status+(t?(" · "+t.slice(0,180)):""));e.status=r.status;throw e;});
+      return r.json();
+    }).then(function(j){
+      var out="";
+      try{
+        out=j&&j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content;
+        if(Array.isArray(out))out=out.map(function(x){return typeof x==="string"?x:(x&&x.text)||"";}).join("");
+        if(!out)out=(j&&j.output_text)||(j&&j.text)||"";
+      }catch(e){}
+      out=String(out||"").trim();
+      if(!out)throw new Error("接口返回了空内容");
+      return out;
+    },function(e){clearTimeout(timer);throw e;});
+  };
+  function systemPrompt(){
+    var c=cfg();if(c.prompt&&c.prompt.trim())return c.prompt.trim();
+    var me=(window.state&&state.me&&state.me.name)||"我";
+    var pa=(window.state&&state.partner&&state.partner.name)||"对方";
+    return "你是「"+pa+"」，正在和「"+me+"」私聊。回复要短、自然、口语化，一次1-2句；不要解释自己是AI，不要复述设定，不要用列表。";
+  }
+  function context(){
+    var ms=(window.state&&state.messages)||[];
+    var out=[],last=ms.slice(-18);
+    last.forEach(function(m){
+      if(!m||m.recalled||m.type==="sys")return;
+      var role=m.from==="me"?"user":"assistant";
+      var text=m.text||"";
+      if(m.type==="image"||m.type==="voice")text=text||(m.type==="image"?"[图片]":"[语音]");
+      if(!text)return;
+      out.push({role:role,content:text});
+    });
+    if(!out.length)out.push({role:"user",content:"在吗"});
+    out.unshift({role:"system",content:systemPrompt()});
+    return out;
+  }
+  function estimateDur(t){return Math.max(2,Math.min(30,Math.round(String(t||"").length/4)));}
+  function partnerVoice(c,text){
+    if(c.partnerVoiceOn===false||!c.ttsOn)return false;
+    var p=Math.max(0,Math.min(100,Number(c.voiceProb)||0));
+    return p>0&&Math.random()*100<p;
+  }
+  function addPartnerReply(text,c){
+    text=String(text||"").trim();if(!text)return;
+    try{clearNoReply();}catch(e){}
+    var useVoice=partnerVoice(c,text);
+    var mid=useVoice?pushMsg("partner","voice","",{ttsText:text,voice:c.ttsVoice||"alloy",dur:estimateDur(text)}):pushMsg("partner","text",text);
+    try{__chatAppendPartner(mid);}catch(e){try{renderChat();}catch(_){}} 
+    try{maybePartnerRecall(mid);}catch(e){}
+    try{setTyping(false);}catch(e){}
+    try{save();}catch(e){}
+  }
+  window.__e11ApiSchedule=function(){
+    if(!ready())return false;
+    var c=cfg();
+    var sec=Math.max(0,Number(state.settings.minDelaySec)||0);
+    var max=Math.max(sec,Number(state.settings.maxDelaySec)||0);
+    var ms=sec*1000+Math.random()*(max-sec)*1000;
+    var srcId=null;try{var lm=state.messages[state.messages.length-1];if(lm&&lm.from==="me")srcId=lm.id;}catch(e){}
+    setTyping(true);
+    setTimeout(function(){
+      var unread=[];try{state.messages.forEach(function(x){if(x.from==="me"&&x.read!==true&&!x.recalled)unread.push(x.id);});}catch(e){}
+      var nrp=Math.min(100,Math.max(0,Number(state.settings.readNoReplyProb)||0));
+      var cool=(Date.now()-(window.__lastNoReplyTs||0))>180000;
+      var force=window.__forceReplyNext===true;
+      if(force)window.__forceReplyNext=false;
+      if(nrp>0&&cool&&!force&&Math.random()*100<nrp){
+        window.__lastNoReplyTs=Date.now();window.__forceReplyNext=true;
+        try{markNoReply(srcId);}catch(e){}try{setTyping(false);}catch(e){}try{__refreshReadState([srcId]);save();}catch(e){}return;
+      }
+      if(markRead()){try{__refreshReadState(unread);save();}catch(e){}}else{try{__refreshReadState(unread);}catch(e){}}
+      __e11ApiChat(context()).then(function(text){
+        addPartnerReply(text,c);
+        try{if(replyTimers.length===0)setTyping(false);}catch(e){} 
+        try{__maybePartnerTapback();}catch(e){}
+        try{window.__e11ApiFallingBack=false;}catch(e){}
+      }).catch(function(err){
+        try{setTyping(false);}catch(e){}
+        try{window.__e11ApiLastError=String(err&&err.message||err);}catch(e){}
+        try{window.__e11ApiFallingBack=true;scheduleReply();}catch(e){}
+        setTimeout(function(){try{window.__e11ApiFallingBack=false;}catch(e){}},20);
+      });
+    },ms);
+    return true;
+  };
+  /* TTS：返回 dataURL；缓存最近 4 条，播放过的不重复请求。 */
+  window.__e11TtsFetch=function(text,voice,model){
+    var c=cfg();if(!(c.ttsBase||c.base)||!c.key)return Promise.reject(new Error("还没填语音接口地址或 API Key"));
+    if(c.ttsOn===false)return Promise.reject(new Error("云端语音已关闭"));
+    var url=ttsEndpoint(c);if(!url)return Promise.reject(new Error("语音接口地址为空"));
+    var key=String(voice||"alloy")+"|"+String(text||"");
+    window.__e11TtsCache=window.__e11TtsCache||{};
+    if(window.__e11TtsCache[key])return Promise.resolve(window.__e11TtsCache[key]);
+    var body={model:model||c.ttsModel||c.model||"tts-1",input:String(text||"").slice(0,600),voice:voice||c.ttsVoice||"alloy",response_format:"mp3"};
+    return extFetch(url,{method:"POST",cache:"no-store",headers:{"Content-Type":"application/json","Authorization":"Bearer "+c.key},body:JSON.stringify(body)}).then(function(r){
+      if(!r.ok)return r.text().then(function(t){throw new Error("TTS HTTP "+r.status+(t?(" · "+t.slice(0,120)):""));});
+      var _ct=String(r.headers&&r.headers.get&&r.headers.get("content-type")||"");
+      if(/json|text/i.test(_ct))return r.text().then(function(t){throw new Error("TTS 返回错误："+t.slice(0,160));});
+      return r.blob();
+    }).then(function(blob){
+      if(!blob||!blob.size)throw new Error("TTS 返回的音频为空");
+      return new Promise(function(res,rej){
+        var fr=new FileReader();
+        fr.onload=function(){
+          var d=String(fr.result||"");var ids=Object.keys(window.__e11TtsCache);
+          if(ids.length>=4){try{delete window.__e11TtsCache[ids[0]];}catch(e){}}
+          window.__e11TtsCache[key]=d;res(d);
+        };
+        fr.onerror=function(){rej(new Error("语音播放数据读取失败"));};
+        fr.readAsDataURL(blob);
+      });
+    });
+  };
+  function playSrc(src,bubble){
+    try{
+      __voiceSession();__stopVoiceAudio();
+      document.querySelectorAll(".voice-bubble.playing").forEach(function(b){b.classList.remove("playing");});
+      var token=__voiceToken;
+      if(bubble)bubble.classList.add("playing");
+      var fail=function(){if(token!==__voiceToken)return;if(bubble)bubble.classList.remove("playing");toast("云端语音播放失败，检查 TTS 接口和 Voice 名");};
+      var url=__voiceSrcURL(src);
+      var el=function(){__voiceAudioFallback(url,bubble,token,fail);};
+      if(!__voiceFallback(url,function(){if(token!==__voiceToken)return;if(bubble)bubble.classList.remove("playing");},el))el();
+    }catch(e){toast("云端语音播放失败");}
+  }
+  window.__e11PlayTts=function(text,voice,bubble){
+    if(bubble)bubble.classList.add("playing");
+    toast("正在生成云端语音…");
+    return __e11TtsFetch(text,voice).then(function(d){playSrc(d,bubble);return true;}).catch(function(e){if(bubble)bubble.classList.remove("playing");toast(String(e&&e.message||e));return false;});
+  };
+  /* 保留原播放器；只有“没有 src、只有 ttsText”的云端语音走 TTS。 */
+  var _oldPlayVoice=window.playVoiceMsg;
+  window.playVoiceMsg=function(id,bubble){
+    var m=null;try{m=(state.messages||[]).filter(function(x){return x.id===id;})[0];}catch(e){}
+    if(m&&!m.src&&m.ttsText){window.__e11PlayTts(m.ttsText,m.voice||cfg().ttsVoice,bubble);return;}
+    if(_oldPlayVoice)return _oldPlayVoice(id,bubble);
+    toast("这条语音没有数据");
+  };
+
+  /* ---------- 设置页 ---------- */
+  function $(id){return document.getElementById(id);}
+  function mark(el,on){if(el)el.classList.toggle("on",!!on);}
+  function status(id,txt){var e=$(id);if(e)e.textContent=txt;}
+  function paint(){
+    var c=cfg();
+    var vals=[["set-api-base",c.base],["set-api-key",c.key],["set-api-model",c.model],["set-api-prompt",c.prompt],["set-tts-voice",c.ttsVoice],["set-tts-model",c.ttsModel],["set-tts-base",c.ttsBase],["set-voice-prob",c.voiceProb]];
+    vals.forEach(function(p){
+      var el=$(p[0]);if(!el)return;
+      if(document.activeElement===el)return;
+      el.value=p[1]===undefined||p[1]===null?"":String(p[1]);
+    });
+    mark($("sw-api-on"),c.chatOn);
+    mark($("sw-partner-voice"),c.partnerVoiceOn!==false);
+    mark($("sw-cloud-voice"),c.ttsOn!==false);
+    if($("set-voice-prob")&&document.activeElement!==$("set-voice-prob"))$("set-voice-prob").value=Number(c.voiceProb)||0;
+    status("api-test-sub",c.chatOn?(ready()?"已启用 · 保存后生效":"已开，但地址/Key 没填完"):"未启用");
+    status("tts-test-sub",c.ttsOn===false?"已关闭":(c.base&&c.key?"点试听验证":"填好 API 后再试"));
+  }
+  window.__e11ApiPaint=paint;
+  function bind(id,evt,fn){var el=$(id);if(!el||el.__e11ApiB)return;el.__e11ApiB=1;el.addEventListener(evt,fn);}
+  function bindInput(id,key,num){
+    bind(id,"change",function(){var v=this.value;if(num)v=Math.max(0,Math.min(100,Math.round(Number(v)||0)));setCfg({[key]:v});paint();});
+    bind(id,"input",function(){var v=this.value;if(num)v=Math.max(0,Math.min(100,Math.round(Number(v)||0)));setCfg({[key]:v});});
+  }
+  bind("sw-api-on","click",function(){var c=cfg();setCfg({chatOn:!c.chatOn});paint();toast(!c.chatOn?"已开启自定义接口（聊天会走你的 API）":"已关闭自定义接口，恢复字卡回复");});
+  bindInput("set-api-base","base");bindInput("set-api-key","key");bindInput("set-api-model","model");bindInput("set-api-prompt","prompt");
+  bind("sw-partner-voice","click",function(){var c=cfg();setCfg({partnerVoiceOn:!(c.partnerVoiceOn!==false)});paint();});
+  bindInput("set-voice-prob","voiceProb",true);
+  bind("sw-cloud-voice","click",function(){var c=cfg();setCfg({ttsOn:!(c.ttsOn!==false)});paint();toast(!c.ttsOn?"云端语音已关，对方只发文字/语音条会失败":"云端语音已开");});
+  bindInput("set-tts-voice","ttsVoice");bindInput("set-tts-model","ttsModel");bindInput("set-tts-base","ttsBase");
+  bind("btn-api-test","click",function(){
+    var b=this;b.disabled=true;status("api-test-sub","连接中…");
+    __e11ApiChat([{role:"system",content:systemPrompt()},{role:"user",content:"你好，用一句话回复我。"}],18000).then(function(t){status("api-test-sub","连接成功："+t.slice(0,60));toast("API 连接成功");}).catch(function(e){status("api-test-sub","失败："+String(e&&e.message||e).slice(0,140));toast("API 连接失败");}).then(function(){b.disabled=false;});
+  });
+  bind("btn-tts-test","click",function(){
+    var b=this;b.disabled=true;status("tts-test-sub","合成中…");
+    __e11TtsFetch("这是一条云端语音测试。",cfg().ttsVoice).then(function(d){status("tts-test-sub","音色："+(cfg().ttsVoice||"alloy")+" · 播放");playSrc(d,null);}).catch(function(e){status("tts-test-sub","失败："+String(e&&e.message||e).slice(0,140));}).then(function(){b.disabled=false;});
+  });
+  /* 有些版本设置页打开时不会再调 bindSetting，这里补一次；只读本机配置，不碰聊天状态。 */
+  try{
+    var _vs=document.getElementById("view-settings");
+    if(_vs&&window.MutationObserver){new MutationObserver(function(){if(_vs.classList.contains("open"))paint();}).observe(_vs,{attributes:true,attributeFilter:["class"]});}
+  }catch(e){}
+  try{paint();}catch(e){}
+})();
+</script>
+
 </body>
 </html>
