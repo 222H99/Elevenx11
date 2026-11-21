@@ -1,3 +1,10 @@
+## v43-57 修复
+
+- 覆盖安装，不要卸载、不要清应用数据。
+- 设置页不再折叠；云端同步已关闭，不会再拿旧云端覆盖本机。
+- 语音可切 MiniMax：填 API Key、GroupId，模型 `speech-02-hd`，音色如 `female-shaonv`。
+- APK `Eleven11-v43-57.apk`，versionCode 79，MD5 `ade9542d7a0e0c6b3e5cac92f9ebb1e6`。
+
 ## v43-55 修复
 
 - 覆盖安装，不要卸载、不要清应用数据。
