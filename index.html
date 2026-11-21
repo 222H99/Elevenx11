@@ -187,7 +187,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-22v43-60";
+window.__E11_BUILD="2026-11-22v43-61";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2484,7 +2484,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-22v43-60">
+<meta name="app-build" content="2026-11-22v43-61">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4170,7 +4170,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-60</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-61</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -6018,7 +6018,8 @@ setTimeout(function(){
     }catch(_){}
     var _lptW=Number(local&&local.profile&&local.profile.__ts)||0,_cptW=Number(cs&&cs.profile&&cs.profile.__ts)||0;
     if(!(_lptW>_cptW+1000)&&__e11ProfileScore(cs&&cs.profile)>__e11ProfileScore(local&&local.profile)+2)return true;
-    if(__e11SettingsScore(cs&&cs.settings)>__e11SettingsScore(local&&local.settings)+5)return true;
+    var _lptS=Number(local&&local.settings&&local.settings.__ts)||0,_cptS=Number(cs&&cs.settings&&cs.settings.__ts)||0;
+    if(!(_lptS>_cptS+1000)&&__e11SettingsScore(cs&&cs.settings)>__e11SettingsScore(local&&local.settings)+5)return true;
     /* 同一段聊天里，云端字卡/信件/动态/歌曲/表情明显更全时也算云端更完整；
        否则本机只剩几十条时，云端 934 张字卡和 7 首歌永远不会被拉回来。 */
     var cScore=__e11ContentScore(cs),lScore=__e11ContentScore(local);
@@ -6159,6 +6160,7 @@ setTimeout(function(){
     window.__e11CloudPause=1;
     try{window.__e11TombstoneMute=1;window.__e11SetState&&window.__e11SetState(st);}catch(e){}finally{try{window.__e11TombstoneMute=0;}catch(_){}}
     try{window.__profileSaveSig=JSON.stringify((st&&st.profile)||{});}catch(_eProfSig){}
+    try{window.__settingsSaveSig=JSON.stringify((st&&st.settings)||{});}catch(_eSetSig){}
     try{if(_localSkin){st.skin=st.skin||{};st.skin.dark=!!_localSkin.dark;if(_localSkin.themeMode)st.skin.themeMode=_localSkin.themeMode;}}catch(_eKeepSkin){}
     /* 云端快照可能只存了文字/旧版本，图在别的槽里；先用本机同账号的好图把空图补回来，
        避免“登录/恢复云存档后表情包和头像全变成失效图”。只补坏图，不覆盖用户删掉的内容。 */
@@ -6235,6 +6237,8 @@ setTimeout(function(){
   }
   function setChip(txt){
     var el=$("set-account-sub");if(el)el.textContent=txt;
+    /* 云端会话过期/换域名打开时，不要只显示“未登录”死文字：按钮变成“登录云端”，点开登录框。 */
+    try{var _lb=$("btn-account-logout");if(_lb)_lb.textContent=(txt==="未登录"?"登录云端":"退出登录");}catch(_eLb){}
   }
   function chipSync(state){
     if(!authOk()){setChip("未登录");return;}
@@ -6562,7 +6566,7 @@ setTimeout(function(){
     var t=e.target;if(!t||!t.closest)return;
     if(t.closest("#auth-login")){e.preventDefault();onLogin();}
     if(t.closest("#auth-pwd-go")){e.preventDefault();onPwd();}
-    if(t.closest("#btn-account-logout")){e.preventDefault();logout();}
+    if(t.closest("#btn-account-logout")){e.preventDefault();if(!authOk()){showLoginCard();return;}logout();}
     if(t.closest("#auth-force-update")){e.preventDefault();try{if(window.__e11CheckVersion)window.__e11CheckVersion(true);else location.reload();}catch(_){}}
   });
   document.addEventListener("keydown",function(e){
@@ -8063,7 +8067,7 @@ function __prefReapplyAll(){
 }
 
 function save(){
-  /* v43-60：资料单独打修改时间。以前 profile 没有 __ts，云端只要存着一份非空的默认资料，
+  /* v43-61：资料单独打修改时间。以前 profile 没有 __ts，云端只要存着一份非空的默认资料，
      本机改过的昵称/签名就会被 applySnapshot 判成“云端有内容”而恢复默认。 */
   try{
     var _psig=JSON.stringify(state.profile||{});
@@ -8073,6 +8077,17 @@ function save(){
       window.__profileSaveSig=JSON.stringify(state.profile);
     }
   }catch(_eProfTs){}
+  /* 设置项也做整份指纹：不只设置页里的开关，换肤/字号/气泡/聊天背景等从别处改的也会打上新时间。 */
+  try{
+    if(!window.__e11CloudPause&&!window.__restoring){
+      var _ssig=JSON.stringify(state.settings||{});
+      if(window.__settingsSaveSig===undefined)window.__settingsSaveSig=_ssig;
+      else if(_ssig!==window.__settingsSaveSig){
+        state.settings=state.settings||{};state.settings.__ts=Date.now();
+        window.__settingsSaveSig=JSON.stringify(state.settings);
+      }
+    }
+  }catch(_eSetTs){}
   try{window.__e11TombstoneScan&&window.__e11TombstoneScan(false);}catch(_){}
   /* 正在「一键恢复」时禁止任何写盘：刷新前页面的自动保存会把旧数据再写一遍，
      时间戳一更新，启动时就会用回旧存档——这是恢复看起来没生效的根因 */
@@ -13337,7 +13352,7 @@ function __lsMsgText(m){
     return String(m.text||msgPreviewText(m)||"");
   }catch(_){return "[消息]";}
 }
-/* v43-60：长图里的红包 / 问卷 / 推歌 / 邀请不再退化成一行文字，
+/* v43-61：长图里的红包 / 问卷 / 推歌 / 邀请不再退化成一行文字，
    按聊天里真实的卡片版式单独绘制，尺寸固定，不随屏幕缩放改变。 */
 function __lsCardSpec(m){
   try{
@@ -13424,6 +13439,13 @@ function __msgSelLongShot(ids){
       var darkBg=!!bgImg&&bgLum<132;
       var CW=750,PAD=34,CONTENT=CW-PAD*2,HEAD=118,FOOT=72;
       var AV=34,AVG=12;
+      var _sk=state.skin||{};
+      var _accent=String(_sk.accent||"#3478F6");
+      var _myB=String(_sk.mybubble||"#3478F6");
+      var _partB=String(_sk.partbubble||"rgba(255,255,255,.96)");
+      var _myT=String(_sk.myTextColor||"#FFFFFF");
+      var _partT=String(_sk.partTextColor||"#20222A");
+      var _lsFont="27px -apple-system,BlinkMacSystemFont,'PingFang SC','Helvetica Neue',Arial,sans-serif";
       var blocks=[],h=HEAD;
       ms.forEach(function(m,idx){
         if(m.type==="sys"){
@@ -13444,7 +13466,7 @@ function __msgSelLongShot(ids){
         }else{
           var txt=__lsMsgText(m)||"[消息]";
           var c=document.createElement("canvas").getContext("2d");
-          c.font="27px -apple-system,BlinkMacSystemFont,'PingFang SC','Helvetica Neue',Arial,sans-serif";
+          c.font=_lsFont;
           b.lines=__lsWrap(c,txt,showAv?420:470);
           var lw=0;b.lines.forEach(function(l){lw=Math.max(lw,c.measureText(l).width);});
           b.bw=Math.min(showAv?452:502,Math.max(96,Math.ceil(lw)+36));
@@ -13538,7 +13560,7 @@ function __msgSelLongShot(ids){
             x.fillText("● "+ca.sub,bx+22,by+128);
           }else if(ca.kind==="survey"){
             x.fillStyle="#FFFFFF";x.fillRect(bx,by,bw,bh);
-            x.fillStyle="#3478F6";x.fillRect(bx,by,bw,5);
+            x.fillStyle=_accent;x.fillRect(bx,by,bw,5);
             x.fillStyle="#DCEAFF";__lsRoundRect(x,bx+bw-96,by+16,78,26,13);x.fill();
             x.fillStyle="#3478F6";x.font="600 13px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
             x.textAlign="center";x.textBaseline="middle";x.fillText(ca.status,bx+bw-57,by+29);x.textAlign="left";
@@ -13549,7 +13571,7 @@ function __msgSelLongShot(ids){
             x.fillStyle="#858A98";x.font="500 15px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
             x.fillText(__lsFitText(x,ca.sub,bw-44),bx+22,by+83);
             var sbg=x.createLinearGradient(bx+bw-158,by+bh-52,bx+bw-28,by+bh-20);
-            sbg.addColorStop(0,"#4A8CFF");sbg.addColorStop(1,"#3478F6");
+            sbg.addColorStop(0,_accent);sbg.addColorStop(1,_accent);
             x.fillStyle=sbg;__lsRoundRect(x,bx+bw-158,by+bh-52,130,32,16);x.fill();
             x.fillStyle="#FFFFFF";x.font="600 14px -apple-system,BlinkMacSystemFont,'PingFang SC',Arial,sans-serif";
             x.textAlign="center";x.fillText(ca.btn,bx+bw-93,by+bh-33);x.textAlign="left";
@@ -13594,13 +13616,13 @@ function __msgSelLongShot(ids){
         }else{
           if(isMe){
             var mg=x.createLinearGradient(bx,by,bx+bw,by+bh);
-            mg.addColorStop(0,"#3478F6");mg.addColorStop(1,"#2E6BE0");
+            mg.addColorStop(0,_myB);mg.addColorStop(1,_myB);
             x.fillStyle=mg;
-          }else{x.fillStyle="rgba(255,255,255,.96)";}
+          }else{x.fillStyle=_partB;}
           __lsRoundRect(x,bx,by,bw,bh,20);x.fill();
           if(!isMe){x.strokeStyle="rgba(0,0,0,.055)";x.lineWidth=1;__lsRoundRect(x,bx,by,bw,bh,20);x.stroke();}
-          x.fillStyle=isMe?"#FFFFFF":"#20222A";
-          x.font="27px -apple-system,BlinkMacSystemFont,'PingFang SC','Helvetica Neue',Arial,sans-serif";
+          x.fillStyle=isMe?_myT:_partT;
+          x.font=_lsFont;
           x.textBaseline="top";
           b.lines.forEach(function(line,i){x.fillText(line,bx+18,by+16+i*39);});
         }
@@ -29408,7 +29430,7 @@ body{margin:0;background:var(--bg,#fafafa);}
          此时 root.top 不能跟着 voffY 走，否则整页会被抬上去、工具条压住日记字 */
       if(_diaryOpen){voffX=0;voffY=0;}
       var _landView=(w>h*1.12&&w>=560);
-      /* v43-60：舞台只按屏幕宽度铺，不再把整站放大到 1.3 倍。
+      /* v43-61：舞台只按屏幕宽度铺，不再把整站放大到 1.3 倍。
          尺寸锁死为 1，390/430/480 宽的手机上按钮、字号、间距都保持设计稿原大小；
          旧版存过的 __uiKLock 比例（1.05~1.3）全部作废，避免“换大屏手机后整页变大”。 */
       window.__uiKLock=1;
