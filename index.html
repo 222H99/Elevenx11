@@ -2334,7 +2334,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-21v43-30">
+<meta name="app-build" content="2026-11-21v43-31">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3997,7 +3997,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-30</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-31</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -6029,9 +6029,14 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-21",
-  noticeKey:"2026-11-21v43-30",
-  lead:"v43-30：日记返回直接回主页；照片框拖动改成每帧一次，松手自动保存尺寸；进出底色改用真实皮肤平均色，不再先闪纯黑/纯白。",
+  noticeKey:"2026-11-21v43-31",
+  lead:"v43-31：日记和字卡模板关闭后统一回聊天页；所有返回按钮 380ms 内只认一次，不再一下连退两层甚至退回桌面。",
   items:[
+    '<span class="an-gt">v43-31 · 返回层级</span>',
+    "日记关闭、字卡/模板返回统一回聊天页，不再跟随加号入口回主页",
+    "返回按钮和同一位置的返回点击 380ms 内只执行第一次，页面淡出时下层返回键不再被连点穿透",
+    "安卓系统返回与页面返回同一拍到达时，第二次直接消费掉，不会先关日记再关字卡、最后退到桌面",
+    "日记淡出、视图切换时旧层立即 pointer-events:none，减少上下两层返回键重叠可点",
     '<span class="an-gt">v43-30 · 返回 / 缩放 / 闪屏</span>',
     "日记页关闭后直接回主页，不再先落聊天页、还要再点一次返回",
     "主页照片框拖动缩放改成每帧最多写一次样式，不再每个 pointermove 都强制布局；松手、切后台或被系统打断都会立即保存尺寸并回传",
@@ -16417,6 +16422,9 @@ window.__androidResume=function(){
    不要走 WebView 的浏览历史；否则会退到上一个 URL、白屏或直接退出。 */
 window.__androidBack=function(){
   try{
+    /* 系统返回和页面返回按钮可能同一拍到达：已有一次返回在 380ms 内处理过就直接消费掉，
+       不执行第二次，也不会把用户退到桌面/退出 WebView。 */
+    if(window.__e11BackLock&&Date.now()-window.__e11BackLock<380)return true;
     var dv=document.getElementById("diary-view");
     if(dv&&dv.classList.contains("show")){try{if(window.__closeDiary)window.__closeDiary();else{dv.classList.remove("show");dv.classList.remove("writing");}}catch(_){}return true;}
     var po=document.getElementById("plus-overlay");
@@ -20150,7 +20158,12 @@ $("fav-clear")&&$("fav-clear").addEventListener("click",async function(){
 });
 
 $("plus-settings").addEventListener("click",()=>{closePlus();__plusMark();window.__settingsEntryView="view-chat";window.__settingsBackTo="view-chat";_settingsFrom="view-chat";showView("view-settings");});
-$("btn-cards-back").addEventListener("click",()=>{try{window.__e11ClearSub&&window.__e11ClearSub();}catch(_){};showView(__plusReturnView("view-chat"));});
+$("btn-cards-back").addEventListener("click",()=>{
+  var _now=Date.now();if(window.__e11BackLock&&_now-window.__e11BackLock<380)return;window.__e11BackLock=_now;
+  try{window.__e11ClearSub&&window.__e11ClearSub();}catch(_){}
+  /* v43-31：字卡/模板页的返回固定回聊天页，不再跟随加号入口回主页。 */
+  showView("view-chat");
+});
 /* 旧版情侣空间页的返回按钮原本没有绑定，顺手补上，避免进去后退不出来 */
 $("btn-couple-back").addEventListener("click",()=>showView("view-me"));
 /* 情侣空间背景：原来「背景」按钮没有事件，点了完全没反应 */
@@ -26974,14 +26987,17 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
     paintCover();
   };
   function closeDiary(){
+    /* v43-31：日记关闭统一回聊天页；同时加 380ms 返回锁，避免日记关闭和安卓系统返回同一拍触发两次。 */
+    var _now=Date.now();
+    if(window.__e11BackLock&&_now-window.__e11BackLock<380)return;
+    window.__e11BackLock=_now;
     __diaryBlurInput();try{closeReplySheet();}catch(_){}
     /* 先在日记遮罩下面铺好“打开日记之前的那一页”，再让日记原位淡出。
        从主页加号进日记就回主页，从聊天进就回聊天，不再固定绕一次聊天页。 */
     try{if(window.__e11ClearSub)window.__e11ClearSub();}catch(_){}
-    /* v43-30：日记返回直接回主页，不再先落聊天页等第二次返回。
-       用户从聊天加号进日记也一样回主页，减少一层无意义返回。 */
-    try{window.__diaryFrom="view-me";}catch(_){}
-    try{showView("view-me");}catch(_){try{showView("view-me");}catch(__){}} 
+    /* v43-31：按这轮要求，日记关闭回聊天页（不再回主页），一次返回只走一层。 */
+    try{window.__diaryFrom="view-chat";}catch(_){}
+    try{showView("view-chat");}catch(_){try{showView("view-chat");}catch(__){}} 
     try{__fadeOutDiary(110);}catch(_){el("diary-view").classList.remove("show");el("diary-view").classList.remove("writing");}
     if(writingTimer){clearTimeout(writingTimer);writingTimer=null;}
     try{window.__uiScaleSync&&window.__uiScaleSync();}catch(_){}
@@ -27570,6 +27586,22 @@ body{margin:0;background:var(--bg,#fafafa);}
 })();
 </script>
 <script>
+/* v43-31：同一个返回按钮/同一位置的返回点击 380ms 内只认第一次。
+   旧版页面淡出时上下两层返回键位置重合，快速双击会同时关两层，甚至直接回到桌面。 */
+(function(){
+  var last={t:0,x:0,y:0};
+  document.addEventListener("click",function(e){
+    try{
+      var b=e.target&&e.target.closest?e.target.closest(".back-btn,#diary-close,.dh-close,.mp-close"):null;
+      if(!b)return;
+      var now=Date.now();
+      if(last.t&&now-last.t<380&&Math.abs((e.clientX||0)-last.x)<18&&Math.abs((e.clientY||0)-last.y)<18){
+        e.preventDefault();e.stopImmediatePropagation();return;
+      }
+      last={t:now,x:e.clientX||0,y:e.clientY||0};
+    }catch(_){}
+  },true);
+})();
 /* 手机返回键/侧滑返回：日记和字卡板块统一回聊天页，不把浏览器退出到上一张网页 */
 (function(){
   /* 兜底：如果登录层撤了、但一个页面都没铺出来，也绝不把纯白留给用户；

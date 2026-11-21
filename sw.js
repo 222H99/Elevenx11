@@ -6,7 +6,7 @@
  * 3) 网络在后台更新缓存，下一次打开自然换成新版本；
  * 4) 连缓存都没有时，返回一个可重试的提示页，而不是空白 503。
  */
-const CACHE = "eleven11-runtime-v43-30";
+const CACHE = "eleven11-runtime-v43-31";
 const INDEX_URL = new URL("./index.html", self.location.href).href;
 
 const SHELL = [
