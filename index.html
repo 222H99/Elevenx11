@@ -2246,7 +2246,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-21v43-18">
+<meta name="app-build" content="2026-11-21v43-19">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3909,7 +3909,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-18</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-19</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5878,9 +5878,11 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-21",
-  noticeKey:"2026-11-21v43-18",
-  lead:"v43-18：登录后不再整页重载，网页/PWA/APK 登录直接在当前页进入主页；即使初始化失败也有兜底页，不再留纯白。前两版自动更新、信封返回、图片长按都保留。",
+  noticeKey:"2026-11-21v43-19",
+  lead:"v43-19：登录后不再整页重载，网页/PWA/APK 登录直接在当前页进入主页；空白兜底页自检修正，纯白状态会保留恢复页。前两版自动更新、信封返回、图片长按都保留。",
   items:[
+    '<span class="an-gt">v43-19 · 空白兜底页修正</span>',
+    "修正空白兜底的 700ms 自检：恢复页不会把自己误判成有效页面而立刻消失；只有真的没有任何 view/登录层/载入层时才保留恢复页",
     '<span class="an-gt">v43-18 · 登录后不再白屏</span>',
     "登录成功、改密成功不再整页 reload：直接在同一个页面里恢复云端存档或建立账号空间，避免 iOS 主屏幕/PWA 在连续 2–3 次重载中间露出整片白",
     "第一次在这台设备登录不再清库再重载：直接把本机当前状态写进账号云端空间，少一次刷新",
@@ -26852,9 +26854,9 @@ body{margin:0;background:var(--bg,#fafafa);}
   function valid(){
     try{
       if(document.querySelector(".view.open"))return true;
-      var ids=["auth-gate","boot-veil","__veil","about-screen","announce-screen","lock-screen","#__recover"];
+      var ids=["auth-gate","boot-veil","__veil","about-screen","announce-screen","lock-screen"];
       for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i].replace("#",""));if(el&&(el.classList.contains("show")||(el.id==="__veil"&&!el.hidden)))return true;}
-      return document.body.classList.contains("auth-locked");
+      return false;
     }catch(e){return true;}
   }
   function recover(){
