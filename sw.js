@@ -6,7 +6,7 @@
  * 3) 网络在后台更新缓存，下一次打开自然换成新版本；
  * 4) 连缓存都没有时，返回一个可重试的提示页，而不是空白 503。
  */
-const CACHE = "eleven11-runtime-v43-21";
+const CACHE = "eleven11-runtime-v43-22";
 const INDEX_URL = new URL("./index.html", self.location.href).href;
 
 const SHELL = [
@@ -174,12 +174,12 @@ self.addEventListener("install", (event) => {
         const cache = await caches.open(CACHE);
         await Promise.race([
           cache.addAll(SHELL).catch(() => {}),
-          new Promise((resolve) => setTimeout(resolve, 2500)),
+          new Promise((resolve) => setTimeout(resolve, 700)),
         ]);
       } catch (_) {}
       const gotFresh = await Promise.race([
         preCacheIndex(),
-        new Promise((resolve) => setTimeout(() => resolve(false), 4000)),
+        new Promise((resolve) => setTimeout(() => resolve(false), 1200)),
       ]);
       if (!gotFresh) await adoptExistingIndex();
       await self.skipWaiting();
