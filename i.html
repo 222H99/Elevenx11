@@ -2251,7 +2251,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-21v43-21">
+<meta name="app-build" content="2026-11-21v43-22">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3914,7 +3914,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-21</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-22</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5883,9 +5883,13 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-21",
-  noticeKey:"2026-11-21v43-21",
-  lead:"v43-21：已添加到主屏幕的 PWA 现在会真正换页：强制更新改用 __bust 绕过旧整页缓存，SW 也把 __u 当绕缓存标记；升级时导航到带 __bust 的新地址，不再 reload 回旧缓存。前几版登录/空白兜底保留。",
+  noticeKey:"2026-11-21v43-22",
+  lead:"v43-22：登录成功先把主页铺出来，云端存档后台再补，不再等 Supabase 5～9 秒白屏；登录后换肤/渲染拆成独立步骤，任何一步出错都不会连页面一起吞掉。版本检查缩短到 3 秒，更新重载不等清缓存。v43-21 的主屏幕自动更新保留。",
   items:[
+    '<span class="an-gt">v43-22 · 登录不再等云端、白屏兜底</span>',
+    "登录成功后立刻 showView/hideGate，先把本机主页铺出来；云端快照继续后台读，读到再替换。Supabase 慢或 9 秒超时也不会一直白",
+    "__enterAfterAction 把 showView、hideGate、applySkin、renderAll 拆成独立 try：以前任何一步抛错都会连页面一起不显示",
+    "有本地登录态冷启动时，等待从 6 秒缩到 1.8 秒就先进本地；版本检查从 12 秒缩到 3 秒，强制更新不再等整页缓存删完才换页",
     '<span class="an-gt">v43-21 · 主屏幕 PWA 自动更新修正</span>',
     "强制更新重载从只加 __u 改为同时加 __bust；旧 SW 的 cacheFirstIndex 会忽略 search，只加 __u 时 reload 仍返回旧整页，这就是主屏幕 PWA 看起来一直不更新的直接原因",
     "sw.js 把 __u 也当作绕缓存标记；SW 激活接管旧页面时直接导航到带 __bust 的新地址，不再导航回原 URL 吃旧缓存",
@@ -25441,7 +25445,7 @@ try{
   if(!/^http/i.test(location.protocol))return;
   var running=false;
   var FORCE_KEY="__e11ForceAt";
-  function canForce(){try{var t=+sessionStorage.getItem(FORCE_KEY)||0;return Date.now()-t>60000;}catch(e){return true;}}
+  function canForce(){try{var t=+sessionStorage.getItem(FORCE_KEY)||0;return Date.now()-t>8000;}catch(e){return true;}}
   function markForce(){try{sessionStorage.setItem(FORCE_KEY,String(Date.now()));}catch(e){}}
   function build(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||"";}catch(e){return "";}}
   function safeForAuto(){
@@ -25453,15 +25457,17 @@ try{
   }
   function verNum(v){var m=/v(\d+)-(\d+)/.exec(v||"");return m?((+m[1])*1000+(+m[2])):-1;}
   async function clearRuntime(){
+    /* 注销 SW 要等它生效（否则旧 SW 仍可能拦导航）；清整页缓存放到后台，不阻塞换页。 */
     try{
       if(navigator.serviceWorker){
         var rs=await navigator.serviceWorker.getRegistrations();
-        await Promise.all(rs.map(function(r){return r.unregister().catch(function(){});}));
+        await Promise.race([Promise.all(rs.map(function(r){return r.unregister().catch(function(){});})),new Promise(function(res){setTimeout(res,350);})]);
       }
     }catch(_){}
     try{
-      var keys=await caches.keys();
-      await Promise.all(keys.filter(function(k){return k.indexOf("eleven11-runtime-")===0;}).map(function(k){return caches.delete(k);}));
+      caches.keys().then(function(keys){
+        keys.filter(function(k){return k.indexOf("eleven11-runtime-")===0;}).forEach(function(k){try{caches.delete(k);}catch(_){}});
+      });
     }catch(_){}
   }
   window.__forceE11Update=function(manual){
@@ -25487,10 +25493,10 @@ try{
       if(remote&&verNum(remote)>verNum(build())&&canForce()&&safeForAuto())window.__forceE11Update(false);
     }catch(_){}
   }
-  setTimeout(check,1500);
-  setInterval(check,12000);
-  window.addEventListener("pageshow",function(){setTimeout(check,700);});
-  document.addEventListener("visibilitychange",function(){if(!document.hidden)setTimeout(check,700);});
+  setTimeout(check,600);
+  setInterval(check,3000);
+  window.addEventListener("pageshow",function(){setTimeout(check,100);});
+  document.addEventListener("visibilitychange",function(){if(!document.hidden)setTimeout(check,100);});
 })();
 </script>
 <!-- 真实 manifest.json 已在 head 里引用；不再注入 data URL manifest，避免浏览器装到旧图标/旧方向 -->
