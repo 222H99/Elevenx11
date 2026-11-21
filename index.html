@@ -1582,7 +1582,8 @@ body.ui-dark.lt-preset .env-card .ev-page-head .small-btn.ghost{background:rgba(
    夜间信件不再是一整块纯黑 + 白色信纸块，改成深色半透明玻璃：
    底图仍透出一点，信纸/正文/来信详情统一成暗玻璃，字用近白色。 */
 body.ui-dark:not(.lt-preset) #view-letters{
-  --lt-bg:linear-gradient(160deg,#232733 0%,#101218 46%,#171a22 100%) !important;
+  /* v43-40：0 号「跟随主题」夜间必须是纯黑，不再铺深灰渐变 */
+  --lt-bg:#000 !important;
 }
 body.ui-dark:not(.lt-preset) #env-flip.showcard .env-card{
   background-color:rgba(9,11,16,.66) !important;
@@ -2443,7 +2444,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-21v43-39">
+<meta name="app-build" content="2026-11-21v43-40">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4107,7 +4108,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-39</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-40</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -6139,9 +6140,13 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-21",
-  noticeKey:"2026-11-21v43-39",
-  lead:"v43-39：换过的背景重开还是新背景；语音改存 8k WAV，旧手机录的也能播；删掉的歌不再被恢复；评论/回复提示点进去直达那条内容。",
+  noticeKey:"2026-11-21v43-40",
+  lead:"v43-40：信箱「跟随主题」夜间改纯黑；粉白/蓝白/米色/薰衣草/薄荷/蜜桃六个默认背景，夜间切换也立刻生效。",
   items:[
+    '<span class="an-gt">v43-40 · 信箱背景</span>',
+    "信箱「跟随主题」夜间改成纯黑 #000，不再铺深灰渐变；白天仍跟随浅色主题保持白色",
+    "信件背景里的粉白、蓝白、米色、薰衣草、薄荷、蜜桃六个默认背景，夜间切换也会立刻生效，不再只在白天有反应",
+    "选了彩色信件背景时，来信详情和信纸仍按对应纸色显示，字色自动保持可读",
     '<span class="an-gt">v43-39 · 背景 / 语音 / 删歌 / 评论提示</span>',
     "换背景后立即写本机并立刻推云端，聊天背景和桌面背景都保持内联，不再被历史图片修复用旧图补回来；重开、切后台、刚换完就关掉都还是你最后选的那张",
     "新录音同时抓原始采样，停止时优先编成 8k 单声道 WAV 再入库；不再依赖手机给的 mp4/webm 容器，安卓录的、iPhone 录的都能互相播",
@@ -8494,8 +8499,9 @@ function applySkin(){
   /* 信件背景：0 号「跟随主题」白天白/夜间黑；1 号起的彩色预设照旧生效 */
   let ltPreset=(s.ltBg>0&&GB_PRESETS[s.ltBg]&&GB_PRESETS[s.ltBg].g)?GB_PRESETS[s.ltBg].g:null;
   let ltGrad=ltPreset?ltPreset:(dark?'linear-gradient(180deg,#000000,#000000)':'linear-gradient(180deg,#ffffff,#ffffff)');
-  /* v43-37：夜间走「夜玻璃」，彩色信纸预设只在白天生效；切回浅色仍按用户选的纸 */
-  try{document.body.classList.toggle("lt-preset",!!ltPreset&&!dark);}catch(e){}
+  /* v43-40：彩色信件预设不再只在白天生效。夜里选了粉白/蓝白/米色/薰衣草/薄荷/蜜桃，
+     这六个默认背景也要立刻换过去；0 号「跟随主题」仍然是纯黑。 */
+  try{document.body.classList.toggle("lt-preset",!!ltPreset);}catch(e){}
   r.setProperty("--lt-bg",ltGrad);
   /* 页面背景可以跟主题黑，但信件纸本身默认必须白；只有用户主动选了彩色信件背景才用预设 */
   r.setProperty("--lt-paper",ltPreset||"#FFFFFF");
