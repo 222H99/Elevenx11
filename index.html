@@ -2334,7 +2334,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-21v43-33">
+<meta name="app-build" content="2026-11-21v43-34">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3997,7 +3997,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-33</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-34</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -6029,9 +6029,14 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-21",
-  noticeKey:"2026-11-21v43-33",
-  lead:"v43-33：听歌时返回聊天更可靠。歌词、背景、封面、一起听邀请这些浮层会先收起再回聊天；退出音乐页会取消待自动接受的邀请，不会被 1.8 秒后的自动跳转再拉回音乐页。",
+  noticeKey:"2026-11-21v43-34",
+  lead:"v43-34：字卡、模板、日记、主页音乐返回聊天页时，聊天页左上角返回键留 650ms 防误触，抬手那一下不会又把你送回桌面；聊天背景固定共用桌面；对方推歌也会从我的歌单里挑。",
   items:[
+    '<span class="an-gt">v43-34 · 返回防误触 / 共用背景 / 歌单推歌</span>',
+    "字卡页、模板页、日记、主页音乐页返回聊天后，聊天页左上角返回键 650ms 内不响应；原来抬手 click 会落到刚出现的聊天返回键，再点一次就回桌面",
+    "安卓系统返回从字卡/日记/音乐切到聊天后同样加返回锁，第二次系统返回不会继续退到桌面或退出",
+    "聊天背景固定优先用桌面背景 skin.meImage；即使以前单独设过聊天背景，也统一跟桌面共用",
+    "对方推歌约一半概率直接从我的歌单挑歌（最近推过的 8 首不重复），另一半仍去网易云随机搜；搜不到再回退歌单",
     '<span class="an-gt">v43-33 · 听歌返回</span>',
     "音乐页返回、安卓系统返回都会先收掉歌词、背景、封面、备注、一起听邀请等全屏浮层，再切回聊天页，不会出现聊天被浮层盖住点不动",
     "退出音乐页时同步取消待自动通过的听歌邀请；原来邀请 1.8 秒后自动 accept 会再次 showView 音乐页，看起来就像返回失败",
@@ -8348,9 +8353,11 @@ function applySkin(){
   /* 顶栏颜色交给 __syncSysBar() 按 App 当前明暗处理 */
   /* v43-32：没有单独设聊天壁纸时，聊天背景直接共用主页/桌面背景（skin.meImage）。
      以前这里写 none，聊天页就只剩纯色底；用户看到的“聊天背景不和桌面共用”就是这个。 */
-  var _wallSrc=s.bgImage||s.meImage||"";
+  /* v43-34：聊天背景固定跟桌面（skin.meImage）共用；桌面没图时才退到旧的聊天背景。
+     这样即使以前单独设过聊天图，也不会再出现“桌面一套、聊天另一套”。 */
+  var _wallSrc=s.meImage||s.bgImage||"";
   r.setProperty("--wallimg",_wallSrc?'url("'+wallUrl(_wallSrc)+'")':"none");
-  if(!s.bgImage&&s.meImage)r.setProperty("--walltint","rgba(0,0,0,0)");
+  if(s.meImage)r.setProperty("--walltint","rgba(0,0,0,0)");
   /* 夜间/白天切换时，音乐页「跟随主题」的底色要跟着重画 */
   try{if(typeof renderMusicBg==="function")renderMusicBg();}catch(_e){}
   /* 把壁纸留在内存里：聊天页隐藏再显示时 iOS 不会重新解码/重新铺一次（那一下就是白闪） */
@@ -16193,6 +16200,12 @@ function showView(id){
     if(_was&&_was!==id&&$(_was))_fadeFrom=$(_was);
     if(!window.__viewInit){window.__viewInit=1;["view-chat","view-me","view-cards","view-settings","view-letters","view-guestbook","view-moments","view-redpacket","view-game","view-music","view-couple"].forEach(function(v){if(v!==id&&$(v))$(v).classList.remove("open");});}
     $(id).classList.add("open");window.__curView=id;
+    try{
+      /* 从日记/字卡/音乐/设置等页回聊天时，返回键的抬手 click 可能落到刚出现的
+         聊天页左上角 #top-back，于是又执行一次“回桌面”。这里在切到聊天后留 650ms
+         保护窗，聊天页的 top-back 在此期间不响应。 */
+      if(id==="view-chat"&&_was&&_was!=="view-chat"){window.__chatBackGuardUntil=Date.now()+650;window.__e11BackLock=Date.now();}
+    }catch(_){}
     try{__rememberView(id);}catch(_){}
     /* 所有页面切换统一用旧页淡出：旧页不立刻撤，先在原位淡掉，
        目标页在下面已经画好；返回聊天、返回主页都不会再有一帧空白/亮暗突变。 */
@@ -16530,7 +16543,14 @@ $("btn-letters-back").addEventListener("click",function(e){
   try{if(Date.now()<(window.__letterClosedAt||0)+420){e.preventDefault();e.stopImmediatePropagation();return;}}catch(_){}
   showView("view-chat");
 });
-$("top-back").addEventListener("click",()=>showView("view-me"));
+$("top-back").addEventListener("click",function(e){
+  /* 刚回到聊天的那一下抬手/幽灵 click 不再把用户直接送回桌面 */
+  try{
+    if(Date.now()<(window.__chatBackGuardUntil||0)){e.preventDefault();e.stopImmediatePropagation();return;}
+    if(window.__e11BackLock&&Date.now()-window.__e11BackLock<600){e.preventDefault();e.stopImmediatePropagation();return;}
+  }catch(_){}
+  showView("view-me");
+});
 /* 聊天页顶部「对方名字 ›」以前没有事件，点了没反应：点它/头像直接进对方主页，返回回聊天 */
 try{
   var _openPartnerHome=function(){
@@ -17975,6 +17995,20 @@ var _163Warmed=false;
       if(!song.cover)__partnerSongDetail(song.neteaseId,song,done);else done(song);
     }).catch(function(){cb(null);});
   }
+  /* 对方推歌也可以从“我的歌单”里挑：有歌单时约一半概率直接用歌单，
+     另一半仍去网易云随机搜；搜不到再回退歌单/种子。 */
+  function __partnerSongFromPlaylist(cb){
+    var pl=(state.musicPlaylist||[]).filter(function(x){return x&&(x.neteaseId||x.url||x.localBlob);});
+    if(!pl.length)return false;
+    var pool=pl.filter(function(x){var id=String(x.neteaseId||x.id||"");return !id||__partnerSongRecent.indexOf(id)<0;});
+    if(!pool.length)pool=pl;
+    var pick=pool[Math.floor(Math.random()*pool.length)];
+    var song=__spNormSong(pick);
+    var sid=String(song.neteaseId||song.id||"");
+    if(sid){__partnerSongRecent.push(sid);if(__partnerSongRecent.length>8)__partnerSongRecent=__partnerSongRecent.slice(-8);}
+    cb(song);
+    return true;
+  }
   function __maybePartnerSongPush(){
     try{
       if(Date.now()-(__lastPartnerSongAt||0)<10*60000)return;
@@ -17994,7 +18028,8 @@ var _163Warmed=false;
         }catch(_){}
         try{save();}catch(_){}
       };
-      /* 对方每次自己随机换个词去搜，搜到什么推什么；网络失败才退到我的歌单/种子。 */
+      /* 先有一半概率从我的歌单挑，剩下再去网易云现搜。 */
+      if(Math.random()<0.5&&__partnerSongFromPlaylist(finish))return;
       __partnerSongFromSearch(function(song){
         if(song){finish(song);return;}
         try{
@@ -18008,6 +18043,7 @@ var _163Warmed=false;
   /* 暴露给聊天随机事件（同一个 IIFE 外面看不到这些函数） */
   window.__maybePartnerSongPush=__maybePartnerSongPush;
   window.__pushSongToPartner=__pushSongToPartner;
+  try{window.__partnerSongFromPlaylist=__partnerSongFromPlaylist;}catch(_){}
   window.__playPushedSong=__playPushedSong;
   /* 推歌弹层事件 */
   (function(){
@@ -19368,6 +19404,7 @@ window.__closeMusicLayers=function(){
   });
 };
 $("btn-music-back").addEventListener("click",function(){
+  try{window.__e11BackLock=Date.now();}catch(_){}
   if(window.__closeMusicLayers)window.__closeMusicLayers();
   try{musicSession=(state&&state.musicSession)?true:musicSession;}catch(e){}
   showView("view-chat");
@@ -27638,7 +27675,7 @@ body{margin:0;background:var(--bg,#fafafa);}
   var last={t:0,x:0,y:0};
   document.addEventListener("click",function(e){
     try{
-      var b=e.target&&e.target.closest?e.target.closest(".back-btn,#diary-close,.dh-close,.mp-close"):null;
+      var b=e.target&&e.target.closest?e.target.closest(".back-btn,#top-back,.top-btn,#diary-close,.dh-close,.mp-close"):null;
       if(!b)return;
       var now=Date.now();
       if(last.t&&now-last.t<380&&Math.abs((e.clientX||0)-last.x)<18&&Math.abs((e.clientY||0)-last.y)<18){
