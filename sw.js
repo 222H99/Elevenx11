@@ -6,7 +6,7 @@
  * 3) 网络在后台更新缓存，下一次打开自然换成新版本；
  * 4) 连缓存都没有时，返回一个可重试的提示页，而不是空白 503。
  */
-const CACHE = "eleven11-runtime-v43-16";
+const CACHE = "eleven11-runtime-v43-17";
 const INDEX_URL = new URL("./index.html", self.location.href).href;
 
 const SHELL = [
@@ -242,6 +242,11 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return; // 音乐、外链图片不拦
   if (url.pathname.endsWith("/sw.js")) return; // sw 自己不要被 sw 接管
+  /* 版本探针必须直接走网络：不能被 SW 缓存，也不能被旧缓存骗成“已是最新”。 */
+  if (url.pathname.endsWith("/version.json")) {
+    event.respondWith(fetch(req, { cache: "no-store", credentials: "same-origin" }));
+    return;
+  }
   /* 检查更新用 __bust 拉 HTML 里的 app-build；这类请求必须绕过缓存直接取网络，
      否则 Service Worker 会把旧页面返回给检查逻辑，永远显示“已是最新”。 */
   if (url.searchParams.has("__bust")) {
