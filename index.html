@@ -2455,7 +2455,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-21v43-42">
+<meta name="app-build" content="2026-11-21v43-43">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4119,7 +4119,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-42</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-43</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5562,9 +5562,10 @@ setTimeout(function(){
   function cloudUrl(){return "/storage/v1/object/vault/"+encodeURIComponent(session.user.id)+"/latest.json";}
   function cloudGet(){
     var isMissing=function(e){return !!e&&(e.status===404||(e.status===400&&/not[_ ]?found|object not found/i.test(String(e.message||""))));};
-    return api(cloudUrl(),{token:session.access_token}).then(function(d){return d;}).catch(function(e){
+    var note=function(d){try{window.__e11CloudMsgCount=d&&d.state&&d.state.messages?d.state.messages.length:0;}catch(_){}return d;};
+    return api(cloudUrl(),{token:session.access_token}).then(note).catch(function(e){
       if(isMissing(e))return null;
-      if(e&&e.status===401){return refreshSession(session).then(function(){return api(cloudUrl(),{token:session.access_token}).then(function(d){return d;}).catch(function(e2){if(isMissing(e2))return null;throw e2;});});}
+      if(e&&e.status===401){return refreshSession(session).then(function(){return api(cloudUrl(),{token:session.access_token}).then(note).catch(function(e2){if(isMissing(e2))return null;throw e2;});});}
       throw e;
     });
   }
@@ -5578,6 +5579,12 @@ setTimeout(function(){
   }
   function putVault(payload){
     if(!cfgReady())return Promise.reject(new Error("后端未配置"));
+    /* 最后一道保险：已知云端有聊天记录时，绝不允许 0 条消息的本机快照覆盖它。 */
+    try{
+      var _mn=(payload&&payload.state&&payload.state.messages||[]).length;
+      if(_mn===0&&Number(window.__e11CloudMsgCount||0)>0&&!window.__e11AllowBlankCloud)
+        return Promise.reject(new Error("云端已有聊天记录，已拒绝用空白存档覆盖"));
+    }catch(_eBlankGuard){}
     /* 关键图（头像/主页照片/表情）如果还是 bigref，说明本机图片本体没恢复。
        这时绝不能把整档覆盖到云端，否则会把云端可能还完好的图一起换成空引用。 */
     try{
@@ -5602,6 +5609,32 @@ setTimeout(function(){
     return new Promise(function(res){
       var n=0;var t=setInterval(function(){n++;if(window.__stateReady||n>90){clearInterval(t);res(!!window.__stateReady);}},200);
     });
+  }
+  /* 云同步前先看“谁的聊天更完整”：消息 id 是递增的，不能只信本机时间戳。
+     新装 App 的空白页 __savedAt 是“现在”，如果只比时间，会把云端 500 多条记录当成旧档覆盖掉。 */
+  function __e11MsgStats(st){
+    var n=0,max=0;
+    try{
+      var ms=(st&&st.messages)||[];n=ms.length;
+      for(var i=0;i<ms.length;i++){
+        var id=String((ms[i]&&ms[i].id)||"");
+        var m=/^m(\d+)/.exec(id);
+        if(m){var v=parseInt(m[1],10);if(isFinite(v)&&v>max)max=v;}
+      }
+    }catch(e){}
+    return {n:n,max:max};
+  }
+  function __e11CloudWins(cloud,local,cloudTs,localTs){
+    var cs=cloud&&cloud.state?cloud.state:cloud;
+    var c=__e11MsgStats(cs),l=__e11MsgStats(local);
+    try{window.__e11CloudMsgCount=c.n;}catch(_){}
+    if(!c.n)return false;
+    if(!l.n)return true;
+    if(c.max>l.max)return true;
+    if(c.max<l.max)return false;
+    if(c.n>l.n)return true;
+    if(c.n<l.n)return false;
+    return (Number(cloudTs)||0)>(Number(localTs)||0);
   }
   function snapshot(){
     var st=window.__e11StateGet?window.__e11StateGet():null;
@@ -5682,10 +5715,10 @@ setTimeout(function(){
     setChip("已登录 · "+(a||"账号")+(s?(" · "+s):""));
   }
   function cloudSchedule(){
-    if(!authOk()||window.__e11CloudPause||window.__restoring)return;
+    if(!authOk()||window.__e11CloudPause||window.__restoring||window.__e11CloudHold)return;
     clearTimeout(cloudTimer);
     cloudTimer=setTimeout(function(){
-      if(!authOk()||window.__e11CloudPause||window.__restoring)return;
+      if(!authOk()||window.__e11CloudPause||window.__restoring||window.__e11CloudHold)return;
       var snap;
       try{snap=snapshot();}catch(e){return;}
       var txt;try{txt=JSON.stringify(snap);}catch(e){return;}
@@ -5701,9 +5734,30 @@ setTimeout(function(){
   }
   window.__E11Cloud={schedule:cloudSchedule,flush:function(){clearTimeout(cloudTimer);cloudSchedule();},recoveryGet:cloudGetRecovery,uploadNow:function(){
     if(!authOk())return Promise.reject(new Error("未登录"));
+    if(window.__e11CloudHold)return Promise.reject(new Error("正在核对云端记录，请稍候"));
     var snap=snapshot();
     return putVault(snap).then(function(){lastCloudHash=JSON.stringify(snap);window.__e11CloudStatus="已同步";chipSync();});
   }};
+
+  /* 启动时如果本机时代比云端更旧（典型：新装 APK 只拿到很旧的本地档），
+     先拉云端完整档再进主页，避免旧档继续往云端回写。 */
+  var __e11PullBusy=0;
+  function pullCloudIfNewer(){
+    if(__e11PullBusy||!authOk()||window.__e11CloudPause)return Promise.resolve(false);
+    __e11PullBusy=1;
+    return stateReady().then(function(ok){
+      if(!ok)return false;
+      var local=window.__e11StateGet?window.__e11StateGet():null;
+      var localTs=Number(local&&local.__savedAt)||0;
+      return cloudGet().then(function(cloud){
+        if(!cloud||!__e11CloudWins(cloud,local,Number(cloud.savedAt)||0,localTs))return false;
+        window.__e11CloudPause=1;
+        try{setWait("正在恢复云端记录","云端有更完整的聊天记录，先恢复再继续。");}catch(_){}
+        return applySnapshot(cloud).then(function(){location.reload();return true;});
+      });
+    }).then(function(r){__e11PullBusy=0;return r?1:0;},function(e){__e11PullBusy=0;try{console.warn("[e11 pull]",e&&e.message||e);}catch(_){}return -1;});
+  }
+  window.__E11CloudPull=pullCloudIfNewer;
 
   function doAction(act){
     return stateReady().then(function(ok){
@@ -5715,9 +5769,9 @@ setTimeout(function(){
           var local=window.__e11StateGet?window.__e11StateGet():null;
           var localTs=Number(local&&local.__savedAt)||0;
           var cloudTs=Number(cloud&&cloud.savedAt)||0;
-          /* 同一账号在本机重新登录时，如果本地时间戳更新，说明用户刚改过资料/设置；
-             哪怕还没产生聊天、信件、动态，也不能让云端旧快照把这次改动盖回默认。 */
-          if(cloud&&(!owner||cloudTs>localTs)){
+          /* 不能只看时间戳：新装 App 的空白本机档时间是“现在”，会赢过云端旧档。
+             先比最后一条消息 id 和消息条数，云端更完整才恢复；本机消息更新才用本机。 */
+          if(cloud&&__e11CloudWins(cloud,local,cloudTs,localTs)){
             setWait("正在恢复你的云端存档","只恢复这个账号自己的数据，不会碰其他账号。");
             return applySnapshot(cloud).then(function(){localStorage.setItem(LS_OWNER,session.user.id);window.__e11CloudStatus="已同步";setAction(null);__enterAfterAction();return true;});
           }
@@ -5811,7 +5865,26 @@ setTimeout(function(){
         setWait("正在进入你的空间","正在读取这个账号自己的云端存档…");
         doAction(act).catch(function(e){/* doAction 已经显示错误 */});
       }else{
+        /* 进主页前先核对一次云端：如果云端消息比本机更完整，先恢复云端，绝不让旧本机档回写覆盖。 */
+        window.__e11CloudHold=1;window.__e11CloudStatus="核对云端";
         hideGate();chipSync();
+        var retryPull=function(delay){
+          setTimeout(function(){
+            pullCloudIfNewer().then(function(r){
+              if(r===1)return;
+              if(r===0){
+                window.__e11CloudHold=0;window.__e11CloudStatus="已同步";
+                try{chipSync();}catch(_){}
+                try{cloudSchedule();}catch(_){}
+              }else{
+                window.__e11CloudHold=1;window.__e11CloudStatus="本地模式 · 待核对";
+                try{chipSync();}catch(_){}
+                retryPull(8000);
+              }
+            });
+          },delay);
+        };
+        retryPull(900);
         setTimeout(function(){try{window.__e11TryMediaRepair&&window.__e11TryMediaRepair();}catch(_){}},700);
       }
     }).catch(function(e){
@@ -5888,9 +5961,17 @@ setTimeout(function(){
       });
     };
     if(!authOk()){finish();return;}
-    /* 先等最后一次上传结束，避免刚发的消息只留在本机就被清掉 */
-    window.__E11Cloud.uploadNow().then(finish).catch(async function(){
-      if(await __iosConfirm("云端保存失败，继续退出可能丢掉最后一次改动。仍然退出？",{okText:"仍然退出"}))finish();
+    /* 退出前先核对云端：云端消息更完整时绝不能把本机旧档传上去覆盖。
+       确认本机更新才做最后一次上传。 */
+    var _local=null;try{_local=window.__e11StateGet?window.__e11StateGet():null;}catch(_){}
+    var _lts=Number(_local&&_local.__savedAt)||0;
+    window.__e11CloudGet().then(function(cloud){
+      if(cloud&&__e11CloudWins(cloud,_local,Number(cloud.savedAt)||0,_lts)){finish();return;}
+      return window.__E11Cloud.uploadNow().then(finish).catch(async function(){
+        if(await __iosConfirm("云端保存失败，继续退出可能丢掉最后一次改动。仍然退出？",{okText:"仍然退出"}))finish();
+      });
+    }).catch(async function(){
+      if(await __iosConfirm("还没核对云端，退出前上传失败。仍然退出？",{okText:"仍然退出"}))finish();
     });
   }
 
@@ -6163,10 +6244,13 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-21",
-  noticeKey:"2026-11-21v43-42",
-  lead:"v43-42：打开页面就自动比对并更新，不再依赖手动检查；修复同一天 v43-x 版本被误判成同一个版本的问题。APK 打开自动检测新版并显示下载条；登录增加失败重试和安卓原生网络兜底。",
+  noticeKey:"2026-11-21v43-43",
+  lead:"v43-43：修掉新装/换机后用本机空白档覆盖云端的问题。现在启动先比对云端与本机谁的消息更完整，云端更多就先恢复云端；本机真正更新才上传。已知云端有记录时，0 条消息的空白档一律拒绝覆盖。",
   items:[
-    '<span class="an-gt">v43-42 · 自动更新 / 登录网络</span>',
+    '<span class="an-gt">v43-43 · 云同步防止空白覆盖</span>',
+    "新装 App、清数据或换设备后，本机默认档的时间是「现在」，旧逻辑会误判它比云端新，于是把云端几百条聊天覆盖成 0 条。v43-43 改成先比最后一条消息编号和消息条数，云端更完整就直接恢复云端",
+    "启动时先核对云端再允许同步：本机旧档 486 条、云端 534 条时，先把云端 534 条拉回来，再让页面继续；本机确实更新（消息编号更大）才保留本机",
+    "云端已知有聊天记录时，0 条消息的本机快照会被拒绝上传，并提示「云端已有聊天记录，已拒绝用空白存档覆盖」",
     "打开页面后自动请求 version.json 比对版本，发现新版直接带时间戳换页；不再需要点「检查更新」，手动按钮也走同一条更可靠的版本文件检查",
     "修掉版本比较只取 v43 的 bug：以前 v43-41 和 v43-42 会被判成同一个版本，所以同一天发新版时永远提示「已是最新」",
     "APK 页面是本地资源，打开会自动向线上主站查版本；发现新版就弹出下载条，下载覆盖安装后聊天记录保留",
