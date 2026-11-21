@@ -2308,7 +2308,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-21v43-26">
+<meta name="app-build" content="2026-11-21v43-27">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3971,7 +3971,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-26</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-27</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5973,9 +5973,14 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-21",
-  noticeKey:"2026-11-21v43-26",
-  lead:"v43-26：推歌界面重做成底部卡片，真封面能显示；对方改成每次随机换词自己搜歌来推；照片预览先出缩略图再高清；修掉小弹窗播放键被换成沙漏后点不了/图标不同步的问题。",
+  noticeKey:"2026-11-21v43-27",
+  lead:"v43-27：头像和照片不再先把原图写进存档再压一遍。头像先缩到 320px 再保存，个人照片先缩到 720px；老账号里偏大的头像会在空闲时自动缩一次，打开页面不再反复解码大图。",
   items:[
+    '<span class="an-gt">v43-27 · 头像 / 照片提速</span>',
+    "头像上传改成先压到 320px WebP 再写 state 和存档，不再连续解码原图两遍；2400×1800、628KB 的图实测约 0.13 秒完成，头像 base64 从约 600KB 降到约 24KB",
+    "设置页头像、个人主页头像、情侣页两个头像、音乐页两个头像全部走同一条「先压后存」路径",
+    "老账号里已经存成 600/800px 的大头像，会在进入后空闲时自动缩到 320px 一次并回写存档；之后打开不再重新解码大图",
+    "个人主页大照片改为先压到 720px WebP 再落盘，2400×1800 实测约 0.19 秒，不再先存原图再压第二遍",
     '<span class="an-gt">v43-26 · 推歌 / 照片 / 小弹窗</span>',
     "推歌界面重做：底部卡片、分段切换、搜索框、真实封面、附言计数；封面先显示小图，点开推歌时再补 1500px 大图",
     "对方推歌改成真·随机搜索：每次从 30 个关键词里换一个去网易云搜，搜到什么推什么，最近 8 首不重复；网络失败才退到我的歌单/种子",
@@ -7947,6 +7952,7 @@ function __shrinkImg(raw,max,q){
     im.src=raw;
   });
 }
+function __avatarShrink(raw){return __shrinkImg(raw,320,0.72);}
 /* 保持原分辨率、只换编码的压缩：优先不缩尺寸，肉眼无损优先。
    - 有透明通道（贴纸/图标）不动，避免 JPEG 把透明变成白底
    - JPEG 0.85 只在体积真的变小（≥20%）时才替换 */
@@ -14902,24 +14908,22 @@ $("file-avatar").addEventListener("change",e=>{
   const r=new FileReader();
   r.onload=()=>{
     var _who=$("file-avatar").dataset.who,_raw=String(r.result||"");
-    /* 情侣页那两张头像如果还是「跟着我的头像自动复制」的旧副本，就一起换掉；
-       用户自己单独设过情侣头像的（不等于旧头像）保持不动 */
     var _oldAv=state[_who]&&state[_who].avatar;
-    state[_who].avatar=_raw;
-    try{__mediaVaultPut("avatar:"+_who,_raw);}catch(_){}
-    try{
-      if(state.profile){
-        if(_who==="me"&&state.profile.cpMeAvatar===_oldAv)state.profile.cpMeAvatar=_raw;
-        if(_who==="partner"&&state.profile.cpPartnerAvatar===_oldAv)state.profile.cpPartnerAvatar=_raw;
-      }
-      renderCouple();
-    }catch(_e){}
-    save();try{__avatarBakSync();}catch(_){}bindSetting();renderTopStatus();renderChat(true);try{renderMoments();}catch(_){}toast("头像已更新");
-    /* 手机原图可能有几 MB，直接存进存档会让每次保存都变慢、还容易撑爆存储：压到 600px 再替换 */
-    try{__shrinkImg(_raw,600,0.82).then(function(c){if(!c||c===_raw||state[_who].avatar!==_raw)return;
-      try{if(state.profile){if(_who==="me"&&state.profile.cpMeAvatar===_raw)state.profile.cpMeAvatar=c;if(_who==="partner"&&state.profile.cpPartnerAvatar===_raw)state.profile.cpPartnerAvatar=c;}renderCouple();}catch(_e){}
-      state[_who].avatar=c;try{__mediaVaultPut("avatar:"+_who,c);}catch(_){}
-      save();try{__avatarBakSync();}catch(_){}bindSetting();renderTopStatus();renderChat();try{renderMoments();}catch(_){}});}catch(_){}
+    toast("正在处理头像…");
+    /* 先压到 320px 再写 state；不要先把几 MB 原图存进去再压一次 */
+    __avatarShrink(_raw).then(function(c){
+      var _v=c||_raw;
+      state[_who].avatar=_v;
+      try{__mediaVaultPut("avatar:"+_who,_v);}catch(_){}
+      try{
+        if(state.profile){
+          if(_who==="me"&&state.profile.cpMeAvatar===_oldAv)state.profile.cpMeAvatar=_v;
+          if(_who==="partner"&&state.profile.cpPartnerAvatar===_oldAv)state.profile.cpPartnerAvatar=_v;
+        }
+        renderCouple();
+      }catch(_e){}
+      save();try{__avatarBakSync();}catch(_){}bindSetting();renderTopStatus();renderChat(true);try{renderMoments();}catch(_){}toast("头像已更新");
+    }).catch(function(){toast("头像处理失败，请重试");});
   };
   r.readAsDataURL(f);e.target.value="";
 });
@@ -16582,9 +16586,11 @@ function gCompress(d,max,q){return __shrinkImg(d,max||720,q||0.72);}
       var who=pair[1],rd=new FileReader();
       rd.onload=function(){
         var raw=String(rd.result);
-        if(who==="partner")state.profile.mpAv1=raw;else state.profile.mpAv2=raw;
-        save();renderMusicList();toast("头像已更换");
-        gCompress(raw).then(function(c){var guard=who==="partner"?state.profile.mpAv1===raw:state.profile.mpAv2===raw;if(!guard)return;if(who==="partner")state.profile.mpAv1=c;else state.profile.mpAv2=c;save();renderMusicList();});
+        toast("正在处理头像…");
+        __avatarShrink(raw).then(function(c){
+          if(who==="partner")state.profile.mpAv1=c||raw;else state.profile.mpAv2=c||raw;
+          save();renderMusicList();toast("头像已更换");
+        });
       };
       rd.readAsDataURL(f);inp.value="";
     });
@@ -23297,19 +23303,19 @@ $("file-me-photo").addEventListener("change",e=>{
   const rd=new FileReader();rd.onload=()=>{
     if(!state.me.photos)state.me.photos=[];
     var _raw=String(rd.result);
-    state.me.photos[0]=_raw;
-    __mePhotoBackupWrite(_raw);
-    try{__mediaVaultPut("photo:0",_raw);}catch(_){}
-    renderMePhotos();toast("照片已更新");
-    /* 先立刻落盘原图：压缩大图可能要几秒，用户选完马上返回/刷新时不能把照片丢掉。
-       压缩完成后再覆盖成更小的版本。 */
-    try{save();__flushSave(true);}catch(_){try{save();}catch(__){}}
-    __shrinkImg(_raw,900,0.82).then(function(c){
-      if(c&&c!==_raw&&state.me.photos[0]===_raw){state.me.photos[0]=c;renderMePhotos();}
-      try{__mediaVaultPut("photo:0",(state.me.photos||[])[0]||"");}catch(_){}
-      __mePhotoBackupWrite((state.me.photos||[])[0]||"");
+    toast("正在处理照片…");
+    __shrinkImg(_raw,720,0.78).then(function(c){
+      var v=c||_raw;
+      state.me.photos[0]=v;
+      __mePhotoBackupWrite(v);
+      try{__mediaVaultPut("photo:0",v);}catch(_){}
+      renderMePhotos();toast("照片已更新");
+      try{save();__flushSave(true);}catch(_){try{save();}catch(__){ }}
+    }).catch(function(){
+      state.me.photos[0]=_raw;
+      __mePhotoBackupWrite(_raw);renderMePhotos();toast("照片已更新");
       try{save();__flushSave(true);}catch(_){try{save();}catch(__){}}
-    }).catch(function(){try{save();__flushSave(true);}catch(_){try{save();}catch(__){}}});
+    });
   };rd.readAsDataURL(f);e.target.value="";
 });
 function renderMeCardSwatches(){
@@ -23553,7 +23559,7 @@ window.__cp2Activate=__cp2Activate;
   var rpo=$("cp2-record-edit-overlay");if(rpo)rpo.addEventListener("click",function(e){if(e.target===e.currentTarget)rpo.classList.remove("show");});
   // 情侣空间头像：点击各自更换（独立字段，不与其他页共用）
   function pickAv(who){
-    window.__pickLocalFile("image/*",function(files){var f=files&&files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){var raw=String(rd.result);if(who==="me")state.profile.cpMeAvatar=raw;else state.profile.cpPartnerAvatar=raw;save();renderCouple();toast("情侣头像已更换");compressImg(raw,800,0.75).then(function(c){var guard=who==="me"?state.profile.cpMeAvatar===raw:state.profile.cpPartnerAvatar===raw;if(!guard)return;if(who==="me")state.profile.cpMeAvatar=c;else state.profile.cpPartnerAvatar=c;save();renderCouple();if(typeof preloadCp2Images==="function")preloadCp2Images();});};rd.readAsDataURL(f);});
+    window.__pickLocalFile("image/*",function(files){var f=files&&files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){var raw=String(rd.result);toast("正在处理头像…");__avatarShrink(raw).then(function(c){var v=c||raw;if(who==="me")state.profile.cpMeAvatar=v;else state.profile.cpPartnerAvatar=v;save();renderCouple();toast("情侣头像已更换");if(typeof preloadCp2Images==="function")preloadCp2Images();});};rd.readAsDataURL(f);});
   }
   var line=$("cp2-line");
   if(line)line.addEventListener("click",function(){
@@ -24505,12 +24511,12 @@ $("me-av-edit").addEventListener("click",()=>window.__nativePick("file-me-av"));
 $("me-av").addEventListener("click",()=>window.__nativePick("file-me-av"));
 $("file-me-av").addEventListener("change",e=>{
   const f=e.target.files&&e.target.files[0];if(!f)return;
-  const rd=new FileReader();rd.onload=()=>{var raw=String(rd.result);state.profile.meAvatar=raw;try{__avatarBakSync();}catch(_){}renderMe();toast("主页头像已更新");compressImg(raw,800,0.75).then(function(c){if(state.profile.meAvatar===raw){state.profile.meAvatar=c;save();try{__avatarBakSync();}catch(_){}renderMe();}});};rd.readAsDataURL(f);e.target.value="";
+  const rd=new FileReader();rd.onload=()=>{var raw=String(rd.result);toast("正在处理头像…");__avatarShrink(raw).then(function(c){state.profile.meAvatar=c||raw;save();try{__avatarBakSync();}catch(_){}renderMe();toast("主页头像已更新");});};rd.readAsDataURL(f);e.target.value="";
 });
 $("cp2-av-me").addEventListener("click",()=>window.__nativePick("cp-file-av-me"));
 $("cp-file-av-me").addEventListener("change",e=>{
   const f=e.target.files&&e.target.files[0];if(!f)return;
-  const rd=new FileReader();rd.onload=()=>{var raw=String(rd.result);state.profile.cpMeAvatar=raw;save();renderCouple();toast("情侣头像已更新");compressImg(raw,800,0.75).then(function(c){if(state.profile.cpMeAvatar===raw){state.profile.cpMeAvatar=c;save();renderCouple();}});};rd.readAsDataURL(f);e.target.value="";
+  const rd=new FileReader();rd.onload=()=>{var raw=String(rd.result);toast("正在处理头像…");__avatarShrink(raw).then(function(c){state.profile.cpMeAvatar=c||raw;save();renderCouple();toast("情侣头像已更新");});};rd.readAsDataURL(f);e.target.value="";
 });
 (function(){
   /* 情侣头像（对方）：点击只换头像，不再跳去对方主页 */
@@ -24522,7 +24528,7 @@ $("cp-file-av-me").addEventListener("change",e=>{
 })();
 $("cp-file-av-partner").addEventListener("change",e=>{
   const f=e.target.files&&e.target.files[0];if(!f)return;
-  const rd=new FileReader();rd.onload=()=>{var raw=String(rd.result);state.profile.cpPartnerAvatar=raw;save();renderCouple();toast("情侣头像已更新");compressImg(raw,800,0.75).then(function(c){if(state.profile.cpPartnerAvatar===raw){state.profile.cpPartnerAvatar=c;save();renderCouple();}});};rd.readAsDataURL(f);e.target.value="";
+  const rd=new FileReader();rd.onload=()=>{var raw=String(rd.result);toast("正在处理头像…");__avatarShrink(raw).then(function(c){state.profile.cpPartnerAvatar=c||raw;save();renderCouple();toast("情侣头像已更新");});};rd.readAsDataURL(f);e.target.value="";
 });
 try{
   var _ne=$("me-name-edit");
@@ -27340,6 +27346,40 @@ body{margin:0;background:var(--bg,#fafafa);}
       if(window.__curView==="view-cards"){showView("view-chat");return;}
     }catch(e){}
   });
+})();
+/* 老账号里已经存下来的 600/800px 头像：空闲时缩到 320px，下一次打开就不再反复解码大图。
+   只处理明显偏大的头像，不动默认 SVG；同一张只处理一次。 */
+(function(){
+  var done={};
+  window.__compactAvatarImages=function(){
+    try{
+      if(typeof state==="undefined"||!state)return;
+      var refs=[];
+      function add(o,k){try{if(o&&typeof o[k]==="string")refs.push({o:o,k:k,v:o[k]});}catch(e){}}
+      add(state.me,"avatar");add(state.partner,"avatar");
+      var p=state.profile||{};
+      ["meAvatar","cpMeAvatar","cpPartnerAvatar","mpAv1","mpAv2","cpPhotoAvatar"].forEach(function(k){add(p,k);});
+      var uniq={},n=0;
+      refs.forEach(function(r){var v=r.v;if(v&&v.slice(0,11)==="data:image/"&&v.slice(0,26).indexOf("svg")<0&&v.length>50000&&!done[v]&&n<4){uniq[v]=1;n++;}});
+      Object.keys(uniq).forEach(function(v){
+        done[v]=1;
+        __shrinkImg(v,320,0.72).then(function(c){
+          if(!c||c===v)return;
+          var changed=false;
+          refs.forEach(function(r){try{if(r.o[r.k]===v){r.o[r.k]=c;changed=true;}}catch(e){}});
+          if(!changed)return;
+          try{save();}catch(e){}
+          try{__avatarBakSync&&__avatarBakSync();}catch(e){}
+          try{renderTopStatus&&renderTopStatus();}catch(e){}
+          try{renderMe&&renderMe();}catch(e){}
+          try{renderCouple&&renderCouple();}catch(e){}
+          try{renderMoments&&renderMoments();}catch(e){}
+        }).catch(function(){});
+      });
+    }catch(e){}
+  };
+  setTimeout(function(){try{window.__compactAvatarImages();}catch(e){}},1800);
+  setTimeout(function(){try{window.__compactAvatarImages();}catch(e){}},6000);
 })();
 </script>
 </body>
