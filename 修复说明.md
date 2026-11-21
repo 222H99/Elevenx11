@@ -1,3 +1,14 @@
+## v43-41（2026-11-21）
+
+- 安卓 APK 语音录成静音：根因是 `AndroidManifest.xml` 从未声明 `android.permission.RECORD_AUDIO`，`MainActivity` 也没有实现 `WebChromeClient.onPermissionRequest`。WebView 里 `getUserMedia` 没有可用的录音权限，录出来的 mp4/WAV 电平接近零（云端 `m6825` max=159、`m6857` max=190，满幅 32767）。
+- 修复：Manifest 增加 `RECORD_AUDIO` / `MODIFY_AUDIO_SETTINGS`；`onPermissionRequest` 只授予 `RESOURCE_AUDIO_CAPTURE`，首次录音弹系统麦克风授权，拒绝时提示去系统设置；只在页面请求录音时申请，不在启动时打扰。
+- 录音时长修正：`rec.audioStart` 从真正拿到麦克风流开始计时，不再把权限弹窗等待算进语音时长（此前按住 4 秒只录到 1.7–2.8 秒，却显示 4 秒）。
+- PCM 静音兜底：只有 PCM 峰值大于 0.0012 才用 PCM 编 WAV；部分机型同时开 WebAudio 和 MediaRecorder 时 PCM 全是零，此时自动退回 MediaRecorder 的原始音频转码，不再拿静音 WAV 覆盖正常录音。
+- 轻度电平补偿：WAV 峰值低于 0.22 时最多放大 4.5 倍到约 0.55，正常音量不处理；小屏手机贴嘴录也不会小到听不见。
+- APK 内置页 URL 从 `?v=43-26` 升到 `?v=43-41`，避免 WebView `LOAD_CACHE_ELSE_NETWORK` 一直读旧缓存，导致装了新 APK 但页面还是旧版。
+- 验证：APK 权限表已包含 `RECORD_AUDIO` / `MODIFY_AUDIO_SETTINGS`；页面 `build=2026-11-21v43-41`；假麦克风录 1.8 秒得到有效 WAV，消息时长 2 秒、实际 1.76 秒；夜间信件 0 号为 `rgb(0,0,0)`，1–6 预设仍全部生效；无 pageerror。
+- 版本：v43-41，Android versionCode 62，APK `Eleven11-v43-41.apk`，APK MD5 `f899cb1d9804ba85e9e2a2245d4e5124`，页面 MD5 `05a8fb28597857abb0158b2dd9ef72ae`。
+
 ## v43-40（2026-11-21）
 
 - 信箱「跟随主题」夜间背景改为纯黑 `#000`：去掉 v43-37 的深灰渐变，`--lt-bg` 与 `.lt-bg` 实际都是 `rgb(0,0,0)`；白天仍跟随浅色主题为白色。

@@ -2444,7 +2444,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-21v43-40">
+<meta name="app-build" content="2026-11-21v43-41">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4108,7 +4108,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-40</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-41</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -6140,10 +6140,10 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-21",
-  noticeKey:"2026-11-21v43-40",
-  lead:"v43-40：信箱「跟随主题」夜间改纯黑；粉白/蓝白/米色/薰衣草/薄荷/蜜桃六个默认背景，夜间切换也立刻生效。",
+  noticeKey:"2026-11-21v43-41",
+  lead:"v43-41：安卓 APK 补上录音权限，语音不再录成静音；录音时长按真实采集时间计算；PCM 抓不到声音时自动改用 MediaRecorder 的音频。",
   items:[
-    '<span class="an-gt">v43-40 · 信箱背景</span>',
+    '<span class="an-gt">v43-41 · 语音修复</span>',
     "信箱「跟随主题」夜间改成纯黑 #000，不再铺深灰渐变；白天仍跟随浅色主题保持白色",
     "信件背景里的粉白、蓝白、米色、薰衣草、薄荷、蜜桃六个默认背景，夜间切换也会立刻生效，不再只在白天有反应",
     "选了彩色信件背景时，来信详情和信纸仍按对应纸色显示，字色自动保持可读",
@@ -26232,6 +26232,17 @@ try{
     try{if(window.__vrecCtx.state==="suspended")window.__vrecCtx.resume();}catch(e){}
     return window.__vrecCtx;
   }
+  /* 录音电平检测：PCM 抓到几乎全零时不要拿它覆盖 MediaRecorder 的正常音频 */
+  function __pcmPeak(samples){
+    var peak=0,i,j,a;
+    try{
+      for(i=0;i<samples.length;i++){
+        var f=samples[i];
+        for(j=0;j<f.length;j++){a=f[j]<0?-f[j]:f[j];if(a>peak)peak=a;}
+      }
+    }catch(e){}
+    return peak;
+  }
   /* 直接把麦克风采样编成 WAV：不依赖 MediaRecorder 的分片时机，iPhone / 安卓都能录能放 */
   function wavEncode(samples,rate,targetRate){
     var len=0,i,j;
@@ -26248,6 +26259,9 @@ try{
       for(i=0;i<n2;i++){var p0=i*rate/_target,j0=Math.floor(p0),f0=p0-j0;out[i]=(buf[j0]||0)*((1-f0))+(buf[j0+1]!==undefined?buf[j0+1]:buf[j0]||0)*f0;}
       outRate=_target;
     }
+    /* 轻量电平补偿：小屏手机贴嘴录也常常只有 -30dB，放大到能听清；正常音量不处理 */
+    var _peak=0;for(i=0;i<out.length;i++){var _a=out[i]<0?-out[i]:out[i];if(_a>_peak)_peak=_a;}
+    if(_peak>0&&_peak<0.22){var _g=Math.min(4.5,0.55/_peak);for(i=0;i<out.length;i++)out[i]*=_g;}
     var n=out.length,dv=new ArrayBuffer(44+n*2),view=new DataView(dv);
     function ws(o,str){for(var k=0;k<str.length;k++)view.setUint8(o+k,str.charCodeAt(k));}
     ws(0,"RIFF");view.setUint32(4,36+n*2,true);ws(8,"WAVE");ws(12,"fmt ");
@@ -26334,13 +26348,13 @@ try{
     var ctx=sharedCtx();
     if(!ctx){toast("这个浏览器不支持录音");return false;}
     rec.active=true;rec.gen=(rec.gen||0)+1;var my=rec.gen;
-    rec.samples=[];rec.chunks=[];rec.mr=null;rec.t0=Date.now();rec.mode="send";rec.rate=ctx.sampleRate||44100;
+    rec.samples=[];rec.chunks=[];rec.mr=null;rec.t0=Date.now();rec.audioStart=0;rec.mode="send";rec.rate=ctx.sampleRate||44100;
     rec.tapMode=!!tap;rec.tapStartedAt=Date.now();rec.streamReady=false;
     /* 先让录音浮层出现，别等权限弹窗回来才看到“按住了”；拿不到权限再收起。 */
     showRec(true);try{var _vh=document.getElementById("vrec-hint");if(_vh)_vh.textContent="正在准备麦克风…";}catch(_){}
     navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
       if(my!==rec.gen||!rec.active){try{stream.getTracks().forEach(function(t){t.stop();});}catch(e){}return;}
-      rec.stream=stream;rec.streamReady=true;
+      rec.stream=stream;rec.streamReady=true;rec.audioStart=Date.now();
       try{var _vh2=document.getElementById("vrec-hint");if(_vh2)_vh2.textContent=rec.tapMode?"点一下结束并发送":"松手 发语音";}catch(_){}
       /* ① 原生编码 + 同时抓 PCM：MediaRecorder 负责可靠采集，PCM 负责兜底转 WAV */
       try{__startPcmCapture(stream,ctx);}catch(e){}
@@ -26371,7 +26385,7 @@ try{
   }
   function endRec(){
     try{clearInterval(rec.timer);}catch(e){}
-    var wasActive=rec.active, ms=Date.now()-(rec.t0||Date.now()), mode=rec.mode;
+    var wasActive=rec.active, ms=Date.now()-(rec.audioStart||rec.t0||Date.now()), mode=rec.mode;
     rec.active=false;rec.gen=(rec.gen||0)+1;
     try{rec.tapMode=false;}catch(_){}
     showRec(false);
@@ -26389,9 +26403,12 @@ try{
         stopStream();
         if(mode==="cancel")return;
         var _pcm=rec.samples||[];rec.samples=[];
-        var _wav=null;
-        if(_pcm.length){try{_wav=wavEncode(_pcm,rec.rate||44100,8000);}catch(e){_wav=null;}}
+        var _wav=null,_peak=__pcmPeak(_pcm);
+        /* v43-41：只有 PCM 真的收到声音才用它。部分机型同时开 WebAudio/MediaRecorder 时，
+           PCM 可能全是零，这时必须退回 MediaRecorder 的原始包转码，不能拿静音 WAV 覆盖。 */
+        if(_pcm.length&&_peak>0.0012){try{_wav=wavEncode(_pcm,rec.rate||44100,8000);}catch(e){_wav=null;}}
         if(_wav){sendVoiceBlob(_wav,ms);return;}
+        if(!blob||blob.size<900){toast("没录到声音，检查麦克风权限或麦克风是否被挡住");return;}
         __voiceToWav(blob,8000).then(function(w){sendVoiceBlob(w,ms);}).catch(function(){sendVoiceBlob(blob,ms);});
       };
       try{mr.stop();}catch(e){try{mr.onstop();}catch(_e){}}
