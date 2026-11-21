@@ -2027,6 +2027,7 @@ body.msgsel-on #view-chat .bottombar{display:none;}
 /* ==== 语音录制界面（仿 iMessage） ==== */
 #vrec{position:fixed;inset:0;z-index:99990;display:none;pointer-events:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.56);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px);}
 #vrec.show{display:flex}
+#vrec.tap{pointer-events:auto;}
 .vrec-bubble{position:relative;min-width:190px;max-width:72%;padding:16px 18px;border-radius:18px;background:var(--accent,#3478F6);box-shadow:0 10px 30px rgba(0,0,0,.22);}
 .vrec-tail{position:absolute;left:26px;bottom:-8px;width:16px;height:16px;background:var(--accent,#3478F6);transform:rotate(45deg);border-radius:3px;}
 .vrec-wave{display:flex;align-items:center;justify-content:center;gap:2px;height:20px;color:#fff;}
@@ -6054,12 +6055,12 @@ var ANNOUNCE={
   items:[
     '<span class="an-gt">v43-36 · 共用背景 / 语音 / 问卷 / 推歌玻璃</span>',
     "桌面和聊天背景彻底共用：有自定义图时两边用同一张；没有自定义图时聊天也用桌面那条预设渐变，不再退回纯色/空白",
-    "聊天输入栏新增麦克风按钮，按住就能说话；长按阈值缩短到 0.42 秒，先出录音浮层再等权限，不会按了半天没反应",
+    "聊天输入栏新增麦克风按钮：轻点一下开始录，点浮层任意位置结束并发送；按住也能说话，松手发送。长按阈值缩短到 0.42 秒，先出录音浮层再等权限，不会按了半天没反应",
     "语音码率压到 32kbps，兜底 WAV 降到 16kHz，长语音不再把本地存档和云存档撑爆",
     "问卷右上角小叉关闭后 600ms 内不再接受重新打开，关闭动作也不会穿透到下面的问卷卡片",
     "聊天里的推歌卡片、推歌弹层、歌曲行和底部按钮都统一成液态玻璃：半透渐变、白边、内高光和模糊，和音乐小弹窗同一套风格",
     "邀请推歌卡片沿用同一套液态玻璃，不再出现一张白底卡片混在聊天里",
-    '<span class="an-gt">v43-36 · 共用背景 / 语音 / 问卷 / 推歌玻璃</span>',
+    '<span class="an-gt">v43-35 · 图片/表情 / 偷表情 / 玻璃邀请卡</span>',
     "聊天里已发出的图片和表情不再外置成 bigref 编号，原图直接留在存档里；更新、换设备、清缓存后不会再只剩“图片已失效”",
     "老表情消息如果只剩编号，会按图片内容哈希回表情库自动补回原图，不用重新发一遍",
     "偷表情按表情库 id 记录，同一张偷过就跳过，不再重复入库、也不再重复刷“对方偷了你的表情包”",
@@ -25859,8 +25860,8 @@ try{
   }
   function showRec(on){
     var e=els();if(!e.wrap)return;
-    if(on){buildWave();e.wrap.classList.add("show");setMode("send");document.body.classList.add("vrec-on");}
-    else{e.wrap.classList.remove("show");setMode("send");document.body.classList.remove("vrec-on");}
+    if(on){buildWave();e.wrap.classList.add("show");setMode("send");e.wrap.classList.toggle("tap",!!rec.tapMode);document.body.classList.add("vrec-on");}
+    else{e.wrap.classList.remove("show");e.wrap.classList.remove("tap");setMode("send");document.body.classList.remove("vrec-on");}
   }
   function setMode(m){
     /* cancel=取消；sendPad=手指悬在右侧发送键上（只高亮，不额外提示）；send=默认 */
@@ -25930,20 +25931,20 @@ try{
     };
     fr.readAsDataURL(blob);
   }
-  function startRec(){
+  function startRec(tap){
     if(rec.active)return false;
     if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){toast("这个环境不支持录音");return false;}
     var ctx=sharedCtx();
     if(!ctx){toast("这个浏览器不支持录音");return false;}
     rec.active=true;rec.gen=(rec.gen||0)+1;var my=rec.gen;
     rec.samples=[];rec.chunks=[];rec.mr=null;rec.t0=Date.now();rec.mode="send";rec.rate=ctx.sampleRate||44100;
-    rec.streamReady=false;
+    rec.tapMode=!!tap;rec.tapStartedAt=Date.now();rec.streamReady=false;
     /* 先让录音浮层出现，别等权限弹窗回来才看到“按住了”；拿不到权限再收起。 */
     showRec(true);try{var _vh=document.getElementById("vrec-hint");if(_vh)_vh.textContent="正在准备麦克风…";}catch(_){}
     navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
       if(my!==rec.gen||!rec.active){try{stream.getTracks().forEach(function(t){t.stop();});}catch(e){}return;}
       rec.stream=stream;rec.streamReady=true;
-      try{var _vh2=document.getElementById("vrec-hint");if(_vh2)_vh2.textContent="松手 发语音";}catch(_){}
+      try{var _vh2=document.getElementById("vrec-hint");if(_vh2)_vh2.textContent=rec.tapMode?"点一下结束并发送":"松手 发语音";}catch(_){}
       /* ① 首选 MediaRecorder：iPhone / 安卓都是原生编码，不会再出现“录到但没声音 / 播不出来” */
       var mime=pickRecMime();
       if(mime){
@@ -25954,6 +25955,7 @@ try{
           mr.onerror=function(){try{toast("录音出错，再试一次");}catch(e){}};
           mr.start(120);
           showRec(true);
+          try{var _vh3=document.getElementById("vrec-hint");if(_vh3)_vh3.textContent=rec.tapMode?"点一下结束并发送":"松手 发语音";}catch(_){}
           return;
         }catch(e){rec.mr=null;}
       }
@@ -25973,6 +25975,7 @@ try{
         try{window.__vrecSrc&&window.__vrecSrc.disconnect();window.__vrecSrc=src;}catch(e){}
         if(ctx.state==="suspended"){try{ctx.resume();}catch(e){}}
         showRec(true);
+        try{var _vh4=document.getElementById("vrec-hint");if(_vh4)_vh4.textContent=rec.tapMode?"点一下结束并发送":"松手 发语音";}catch(_){}
       }catch(e){rec.active=false;stopStream();showRec(false);toast("录音启动失败，再试一次");}
     }).catch(function(){
       rec.active=false;rec.streamReady=false;stopStream();showRec(false);
@@ -25984,6 +25987,7 @@ try{
     try{clearInterval(rec.timer);}catch(e){}
     var wasActive=rec.active, ms=Date.now()-(rec.t0||Date.now()), mode=rec.mode;
     rec.active=false;rec.gen=(rec.gen||0)+1;
+    try{rec.tapMode=false;}catch(_){}
     showRec(false);
     var mr=rec.mr;rec.mr=null;
     if(mr&&mr.state!=="inactive"){
@@ -26122,14 +26126,25 @@ try{
     }
     function up(){
       clearTimeout(press.t);
-      if(press.started){press.started=false;endRec();}
+      if(press.stopTap){press.stopTap=false;press.el=null;return;}
+      if(press.started){press.started=false;press.el=null;endRec();return;}
+      /* 轻点麦克风 = 开录；再点一下结束发送。按住仍然是松手发送。
+         只给独立麦克风按钮做轻点，输入框轻点还是聚焦打字。 */
+      if(press.el&&press.el.id==="btn-voice"&&Date.now()-(press.downAt||0)<420&&!rec.active){
+        press.el=null;
+        startRec(true);
+      }else press.el=null;
     }
     function bind(el){
       if(!el)return;
       el.addEventListener("pointerdown",function(e){
+        /* 轻点开录后再点一下：立刻结束并发送，不能被后面的 pointerup 又开一段 */
+        if(el.id==="btn-voice"&&rec.active&&rec.tapMode){
+          press.stopTap=true;press.started=false;clearTimeout(press.t);endRec();return;
+        }
         if(el.id==="msg-input"&&el.value.trim())return;
         try{sharedCtx();}catch(_){}
-        press.x0=e.clientX||0;press.y0=e.clientY||0;press.started=false;
+        press.x0=e.clientX||0;press.y0=e.clientY||0;press.started=false;press.el=el;press.downAt=Date.now();
         clearTimeout(press.t);
         press.t=setTimeout(function(){press.started=true;try{window.__dndBlurInput&&window.__dndBlurInput();}catch(_){}startRec();},420);
       });
@@ -26137,7 +26152,7 @@ try{
       el.addEventListener("pointermove",function(e){
         if(press.started){mid(e);return;}
         var dx=(e.clientX||0)-press.x0,dy=(e.clientY||0)-press.y0;
-        if(Math.abs(dx)>8||Math.abs(dy)>8)clearTimeout(press.t);
+        if(Math.abs(dx)>8||Math.abs(dy)>8){clearTimeout(press.t);press.el=null;}
       });
       el.addEventListener("pointerup",up);
       el.addEventListener("pointercancel",up);
@@ -26149,6 +26164,14 @@ try{
     bind(document.getElementById("msg-input"));
     bind(document.getElementById("btn-voice"));
     window.__bindVoiceHold=bind;
+    /* 轻点录音时浮层会盖住麦克风：点浮层任意位置 = 结束并发送，点「取消」= 丢弃。 */
+    var _vw=document.getElementById("vrec");
+    if(_vw)_vw.addEventListener("click",function(e){
+      if(!rec.active||!rec.tapMode)return;
+      if(Date.now()-(rec.tapStartedAt||0)<300)return;
+      if(e.target&&e.target.closest&&e.target.closest("#vrec-cancel")){rec.mode="cancel";}
+      endRec();
+    });
     window.__startVoiceRec=startRec;window.__endVoiceRec=endRec;
     /* 长按开始录音时让输入框失焦，顺手把 iOS 长按文字出现的放大镜收掉；轻点/打字不受影响 */
     window.__dndBlurInput=function(){try{var i=document.getElementById("msg-input");if(i&&document.activeElement===i)i.blur();}catch(e){}};
