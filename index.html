@@ -2443,7 +2443,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-21v43-38">
+<meta name="app-build" content="2026-11-21v43-39">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4107,7 +4107,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-38</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-39</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -6139,9 +6139,17 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-21",
-  noticeKey:"2026-11-21v43-38",
-  lead:"v43-38：语音点一下就能出声（iPhone 静音键也出声）；字卡回复不管 APK 从哪个入口进去都用全部字卡；聊天顶栏电话图标换成摄像头。",
+  noticeKey:"2026-11-21v43-39",
+  lead:"v43-39：换过的背景重开还是新背景；语音改存 8k WAV，旧手机录的也能播；删掉的歌不再被恢复；评论/回复提示点进去直达那条内容。",
   items:[
+    '<span class="an-gt">v43-39 · 背景 / 语音 / 删歌 / 评论提示</span>',
+    "换背景后立即写本机并立刻推云端，聊天背景和桌面背景都保持内联，不再被历史图片修复用旧图补回来；重开、切后台、刚换完就关掉都还是你最后选的那张",
+    "新录音同时抓原始采样，停止时优先编成 8k 单声道 WAV 再入库；不再依赖手机给的 mp4/webm 容器，安卓录的、iPhone 录的都能互相播",
+    "旧语音如果只是 MIME 写错（文件其实是 WAV 却标成 audio/mp4），播放前按文件头纠正，点了也能出声",
+    "歌单删除会立即落盘并同步云端；历史媒体修复只给还在歌单里的歌补封面，不再把删掉的歌加回来",
+    "评论/回复提示改为按未读和具体目标重建：只统计真正的新评论、以及挂在我评论下面的对方回复，楼中楼回复不会再被判成空提示丢掉",
+    "聊天里的“对方评论/回复”提示会带上动态和评论 id，点进去直接跳到那条动态并高亮对应回复；目标评论被删时退到该动态最新一条对方评论，动态被删会明确提示",
+    "只有真正的新动态才发“对方发了一条新动态”，评论/回复不会再额外冒一条重复提示",
     '<span class="an-gt">v43-38 · 语音 / 全部字卡 / 摄像头图标</span>',
     "语音播放改成 WebAudio 优先、audio 兜底：点一下就开始出声，iPhone 静音档也能听到；解码失败会明确提示格式不兼容，不会再点了没反应",
     "语音长按不再误弹消息操作菜单；按住和轻点都能正常录音、播放",
@@ -7064,7 +7072,9 @@ function __slimState(root){
      原因：换设备、清缓存或 IndexedDB 读写失败时，bigref 只剩一个编号，
      云端/本地快照都还原不出图，表现就是“历史头像、照片、表情包全丢”。
      这些图现在都已压到 320/720px，单张不大，内联比悬空引用可靠。 */
-  var __KEEP_INLINE=function(k){return /^(avatar|meAvatar|cpMeAvatar|cpPartnerAvatar|cpPhotoAvatar|mpAv1|mpAv2|cpPhoto|cpPhotoCard|cpPhotoSub|cpRecord|cover|musicCoverImg|musicBgImg)$/i.test(String(k||""));};
+  /* v43-39：聊天背景和桌面背景也保持内联。以前它们被换成 bigref，
+     启动时如果本机大图没读回来，历史图片修复就会把旧背景补回来，看起来就是“一打开又变回以前那张”。 */
+  var __KEEP_INLINE=function(k){return /^(avatar|meAvatar|cpMeAvatar|cpPartnerAvatar|cpPhotoAvatar|mpAv1|mpAv2|cpPhoto|cpPhotoCard|cpPhotoSub|cpRecord|cover|musicCoverImg|musicBgImg|bgImage|meImage)$/i.test(String(k||""));};
   function walk(v,key){
     try{
       if(v&&typeof v==="object"&&Array.isArray(v)&&root&&root.me&&root.me.photos===v)return v.slice();
@@ -7364,7 +7374,7 @@ function __backupPendingBig(pending){
     for(var i=pending.length-1;i>=0;i--){
       var id=pending[i][0],data=pending[i][1];
       if(typeof data!=="string"||!data)continue;
-      if(total+data.length>600000)break;
+      if(total+data.length>1200000)break;
       take.unshift([id,data]);total+=data.length;
     }
     var _bpJson=take.length?JSON.stringify(take):"";
@@ -8312,19 +8322,22 @@ function setSkinImg(key,raw,after){
         setTimeout(function(){
           __shrinkImg(raw,1600,0.82).then(function(c){
             if(!c||c===raw||state.skin[key]!==raw)return;
-            state.skin[key]=c;try{applySkin();}catch(e){}try{after&&after();}catch(e){}save();
+            state.skin[key]=c;try{applySkin();}catch(e){}try{after&&after();}catch(e){}save();try{__flushSave(true);}catch(e){}
           });
         },80);
       }
     }catch(e){}
-    try{__flushSave();}catch(e){} /* 导入图片后立即落盘：刷新/退出不丢 */
+    try{__flushSave(true);}catch(e){} /* v43-39：导入背景后立即落盘，切后台/马上关掉也不会退回旧背景 */
+    /* 云端也立刻推一次：只存本机时，重装/换端仍可能读回旧背景 */
+    try{window.__E11Cloud&&window.__E11Cloud.flush&&window.__E11Cloud.flush();}catch(e){}
+    try{setTimeout(function(){try{window.__E11Cloud&&window.__E11Cloud.uploadNow&&window.__E11Cloud.uploadNow();}catch(e){}},700);}catch(e){}
   }catch(e){}
   try{
     bgCompress(raw).then(function(c){
       try{
         if(state.skin[key]!==raw)return;
         if(String(c).length>=String(raw).length&&String(raw).length<420000)return;
-        state.skin[key]=c;applySkin();try{after&&after();}catch(e){}save();
+        state.skin[key]=c;applySkin();try{after&&after();}catch(e){}save();try{__flushSave(true);}catch(e){}
       }catch(e){}
     });
   }catch(e){}
@@ -9552,8 +9565,9 @@ function __pruneSocialNotices(){
       })(),exact:true},
       {re:/对方给你留了\s*\d*\s*条?留言|对方给你留言了/,pool:_cnt(state.guestbook,function(n){return n.from==="partner";})},
       {re:/对方发了\s*\d*\s*条?新动态|对方发了一条新动态/,pool:_cnt(state.moments,function(m){return m.from==="partner";})},
-      {re:/对方评论了你的动态/,pool:(function(){var n=0;(state.moments||[]).forEach(function(m){(m.comments||[]).forEach(function(c){if(c&&c.from==="partner")n++;});});return n;})()},
-      {re:/对方回复了你的评论/,pool:(function(){var n=0;(state.moments||[]).forEach(function(m){(m.comments||[]).forEach(function(c){(c.replies||[]).forEach(function(r){if(r&&r.from==="partner")n++;});});});return n;})()}
+      /* v43-39：只按未读算。以前把历史评论也当“新评论”，会留下点进去没有内容的假提示。 */
+      {re:/对方评论了你的动态/,pool:_cnt(state.moments,function(m){return m&&m.unread&&m.unreadKind==="comment";})},
+      {re:/对方回复了你的评论/,pool:_cnt(state.moments,function(m){return m&&m.unread&&m.unreadKind==="reply";})}
     ];
     var changed=false;
     for(var q=0;q<kinds.length;q++){
@@ -9586,22 +9600,33 @@ function __rebuildSocialNotices(){
     var now=Date.now(),delay=Number(typeof LETTER_READ_DELAY!=="undefined"?LETTER_READ_DELAY:7200000);
     var unreadL=(state.letters||[]).filter(function(l){return l&&l.from==="partner"&&(!l.replyTo||ids[l.replyTo])&&!l.read&&(now-(Number(l.time)||0))<delay;}).length;
     var unreadN=(state.guestbook||[]).filter(function(n){return n&&n.from==="partner"&&n.unread;}).length;
-    var unreadM=(state.moments||[]).filter(function(m){return m&&m.from==="partner"&&m.unread;}).length;
-    /* 主动评论和回复必须分开计数：顶层 partner 评论=主动评论；
-       任意层级的 partner 回复=回复。旧代码把两者合并成 unreadC，
-       结果有主动评论时会把“对方回复了你的评论”提示保留，回复却可能被当成假的删掉。 */
-    var unreadC=0,unreadR=0;
+    /* v43-39：只有真正的新动态才算“新动态”。评论/回复也会把 m.unread 置 true，
+       旧写法会同时冒出“对方发了一条新动态”，点进去看到的却是评论，显得提示和内容对不上。 */
+    var unreadM=(state.moments||[]).filter(function(m){return m&&m.from==="partner"&&m.unread&&m.unreadKind==="post";}).length;
+    /* v43-39：提示必须跟着「未读」和具体那条评论/回复走。
+       旧代码把历史评论也全部算进来，还只统计“对方评论下面的对方回复”，
+       结果聊天里会冒出“对方回复了你的评论”，点进去却没有目标、也没有那条回复。 */
+    var unreadC=0,unreadR=0,commentTarget=null,replyTarget=null;
     (state.moments||[]).forEach(function(m){
-      (m.comments||[]).forEach(function(c){
-        if(!c||c.from!=="partner")return;
-        unreadC++;
-        (function walk(list){
+      if(!m||!m.unread)return;
+      if(m.unreadKind==="comment"){
+        (m.comments||[]).forEach(function(c){
+          if(!c||c.from!=="partner")return;
+          unreadC++;
+          if(Number(c.time)>=Number(commentTarget&&commentTarget.time||-1))commentTarget={mid:m.id,cid:c.id,time:Number(c.time)||0};
+        });
+      }
+      if(m.unreadKind==="reply"){
+        (function walk(list,parentFrom){
           (list||[]).forEach(function(r){
-            if(r&&r.from==="partner")unreadR++;
-            if(r&&r.replies&&r.replies.length)walk(r.replies);
+            if(r&&r.from==="partner"&&(parentFrom==="me"||r.toMe)){
+              unreadR++;
+              if(Number(r.time)>=Number(replyTarget&&replyTarget.time||-1))replyTarget={mid:m.id,cid:r.id,time:Number(r.time)||0};
+            }
+            if(r&&r.replies&&r.replies.length)walk(r.replies,r&&r.from);
           });
-        })(c.replies);
-      });
+        })(m.comments||[],null);
+      }
     });
     var had=false;
     /* 每类提示只保留一条：以前是「先全删再按未读重加」，
@@ -9618,8 +9643,8 @@ function __rebuildSocialNotices(){
     if(unreadL&&!flags[0])pushMsg("partner","sys","📮 对方给你写了封信",{quiet:true});
     if(unreadN&&!flags[1])pushMsg("partner","sys","💬 对方给你留言了",{quiet:true});
     if(unreadM&&!flags[2])pushMsg("partner","sys","📷 对方发了一条新动态",{quiet:true});
-    if(unreadC&&!flags[3])pushMsg("partner","sys","💬 对方评论了你的动态",{quiet:true});
-    if(unreadR&&!flags[4])pushMsg("partner","sys","💬 对方回复了你的评论",{quiet:true});
+    if(unreadC&&!flags[3])pushMsg("partner","sys","💬 对方评论了你的动态",{quiet:true,momentId:commentTarget?commentTarget.mid:"",commentId:commentTarget?commentTarget.cid:""});
+    if(unreadR&&!flags[4])pushMsg("partner","sys","💬 对方回复了你的评论",{quiet:true,momentId:replyTarget?replyTarget.mid:"",commentId:replyTarget?replyTarget.cid:""});
     if(had||unreadL||unreadN||unreadM||unreadC||unreadR){try{save();__flushSave();}catch(e){};window.__chatDirty=1;}
     return true;
   }catch(e){return null;}
@@ -10920,9 +10945,23 @@ function __socialNoticeEmpty(text){
       return !(state.guestbook||[]).some(function(n){return n&&n.from==="partner";});
     if(/对方发了\s*\d*\s*条?新动态|对方发了一条新动态/.test(t))
       return !(state.moments||[]).some(function(m){return m&&m.from==="partner";});
-    if(/对方评论了你的动态|对方回复了你的评论/.test(t)){
-      var has=false;(state.moments||[]).forEach(function(m){(m.comments||[]).forEach(function(c){if(c&&c.from==="partner")has=true;});});
-      return !has;
+    if(/对方评论了你的动态/.test(t)){
+      var hasC=false;(state.moments||[]).forEach(function(m){(m.comments||[]).forEach(function(c){if(c&&c.from==="partner")hasC=true;});});
+      return !hasC;
+    }
+    if(/对方回复了你的评论/.test(t)){
+      /* v43-39：楼中楼回复挂在“我”的评论下面，旧代码只看顶层评论，
+         于是明明有回复也判成空提示直接不发——聊天里自然点不到任何内容。 */
+      var hasR=false;
+      (state.moments||[]).forEach(function(m){
+        (function walk(list,parentFrom){
+          (list||[]).forEach(function(c){
+            if(c&&c.from==="partner"&&(parentFrom==="me"||c.toMe))hasR=true;
+            if(c&&c.replies&&c.replies.length)walk(c.replies,c&&c.from);
+          });
+        })(m.comments||[],null);
+      });
+      return !hasR;
     }
   }catch(e){}
   return false;
@@ -13306,7 +13345,9 @@ function __mergeMediaRepair(repair){
     photos(t.partner,src.partner&&src.partner.photos);
     var pk=["meAvatar","cpMeAvatar","cpPartnerAvatar","cpPhotoAvatar","cpPhoto","cpPhotoCard","cpPhotoSub","cpRecord","partnerCover","partnerAvatar"];
     pk.forEach(function(k){if(src.profile&&src.profile[k]!==undefined)fix(t.profile,k,src.profile[k],/Avatar$/.test(k));});
-    ["meImage","meTopImage","partnerImage"].forEach(function(k){if(src.skin&&src.skin[k]!==undefined)fix(t.skin,k,src.skin[k],false);});
+    /* v43-39：不再从历史修复包里补桌面/卡片背景。
+       用户换过新背景后，旧图一旦被补回来就会“一打开变回之前那张”。 */
+    ["partnerImage"].forEach(function(k){if(src.skin&&src.skin[k]!==undefined)fix(t.skin,k,src.skin[k],false);});
     ["musicBgImg","musicDiscInnerImg","musicDiscBgImg","musicCoverImg"].forEach(function(k){if(src[k]!==undefined)fix(t,k,src[k],false);});
     function mergeEmoji(list,val,dedupeName){
       if(!Array.isArray(val))return list;
@@ -13326,11 +13367,11 @@ function __mergeMediaRepair(repair){
     t.partnerEmojis=mergeEmoji(t.partnerEmojis,src.partnerEmojis,false);
     if(Array.isArray(src.musicPlaylist)){
       if(!Array.isArray(t.musicPlaylist))t.musicPlaylist=[];
-      src.musicPlaylist.forEach(function(sg){
-        if(!sg||!sg.name)return;
-        var hit=t.musicPlaylist.filter(function(x){return x&&x.name===sg.name;})[0];
-        if(!hit){t.musicPlaylist.push({name:sg.name,artist:sg.artist||"",cover:sg.cover||"",url:sg.url||""});changed=true;return;}
-        if(!__e11HasImg(hit.cover)&&__e11HasImg(sg.cover)){hit.cover=sg.cover;changed=true;}
+      /* v43-39：只给当前歌单里还存在的歌补封面；用户删掉的歌绝不重新加回来。 */
+      t.musicPlaylist.forEach(function(hit){
+        if(!hit||!hit.name)return;
+        var old=(src.musicPlaylist||[]).filter(function(x){return x&&x.name===hit.name;})[0];
+        if(old&&!__e11HasImg(hit.cover)&&__e11HasImg(old.cover)){hit.cover=old.cover;changed=true;}
       });
     }
     if(Array.isArray(src.messages)&&Array.isArray(t.messages)){
@@ -17660,7 +17701,7 @@ function renderMusicList(){
       var _im=li.querySelector(".ml-cover img");
       if(_im)_missingCovers.push({sg:s,im:_im});
     }
-    li.querySelector(".ml-del").onclick=(e)=>{e.stopPropagation();state.musicPlaylist.splice(i,1);if(state.musicCur===i){au.pause();state.musicCur=-1;}else if(state.musicCur>i)state.musicCur--;save();renderMusicList();};
+    li.querySelector(".ml-del").onclick=(e)=>{e.stopPropagation();state.musicPlaylist.splice(i,1);if(state.musicCur===i){au.pause();state.musicCur=-1;}else if(state.musicCur>i)state.musicCur--;save();try{__flushSave(true);}catch(_){}try{window.__E11Cloud&&window.__E11Cloud.flush&&window.__E11Cloud.flush();}catch(_){}renderMusicList();};
     li.onclick=()=>playMusic(i);
     _frag.appendChild(li);
   });
@@ -22602,7 +22643,10 @@ function __openMomentComment(mid,cid){
   try{
     if(!mid)return false;
     var m=(state.moments||[]).filter(function(x){return x&&x.id===mid;})[0];
-    if(!m)return false;
+    if(!m){try{toast("这条动态已经被删除了");}catch(e){}return false;}
+    /* v43-39：目标评论被删/换了 id 时不要直接定位失败，
+       先退到这条动态里对方最新一条评论，至少让用户看到动态和评论内容，而不是点了没反应。 */
+    try{if(cid&&!findComment(m,cid))cid="";}catch(e){}
     if(m.unread){m.unread=false;m.unreadKind="";}
     try{save();updateMomBell();updateNewBadge();}catch(e){}
     var need=(m.from==="partner")?"partner":"me";
@@ -23321,11 +23365,13 @@ function partnerReplyComment(postId,targetCid,whenTs,skipProb){
      旧代码在目标丢失时会退到全动态最新一条我的评论，甚至直接 push 成顶层评论。 */
   if(targetCid){try{myC=findComment(m,targetCid)||null;}catch(e){}}
   if(myC&&myC.from!=="me")myC=null;
-  if(!myC&&!targetCid){
+  /* v43-39：目标评论被删/换了 id 时，不再直接静默 return（聊天里只剩一条点不动的提示）。
+     退到这条动态里我最近的一条评论再回复；一条我的评论都没有才不发。 */
+  if(!myC){
     (function walk(list){
       (list||[]).forEach(function(c){
-        if(c.from==="me"&&(c.time||0)>_mt){_mt=c.time||0;myC=c;}
-        if(c.replies&&c.replies.length)walk(c.replies);
+        if(c&&c.from==="me"&&(Number(c.time)||0)>_mt){_mt=Number(c.time)||0;myC=c;}
+        if(c&&c.replies&&c.replies.length)walk(c.replies);
       });
     })(m.comments||[]);
   }
@@ -26183,7 +26229,7 @@ try{
     return window.__vrecCtx;
   }
   /* 直接把麦克风采样编成 WAV：不依赖 MediaRecorder 的分片时机，iPhone / 安卓都能录能放 */
-  function wavEncode(samples,rate){
+  function wavEncode(samples,rate,targetRate){
     var len=0,i,j;
     for(i=0;i<samples.length;i++)len+=samples[i].length;
     if(!len||!rate)return null;
@@ -26191,11 +26237,12 @@ try{
     for(i=0;i<samples.length;i++){buf.set(samples[i],off);off+=samples[i].length;}
     /* 语音不需要 44.1k：降到 16k 单声道，1 分钟从约 5MB 降到约 1.9MB，
        localStorage/云存档不会因为一条长语音就写满，播放也够清楚。 */
+    var _target=Number(targetRate)||16000;
     var out=buf,outRate=rate;
-    if(rate>16000){
-      var n2=Math.max(1,Math.floor(len*16000/rate));out=new Float32Array(n2);
-      for(i=0;i<n2;i++){var p0=i*rate/16000,j0=Math.floor(p0),f0=p0-j0;out[i]=(buf[j0]||0)*((1-f0))+(buf[j0+1]!==undefined?buf[j0+1]:buf[j0]||0)*f0;}
-      outRate=16000;
+    if(rate>_target){
+      var n2=Math.max(1,Math.floor(len*_target/rate));out=new Float32Array(n2);
+      for(i=0;i<n2;i++){var p0=i*rate/_target,j0=Math.floor(p0),f0=p0-j0;out[i]=(buf[j0]||0)*((1-f0))+(buf[j0+1]!==undefined?buf[j0+1]:buf[j0]||0)*f0;}
+      outRate=_target;
     }
     var n=out.length,dv=new ArrayBuffer(44+n*2),view=new DataView(dv);
     function ws(o,str){for(var k=0;k<str.length;k++)view.setUint8(o+k,str.charCodeAt(k));}
@@ -26206,6 +26253,28 @@ try{
     var o=44;
     for(i=0;i<n;i++){var sm=Math.max(-1,Math.min(1,out[i]));view.setInt16(o,sm<0?sm*32768:sm*32767,true);o+=2;}
     return new Blob([dv],{type:"audio/wav"});
+  }
+  /* v43-39：录完先转成 8k 单声道 WAV 再存。iOS 的 mp4/AAC、安卓的 webm/opus
+     统一变成所有端都能直接播的 WAV，彻底绕开“某一边录的语音另一边播不了”。 */
+  function __voiceToWav(blob,targetRate){
+    return new Promise(function(res){
+      var done=false,ok=function(v){if(done)return;done=true;res(v);};
+      try{
+        var AC=window.AudioContext||window.webkitAudioContext;
+        if(!AC||!blob||blob.size<900)return ok(blob);
+        var ctx=window.__voiceCtx||(window.__voiceCtx=new AC());
+        var fr=new FileReader();
+        fr.onerror=function(){ok(blob);};
+        fr.onload=function(){
+          try{
+            var buf=fr.result,fin=function(a){try{ok(wavEncode(a.getChannelData(0),a.sampleRate,targetRate||8000)||blob);}catch(e){ok(blob);}};
+            var p=ctx.decodeAudioData(buf,fin,function(){ok(blob);});
+            if(p&&p.then)p.then(fin,function(){ok(blob);});
+          }catch(e){ok(blob);}
+        };
+        fr.readAsArrayBuffer(blob);
+      }catch(e){ok(blob);}
+    });
   }
   /* 选中一种浏览器真的能录的容器：iOS 14+ 只能出 mp4(aac)，安卓/Chrome 走 webm(opus) */
   function pickRecMime(){
@@ -26230,6 +26299,31 @@ try{
     };
     fr.readAsDataURL(blob);
   }
+  /* v43-39：录音时同时抓一份原始采样。MediaRecorder 的 mp4/webm 容器
+     在某些机型/内核里解不开，只靠转码仍会退回流不出来的原文件。
+     有原始采样就直接编 8k WAV，从根上绕开容器兼容问题。 */
+  function __startPcmCapture(stream,ctx){
+    try{
+      if(!stream||!ctx||rec.proc)return !!rec.proc;
+      var src=ctx.createMediaStreamSource(stream);
+      var proc=ctx.createScriptProcessor(4096,1,1);
+      rec.proc=proc;
+      proc.onaudioprocess=function(ev){
+        if(!rec.active)return;
+        try{rec.samples.push(new Float32Array(ev.inputBuffer.getChannelData(0)));}catch(e){}
+      };
+      /* 不能接 0 增益：部分 iOS 版本会把“输出全静音”当成没在播，直接不回调采样 */
+      var mute=ctx.createGain();mute.gain.value=0.00008;
+      src.connect(proc);proc.connect(mute);mute.connect(ctx.destination);
+      try{window.__vrecSrc&&window.__vrecSrc.disconnect();window.__vrecSrc=src;}catch(e){}
+      if(ctx.state==="suspended"){try{ctx.resume();}catch(e){}}
+      return true;
+    }catch(e){
+      try{rec.proc&&rec.proc.disconnect();}catch(_){}
+      rec.proc=null;
+      return false;
+    }
+  }
   function startRec(tap){
     if(rec.active)return false;
     if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){toast("这个环境不支持录音");return false;}
@@ -26244,7 +26338,8 @@ try{
       if(my!==rec.gen||!rec.active){try{stream.getTracks().forEach(function(t){t.stop();});}catch(e){}return;}
       rec.stream=stream;rec.streamReady=true;
       try{var _vh2=document.getElementById("vrec-hint");if(_vh2)_vh2.textContent=rec.tapMode?"点一下结束并发送":"松手 发语音";}catch(_){}
-      /* ① 首选 MediaRecorder：iPhone / 安卓都是原生编码，不会再出现“录到但没声音 / 播不出来” */
+      /* ① 原生编码 + 同时抓 PCM：MediaRecorder 负责可靠采集，PCM 负责兜底转 WAV */
+      try{__startPcmCapture(stream,ctx);}catch(e){}
       var mime=pickRecMime();
       if(mime){
         try{
@@ -26260,19 +26355,7 @@ try{
       }
       /* ② 没有 MediaRecorder（老浏览器）就走麦克风采样编 WAV */
       try{
-        var src=ctx.createMediaStreamSource(stream);
-        var proc=ctx.createScriptProcessor(4096,1,1);
-        rec.proc=proc;
-        proc.onaudioprocess=function(ev){
-          if(!rec.active)return;
-          var ch=ev.inputBuffer.getChannelData(0);
-          rec.samples.push(new Float32Array(ch));
-        };
-        /* 不能接 0 增益：部分 iOS 版本会把“输出全静音”当成没在播，直接不回调采样 */
-        var mute=ctx.createGain();mute.gain.value=0.00008;
-        src.connect(proc);proc.connect(mute);mute.connect(ctx.destination);
-        try{window.__vrecSrc&&window.__vrecSrc.disconnect();window.__vrecSrc=src;}catch(e){}
-        if(ctx.state==="suspended"){try{ctx.resume();}catch(e){}}
+        __startPcmCapture(stream,ctx);
         showRec(true);
         try{var _vh4=document.getElementById("vrec-hint");if(_vh4)_vh4.textContent=rec.tapMode?"点一下结束并发送":"松手 发语音";}catch(_){}
       }catch(e){rec.active=false;stopStream();showRec(false);toast("录音启动失败，再试一次");}
@@ -26301,7 +26384,11 @@ try{
         rec.proc=null;
         stopStream();
         if(mode==="cancel")return;
-        sendVoiceBlob(blob,ms);
+        var _pcm=rec.samples||[];rec.samples=[];
+        var _wav=null;
+        if(_pcm.length){try{_wav=wavEncode(_pcm,rec.rate||44100,8000);}catch(e){_wav=null;}}
+        if(_wav){sendVoiceBlob(_wav,ms);return;}
+        __voiceToWav(blob,8000).then(function(w){sendVoiceBlob(w,ms);}).catch(function(){sendVoiceBlob(blob,ms);});
       };
       try{mr.stop();}catch(e){try{mr.onstop();}catch(_e){}}
       return;
@@ -26316,7 +26403,7 @@ try{
     if(mode==="cancel")return;
     setTimeout(function(){
       try{
-        var blob=wavEncode(samples,rec.rate||44100);
+        var blob=wavEncode(samples,rec.rate||44100,8000);
         sendVoiceBlob(blob,ms);
       }catch(e){toast("录音保存失败");}
     },150);
@@ -26336,6 +26423,14 @@ try{
       if(!mm||!mm[2])return src;
       var mime=mm[1]||"audio/mp4";
       var b64=src.slice(mm[0].length);
+      /* v43-39：旧消息可能把 WAV 写成了 audio/mp4。按文件头纠一次，
+         否则浏览器会按错误容器解码，表现就是点了不响。 */
+      try{
+        if(/^UklGR/.test(b64))mime="audio/wav";
+        else if(/^T2dnUw/.test(b64))mime="audio/ogg";
+        else if(/^GkXf/.test(b64))mime="audio/webm";
+        else if(/^AAAA/.test(b64)&&b64.slice(0,240).indexOf("ZnR5cA")>=0)mime="audio/mp4";
+      }catch(e){}
       var bin=atob(b64),arr=new Uint8Array(bin.length);
       for(var i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);
       var blob=new Blob([arr],{type:mime});

@@ -1,3 +1,13 @@
+## v43-39（2026-11-21）
+
+- 背景持久化：`skin.bgImage` / `skin.meImage` 不再外置成 `bigref`，导入后立即 `__flushSave(true)` 并推云端；同时停掉历史图片修复里补 `meImage` / `meTopImage` 的分支，换过的背景重开、切后台、马上关掉都不会变回旧图。
+- 语音：录音时 MediaRecorder 与 PCM 采样并行，停止后优先用原始采样编 8k 单声道 WAV；不再依赖 mp4/webm 容器。旧语音如果其实是 WAV 但 MIME 被写成 `audio/mp4`，播放前按文件头纠正。
+- 删歌：删除立即 `__flushSave(true)` + `__E11Cloud.flush()`；`__mergeMediaRepair` 只给当前歌单里的歌补封面，不再把删掉的歌 push 回来。
+- 评论提示：`__rebuildSocialNotices` 只统计未读的顶层评论、以及挂在我评论下（`parentFrom==="me"` / `toMe`）的对方回复，重建时带 `momentId` / `commentId`；`__socialNoticeEmpty` 支持楼中楼回复；`__openMomentComment` 目标评论不存在时退到该动态最新对方评论，动态已删会 toast。
+- 新动态提示只认 `unreadKind==="post"`，评论/回复不会再额外冒一条“对方发了一条新动态”。
+- 验证：1200×1200 JPEG 背景换图后刷新仍为新图；伪造 `data:audio/mp4` 的 WAV 可正常走 WebAudio 播放；模拟录音 1.8 秒得到 `data:audio/wav` 并以 `__voiceNode` 播放；评论楼中楼回复通知带 `mom1/r1`，点击后动态打开并命中 `.mc-row[data-mc=r1]`；歌单删除后 `__mergeMediaRepair` 不复活；页面无 pageerror。
+- 版本：v43-39，Android versionCode 60，APK `Eleven11-v43-39.apk`，APK MD5 `8e790c97e1504564068e8f6d158237eb`，页面 MD5 `74ff12ead306c0244f60705cc609be69`。
+
 ## v43-38（2026-11-21）
 
 - 语音播放改成 WebAudio 优先、`<audio>` 兜底：点一下立即出声；iPhone 静音拨片下通过 `navigator.audioSession.type="playback"` 切到播放会话，静音档也能听到；解码失败会提示格式不兼容，不再“点了没反应”。语音气泡不再触发 550ms 长按消息菜单。
