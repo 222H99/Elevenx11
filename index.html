@@ -175,7 +175,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-21v43-50";
+window.__E11_BUILD="2026-11-21v43-51";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2469,7 +2469,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-21v43-50">
+<meta name="app-build" content="2026-11-21v43-51">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4133,7 +4133,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-50</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-51</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5578,6 +5578,30 @@ setTimeout(function(){
   /* 完整档自己的固定指纹：只由「完整档」更新，不会被设备把 latest 写小时的半完整指纹覆盖。
      这样即使 latest.manifest 被旧版写成 866 张卡、9 首歌，启动时仍知道完整档有 934 张卡、11 首歌。 */
   function cloudFullManifestUrl(){return "/storage/v1/object/vault/"+encodeURIComponent(session.user.id)+"/latest.full.manifest.json";}
+  /* 记住“上次已经取到并落盘的云端版本”。下次启动先只读几百字节的 manifest：
+     版本没变、本机数据又达到完整指纹，就直接用本机，不再重复下载 5MB。
+     云端一旦被另一台设备保存，savedAt 变了，仍然会正常拉取。 */
+  function __e11CloudMetaGet(uid){
+    try{
+      var m=JSON.parse(localStorage.getItem("e11.cloudMeta")||"null");
+      if(m&&m.uid===uid&&Number(m.savedAt)>0)return m;
+    }catch(_){}
+    return null;
+  }
+  function __e11CloudMetaPut(uid,savedAt){
+    try{if(uid&&Number(savedAt)>0)localStorage.setItem("e11.cloudMeta",JSON.stringify({uid:uid,savedAt:Number(savedAt),ts:Date.now()}));}catch(_){}
+  }
+  function __e11CloudFastLocal(uid,man){
+    try{
+      if(!man||!man.counts||!Number(man.savedAt))return null;
+      var meta=__e11CloudMetaGet(uid);
+      if(!meta||Number(meta.savedAt)!==Number(man.savedAt))return null;
+      var local=window.__e11StateGet?window.__e11StateGet():null;
+      if(!local)return null;
+      if(__e11ManifestNeedsFull(local,man))return null;
+      return {state:local,savedAt:Number(man.savedAt),exportedAt:new Date().toISOString(),extras:{},idb:{},__e11LocalFast:true};
+    }catch(_eFast){return null;}
+  }
   function __e11DefaultProfile(){try{return defaultState().profile||{};}catch(_){return {};}}
   function __e11IsImgRef(v){return typeof v==="string"&&(v.slice(0,5)==="data:"||v.slice(0,8)==="\u0000bigref:");}
   function __e11ProfileScore(p){
@@ -5766,12 +5790,14 @@ setTimeout(function(){
     var note=function(d){try{window.__e11CloudMsgCount=d&&d.state&&d.state.messages?d.state.messages.length:0;}catch(_){}return d;};
     var getLatest=function(){return api(cloudUrl(),{token:session.access_token,timeout:20000}).then(note);};
     var manP=cloudManifestGet();
-    var p=getLatest().then(function(d){
+    var p=manP.then(function(man){
+      var _fast=__e11CloudFastLocal(uid,man);
+      if(_fast)return _fast;
+      return getLatest().then(function(d){
       /* 云端最新档可能只写了“一部分”：旧版曾把 544 条写成 9 条、把字卡/歌曲/资料/设置写成空。
          先读一个很小的 latest.manifest.json（完整档的条数指纹）：
          - 最新档达到指纹：直接用，少下 4MB，恢复更快；
          - 最新档少任何一块：拉 latest.full.json 做全量并集，不再“看起来有 500 条就以为完整”。 */
-      return manP.then(function(man){
         var st=d&&d.state;
         var need=false;
         if(man&&man.counts)need=__e11ManifestNeedsFull(st,man);
@@ -5802,6 +5828,7 @@ setTimeout(function(){
     return p.then(function(r){
       window.__e11CloudGetPending=null;
       try{if(uid&&r)window.__e11CloudCache={uid:uid,ts:Date.now(),data:r};}catch(_){}
+      try{if(uid&&r&&Number(r.savedAt)>0)__e11CloudMetaPut(uid,r.savedAt);}catch(_eMeta){}
       return r;
     },function(e){window.__e11CloudGetPending=null;throw e;});
   }
@@ -5835,7 +5862,7 @@ setTimeout(function(){
     var url=cfg.url+cloudUrl();
     var headers={"apikey":cfg.key,"Authorization":"Bearer "+session.access_token,"Content-Type":"application/json","x-upsert":"true","cache-control":"no-cache"};
     return fetch(url,{method:"POST",headers:headers,body:JSON.stringify(payload),cache:"no-store"}).then(function(r){
-      return r.text().then(function(txt){var d=null;try{d=txt?JSON.parse(txt):null;}catch(e){d=txt;}if(!r.ok){var e=new Error((d&&(d.message||d.error))||("HTTP "+r.status));e.status=r.status;throw e;}try{cloudManifestPut(payload);}catch(_eMan){}try{window.__e11CloudCache=null;}catch(_eCc){}return d;});
+      return r.text().then(function(txt){var d=null;try{d=txt?JSON.parse(txt):null;}catch(e){d=txt;}if(!r.ok){var e=new Error((d&&(d.message||d.error))||("HTTP "+r.status));e.status=r.status;throw e;}try{cloudManifestPut(payload);}catch(_eMan){}try{if(session&&session.user&&session.user.id)__e11CloudMetaPut(session.user.id,payload&&payload.savedAt);}catch(_eMetaPut){}try{window.__e11CloudCache=null;}catch(_eCc){}return d;});
     }).catch(function(e){
       if(e&&e.status===401)return refreshSession(session).then(function(){return putVault(payload);});
       throw e;
@@ -6090,8 +6117,17 @@ setTimeout(function(){
       return cloudGet().then(function(cloud){
         if(!cloud||!__e11CloudWins(cloud,local,Number(cloud.savedAt)||0,localTs))return false;
         window.__e11CloudPause=1;
-        try{setWait("正在恢复云端记录","云端有更完整的聊天记录，先恢复再继续。");}catch(_){}
-        return applySnapshot(cloud,{reloading:true}).then(function(){location.reload();return true;});
+        try{setWait("正在载入云端存档","正在读取完整档，载入完直接进主页，不再刷新第二次。");}catch(_){}
+        /* 关键：恢复云端后不再 location.reload()。以前“进主页 → 发现云端更新 → 整页重载 → 再进主页”
+           会看起来加载两三次；这里把合并结果直接写进当前页面，原地渲染一次。 */
+        return applySnapshot(cloud).then(function(){
+          try{window.__e11CloudHold=0;window.__e11CloudStatus="已同步";chipSync();}catch(_){}
+          try{
+            if(!document.querySelector(".view.open")&&typeof __enterAfterAction==="function")__enterAfterAction();
+            else if(typeof renderAll==="function")renderAll();
+          }catch(_eRender){}
+          return true;
+        });
       });
     }).then(function(r){__e11PullBusy=0;return r?1:0;},function(e){__e11PullBusy=0;try{console.warn("[e11 pull]",e&&e.message||e);}catch(_){}return -1;});
   }
@@ -6203,26 +6239,21 @@ setTimeout(function(){
         setWait("正在进入你的空间","正在读取这个账号自己的云端存档…");
         doAction(act).catch(function(e){/* doAction 已经显示错误 */});
       }else{
-        /* 进主页前先核对一次云端：如果云端消息比本机更完整，先恢复云端，绝不让旧本机档回写覆盖。 */
+        /* 进主页前只核对一次云端：云端更完整就先恢复，恢复完原地进主页；
+           云端没更新就直接进本地。以前失败会每 8 秒重试、恢复后又整页 reload，所以看起来加载好几次。 */
         window.__e11CloudHold=1;window.__e11CloudStatus="核对云端";
-        hideGate();chipSync();
-        var retryPull=function(delay){
-          setTimeout(function(){
-            pullCloudIfNewer().then(function(r){
-              if(r===1)return;
-              if(r===0){
-                window.__e11CloudHold=0;window.__e11CloudStatus="已同步";
-                try{chipSync();}catch(_){}
-                try{cloudSchedule();}catch(_){}
-              }else{
-                window.__e11CloudHold=1;window.__e11CloudStatus="本地模式 · 待核对";
-                try{chipSync();}catch(_){}
-                retryPull(8000);
-              }
-            });
-          },delay);
-        };
-        retryPull(900);
+        setWait("正在载入云端存档","正在核对完整档，载入一次后直接进主页。");
+        pullCloudIfNewer().then(function(r){
+          window.__e11CloudHold=0;
+          if(r===1)return; /* 已经在合并完成后原地进主页 */
+          window.__e11CloudStatus=(r===0?"已同步":"本地模式 · 未同步");
+          try{chipSync();}catch(_){}
+          try{
+            if(!document.querySelector(".view.open")&&typeof __enterAfterAction==="function")__enterAfterAction();
+          }catch(_eEnter){}
+          if(r===0){try{cloudSchedule();}catch(_eSched){}}
+          if(r<0){try{toast("云端未连接，已使用本地记录");}catch(_eToast){}}
+        });
         setTimeout(function(){try{window.__e11TryMediaRepair&&window.__e11TryMediaRepair();}catch(_){}},700);
       }
     }).catch(function(e){
@@ -6582,10 +6613,10 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-21",
-  noticeKey:"2026-11-21v43-50",
-  lead:"v43-50：把 v41 之后丢的东西修回来，并锁住完整档。云端现在单独保存一份完整档指纹，设备再写半完整档也不会把基线拉低；歌名、信件正文、封面不再被空字段覆盖，收藏和日记收藏参与并集合并。音乐播放地址会缓存到本机，重启后也能直接起播。读信夜间背景改成纯黑，系统提示和来消息弹窗不再自动消失。",
+  noticeKey:"2026-11-21v43-51",
+  lead:"v43-51：进入时只核对一次云端、最多下载一次，恢复后原地进主页，不再整页刷新两三次；云端版本没变时只读几百字节指纹，直接使用本机完整档，不再每次下载 5MB。v43-50 的数据修复全部保留：云端现在单独保存一份完整档指纹，设备再写半完整档也不会把基线拉低；歌名、信件正文、封面不再被空字段覆盖，收藏和日记收藏参与并集合并。音乐播放地址会缓存到本机，重启后也能直接起播。读信夜间背景改成纯黑，系统提示和来消息弹窗不再自动消失。",
   items:[
-    '<span class="an-gt">v43-50 · 数据与体验修复</span>',
+    '<span class="an-gt">v43-51 · 一次加载与防重复恢复</span>',
     "歌单名字加多层兜底：即使云端某首歌 name 为空，也会按标题、文件名补回，不再出现空白歌名",
     "播放地址缓存到本机 10 分钟；启动、恢复云端、进音乐页都会预热整个歌单，点歌更快",
     "夜间读信背景改成纯黑，遮罩加深且不再模糊，和外面主页一致；白天和自定义信纸不变",
