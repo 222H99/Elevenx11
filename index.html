@@ -66,9 +66,13 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
   try{
     var _sbg=localStorage.getItem("e11.bootBg");
     if(_sbg&&/^#|^rgb|^hsl/.test(_sbg)){
-      bg=_sbg;
       var _m=_sbg.match(/\d+/g);
-      if(_m&&_m.length>=3){var _l=0.2126*(+_m[0])+0.7152*(+_m[1])+0.0722*(+_m[2]);fg=_l>150?"#111":"#f2f2f7";}
+      var _l=_m&&_m.length>=3?(0.2126*(+_m[0])+0.7152*(+_m[1])+0.0722*(+_m[2])):255;
+      /* 浅色模式下不再使用上一次保存的近黑底色：这就是退出/进入先黑一屏的来源 */
+      if(dark||_l>=80){
+        bg=_sbg;
+        if(_m&&_m.length>=3)fg=_l>150?"#111":"#f2f2f7";
+      }
     }
   }catch(_eBg){}
   document.documentElement.style.background=bg;
@@ -183,7 +187,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-22v43-57";
+window.__E11_BUILD="2026-11-22v43-58";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -228,6 +232,7 @@ window.__E11_BUILD="2026-11-22v43-57";
 })();
 </script>
 <style>
+html:not([data-boot="dark"]),html:not([data-boot="dark"]) body{background:#fafafa!important;}
 html.theme-swap *,html.theme-swap *::before,html.theme-swap *::after{transition:none!important;}
 html[data-boot="dark"],html[data-boot="dark"] body{background:#000!important;}
 html[data-boot="light"],html[data-boot="light"] body{background:#fafafa!important;}
@@ -2477,7 +2482,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-22v43-57">
+<meta name="app-build" content="2026-11-22v43-58">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4163,7 +4168,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-57</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-58</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -7391,7 +7396,7 @@ function defaultState(){
     version:2,
     me:{name:"我",avatar:avatarSvg("#A5A5B0"),photos:[]},
     partner:{name:"对方",avatar:avatarSvg("#5AC8FA")},
-    settings:{showChatAvatar:true,dndOn:false,dndStart:"23:00",dndEnd:"07:00",autoReply:true,partnerQuote:true,readReceipt:true,replyProb:100,emojiProb:20,replyTimes:1,maxDelaySec:12,minDelaySec:2,socialMinSec:60,socialMaxSec:300,replyGroupId:null,socialProbLetter:15,socialProbNote:15,socialProbMoments:15,socialProbCall:5,socialProbPat:5,socialProbRedpacket:10,socialProbSurvey:15,callMissProb:5,surveyMinSec:2,surveyMaxSec:60,replyLetterProb:60,replyLetterMinSec:60,replyLetterMaxSec:3600,letterMinSec:60,letterMaxSec:300,drawDeclineProb:40,drawInviteProb:15,socialProbMusic:15,socialProbSongPush:3,musicDeclineProb:30,socialMsgMin:1,socialMsgMax:5,momentsMinMin:1,momentsMinMax:5,noteMinMin:1,noteMaxMin:5,activeNoteCountMin:1,activeNoteCountMax:3,activeLetterCountMin:1,activeLetterCountMax:3,activeMomentsCountMin:1,activeMomentsCountMax:3,socialProbMomentComment:15,commentCardMin:1,commentCardMax:2,commentNMin:1,commentNMax:3,commentMinMin:1,commentMaxMin:5,socialProbReplyComment:80,replyCommentCardMin:1,replyCommentCardMax:2,replyCommentNMin:1,replyCommentNMax:1,replyCommentMinMin:1,replyCommentMaxMin:5,noteBurstMin:1,noteBurstMax:1,momentBurstMin:1,momentBurstMax:1,letterBurstMin:1,letterBurstMax:1,replyNoteCardMin:8,replyNoteCardMax:15,replyNoteNMin:1,replyNoteNMax:1,keepAlive:false,entryPwd:"1026",unlocked:false,gbPrompt:"你说 我在听",catchMomentsPerHour:3,catchCommentPerHour:3,catchNotePerHour:3,commentPickMin:2,commentPickMax:3,commentPerPostMax:3,letterCatchMax:5,emojiSteal:true,emojiStealProb:5,musicMode:"order",sealX:0},
+    settings:{showChatAvatar:true,dndOn:false,dndStart:"23:00",dndEnd:"07:00",autoReply:true,partnerQuote:true,readReceipt:true,replyProb:100,emojiProb:20,replyTimes:1,maxDelaySec:12,minDelaySec:2,socialMinSec:60,socialMaxSec:300,replyGroupId:null,socialProbLetter:15,socialProbNote:15,socialProbMoments:15,socialProbCall:5,socialProbPat:5,socialProbRedpacket:10,socialProbSurvey:15,callMissProb:5,surveyMinSec:2,surveyMaxSec:60,replyLetterProb:60,replyLetterMinSec:60,replyLetterMaxSec:3600,letterMinSec:60,letterMaxSec:300,drawDeclineProb:40,drawInviteProb:15,socialProbMusic:15,socialProbSongPush:3,musicDeclineProb:30,socialMsgMin:1,socialMsgMax:5,momentsMinMin:1,momentsMinMax:5,noteMinMin:1,noteMaxMin:5,activeNoteCountMin:1,activeNoteCountMax:3,activeLetterCountMin:1,activeLetterCountMax:3,activeMomentsCountMin:1,activeMomentsCountMax:3,socialProbMomentComment:15,commentCardMin:1,commentCardMax:2,commentNMin:1,commentNMax:3,commentMinMin:1,commentMaxMin:5,socialProbReplyComment:80,replyCommentCardMin:1,replyCommentCardMax:2,replyCommentNMin:1,replyCommentNMax:1,replyCommentMinMin:1,replyCommentMaxMin:5,noteBurstMin:1,noteBurstMax:1,momentBurstMin:1,momentBurstMax:1,letterBurstMin:1,letterBurstMax:1,replyNoteCardMin:8,replyNoteCardMax:15,replyNoteNMin:1,replyNoteNMax:1,keepAlive:false,entryPwd:"102611",unlocked:false,gbPrompt:"你说 我在听",catchMomentsPerHour:3,catchCommentPerHour:3,catchNotePerHour:3,commentPickMin:2,commentPickMax:3,commentPerPostMax:3,letterCatchMax:5,emojiSteal:true,emojiStealProb:5,musicMode:"order",sealX:0},
     profile:{bio:"",cover:"",handle:"kkcyunhy",followers:6329,following:17,mpName:"wxhggxhwm",partnerMpName:"jsndxhyyx",partnerHandle:"",partnerFollowers:0,partnerFollowing:0,partnerBio:"",partnerCover:"",mpDist:0,mpDur:"5小时20分钟",mpAv1:"",mpAv2:"",region:""},
     skin:{accent:"#3478F6",bg:"#ffffff",mybubble:"#3478F6",partbubble:"#E9E9EB",topbar:"#ffffff",bottombar:"#ffffff",themeMode:"manual",dark:false,bgImage:"",bubbleStyle:"classic",customBubbleCSS:"",myTextColor:"",partTextColor:"",mybubbleDark:"",partbubbleDark:"",gbBg:0,gbImage:"",ltBg:0,ltImage:"",momBg:0,momImage:"",gameBg:0,gameImage:"",meBg:0,meImage:"",meTopBg:0,meTopImage:""},
     groups:[g],
@@ -8251,7 +8256,7 @@ function migrate(s){
   if(s.settings.notifySoundVol===undefined)s.settings.notifySoundVol=90;
   if(s.settings.notifyTry===undefined)s.settings.notifyTry=0;
   if(s.settings.keepAlive===undefined)s.settings.keepAlive=false;
-  if(s.settings.entryPwd===undefined)s.settings.entryPwd="1026";
+  if(s.settings.entryPwd===undefined)s.settings.entryPwd="102611";
   if(s.settings.unlocked===undefined)s.settings.unlocked=false;
   if(s.drawSession===undefined)s.drawSession=false;
   if(s.settings.replyLetterProb===undefined)s.settings.replyLetterProb=60;
@@ -8614,7 +8619,7 @@ try{window.__scheduleCp2Render&&window.__scheduleCp2Render();}catch(e){}
     /* 存档最终确定后再定主题，并补画一次；早先的首屏一直用 __bootDark，不会白闪 */
     try{/* 最终主题等 hideGate 再定，见 hideGate 注释 */applySkin();}catch(_eThemeFinal){}
     /* 两份存档合并完之后再统一改一次密码：此时 state 才是最终那份，改了才不会被旧快照盖回去 */
-    try{if(typeof __pw1026==="function")__pw1026();}catch(e){}
+    try{if(typeof __pw102611==="function")__pw102611();}catch(e){}
     aboutLoadStatus("正在渲染界面…");
     setTimeout(()=>{
       window._dbReady=true;aboutLoadStatus("加载完成");
@@ -16881,7 +16886,7 @@ $("btn-clear-msgs").addEventListener("click",async()=>{
 $("btn-reset-all").addEventListener("click",async()=>{
   if(!(await __iosConfirm("一键重置：将清空全部聊天、动态、留言、信件、字卡、表情、问卷等所有数据，并恢复默认设置。此操作不可撤销。确认重置？",{okText:"重置"})))return;
   try{
-    ["privateChat","uiPrefs.v1","lockFree","__aboutAck","__announceAck","draft.v1","callSave","cp2EmojiLib","cp2Opt.v1","cp2PhotoSize","cp2PhotoUserSize","pendingLetterReplies","pendingNoteReplies","pendingCommentReplies","ltRead.v1","me1Sizes","me1OrigIcons","__noticeSync","ltReadAt","__pw1026m","__pwForce","__pwFixed"]
+    ["privateChat","uiPrefs.v1","lockFree","__aboutAck","__announceAck","draft.v1","callSave","cp2EmojiLib","cp2Opt.v1","cp2PhotoSize","cp2PhotoUserSize","pendingLetterReplies","pendingNoteReplies","pendingCommentReplies","ltRead.v1","me1Sizes","me1OrigIcons","__noticeSync","ltReadAt","__pw102611m","__pwForce","__pwFixed"]
       .forEach(function(k){try{localStorage.removeItem(k);}catch(_e){}});
     /* 歌单歌词缓存 / 搜索缓存这类按前缀存的键，一并清掉 */
     try{
@@ -16915,7 +16920,7 @@ $("btn-reset-all").addEventListener("click",async()=>{
     tx.onerror=()=>{toast("重置失败，请重试");};
   }else{_dropDBThenGo();}
 });
-/* 锁屏密码固定为 1026（只读展示，不提供修改入口） */
+/* 锁屏密码固定为 102611（只读展示，不提供修改入口） */
 
 /* ===== 主输入 ===== */
 /* 点开聊天框就先把最新记录顶上来，键盘弹起后再贴一次；不做平滑滚动 */
@@ -24365,32 +24370,32 @@ function initAbout(){
 }
 
 /* ===== 进入密码锁屏 ===== */
-/* 默认密码：进站输 1026 → 紧接着问「想设置新密码吗」（一键重置/全新安装都走这条路） */
-const LOCK_DEFAULT="1026";
+/* 默认密码：进站输 102611 → 紧接着问「想设置新密码吗」（一键重置/全新安装都走这条路） */
+const LOCK_DEFAULT="102611";
 function lockPwd(){return (state&&state.settings&&state.settings.entryPwd)||LOCK_DEFAULT;}
-/* bp107 起：进站密码统一切到 1026。
-   bp107 用 __pw1026m 标记，bp108 换成 __pwForce=1026，bp109 再换到 __pwForce=109，
+/* bp107 起：进站密码统一切到 102611。
+   bp107 用 __pw102611m 标记，bp108 换成 __pwForce=102611，bp109 再换到 __pwForce=109，
    每换一版标记就代表「这台设备还要再校准一次」——
    已经跑过旧版的设备、老存档、全新安装、以及「一键重置」之后，
-   第一次打开都必须先输 1026，紧接着进入「想设置新密码吗」这一步。 */
-function __pw1026(){
+   第一次打开都必须先输 102611，紧接着进入「想设置新密码吗」这一步。 */
+function __pw102611(){
   try{
-    var _f=localStorage.getItem("__pwForce")==="109";
+    var _f=localStorage.getItem("__pwForce")==="102611-58";
     var _fx=localStorage.getItem("__pwFixed")==="1";
     if(_f&&_fx)return;
     if(!window.__stateReady||!state||!state.settings)return;
-    state.settings.entryPwd="1026";
-    /* 只做「密码拉回 1026」的那一次，不再把人锁出去（已经免密的保持免密） */
+    state.settings.entryPwd="102611";
+    /* 只做「密码拉回 102611」的那一次，不再把人锁出去（已经免密的保持免密） */
     if(!_f){
-      state.settings.unlocked=false;
+      state.settings.unlocked=false;window.__lockPassed=false;
       try{localStorage.removeItem("lockFree");}catch(_){}
     }
-    try{localStorage.setItem("__pw1026m","1");}catch(_){}
-    try{localStorage.setItem("__pwForce","109");}catch(_){}
+    try{localStorage.setItem("__pw102611m","1");}catch(_){}
+    try{localStorage.setItem("__pwForce","102611-58");}catch(_){}
     try{localStorage.setItem("__pwFixed","1");}catch(_){}
     try{localStorage.setItem("privateChat",JSON.stringify(state));}catch(_){}
     try{if(typeof dbSet==="function")dbSet("state",state).catch(function(){});}catch(_){}
-    try{if($("set-lockpwd"))$("set-lockpwd").value="1026";}catch(_){}
+    try{if($("set-lockpwd"))$("set-lockpwd").value="102611";}catch(_){}
     /* 这次打开如果还没过锁屏（上一版存档是 unlocked=true 直接进来的），马上补一次锁屏，不能等下次才生效 */
     try{
       var _ab=document.getElementById("about-screen");
@@ -24399,12 +24404,11 @@ function __pw1026(){
   }catch(e){}
 }
 function initLock(){
-  try{__pw1026();}catch(e){}
+  try{__pw102611();}catch(e){}
   const inp=$("lock-input");if(!inp)return;
   lockSetup=false;
-  /* 账号登录已通过时，不再叠加本站的 1026 锁屏：账号本身就是入口 */
-  if(window.__e11SkipLock){
-    try{state.settings=state.settings||{};state.settings.unlocked=true;localStorage.setItem("lockFree","1");}catch(e){}
+  /* 账号登录已通过时，不再叠加本站的 102611 锁屏：账号本身就是入口 */
+  if(window.__e11SkipLock&&state.settings&&state.settings.unlocked){
     window.__lockPassed=1;
     try{document.getElementById("lock-screen").classList.remove("show");}catch(e){}
     __afterLockPass();
@@ -24413,7 +24417,7 @@ function initLock(){
   inp.value="";
   inp.placeholder="••••••••••";
   if($("lock-skip"))$("lock-skip").style.display="none";
-  /* 锁屏不再提供「设置新密码 / 不设置」入口：输对 1026 直接进 */
+  /* 锁屏不再提供「设置新密码 / 不设置」入口：输对 102611 直接进 */
   // 已取消密码入口（持久化免密）→ 直接进入
   /* 免密标记单独存一个小键：state 是异步加载的，等它加载完再判断会晚一步，还是会先弹一次密码 */
   try{if(localStorage.getItem("lockFree")==="1"){state.settings.unlocked=true;}}catch(e){}
@@ -24451,7 +24455,7 @@ function submitLock(){
     return;
   }
   if(v===lockPwd()){
-    /* 已取消锁屏上的「设置新密码」入口：默认密码 1026 输对就自动进站。
+    /* 已取消锁屏上的「设置新密码」入口：默认密码 102611 输对就自动进站。
        而且输对默认密码这一次之后就记住（免密），下次打开不再问；
        只有自己在「设置 → 密码」里改过密码，才恢复成每次都要输。 */
     try{
@@ -29670,7 +29674,7 @@ body{margin:0;background:var(--bg,#fafafa);}
 })();
 </script>
 <script>/* v43-56: 设置页容错：把被错误闭合挤出 set-pages 的分组归位到第二页 */
-(function(){function fix(){try{var v=document.getElementById("view-settings");if(!v)return;var pages=v.querySelector(".set-pages");if(!pages||pages.children.length<2)return;var keep=[v.querySelector(".v-head"),v.querySelector(".set-tabs"),pages];Array.prototype.slice.call(v.children).forEach(function(c){if(keep.indexOf(c)<0&&(c.classList.contains("set-sec-title")||c.classList.contains("set-group"))){pages.children[1].appendChild(c);}});}catch(e){}}window.__e11NoCloud=1;window.__e11CloudPause=1;window.__e11FixSettings=fix;if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",fix);else fix();setTimeout(fix,300);})();
+(function(){function fix(){try{var v=document.getElementById("view-settings");if(!v)return;var pages=v.querySelector(".set-pages");if(!pages||pages.children.length<2)return;var keep=[v.querySelector(".v-head"),v.querySelector(".set-tabs"),pages];Array.prototype.slice.call(v.children).forEach(function(c){if(keep.indexOf(c)<0&&(c.classList.contains("set-sec-title")||c.classList.contains("set-group"))){pages.children[1].appendChild(c);}});}catch(e){}}window.__e11FixSettings=fix;if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",fix);else fix();setTimeout(fix,300);})();
 </script>
 </body>
 </html>
