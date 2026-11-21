@@ -2251,7 +2251,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-21v43-20">
+<meta name="app-build" content="2026-11-21v43-21">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3914,7 +3914,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-20</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-21</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5883,9 +5883,13 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-21",
-  noticeKey:"2026-11-21v43-20",
-  lead:"v43-20：GitHub Pages 改用真实 manifest.json，PWA 的 start_url/scope 稳定，不再每次启动解析大图 base64；Service Worker 注册加 updateViaCache=none，打开/回前台会强制检查新版。登录不再整页重载、空白兜底保留。",
+  noticeKey:"2026-11-21v43-21",
+  lead:"v43-21：已添加到主屏幕的 PWA 现在会真正换页：强制更新改用 __bust 绕过旧整页缓存，SW 也把 __u 当绕缓存标记；升级时导航到带 __bust 的新地址，不再 reload 回旧缓存。前几版登录/空白兜底保留。",
   items:[
+    '<span class="an-gt">v43-21 · 主屏幕 PWA 自动更新修正</span>',
+    "强制更新重载从只加 __u 改为同时加 __bust；旧 SW 的 cacheFirstIndex 会忽略 search，只加 __u 时 reload 仍返回旧整页，这就是主屏幕 PWA 看起来一直不更新的直接原因",
+    "sw.js 把 __u 也当作绕缓存标记；SW 激活接管旧页面时直接导航到带 __bust 的新地址，不再导航回原 URL 吃旧缓存",
+    "后台发现新版本时的 reload 也改成带 __bust 的 location.replace；聊天中仍不打断，切后台/下次打开再换",
     '<span class="an-gt">v43-20 · PWA 安装与自动更新</span>',
     "GitHub Pages 和本机同源部署直接用根目录 manifest.json；只有豆包主站/预览那种静态文件会被重定向到别的域时才退回 data manifest，避免 PWA 安装/更新时 start_url 和 scope 跟着当前 URL 飘",
     "去掉 GitHub Pages 上每次启动都解析两张大图 base64 的开销，页面首屏更轻，减少 iPhone 主屏幕启动白屏时间",
@@ -25413,7 +25417,7 @@ try{
           if(safeHome||safeGate){
             try{toast("正在更新到新版本…");}catch(_){}
             setTimeout(function(){
-              try{if(window.__pendingBuild){window.__pendingBuild="";location.reload();}}catch(_){}
+              try{if(window.__pendingBuild){window.__pendingBuild="";var u=new URL(location.href);u.searchParams.set("__bust",Date.now().toString(36));location.replace(u.href);}}catch(_){}
             },1200);
           }
         }catch(_){}
@@ -25424,7 +25428,7 @@ try{
     setTimeout(__swAsk,600);
     setTimeout(__swAsk,3000);
     document.addEventListener("visibilitychange",function(){
-      try{if(document.hidden&&window.__pendingBuild){window.__pendingBuild="";location.reload();}}catch(e){}
+      try{if(document.hidden&&window.__pendingBuild){window.__pendingBuild="";var u=new URL(location.href);u.searchParams.set("__bust",Date.now().toString(36));location.replace(u.href);}}catch(e){}
     });
   }catch(e){}
 })();
@@ -25468,7 +25472,7 @@ try{
     try{localStorage.setItem("__aboutAck",build()||"1");}catch(_){}
     clearRuntime().finally(function(){
       try{
-        var u=new URL(location.href);u.searchParams.set("__u",Date.now().toString(36));
+        var u=new URL(location.href);u.searchParams.set("__u",Date.now().toString(36));u.searchParams.set("__bust",Date.now().toString(36));
         location.replace(u.href);
       }catch(e){location.reload();}
     });
@@ -26876,11 +26880,11 @@ body{margin:0;background:var(--bg,#fafafa);}
       d.style.cssText="position:fixed;inset:0;z-index:100001;background:#f7f7fa;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:32px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif";
       d.innerHTML='<div style="font-size:17px;color:#222;font-weight:600">页面没有载入出来</div><div style="font-size:13px;color:#777;line-height:1.7">不是你的账号问题。点下面按钮重新进入；如果仍然空白，点强制更新。</div><button id="__recover-enter" style="border:0;border-radius:12px;background:#222;color:#fff;font-size:15px;padding:12px 28px">重新进入</button><button id="__recover-update" style="border:1px solid #ddd;border-radius:12px;background:#fff;color:#333;font-size:14px;padding:10px 24px">强制更新</button>';
       document.body.appendChild(d);
-      document.getElementById("__recover-enter").onclick=function(){location.replace(location.pathname+"?__u="+Date.now());};
+      document.getElementById("__recover-enter").onclick=function(){location.replace(location.pathname+"?__u="+Date.now()+"&__bust="+Date.now());};
       document.getElementById("__recover-update").onclick=function(){
         try{if("serviceWorker" in navigator)navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(r){try{r.unregister();}catch(e){}});});}catch(e){}
         try{if(window.caches)caches.keys().then(function(ks){ks.forEach(function(k){if(k.indexOf("eleven11-runtime-")===0)try{caches.delete(k);}catch(e){}});});}catch(e){}
-        setTimeout(function(){location.replace(location.pathname+"?__u="+Date.now());},120);
+        setTimeout(function(){location.replace(location.pathname+"?__u="+Date.now()+"&__bust="+Date.now());},120);
       };
     }catch(e){}
   }

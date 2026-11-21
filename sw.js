@@ -6,7 +6,7 @@
  * 3) 网络在后台更新缓存，下一次打开自然换成新版本；
  * 4) 连缓存都没有时，返回一个可重试的提示页，而不是空白 503。
  */
-const CACHE = "eleven11-runtime-v43-20";
+const CACHE = "eleven11-runtime-v43-21";
 const INDEX_URL = new URL("./index.html", self.location.href).href;
 
 const SHELL = [
@@ -235,7 +235,7 @@ self.addEventListener("activate", (event) => {
               const u = new URL(c.url);
               if (u.hash) continue;
               if (!u.pathname.endsWith("/") && !u.pathname.endsWith("/index.html")) continue;
-              c.navigate(c.url).catch(() => {});
+              const bust = new URL(c.url); bust.searchParams.set("__bust", Date.now().toString(36)); c.navigate(bust.href).catch(() => {});
             } catch (_) {}
           }
         } catch (_) {}
@@ -265,7 +265,7 @@ self.addEventListener("fetch", (event) => {
   }
   /* 检查更新用 __bust 拉 HTML 里的 app-build；这类请求必须绕过缓存直接取网络，
      否则 Service Worker 会把旧页面返回给检查逻辑，永远显示“已是最新”。 */
-  if (url.searchParams.has("__bust")) {
+  if (url.searchParams.has("__bust") || url.searchParams.has("__u")) {
     event.respondWith(fetch(req, { cache: "no-store", credentials: "same-origin" }));
     return;
   }
