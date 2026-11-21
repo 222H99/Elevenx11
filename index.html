@@ -53,6 +53,16 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
   var t=null;try{t=localStorage.getItem("__theme.v1");}catch(e){}
   var dark=(t==="dark")||(!t&&!!(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches));
   var bg=dark?"#000":"#fafafa",fg=dark?"#f2f2f7":"#111";
+  /* v43-30：上次真正生效的页面底色（不是只有黑/白）优先用于启动层和根背景，
+     换肤成雨滴/粉色后退出再进入，不会先闪一块纯黑或纯白。 */
+  try{
+    var _sbg=localStorage.getItem("e11.bootBg");
+    if(_sbg&&/^#|^rgb|^hsl/.test(_sbg)){
+      bg=_sbg;
+      var _m=_sbg.match(/\d+/g);
+      if(_m&&_m.length>=3){var _l=0.2126*(+_m[0])+0.7152*(+_m[1])+0.0722*(+_m[2]);fg=_l>150?"#111":"#f2f2f7";}
+    }
+  }catch(_eBg){}
   document.documentElement.style.background=bg;
   document.documentElement.setAttribute("data-boot",dark?"dark":"light");
   try{var _tc=document.getElementById("theme-color-meta");if(_tc)_tc.setAttribute("content",bg);}catch(e){}
@@ -2324,7 +2334,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-21v43-29">
+<meta name="app-build" content="2026-11-21v43-30">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3987,7 +3997,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-29</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-30</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -6019,9 +6029,15 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-21",
-  noticeKey:"2026-11-21v43-29",
-  lead:"v43-29：登录后自动从只读修复包补齐历史头像、主页照片、表情包和歌曲封面；修复包不会被某一台设备的空存档冲掉。",
+  noticeKey:"2026-11-21v43-30",
+  lead:"v43-30：日记返回直接回主页；照片框拖动改成每帧一次，松手自动保存尺寸；进出底色改用真实皮肤平均色，不再先闪纯黑/纯白。",
   items:[
+    '<span class="an-gt">v43-30 · 返回 / 缩放 / 闪屏</span>',
+    "日记页关闭后直接回主页，不再先落聊天页、还要再点一次返回",
+    "主页照片框拖动缩放改成每帧最多写一次样式，不再每个 pointermove 都强制布局；松手、切后台或被系统打断都会立即保存尺寸并回传",
+    "去掉常驻的 1.5 秒 sync 定时器，窗口静止时不再反复抢主线程；窗口变化交给 ResizeObserver 处理",
+    "启动层、根背景和安全区底色改用当前壁纸的平均色，不再只分纯黑/纯白：雨滴、粉色等皮肤退出再进入也是同色系，不会先闪白再变蓝",
+    "聊天页继续先在隐藏状态铺好再交接，底色也由壁纸平均色垫底，减少进入聊天时露白/露黑",
     '<span class="an-gt">v43-29 · 历史图片修复包</span>',
     "登录/进入后先检查本机缺哪些历史图，只缺图时才拉取当前账号自己的 recovery_media.json，不会拖慢图片完整的账号",
     "补齐范围：主头像、对方头像、主页照片、情侣头像/照片、主页封面、皮肤照片、31 个己方表情、25 个对方表情、歌曲封面、音乐背景",
@@ -8342,10 +8358,35 @@ function applySkin(){
             const _x=_c.getContext("2d");_x.drawImage(_ti,0,0,6,6);
             const _d=_x.getImageData(0,0,6,6).data;let _r=0,_g=0,_b=0,_n=0;
             for(let i=0;i<_d.length;i+=4){_r+=_d[i];_g+=_d[i+1];_b+=_d[i+2];_n++;}
-            if(_n)r.setProperty("--wallbg","rgb("+Math.round(_r/_n)+","+Math.round(_g/_n)+","+Math.round(_b/_n)+")");
+            if(_n){var _avg="rgb("+Math.round(_r/_n)+","+Math.round(_g/_n)+","+Math.round(_b/_n)+")";r.setProperty("--wallbg",_avg);
+              try{document.documentElement.style.setProperty("background-color",_avg,"important");document.body.style.setProperty("background-color",_avg,"important");if(window.__themeReady)localStorage.setItem("e11.bootBg",_avg);}catch(_eA){}}
           }catch(e){}
         };
         _ti.src=wallUrl(s.bgImage);
+      }catch(e){}
+    }
+  }else if(s.meImage){
+    /* v43-30：主页背景图也算启动底色。没有聊天壁纸时，用主页图的平均色，
+       避免退出再进入先闪一块纯白/纯黑，再突然变成雨滴或粉色。 */
+    if(window._meBgSrc!==s.meImage){
+      window._meBgSrc=s.meImage;
+      try{
+        const _mi=new Image();
+        _mi.onload=function(){
+          try{
+            const _c=document.createElement("canvas");_c.width=6;_c.height=6;
+            const _x=_c.getContext("2d");_x.drawImage(_mi,0,0,6,6);
+            const _d=_x.getImageData(0,0,6,6).data;let _r=0,_g=0,_b=0,_n=0;
+            for(let i=0;i<_d.length;i+=4){_r+=_d[i];_g+=_d[i+1];_b+=_d[i+2];_n++;}
+            if(_n){var _avg="rgb("+Math.round(_r/_n)+","+Math.round(_g/_n)+","+Math.round(_b/_n)+")";
+              r.setProperty("--wallbg",_avg);
+              document.documentElement.style.setProperty("background-color",_avg,"important");
+              document.body.style.setProperty("background-color",_avg,"important");
+              if(window.__themeReady)localStorage.setItem("e11.bootBg",_avg);
+            }
+          }catch(e){}
+        };
+        _mi.src=wallUrl(s.meImage);
       }catch(e){}
     }
   }else{r.removeProperty("--wallbg");}
@@ -8403,11 +8444,15 @@ function applySkin(){
     /* 顶栏/状态栏背后的页面底色必须和主题一致：只改 html 不改 body，
        有些 WebView 顶部安全区还会露出之前的白底。 */
     try{
-      var _bg=dark?"#000000":"#fafafa";
+      /* v43-30：根/系统安全区底色用实际皮肤底色，而不是只分黑/白两档。
+         有壁纸时优先用壁纸平均色 --wallbg；否则用 skin.bg。 */
+      var _wallc=(r.getPropertyValue("--wallbg")||"").trim();
+      var _bg=s.bgImage&&_wallc?_wallc:(s.bg||(dark?"#000000":"#fafafa"));
       document.documentElement.style.setProperty("background-color",_bg,"important");
       document.body.style.setProperty("background-color",_bg,"important");
       document.documentElement.style.setProperty("--sysbar-bg",_bg);
       document.body.style.setProperty("--sysbar-bg",_bg);
+      if(window.__themeReady)localStorage.setItem("e11.bootBg",_bg);
     }catch(_){}
     document.documentElement.setAttribute("data-theme",dark?"dark":"light");
   }catch(e){}
@@ -12886,7 +12931,7 @@ window.__e11TryMediaRepair=function(){
     if(!changed)return;
     try{window.__e11CloudPause=0;}catch(_){}
     try{if(typeof save==="function")save();}catch(_){}
-    try{if(typeof renderAll==="function")renderAll();if(typeof applySkin==="function")applySkin();}catch(_){}
+    try{if(typeof renderMe==="function")renderMe();if(typeof renderMePhotos==="function")renderMePhotos();if(typeof renderAll==="function")renderAll();if(typeof applySkin==="function")applySkin();}catch(_){}
     try{window.__E11Cloud&&window.__E11Cloud.flush&&window.__E11Cloud.flush();}catch(_){}
     try{toast("历史头像、照片、表情和歌曲封面已恢复");}catch(_){}
   }).catch(function(){}).then(function(){window.__e11RepairBusy=0;});
@@ -15997,9 +16042,12 @@ function __chatHandoff(el){
     try{
       el.__handoffRaf1=requestAnimationFrame(function(){
         el.__handoffRaf1=null;
-        /* 再留约 32ms 给合成/栅格化做完：旧页只是 99.8% 不透明，肉眼仍像原页，
-           但这一小段足够聊天层从「被遮挡跳过绘制」变成「已经画好」。 */
-        el.__handoffTimer=setTimeout(_done,32);
+        /* 再等两个合成帧 + 64ms：旧页只是 99.8% 不透明，肉眼仍像原页，
+           但足够聊天层从「被遮挡跳过绘制」变成「已经画好」；慢机上不会先露一帧白/黑。 */
+        el.__handoffRaf2=requestAnimationFrame(function(){
+          el.__handoffRaf2=null;
+          el.__handoffTimer=setTimeout(_done,64);
+        });
       });
     }catch(_){el.__handoffTimer=setTimeout(_done,48);}
   }catch(_){try{el.classList.remove("open");}catch(__){}}
@@ -24833,7 +24881,10 @@ setTimeout(function(){
     /* 只有界面真的出现才撤载入层；没出现就继续盖着，绝不露出白底 */
     if(_v&&_has){setTimeout(function(){try{_v.remove();}catch(e){}},60);}
     var _bv=document.getElementById("boot-veil");
-    if(_bv)window.__bootDone&&window.__bootDone();
+    var _gate=document.getElementById("auth-gate");
+    var _gateOn=!!(_gate&&_gate.classList.contains("show"));
+    /* 没有页面、也没有登录层时继续盖着启动层；提前撤掉就是一片白/黑屏。 */
+    if(_bv&&(_has||_gateOn))window.__bootDone&&window.__bootDone();
   }catch(e){}
 },1600);
 setTimeout(function(){
@@ -24842,7 +24893,9 @@ setTimeout(function(){
     var _ab2=document.getElementById("about-screen");
     var _has2=!!document.querySelector(".view.open")||(_ab2&&_ab2.classList.contains("show"));
     if(!_has2&&typeof showView==="function"){try{showView("view-me");}catch(e){}_has2=!!document.querySelector(".view.open");}
-    var _bv2=document.getElementById("boot-veil");if(_bv2)window.__bootDone&&window.__bootDone();
+    var _bv2=document.getElementById("boot-veil");
+    var _gate2=document.getElementById("auth-gate");
+    if(_bv2&&(_has2||(_gate2&&_gate2.classList.contains("show"))))window.__bootDone&&window.__bootDone();
     if(_v2&&_has2){setTimeout(function(){try{_v2.remove();}catch(e){}},80);return;}
     if(_v2){
       var _tx=_v2.querySelector("div");
@@ -25034,6 +25087,7 @@ setTimeout(function(){
       e.stopPropagation();e.preventDefault();
       if(!editing)setEditing(true);
       active=true;cur=el;startX=e.clientX;startY=e.clientY;
+      try{rz.setPointerCapture(e.pointerId);}catch(_){}
       var ic=el.classList&&el.classList.contains('me-app')?el.querySelector('.me-app-ic'):null;
       orig.w=ic?ic.offsetWidth:el.offsetWidth;orig.h=ic?ic.offsetHeight:el.offsetHeight;
       el.style.transition='none';
@@ -25078,40 +25132,68 @@ setTimeout(function(){
       },480);
     });
   });
+  /* v43-30：拖动缩放改成每帧最多写一次样式。
+     旧版每个 pointermove 都对照片框写 width/height/flexBasis 再调 applyShowcase，
+     iOS 上会强制同步布局，手指移动越快越粘；现在只记目标尺寸，由 rAF 统一提交。 */
+  var _me1Raf=0,_me1PendW=0;
+  function __me1PersistSize(){
+    if(!cur)return;
+    try{
+      if(cur.id==='me-photos'){
+        var ww=parseInt(cur.style.width,10)||Math.round(cur.getBoundingClientRect().width);
+        if(ww){state.me1PhotosSize=Math.max(80,Math.min(320,ww));}
+      }else if(cur.classList&&cur.classList.contains('me-app')){
+        var _i=cur.querySelector('.me-app-ic');
+        if(_i)state.me1AppSize=parseInt(_i.style.width,10)||state.me1AppSize;
+      }
+      localStorage.setItem("me1Sizes",JSON.stringify({w:state.me1PhotosSize||0,a:state.me1AppSize||0}));
+      if(typeof __prefSave==="function")__prefSave();
+      if(typeof save==="function")save();
+      if(window.__E11Cloud&&window.__E11Cloud.flush)window.__E11Cloud.flush();
+    }catch(_e){}
+  }
   window.addEventListener('pointermove',function(e){
     if(!active&&window.__me1PressX!==undefined&&(Math.abs(e.clientX-window.__me1PressX)>10||Math.abs(e.clientY-window.__me1PressY)>10))cancelPress();
     if(!active||!cur)return;
     var dx=e.clientX-startX;
-    if(cur.id==='me-photos'){
-      var ns=Math.max(80,Math.min(applyShowcase(orig.w+dx),320));
-      cur.style.width=ns+'px';cur.style.height=ns+'px';cur.style.flexBasis=ns+'px';
-    }else{
-      var s=Math.max(28,Math.min(110,orig.w+dx));
-      items.forEach(function(x){
-        if(x.classList&&x.classList.contains('me-app')){
-          var xic=x.querySelector('.me-app-ic');
-          if(xic){xic.style.width=xic.style.height=s+'px';xic.style.maxWidth=xic.style.maxHeight=s+'px';}
-        }
-      });
-    }
+    var _do=function(){
+      if(!cur)return;
+      if(cur.id==='me-photos'){
+        cur.style.width=_me1PendW+'px';cur.style.height=_me1PendW+'px';cur.style.flexBasis=_me1PendW+'px';
+      }else{
+        items.forEach(function(x){
+          if(x.classList&&x.classList.contains('me-app')){
+            var xic=x.querySelector('.me-app-ic');
+            if(xic){xic.style.width=_me1PendW+'px';xic.style.height=_me1PendW+'px';xic.style.maxWidth=_me1PendW+'px';xic.style.maxHeight=_me1PendW+'px';}
+          }
+        });
+      }
+    };
+    if(cur.id==='me-photos')_me1PendW=Math.max(80,Math.min(orig.w+dx,320));
+    else _me1PendW=Math.max(28,Math.min(110,orig.w+dx));
+    if(!_me1Raf)_me1Raf=requestAnimationFrame(function(){_me1Raf=0;_do();});
   },{passive:true});
-  window.addEventListener('pointercancel',cancelPress);
-  window.addEventListener('blur',cancelPress);
-  document.addEventListener('visibilitychange',function(){if(document.hidden)cancelPress();});
-  window.addEventListener('pointerup',function(){
+  function __me1Finish(){
     window.__me1PressX=undefined;window.__me1PressY=undefined;
+    if(_me1Raf){cancelAnimationFrame(_me1Raf);_me1Raf=0;}
     if(active){
       active=false;
       if(cur){
+        /* 最后一帧还没提交时，先落一次最终尺寸再存档，否则保存到的是上一帧大小 */
+        try{
+          if(cur.id==='me-photos'&&_me1PendW){cur.style.width=_me1PendW+'px';cur.style.height=_me1PendW+'px';cur.style.flexBasis=_me1PendW+'px';}
+          else if(cur.classList&&cur.classList.contains('me-app')&&_me1PendW){var _fi=cur.querySelector('.me-app-ic');if(_fi){_fi.style.width=_fi.style.height=_fi.style.maxWidth=_fi.style.maxHeight=_me1PendW+'px';}}
+        }catch(_eFinal){}
         cur.style.transition='';
-        if(cur.id==='me-photos'){state.me1PhotosSize=parseInt(cur.style.width)||"";}
-        else if(cur.classList&&cur.classList.contains('me-app')){var _i=cur.querySelector('.me-app-ic');if(_i)state.me1AppSize=parseInt(_i.style.width)||"";}
-        try{localStorage.setItem("me1Sizes",JSON.stringify({w:state.me1PhotosSize||0,a:state.me1AppSize||0}));}catch(e){}
-        if(state.me1PhotosSize||state.me1AppSize)save();
+        __me1PersistSize();
       }
     }
     clearTimeout(longTimer);
-  });
+  }
+  window.addEventListener('pointercancel',function(){__me1Finish();cancelPress();});
+  window.addEventListener('blur',function(){__me1Finish();cancelPress();});
+  document.addEventListener('visibilitychange',function(){if(document.hidden){__me1Finish();cancelPress();}});
+  window.addEventListener('pointerup',__me1Finish);
   document.getElementById('me1-reset-img').addEventListener('click',function(){
     try{if(state.me)state.me.photos=[];}catch(e){}
     try{__mePhotoBackupWrite("");}catch(e){}
@@ -26871,6 +26953,7 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
   }
   window.__diaryBlurInput=__diaryBlurInput;
   window.__diaryOpen=function(){
+    try{if(!window.__diaryFrom)window.__diaryFrom=window.__curView||"view-me";}catch(_){}
     __diaryBlurInput();
     try{var _dv=el("diary-view");if(_dv){__cancelViewFade(_dv);_dv.style.opacity="";_dv.style.transition="";_dv.style.pointerEvents="";}}catch(_){}
     D();maybePartnerFirst();
@@ -26892,10 +26975,13 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
   };
   function closeDiary(){
     __diaryBlurInput();try{closeReplySheet();}catch(_){}
-    /* 先把聊天页铺在日记遮罩下面，再让日记原位淡出；直接撤遮罩会从米黄纸页
-       一帧切成深色聊天，看起来就是“返回闪一下”。 */
+    /* 先在日记遮罩下面铺好“打开日记之前的那一页”，再让日记原位淡出。
+       从主页加号进日记就回主页，从聊天进就回聊天，不再固定绕一次聊天页。 */
     try{if(window.__e11ClearSub)window.__e11ClearSub();}catch(_){}
-    try{showView("view-chat");}catch(_){}
+    /* v43-30：日记返回直接回主页，不再先落聊天页等第二次返回。
+       用户从聊天加号进日记也一样回主页，减少一层无意义返回。 */
+    try{window.__diaryFrom="view-me";}catch(_){}
+    try{showView("view-me");}catch(_){try{showView("view-me");}catch(__){}} 
     try{__fadeOutDiary(110);}catch(_){el("diary-view").classList.remove("show");el("diary-view").classList.remove("writing");}
     if(writingTimer){clearTimeout(writingTimer);writingTimer=null;}
     try{window.__uiScaleSync&&window.__uiScaleSync();}catch(_){}
@@ -26910,6 +26996,8 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
     if(_dsm)_dsm.addEventListener("click",function(ev){if(ev.target===_dsm)_dsm.classList.remove("show");});
     var pd=el("plus-diary");
     if(pd)pd.addEventListener("click",function(){
+      /* 记住日记是从哪一页打开的：从主页进就回主页，不再强制先回聊天页。 */
+      try{window.__diaryFrom=window.__curView||"view-me";}catch(_){window.__diaryFrom="view-me";}
       try{closePlus();}catch(e){}
       __diaryBlurInput();
       opened=false;
@@ -27345,12 +27433,17 @@ body{margin:0;background:var(--bg,#fafafa);}
         var _desk=w>=700&&window.matchMedia&&window.matchMedia("(hover:hover) and (pointer:fine)").matches;
         window.__deskFixed=!!_desk;
         if(_desk){
-          var dw=430, dh=Math.min(860,Math.max(560,h-32));
+          /* v43-29：桌面永远按 430×860 的竖屏设计稿排布，窗口变矮时只做整体等比缩放，
+             不再改 root 的宽高，所以图标、照片框、聊天行不会跟着窗口高度重新排版。
+             窗口足够高时 scale=1，仍是 430×860 的手机窗口。 */
+          var dw=430, dh=860;
+          var _fitK=Math.min(1,Math.max(0.55,(h-28)/dh));
+          if((w-28)/dw<_fitK)_fitK=Math.max(0.55,(w-28)/dw);
+          var _visW=dw*_fitK,_visH=dh*_fitK;
           root.style.width=dw+"px";root.style.height=dh+"px";
-          root.style.left=Math.round((w-dw)/2)+"px";root.style.top=Math.round((h-dh)/2)+"px";
-          /* 保留一个空 3D transform：否则 position:fixed 的弹层会按整个电脑屏幕定位，
-             不受 430×860 的 app 窗口约束。translateZ(0) 不改变尺寸，只建立包含块。 */
-          root.style.transform="translateZ(0)";root.style.transformOrigin="top left";
+          root.style.left=Math.round((w-_visW)/2)+"px";root.style.top=Math.round((h-_visH)/2)+"px";
+          /* 保留 translateZ(0) 建立包含块，让 fixed 弹层限制在 app 窗口内；scale 只做整体缩放。 */
+          root.style.transform="translateZ(0) scale("+_fitK.toFixed(4)+")";root.style.transformOrigin="top left";
           root.style.borderRadius="24px";root.style.boxShadow="0 24px 70px rgba(0,0,0,.22)";
           root.style.background="var(--bg,#fff)";
           var _app=document.getElementById("app");
@@ -27472,7 +27565,8 @@ body{margin:0;background:var(--bg,#fafafa);}
     }catch(e){}
     return origAppend.call(body,el);
   };
-  function loop(){setTimeout(function(){sync();loop();},1500);}loop();
+  /* v43-30：不再每 1.5 秒无条件 sync；ResizeObserver/visualViewport 已经覆盖窗口变化，
+     常驻定时器只会让拖动缩放时多抢主线程。 */
 })();
 </script>
 <script>
