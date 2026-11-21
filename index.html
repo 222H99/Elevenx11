@@ -2334,7 +2334,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-21v43-31">
+<meta name="app-build" content="2026-11-21v43-32">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3997,7 +3997,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-31</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-32</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -6029,9 +6029,13 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-21",
-  noticeKey:"2026-11-21v43-31",
-  lead:"v43-31：日记和字卡模板关闭后统一回聊天页；所有返回按钮 380ms 内只认一次，不再一下连退两层甚至退回桌面。",
+  noticeKey:"2026-11-21v43-32",
+  lead:"v43-32：日记/字卡/设置/信件/留言/动态/音乐返回统一回聊天页；聊天背景没单独设置时直接共用桌面背景；问卷叉号抬手即关且不会重开。",
   items:[
+    '<span class="an-gt">v43-32 · 返回 / 背景 / 问卷</span>',
+    "日记、字卡模板、设置、信件、留言、动态、音乐页的返回统一落聊天页，不再从主页入口直接退回主页",
+    "聊天背景没有单独设置（skin.bgImage 为空）时直接共用桌面背景 skin.meImage；去掉了原来的纯色兜底",
+    "问卷叉号改成 pointerup 就关，不等 iOS 延迟 click；关闭后 420ms 内屏蔽重新打开，避免同一下又点到下面的问卷卡片",
     '<span class="an-gt">v43-31 · 返回层级</span>',
     "日记关闭、字卡/模板返回统一回聊天页，不再跟随加号入口回主页",
     "返回按钮和同一位置的返回点击 380ms 内只执行第一次，页面淡出时下层返回键不再被连点穿透",
@@ -8337,7 +8341,11 @@ function applySkin(){
   r.setProperty("--me-bg",meGrad);
   document.querySelectorAll(".me-bg").forEach(el=>el.style.background=s.meImage?('url("'+wallUrl(s.meImage)+'") center/cover no-repeat'):('var(--me-bg)'));
   /* 顶栏颜色交给 __syncSysBar() 按 App 当前明暗处理 */
-  r.setProperty("--wallimg",s.bgImage?'url("'+wallUrl(s.bgImage)+'")':"none");
+  /* v43-32：没有单独设聊天壁纸时，聊天背景直接共用主页/桌面背景（skin.meImage）。
+     以前这里写 none，聊天页就只剩纯色底；用户看到的“聊天背景不和桌面共用”就是这个。 */
+  var _wallSrc=s.bgImage||s.meImage||"";
+  r.setProperty("--wallimg",_wallSrc?'url("'+wallUrl(_wallSrc)+'")':"none");
+  if(!s.bgImage&&s.meImage)r.setProperty("--walltint","rgba(0,0,0,0)");
   /* 夜间/白天切换时，音乐页「跟随主题」的底色要跟着重画 */
   try{if(typeof renderMusicBg==="function")renderMusicBg();}catch(_e){}
   /* 把壁纸留在内存里：聊天页隐藏再显示时 iOS 不会重新解码/重新铺一次（那一下就是白闪） */
@@ -10422,7 +10430,8 @@ window.saDirty=function(){
   }catch(e){return false;}
 };
 function __closeSurveyAnswer(e){
-  if(e){try{e.preventDefault();e.stopPropagation();}catch(_){}}
+  window.__surveyClosedAt=Date.now();
+  if(e){try{e.preventDefault();e.stopImmediatePropagation();}catch(_){}}
   try{
     var m=msgById($("survey-answer-body")._qid);
     if(m&&$("survey-answer-body")._orig)m.text=$("survey-answer-body")._orig;
@@ -10437,6 +10446,8 @@ if(_saX){
   _saX.addEventListener("pointerdown",function(e){try{e.stopPropagation();}catch(_){}},true);
   _saX.addEventListener("touchstart",function(e){try{e.stopPropagation();}catch(_){}},{capture:true,passive:true});
   _saX.addEventListener("click",function(e){__closeSurveyAnswer(e);},true);
+  /* 手指刚抬起就关，不等 iOS 延迟合成的 click；关闭后 guard 会拦住可能落到下面卡片的那一下。 */
+  _saX.addEventListener("pointerup",function(e){__closeSurveyAnswer(e);},true);
 }
 if(_saCancel)_saCancel.addEventListener("click",function(e){__closeSurveyAnswer(e);},true);
 try{
@@ -16500,7 +16511,7 @@ $("btn-letters-back").addEventListener("click",function(e){
      刚收起后的 420ms 也不接受返回，避免一次触摸被两个按钮同时消费。 */
   try{if(document.body.classList.contains("env-open")){e.preventDefault();e.stopImmediatePropagation();return;}}catch(_){}
   try{if(Date.now()<(window.__letterClosedAt||0)+420){e.preventDefault();e.stopImmediatePropagation();return;}}catch(_){}
-  showView("view-me");
+  showView("view-chat");
 });
 $("top-back").addEventListener("click",()=>showView("view-me"));
 /* 聊天页顶部「对方名字 ›」以前没有事件，点了没反应：点它/头像直接进对方主页，返回回聊天 */
@@ -19325,7 +19336,7 @@ function stxt(t){var e=document.getElementById('ny-st'); if(e)e.textContent=t;}
     };
     rd.readAsDataURL(f);e.target.value="";
   });
-  $("btn-music-back").addEventListener("click",()=>{try{musicSession=(state&&state.musicSession)?true:musicSession;}catch(e){}showView(__plusReturnView(_musicFrom||"view-me"));});
+  $("btn-music-back").addEventListener("click",()=>{try{musicSession=(state&&state.musicSession)?true:musicSession;}catch(e){}showView("view-chat");});
   $("btn-music-bg").addEventListener("click",function(e){
     /* 刚点过歌词页 ✕：这次是关闭后穿透下来的幽灵点击，不打开背景 */
     if(Date.now()-(window.__lyricCloseGuard||0)<600){
@@ -20190,7 +20201,8 @@ function __settingsBackView(){
   if(!v){try{v=sessionStorage.getItem("e11_settings_from")||"";}catch(_){}}
   v=v||_settingsFrom||"view-me";
   /* 只有聊天和主页两个真实入口；其它页进来也按主页退，避免退到一半的浮层 */
-  return (v==="view-chat")?"view-chat":"view-me";
+  /* v43-32：设置页返回也统一回聊天页，不再从主页入口退回主页。 */
+  return "view-chat";
 }
 $("btn-settings-back").addEventListener("click",function(){
   var v=__settingsBackView();
@@ -20198,13 +20210,12 @@ $("btn-settings-back").addEventListener("click",function(){
   window.__plusReturnTo="";
   showView(v);
 });
-$("btn-guestbook-back").addEventListener("click",()=>showView("view-me"));
+$("btn-guestbook-back").addEventListener("click",()=>showView("view-chat"));
 $("btn-moments-back").addEventListener("click",function(){
   if(mpSide==="partner"){
-    if(_momentsFrom==="view-chat"){showView("view-chat");return;}
-    openMyProfile();return;
+    showView("view-chat");return;
   }
-  showView("view-me");
+  showView("view-chat");
 });
 $("mp-avatar").addEventListener("click",function(){
   /* 顶部的头像：永远是“更换头像”（当前显示谁的就换谁的） */
