@@ -214,16 +214,32 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
       const keys = await caches.keys();
+      const oldRuntime = keys.filter((k) => k.indexOf("eleven11-runtime-") === 0 && k !== CACHE);
       /* 只清运行时页面缓存；表情图镜像 eleven11-media-v1 必须保留 */
-      await Promise.all(
-        keys
-          .filter((k) => k.indexOf("eleven11-runtime-") === 0 && k !== CACHE)
-          .map((k) => caches.delete(k))
-      );
+      await Promise.all(oldRuntime.map((k) => caches.delete(k)));
       await self.clients.claim();
       /* 接管后把新缓存里的 app-build 告诉页面：
          只有真的换了版本，页面才会在安全时机重载；接的是旧页时不会误刷新。 */
       await notifyBuild();
+      /* 关键补丁：旧页面可能正停在登录页且输入框已有内容，页面自己的
+         safeGate 会判定“在输入，不重载”，于是一直用旧版、继续白屏。
+         这里在“确实存在旧运行时缓存”的升级场景，直接让根页面/登录页
+         （URL 没有 hash）重新导航到新缓存；聊天 #chat、写信等带 hash 的
+         页面不动，避免打断。首次安装没有旧缓存，不会强制刷新。 */
+      if (oldRuntime.length) {
+        try {
+          await new Promise((r) => setTimeout(r, 900));
+          const list = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+          for (const c of list) {
+            try {
+              const u = new URL(c.url);
+              if (u.hash) continue;
+              if (!u.pathname.endsWith("/") && !u.pathname.endsWith("/index.html")) continue;
+              c.navigate(c.url).catch(() => {});
+            } catch (_) {}
+          }
+        } catch (_) {}
+      }
     })()
   );
 });

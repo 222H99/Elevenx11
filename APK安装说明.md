@@ -2,7 +2,7 @@
 
 ## 文件
 
-- `Eleven11-v43-17.apk`（673KB，内置 assets/index.html = 当前 v43-17 页面）
+- `Eleven11-v43-17.apk`（677KB，内置 assets/index.html = 当前 v43-17 页面）
 - 包名：`com.eleven.elevenx11`
 - 版本：`2026-11-21v43-17`（versionCode 38）
 - 最低系统：Android 7.0（API 24），targetSdk 33
