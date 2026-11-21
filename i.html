@@ -332,6 +332,22 @@ input,textarea{-webkit-user-select:text;user-select:text;}
   display:flex;flex-direction:column;background:var(--bg);overflow:hidden;
   box-shadow:0 0 40px rgba(0,0,0,.08);
 }
+/* v43-28：电脑网页固定成一台手机大小的窗口。
+   之前窗口拉大/浏览器缩放时 .app 会跟着可视区变宽变高，主页图标和照片框
+   看起来忽大忽小。这里在桌面（鼠标精确指针）固定 430×860，窗口再缩放也不改卡片尺寸。 */
+@media (min-width:700px) and (hover:hover) and (pointer:fine){
+  body{background:#e9e9ee;}
+  .app{
+    width:430px;max-width:430px;
+    height:min(860px,calc(100dvh - 32px));
+    min-height:0;
+    top:50%;
+    transform:translate(-50%,-50%);
+    border-radius:24px;
+    box-shadow:0 24px 70px rgba(0,0,0,.22),0 0 0 1px rgba(0,0,0,.05);
+  }
+  html[data-boot="dark"] body,body.ui-dark{background:#111114;}
+}
 /* ===== 顶部栏（头像+名字居中）===== */
 .topbar{
   flex:0 0 auto;color:var(--ttext);
@@ -2308,7 +2324,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-21v43-27">
+<meta name="app-build" content="2026-11-21v43-28">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3971,7 +3987,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-27</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-21v43-28</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5410,6 +5426,17 @@ setTimeout(function(){
   }
   function putVault(payload){
     if(!cfgReady())return Promise.reject(new Error("后端未配置"));
+    /* 关键图（头像/主页照片/表情）如果还是 bigref，说明本机图片本体没恢复。
+       这时绝不能把整档覆盖到云端，否则会把云端可能还完好的图一起换成空引用。 */
+    try{
+      var _st=payload&&payload.state||{};
+      var _ref=function(v){return typeof v==="string"&&v.slice(0,8)==="\u0000bigref:";};
+      var _bad=_ref(_st.me&&_st.me.avatar)||_ref(_st.partner&&_st.partner.avatar)||_ref((_st.me&&_st.me.photos||[])[0])||_ref((_st.partner&&_st.partner.photos||[])[0]);
+      var _pr=_st.profile||{};["meAvatar","cpMeAvatar","cpPartnerAvatar","cpPhotoAvatar","cpPhoto"].forEach(function(k){if(_ref(_pr[k]))_bad=true;});
+      [].concat(_st.emojis||[],_st.partnerEmojis||[]).forEach(function(e){if(e&&_ref(e.src))_bad=true;});
+      (_st.musicPlaylist||[]).forEach(function(sg){if(sg&&_ref(sg.cover))_bad=true;});
+      if(_bad)return Promise.reject(new Error("关键图片还没从本机库恢复，已暂停覆盖云端"));
+    }catch(_eRef){}
     var url=cfg.url+cloudUrl();
     var headers={"apikey":cfg.key,"Authorization":"Bearer "+session.access_token,"Content-Type":"application/json","x-upsert":"true","cache-control":"no-cache"};
     return fetch(url,{method:"POST",headers:headers,body:JSON.stringify(payload),cache:"no-store"}).then(function(r){
@@ -5461,7 +5488,16 @@ setTimeout(function(){
       try{localStorage.setItem(k,extras[k]);}catch(e){}
     });
     try{localStorage.setItem("privateChat",JSON.stringify(st));}catch(e){}
-    var done=function(){window.__e11CloudPause=0;};
+    var done=function(){
+      window.__e11CloudPause=0;
+      /* 云端旧快照里如果是 bigref，本机库把图补齐后主动回传一次，
+         让另一台设备（电脑网页）也能拿到真实头像/照片/表情，而不是一串引用编号。
+         如果本机也没图，putVault 的关键图保护会拒绝覆盖，不会把云端弄坏。 */
+      if(!window.__e11PortableOnce){
+        window.__e11PortableOnce=1;
+        setTimeout(function(){try{save();window.__E11Cloud&&window.__E11Cloud.flush&&window.__E11Cloud.flush();}catch(_ePort){}},900);
+      }
+    };
     /* 云端快照目前只保存文字/state；恢复时只合并写入，保留本机已有的 bigimg/emojiimg 原图。
        以前这里走“清空整库”，登录/云端恢复后表情原图会被一起删掉，表现为整排失效。 */
     var p=window.__e11RestoreIDB?window.__e11RestoreIDB(snap.idb||{state:st},{merge:true}):Promise.resolve(false);
@@ -5973,9 +6009,16 @@ var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-21",
-  noticeKey:"2026-11-21v43-27",
-  lead:"v43-27：头像和照片不再先把原图写进存档再压一遍。头像先缩到 320px 再保存，个人照片先缩到 720px；老账号里偏大的头像会在空闲时自动缩一次，打开页面不再反复解码大图。",
+  noticeKey:"2026-11-21v43-28",
+  lead:"v43-28：头像、主页照片、表情包和歌曲封面不再被外置成空引用，换设备或清缓存不会只剩占位；电脑网页固定成一台 430×860 的手机窗口，主页照片框调好的尺寸不再被窗口缩放改小。",
   items:[
+    '<span class="an-gt">v43-28 · 历史图片 / 桌面固定</span>',
+    "头像、主页照片、表情包和歌曲封面不再外置成 bigref 编号：直接留在存档里，换设备、清缓存或 IndexedDB 没恢复时也不会只剩空白占位",
+    "云端旧存档里已经是 bigref 的，本机图库能把图补齐时会在登录后自动回传一次，让电脑网页也能拿到真实图片",
+    "关键图片没从本机库恢复时暂停覆盖云端，避免用一串空引用把云端可能还完好的图二次覆盖",
+    "关闭 v43-27 启动后自动压缩存量头像的逻辑：它可能触发整档回写，不适合在云存档还没完全合并时跑；新上传头像仍然先压 320px",
+    "电脑网页固定成 430×860 的手机窗口，窗口拉大、浏览器缩放不再把主页铺满整屏",
+    "主页照片框保存的尺寸就是最终尺寸，不再按窗口宽度二次裁剪；电脑窗口从 1440 缩到 1000，照片框实测保持 300px 不变",
     '<span class="an-gt">v43-27 · 头像 / 照片提速</span>',
     "头像上传改成先压到 320px WebP 再写 state 和存档，不再连续解码原图两遍；2400×1800、628KB 的图实测约 0.13 秒完成，头像 base64 从约 600KB 降到约 24KB",
     "设置页头像、个人主页头像、情侣页两个头像、音乐页两个头像全部走同一条「先压后存」路径",
@@ -6831,11 +6874,19 @@ function __storedImg(v){
 function __slimState(root){
   var st=window.__bigStore, pending=[], pendingIds={}, seen=[], copies=[];
   function need(id,data){if(st.stored.has(id)||pendingIds[id])return;pendingIds[id]=1;pending.push([__BIG_KEY+id,data,id]);}
+  /* 头像、主页照片、表情包必须留在 state 本体里，不能外置成 bigref。
+     原因：换设备、清缓存或 IndexedDB 读写失败时，bigref 只剩一个编号，
+     云端/本地快照都还原不出图，表现就是“历史头像、照片、表情包全丢”。
+     这些图现在都已压到 320/720px，单张不大，内联比悬空引用可靠。 */
+  var __KEEP_INLINE=function(k){return /^(avatar|meAvatar|cpMeAvatar|cpPartnerAvatar|cpPhotoAvatar|mpAv1|mpAv2|cpPhoto|cpPhotoCard|cpPhotoSub|cpRecord|cover|musicCoverImg|musicBgImg)$/i.test(String(k||""));};
   function walk(v,key){
+    try{
+      if(v&&typeof v==="object"&&Array.isArray(v)&&root&&root.me&&root.me.photos===v)return v.slice();
+      if(v&&typeof v==="object"&&Array.isArray(v)&&root&&(root.emojis===v||root.partnerEmojis===v))return v.slice();
+    }catch(_){}
     if(typeof v==="string"){
-      /* 所有图片都外置到 IndexedDB：localStorage 只留 bigref 索引。
-         这样头像、表情、照片、封面不会再把 5MB 小库撑满。 */
-      if(__storedImg(v)){
+      /* 其他聊天图片/背景仍外置到 IndexedDB；头像/主页照片/表情保持内联。 */
+      if(__storedImg(v)&&!__KEEP_INLINE(key)){
         var id=__bigId(v);
         need(id,v);
         return __BIG_REF+id;
@@ -24229,6 +24280,10 @@ function __applyAppFit(_k){
 window.__applyAppFit=__applyAppFit;
 window.__fitMap=window.__fitMap||{};
 window.__fitCompute=function(force){
+  /* v43-28：电脑固定窗口下不再按内容高度二次缩放。
+     之前照片框设成 300px，窗口一变，整页 fit 比例变成 0.62，实际只剩 186px，
+     看起来就是“桌面缩放后没固定大小”。固定窗口内保持 1:1，尺寸由用户自己定。 */
+  if(window.__deskFixed){window.__fitK=1;window.__fitK1=1;window.__fitK2=1;try{__fitApply(1);}catch(_eDeskFit){}return 1;}
   /* 自适应一旦锁定就固定住：force 也不能再重算。
      以前 resize / homeDockCheck / 布局重排都会传 force=true，桌面比例被反复改小，
      用户就会看到“刚调好又突然变小”。锁定后只返回当前比例，不再动 transform。 */
@@ -24995,9 +25050,9 @@ setTimeout(function(){
     var photo=document.getElementById('me-photos');
     var side=document.querySelector('.me-side');
     if(!pager||!photo||!side)return Number(w)||160;
-    var avail=Math.max(220,(pager.clientWidth||320)-26);
-    var room=Math.max(80,avail-10-96);   /* 应用区两列自动缩窄到最小 96px，照片框可放到更大，但不挤出本页 */
-    var ww=Math.min(Math.round(Number(w)||160),room,320);
+    /* v43-28：用户拖出来的照片框尺寸就是最终尺寸，不再按窗口宽度二次裁剪。
+       以前电脑窗口一缩放，room 变小，刚调好的照片框会被强行缩小，看起来“没固定大小”。 */
+    var ww=Math.min(Math.round(Number(w)||160),320);
     photo.style.width=photo.style.height=photo.style.flexBasis=ww+'px';
     return ww;
   }
@@ -27172,6 +27227,29 @@ body{margin:0;background:var(--bg,#fafafa);}
          整站按这个高度画就会只剩一条、下面一大块空白。这里退回稳定屏高。 */
       if(_typing&&(!_vvH||(_screenH&&_vvH<_screenH*0.28))){_typing=false;h=window.__uiStableH||_baseH;}
       if(!h||h<200)h=window.__uiStableH||_screenH||844;
+      /* v43-28：电脑网页固定成 430×860 的手机窗口。
+         以前桌面横屏会走 _landView，把整站铺到 900px 宽；窗口一拉大/缩放，
+         主页图标和照片框就跟着变。这里桌面不再按屏幕宽度放大，舞台尺寸固定。 */
+      try{
+        var _desk=w>=700&&window.matchMedia&&window.matchMedia("(hover:hover) and (pointer:fine)").matches;
+        window.__deskFixed=!!_desk;
+        if(_desk){
+          var dw=430, dh=Math.min(860,Math.max(560,h-32));
+          root.style.width=dw+"px";root.style.height=dh+"px";
+          root.style.left=Math.round((w-dw)/2)+"px";root.style.top=Math.round((h-dh)/2)+"px";
+          /* 保留一个空 3D transform：否则 position:fixed 的弹层会按整个电脑屏幕定位，
+             不受 430×860 的 app 窗口约束。translateZ(0) 不改变尺寸，只建立包含块。 */
+          root.style.transform="translateZ(0)";root.style.transformOrigin="top left";
+          root.style.borderRadius="24px";root.style.boxShadow="0 24px 70px rgba(0,0,0,.22)";
+          root.style.background="var(--bg,#fff)";
+          var _app=document.getElementById("app");
+          if(_app){_app.style.position="absolute";_app.style.top="0";_app.style.width=dw+"px";_app.style.height=dh+"px";_app.style.maxWidth="none";_app.style.minHeight="0";_app.style.left="0";_app.style.transform="none";_app.style.boxShadow="none";}
+          document.documentElement.style.setProperty("--ui-k","1");
+          document.documentElement.style.setProperty("--ui-inv-k","1");
+          window.__uiScale=1;window.__uiSig="desk|"+w+"x"+h;
+          return;
+        }
+      }catch(_eDesk){}
       /* 终极兜底：没在打字时，舞台高度绝不能只有屏幕的一半多一点。
          某些 iOS WebView 会把 visualViewport 停在上一次键盘的残值（约 520/852），
          这时即使它不报 typing，整站也会只画上半屏、底部聊天栏消失。 */
@@ -27378,8 +27456,9 @@ body{margin:0;background:var(--bg,#fafafa);}
       });
     }catch(e){}
   };
-  setTimeout(function(){try{window.__compactAvatarImages();}catch(e){}},1800);
-  setTimeout(function(){try{window.__compactAvatarImages();}catch(e){}},6000);
+  /* v43-28：不再在启动后自动压缩存量头像。
+     自动压缩会触发整档 save()，在云端快照还没完全合并时可能把旧档回写，
+     表现为历史头像/照片/歌曲/表情一起变空。新上传头像仍会先压到 320px。 */
 })();
 </script>
 </body>
