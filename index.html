@@ -60,7 +60,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
       dark=!!(_st&&_st.skin&&_st.skin.dark===true);
     }catch(_eT){}
   }
-  var bg=dark?"#000000":"#ffffff",fg=dark?"#f2f2f7":"#111";
+  var bg=dark?"#141416":"#ffffff",fg=dark?"#f2f2f7":"#111";
   /* v43-30：上次真正生效的页面底色（不是只有黑/白）优先用于启动层和根背景，
      换肤成雨滴/粉色后退出再进入，不会先闪一块纯黑或纯白。 */
   try{
@@ -75,6 +75,14 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
       }
     }
   }catch(_eBg){}
+  /* v43-127：深色启动层不再用纯黑，避免 2MB 脚本解析期间看起来像“死黑屏” */
+  try{
+    var _bm=String(bg).match(/\d+/g);
+    if(dark&&_bm&&_bm.length>=3){
+      var _bl=0.2126*(+_bm[0])+0.7152*(+_bm[1])+0.0722*(+_bm[2]);
+      if(_bl<26)bg="#141416";
+    }
+  }catch(_eClamp){}
   document.documentElement.style.background=bg;
   document.documentElement.setAttribute("data-boot",dark?"dark":"light");
   /* v43-106：顶栏只允许纯白/纯黑，启动这一刻不能先写 #fafafa 或壁纸平均色，
@@ -95,7 +103,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
   var d=document.createElement("div");
   d.id="boot-veil";
   d.style.cssText="position:fixed;inset:0;z-index:99999;background:"+bg+";display:flex;align-items:center;justify-content:center;transition:opacity .12s ease;";
-  d.innerHTML='<div style="font:600 15px -apple-system,BlinkMacSystemFont,\'SF Pro Text\',sans-serif;color:'+fg+';opacity:.5;letter-spacing:.5px;">Eleven×11</div>';
+  d.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;gap:12px;"><div style="font:600 15px -apple-system,BlinkMacSystemFont,\'SF Pro Text\',sans-serif;color:'+fg+';opacity:.72;letter-spacing:.5px;">Eleven×11</div><div style="width:18px;height:18px;border-radius:50%;border:2px solid rgba(128,128,138,.22);border-top-color:#3478F6;animation:e11bootspin .8s linear infinite;"></div><div id="boot-sub" style="font:500 12px -apple-system,BlinkMacSystemFont,\'SF Pro Text\',sans-serif;color:'+fg+';opacity:.46;">正在打开…</div></div><style>@keyframes e11bootspin{to{transform:rotate(360deg)}}</style>';
   try{document.documentElement.appendChild(d);}catch(e){}
   window.__bootDark=dark;
   window.__bootDone=function(){
@@ -133,7 +141,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
       var v=document.getElementById("boot-veil");
       if(!v)return;
       if(document.readyState!=="loading"){window.__bootReveal();return;}
-      var tx=v.firstChild;
+      var tx=document.getElementById("boot-sub");
       if(tx)tx.textContent="正在载入…";
     }catch(e){}
   },3200);
@@ -210,7 +218,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-126";
+window.__E11_BUILD="2026-11-23v43-127";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2518,7 +2526,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-126">
+<meta name="app-build" content="2026-11-23v43-127">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3457,9 +3465,9 @@ html.kb-typing #rotate-guard,html.kb-typing body #rotate-guard{display:none!impo
 </head>
 <body>
 <!-- v43-121：静态首屏。HTML 一解析到这里就先显示品牌，不再等 2MB 脚本执行完才出画面。 -->
-<div id="e11-static-splash" style="position:fixed;inset:0;z-index:100001;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transition:opacity .12s ease;"><div style="font:700 20px -apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;color:#111;letter-spacing:.6px;">Eleven×11</div><div id="e11-static-splash-sub" style="font:500 12px -apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;color:#8e8e93;">正在打开…</div></div>
+<div id="e11-static-splash" style="position:fixed;inset:0;z-index:100001;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;transition:opacity .12s ease;"><div style="font:700 20px -apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;color:#111;letter-spacing:.6px;">Eleven×11</div><div style="width:20px;height:20px;border-radius:50%;border:2px solid rgba(120,120,128,.18);border-top-color:#3478F6;animation:e11splashspin .8s linear infinite;"></div><div id="e11-static-splash-sub" style="font:500 12px -apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;color:#8e8e93;">正在打开…</div><style>@keyframes e11splashspin{to{transform:rotate(360deg)}}</style></div>
 <script>
-(function(){try{var d=localStorage.getItem("__theme.v1")==="dark";if(!d){try{var ps=JSON.parse(localStorage.getItem("privateChat")||"null");d=!!(ps&&ps.skin&&ps.skin.dark);}catch(_){}}var a=document.getElementById("e11-static-splash"),b=document.getElementById("e11-static-splash-sub");if(a){a.style.background=d?"#000":"#fff";}if(b){b.style.color=d?"rgba(255,255,255,.55)":"#8e8e93";}var t=document.querySelector("#e11-static-splash div");if(t)t.style.color=d?"#fff":"#111";}catch(_){}})();
+(function(){try{var d=localStorage.getItem("__theme.v1")==="dark";if(!d){try{var ps=JSON.parse(localStorage.getItem("privateChat")||"null");d=!!(ps&&ps.skin&&ps.skin.dark);}catch(_){}}var a=document.getElementById("e11-static-splash"),b=document.getElementById("e11-static-splash-sub");if(a){a.style.background=d?"#141416":"#fff";}if(b){b.style.color=d?"rgba(255,255,255,.68)":"#8e8e93";}var t=document.querySelector("#e11-static-splash div");if(t)t.style.color=d?"#fff":"#111";}catch(_){}})();
 </script>
 <script>
 /* v43-72：编辑完卡片/主页后 600ms 内屏蔽主页应用图标，避免收尾那一下误点进音乐、设置等应用 */
@@ -4067,7 +4075,7 @@ setTimeout(function(){
       <!-- 账号（只显示当前账号，不显示其他账号） -->
       <div class="set-sec-title">账号</div>
       <div class="set-group">
-        <div class="set-row"><span class="set-label">云端空间<div class="set-sub" id="set-account-sub">未登录</div></span><button id="btn-account-logout">退出登录</button></div><div class="set-row"><span class="set-label">云端账号密码<div class="set-sub">改的是这个账号的登录密码，至少 6 位；不影响本机 6 位进站密码</div></span><button class="small-btn ghost" id="btn-cloud-pwd" style="white-space:nowrap;">修改</button></div>
+        <div class="set-row"><span class="set-label">云端空间<div class="set-sub" id="set-account-sub">未登录</div></span><button id="btn-account-logout">退出登录</button></div><div class="set-row"><span class="set-label">云端账号密码<div class="set-sub" id="cloud-pwd-sub">改的是这个账号的登录密码，至少 6 位；不影响本机 6 位进站密码</div></span><button class="small-btn ghost" id="btn-cloud-pwd" style="white-space:nowrap;">先登录</button></div>
       </div>
       <!-- 双方资料 -->
       <div class="set-sec-title">个人信息</div>
@@ -4096,7 +4104,7 @@ setTimeout(function(){
       <!-- 资料 -->
       <div class="set-sec-title">资料</div>
       <div class="set-group">
-        <div class="set-row"><span class="set-label">本机进站密码<div class="set-sub">修改后每次打开都要输入新密码，原来的默认密码会失效</div></span><button class="small-btn ghost" id="btn-lock-pwd" style="white-space:nowrap;">修改</button></div>
+        <div class="set-row"><span class="set-label">本机进站密码<div class="set-sub">修改后每次打开都要输入新密码；忘记可在锁屏页点「重置」</div></span><button class="small-btn ghost" id="btn-lock-pwd" style="white-space:nowrap;">修改</button></div>
         <div class="set-row"><span class="set-label">我的名字</span><input class="set-input" id="set-me-name" style="width:120px;" value="我"></div>
         <div class="set-row"><span class="set-label">对方名字</span><input class="set-input" id="set-partner-name" style="width:120px;" value="对方"></div>
       </div>
@@ -4261,7 +4269,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-126</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-127</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5497,7 +5505,7 @@ setTimeout(function(){
   <input class="lock-input" id="lock-input" type="password" autocomplete="off" placeholder="••••••••••" maxlength="6" inputmode="numeric" pattern="[0-9]*">
   <button class="lock-btn" id="lock-btn">进入</button>
   <button id="lock-skip" style="display:none;margin-top:8px;background:none;border:none;color:rgba(0,0,0,.72);font-size:13px;cursor:pointer;">不设置，取消密码入口</button>
-  <button id="lock-forgot" style="margin-top:12px;background:none;border:none;color:rgba(255,255,255,.6);font-size:12px;cursor:pointer;">忘记密码？</button>
+  <button id="lock-forgot" style="margin-top:12px;background:none;border:none;color:rgba(20,22,28,.55);font-size:12px;cursor:pointer;">忘记密码？</button>
 </div>
 
 <!-- ===== 账号登录（只显示登录，不展示任何账号内容） ===== -->
@@ -5627,6 +5635,7 @@ setTimeout(function(){
       return;
     }
     window.__cloudLoginExplicit=0;
+    window.__cloudLoginOpen=1;
     try{window.__veilDone&&window.__veilDone();}catch(_e){}
     /* v43-103：声明页是固定第一层，登录卡不得把它撤掉（否则用户只看到锁屏/白屏）。 */
     if(waitCard)waitCard.style.display="none";
@@ -5645,6 +5654,7 @@ setTimeout(function(){
   }
   window.__e11ClosePwdCard=closePwdCard;
   function hideGate(){
+  try{window.__cloudLoginOpen=0;}catch(_cOpen){}
   /* v43-120：改密卡开着时，启动/云端流程的收尾不能把整层撤掉，
      否则用户点“修改密码”会看到卡片一闪就回桌面（看起来像闪退）。 */
   try{if(pwdCard&&(pwdCard.classList.contains("show")||pwdCard.style.display==="block"))return;}catch(_ePwdKeep){}
@@ -5709,6 +5719,8 @@ setTimeout(function(){
     try{$("auth-newpwd").value="";$("auth-newpwd2").value="";if($("auth-oldpwd"))$("auth-oldpwd").value="";setMsg("auth-pwd-msg","");}catch(_eI){}
     try{window.__bootDone&&window.__bootDone();}catch(_){}
   }
+  try{window.__e11ShowPwdCard=showPwdCard;}catch(_eExpPwd){}
+  try{window.__e11ShowLoginCard=showLoginCard;}catch(_eExpLogin){}
   function accountOf(user){
     try{var m=(user&&user.user_metadata)||{};return String(m.account||((user&&user.email)||"").split("@")[0]||"");}catch(e){return "";}
   }
@@ -5722,6 +5734,7 @@ setTimeout(function(){
   function action(){try{var a=JSON.parse(sessionStorage.getItem(SS_ACTION)||"null");return a&&a.uid?a:null;}catch(e){return null;}}
   function setAction(a){try{if(a)sessionStorage.setItem(SS_ACTION,JSON.stringify(a));else sessionStorage.removeItem(SS_ACTION);}catch(e){}}
   function authOk(){return !!(session&&session.user&&session.user.id);}
+  try{window.__e11AuthCheck=authOk;}catch(_eExpAuth){}
   function cfgReady(){return !!(cfg.url&&cfg.key&&/^https?:\/\//.test(cfg.url));}
   function api(path,opt){
     opt=opt||{};
@@ -6696,13 +6709,15 @@ setTimeout(function(){
     var el=$("set-account-sub");if(el)el.textContent=txt;
     /* 云端会话过期/换域名打开时，不要只显示“未登录”死文字：按钮变成“登录云端”，点开登录框。 */
     try{var _lb=$("btn-account-logout");if(_lb)_lb.textContent=(txt==="未登录"?"登录云端":"退出登录");}catch(_eLb){}
+    try{var _cw=$("btn-cloud-pwd"),_cs=$("cloud-pwd-sub");var _ok=(window.__e11AuthCheck?!!window.__e11AuthCheck():!!(session&&session.user&&session.user.id));if(_cw)_cw.textContent=_ok?"修改":"先登录";if(_cs)_cs.textContent=_ok?"改的是这个账号的登录密码，至少 6 位；不影响本机进站密码":"未登录云端；先登录后才能修改云端账号密码";}catch(_eCw){}
   }
   function chipSync(state){
-    if(!authOk()){setChip("未登录");return;}
+    if(!(window.__e11AuthCheck?!!window.__e11AuthCheck():!!authOk())){setChip("未登录");return;}
     var a=accountOf(session.user);
     var s=window.__e11CloudStatus||"";
     setChip("已登录 · "+(a||"账号")+(s?(" · "+s):""));
   }
+  try{window.__e11ChipSync=chipSync;}catch(_eChipExp){}
   function cloudSchedule(){
     if(window.__e11NoCloud)return;
     if(!authOk()||window.__e11CloudPause||window.__restoring||window.__e11CloudHold)return;
@@ -7374,7 +7389,7 @@ setTimeout(function(){
         try{window.__restoring=0;window.__e11CloudPause=0;showLoginCard();}catch(_){}
       });
     };
-    if(!authOk()){finish();return;}
+    if(!(window.__e11AuthCheck?!!window.__e11AuthCheck():!!authOk())){window.__cloudLoginExplicit=1;finish();return;}
     /* 退出前先核对云端：云端消息更完整时绝不能把本机旧档传上去覆盖。
        确认本机更新才做最后一次上传。 */
     var _local=null;try{_local=window.__e11StateGet?window.__e11StateGet():null;}catch(_){}
@@ -7396,8 +7411,19 @@ setTimeout(function(){
     if(t.closest("#auth-login")){e.preventDefault();onLogin();}
     if(t.closest("#auth-pwd-go")){e.preventDefault();onPwd();}
     if(t.closest("#auth-skip")){e.preventDefault();try{setAction(null);}catch(_eSk){}try{localStorage.setItem("e11.localOnly","1");}catch(_eSk2){}try{window.__e11LocalOnly=1;}catch(_eSk3){}try{hideGate();}catch(_eSk4){}try{__enterAfterAction();}catch(_eSk5){}try{toast("未登录云端，先用本机");}catch(_eSk6){}return;}
-    if(t.closest("#btn-cloud-pwd")){e.preventDefault();try{showPwdCard("change");}catch(_ePwc){}return;}
-    if(t.closest("#btn-account-logout")){e.preventDefault();if(!authOk()){window.__cloudLoginExplicit=1;showLoginCard();return;}logout();}
+    if(t.closest("#btn-cloud-pwd")){
+      e.preventDefault();
+      var _cpOk=false;try{_cpOk=window.__e11AuthCheck?!!window.__e11AuthCheck():!!authOk();}catch(_eCpAuth){}
+      if(!_cpOk){
+        try{toast("修改云端密码前，请先登录云端账号");}catch(_eCpToast){}
+        window.__cloudLoginExplicit=1;
+        try{window.__e11ShowLoginCard?window.__e11ShowLoginCard():showLoginCard();}catch(_eCpLogin){}
+        return;
+      }
+      try{window.__e11ShowPwdCard?window.__e11ShowPwdCard("change"):showPwdCard("change");}catch(_ePwc){}
+      return;
+    }
+    if(t.closest("#btn-account-logout")){e.preventDefault();if(!(window.__e11AuthCheck?!!window.__e11AuthCheck():!!authOk())){window.__cloudLoginExplicit=1;try{window.__e11ShowLoginCard?window.__e11ShowLoginCard():showLoginCard();}catch(_eLg){}return;}logout();}
     if(t.closest("#auth-force-update")){e.preventDefault();try{if(window.__e11CheckVersion)window.__e11CheckVersion(true);else location.reload();}catch(_){}}
   });
   document.addEventListener("keydown",function(e){
@@ -7663,16 +7689,16 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-23",
   noticeKey:null,
-  lead:"v43-126：设置页重新分成 7 个板块，基础、聊天、社交、娱乐、接口、外观、数据分开看，不用再滚一长页。",
+  lead:"v43-127：云端账号密码点不开、本机进站密码不能重置、启动黑屏，这三项都已修复；设置页仍是 7 个板块。",
   items:[
-    "设置页重分为 7 个板块：基础 / 聊天 / 社交 / 娱乐 / 接口 / 外观 / 数据；点顶部标签或左右滑动切换。",
-    "每个板块顶部有一行说明；原来塞了二十多项的「社交」拆成「社交」和「娱乐」，找听歌、画画、电话、问卷更快。",
-    "「基础」放账号、个人信息、进站密码、系统、安装与版本；「聊天」放回复、提示音、撤回、通知与免打扰。",
-    "「接口」集中 AI 接口、云端存档、语音合成与语音转文字；「外观」放字体、头像、气泡、主题与透明度；「数据」放导入导出、自动备份和存储空间。",
-    "保留 v43-125 修复：已进入 App 后点「本机进站密码 → 修改」不会再闪退，可连续重设，旧密码立即失效。",
-    "自定义密码后每次打开都要输入新密码；输错提示「密码错误，请重新输入」，默认密码不能进，「忘记密码」隐藏。",
+    "云端账号密码：未登录时按钮显示「先登录」，点一下会直接弹登录卡，不再出现点了没反应；登录后按钮变成「修改」。",
+    "本机进站密码：锁屏页「忘记密码？重置本机密码」可以直接设新的 6 位密码，不用旧密码；聊天、字卡、设置都保留，旧密码立即失效。",
+    "修掉登录卡被后台巡检自动关掉的问题：以前登录卡刚弹出 1 秒就被当成残留层隐藏，看起来就是「点不动」。",
+    "启动黑屏：深色启动层由纯黑改成深灰并加转圈加载，APK 的 WebView 底色和从后台回前台也同步成深灰；顶栏、状态栏仍只保持纯黑/纯白。",
+    "设置页继续按 7 个板块：基础 / 聊天 / 社交 / 娱乐 / 接口 / 外观 / 数据，顶部标签可点、可左右滑，找设置不用滚一长页。",
+    "保留 v43-125 修复：已进入 App 后点「本机进站密码 → 修改」不会再闪退，可连续重设。",
     "声明页致谢：一起听梦角推歌借鉴于小红书 @Failure. 老师（ID：95941868426）。",
-    "保留 v43-123 的数据保存修复；聊天记录仍以 IndexedDB 为主库，历史图片、表情包、一起听歌单不丢。",
+    "聊天记录仍以 IndexedDB 为主库，历史图片、表情包、一起听歌单不丢。",
   ],
   foot:"有问题或建议：小红书 @Eleven_（ID：5609831119）。"
 };
@@ -20025,6 +20051,7 @@ function __fadeOutDiary(ms){
   }catch(_){try{el.classList.remove("show");el.classList.remove("writing");}catch(__){}}
 }
 function showView(id){
+  try{if(id==="view-settings"&&window.__e11ChipSync)window.__e11ChipSync();}catch(_eSetChip){}
   try{var _vt=document.getElementById(id);if(_vt)__cancelViewFade(_vt);}catch(_){}
   /* 切页时把还在倒计时的顶部消息条收掉：避免用户已经点进设置/信件，旧提示还压在上面 */
   try{clearTimeout(incomingPopTimer);hideIncomingPop();}catch(_){}
@@ -27342,7 +27369,7 @@ function initLock(){
   $("lock-sub").textContent="Across the boundary of light and dark, together with you.";
   $("lock-btn").textContent="进入";
   $("lock-tip").textContent=_customPwd?"提示：输入你设置的 6 位密码":"提示：固定 6 位数字";
-  try{if($("lock-forgot"))$("lock-forgot").style.display=_customPwd?"none":"";}catch(_eForgot){}
+  try{if($("lock-forgot")){$("lock-forgot").style.display="";$("lock-forgot").textContent=_customPwd?"忘记密码？重置本机密码":"忘记密码？";}}catch(_eForgot){}
   /* 声明页点“同意并进入”后直接给密码页：登录等待层还盖着时先撤掉，
      否则密码输入框被 auth-gate/auth-locked 一起藏住，看起来就是“密码页不见了”。 */
   try{
@@ -27362,7 +27389,7 @@ window.__e11InitLock=initLock;
   if(window.__e11AuthGuardTimer)return;
   window.__e11AuthGuardTimer=setInterval(function(){
     try{
-      if(!window.__lockPassed||window.__cloudLoginExplicit)return;
+      if(!window.__lockPassed||window.__cloudLoginExplicit||window.__cloudLoginOpen)return;
       var g=document.getElementById("auth-gate");
       if(g&&g.classList.contains("show")){g.classList.remove("show");document.body.classList.remove("auth-locked");}
       var l=document.getElementById("lock-screen");
@@ -27457,8 +27484,11 @@ $("lock-forgot").addEventListener("click",function(){
   /* v43-124：自定义密码后默认密码不再能进；这里也不能一键把密码改回默认，
      否则等于绕过用户自己设的锁。 */
   if(lockPwd()!==LOCK_DEFAULT){
-    toast("已设置自定义密码，必须输入正确密码才能进入");
-    $("lock-input").value="";$("lock-input").focus();return;
+    __iosConfirm("重置本机进站密码？\n\n确定后会直接进入设置新密码；聊天、字卡、设置都保留，旧密码立即失效。",{okText:"重置",danger:true}).then(function(ok){
+      if(!ok)return;
+      try{__openLockSetup();}catch(_eResetPw){}
+    });
+    return;
   }
   state.settings.entryPwd=LOCK_DEFAULT;
   try{localStorage.removeItem(PW_PASS_KEY);}catch(_){}
