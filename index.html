@@ -191,7 +191,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-22v43-96";
+window.__E11_BUILD="2026-11-22v43-97";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -325,7 +325,9 @@ html,body{background:#fafafa;}
 /* PWA 顶部安全区兜底：状态栏透明/页面延伸到顶部时，这块跟随 App 明暗，
    夜间不会再露出白条，白天也不会露出黑条。 */
 @media (display-mode:standalone){
-  body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top);background:var(--sysbar-bg,#fafafa);z-index:99999;pointer-events:none;}
+  /* 不再用一个纯色块盖住顶部：聊天页顶栏是透明的，盖色块会多出一条白/灰色横带。
+     安全区交给各页顶栏自己的背景或壁纸透上来。 */
+  body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top);background:transparent;z-index:99999;pointer-events:none;}
 }
 html,body{background:#fafafa;}
 /* 夜间：html/body 底层也转黑，iOS 状态栏与回弹区不再露出米白 */
@@ -2488,7 +2490,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-22v43-96">
+<meta name="app-build" content="2026-11-22v43-97">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4211,7 +4213,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-96</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-97</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5594,8 +5596,8 @@ setTimeout(function(){
   function showPwdCard(mode){
     window.__e11PwdMode=mode||"first";
     var _ct=$("auth-pwd-title"),_cs=$("auth-pwd-sub"),_cb=$("auth-pwd-go");
-    if(_ct)_ct.textContent=(window.__e11PwdMode==="change"?"修改云端密码":"第一次登录");
-    if(_cs)_cs.textContent=(window.__e11PwdMode==="change"?"默认密码 102611。输入新密码后立即生效，下次用新密码登录。":"默认密码是 102611。设置自己的密码后，站主就不知道你的新密码，也不会再用初始密码进入。");
+    if(_ct)_ct.textContent="修改云端密码";
+    if(_cs)_cs.textContent=(window.__e11PwdMode==="change"?"默认密码 102611。输入新密码后立即生效，下次用新密码登录。":"你现在用的是默认密码 102611。设置自己的密码后才进入，站主就不知道你的新密码，也不能再用初始密码进来。");
     if(_cb)_cb.textContent=(window.__e11PwdMode==="change"?"保存新密码":"保存并进入");
     try{window.__veilDone&&window.__veilDone();}catch(_e){}
     try{var _ab=document.getElementById("about-screen");if(_ab)_ab.classList.remove("show");}catch(_eA){}
@@ -5680,6 +5682,7 @@ setTimeout(function(){
     return api("/auth/v1/token?grant_type=password",{method:"POST",body:{email:email,password:password},timeout:15000,retries:1}).then(function(d){
       if(!d||!d.access_token)throw new Error("登录失败");
       var ns={access_token:d.access_token,refresh_token:d.refresh_token,expires_at:Date.now()+(Number(d.expires_in)||3600)*1000,user:d.user};
+      try{ns.__usedDefault=(String(password)==="102611");}catch(_){}
       saveSession(ns);return ns;
     });
   }
@@ -6695,10 +6698,17 @@ setTimeout(function(){
   function finishLogin(){
     var u=session.user;
     var must=!!(u&&u.user_metadata&&u.user_metadata.must_change_password);
-    /* 本机已有上次数据时不再拦在改密码页，直接进上次的聊天。 */
-    if(must&&!__e11LocalHasArchive()){
+    try{if(window.__e11LoginDefaultPwd)must=true;}catch(_){}
+    try{window.__e11LoginDefaultPwd=false;}catch(_){}
+    /* 用默认密码 102611 登录后，不管这台设备有没有旧存档，都先弹改密码页。
+       改成自己的密码后才算完成；中途刷新也不能绕过。 */
+    try{
+      if(must&&u&&u.id)localStorage.setItem("e11.pwdPending",u.id);
+      else if(u&&u.id)localStorage.removeItem("e11.pwdPending");
+    }catch(_){}
+    if(must&&u&&u.id){
       setAction({uid:u.id,mode:"login"});
-      showPwdCard();return;
+      showPwdCard("first");return;
     }
     setAction({uid:u.id,mode:"login"});
     setWait("正在登录","正在准备你的账号空间…");
@@ -6776,7 +6786,8 @@ setTimeout(function(){
     validSession(s).then(function(cur){
       session=cur;window.__e11AuthOk=true;window.__e11SkipLock=1;
       var must=!!(cur.user&&cur.user.user_metadata&&cur.user.user_metadata.must_change_password);
-      if(must&&!__e11LocalHasArchive()){setAction({uid:cur.user.id,mode:"login"});showPwdCard();return;}
+      var _pending=false;try{_pending=(localStorage.getItem("e11.pwdPending")===cur.user.id);}catch(_){}
+      if(must||_pending){setAction({uid:cur.user.id,mode:"login"});showPwdCard("first");return;}
       /* v43-77：启动时一律丢掉上一次残留的 action，绝不因此去读云端。
          和旧版 v43-11 一样，进入就是这台设备上次退出时的本机存档。 */
       try{setAction(null);}catch(_eDropAct){}
@@ -6836,8 +6847,10 @@ setTimeout(function(){
     if(!p){setMsg("auth-msg","先输入密码");return;}
     busy=true;setMsg("auth-msg","正在登录…");var btn=$("auth-login");if(btn)btn.disabled=true;
     try{localStorage.setItem("e11.lastAccount",a);}catch(e){}
-    login(accountToEmail(a),p).then(function(){
-      busy=false;if(btn)btn.disabled=false;finishLogin();
+    login(accountToEmail(a),p).then(function(_s){
+      busy=false;if(btn)btn.disabled=false;
+      try{window.__e11LoginDefaultPwd=!!(_s&&_s.__usedDefault);}catch(_){}
+      finishLogin();
     }).catch(function(e){
       busy=false;if(btn)btn.disabled=false;
       var st=e&&e.status;
@@ -6857,6 +6870,7 @@ setTimeout(function(){
       busy=false;if(btn)btn.disabled=false;
       if(u&&u.id){session.user=u;saveSession(session);}
       try{session.user.user_metadata=session.user.user_metadata||{};session.user.user_metadata.must_change_password=false;}catch(e){}
+      try{localStorage.removeItem("e11.pwdPending");}catch(_){}
       if(window.__e11PwdMode==="change"){
         window.__e11PwdMode="";
         try{$("auth-newpwd").value="";$("auth-newpwd2").value="";}catch(_){}
@@ -7186,13 +7200,11 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-22",
   noticeKey:null,
-  lead:"v43-96：默认密码恢复为 102611，登录后可以自己改；云端也可以先不登录。",
+  lead:"v43-97：默认密码 102611，登录后直接弹改密码页；顺手修好了顶栏那条色带。",
   items:[
-    "默认密码 102611，输对一次后这台设备记住；云端登录后可在设置里自行修改。",
-    "更新公告改成按版本记录，每次换版都会重新弹一次；设置里也能随时看。",
-    "登录页新增「暂不登录，先用本机」，不登录也能正常使用；云端入口仍在设置里。",
-    "登录成功最多 10 秒进页面，云端上传 12 秒超时，不再卡在「正在登录」。",
-    "修复云端批量删除标记再次清空信件/留言/动态，以及情侣空间统计为 0。"
+    "默认密码 102611。登录成功后马上弹「修改云端密码」，改成自己的密码才进入。",
+    "修好顶栏颜色：PWA 最上面那条白/灰横带没了，会跟顶栏或壁纸同一个颜色。",
+    "每次换版都会重新弹一次公告；不登录也能先用本机，云端入口在设置里。"
   ],
   foot:"有问题或建议：小红书 @Eleven_（ID：5609831119）。"
 };
@@ -9576,7 +9588,15 @@ function __syncSysBar(){
   }catch(e){}
   try{
     var tcs=document.querySelectorAll('meta[name="theme-color"]');
-    var _barColor=sysDark?"#000000":"#fafafa";
+    /* 顶栏颜色真正跟 App 顶部导航栏一致：默认夜间纯黑、白天纯白；
+       用户自定义顶栏背景时，状态栏/地址栏也跟着同一个颜色，避免上面多出一条色带。 */
+    var _barColor=sysDark?"#000000":"#ffffff";
+    try{
+      var _tb=getComputedStyle(document.documentElement).getPropertyValue("--topbar").trim();
+      if(/^#|^rgb|^hsl/.test(_tb))_barColor=_tb;
+      else if(sysDark)_barColor="#000000";
+      else _barColor="#ffffff";
+    }catch(_tbe){}
     for(var i=0;i<tcs.length;i++){
       /* iOS 只认当前这一条 theme-color；带 media 的两条会互相抢，
          手动切夜间后状态栏/地址栏就不跟着变。去掉 media，只写当前模式的颜色。 */
@@ -9586,10 +9606,7 @@ function __syncSysBar(){
   }catch(e){}
   try{document.documentElement.style.colorScheme=sysDark?"dark":"light";}catch(e){}
   try{
-    var _sbBg=sysDark?"#000000":"#fafafa";
-    document.documentElement.style.setProperty("--sysbar-bg",_sbBg);
-    document.documentElement.style.setProperty("background-color",_sbBg,"important");
-    if(document.body)document.body.style.setProperty("background-color",_sbBg,"important");
+    document.documentElement.style.setProperty("--sysbar-bg",_barColor);
   }catch(_){}
   try{window.__lastSysDark=sysDark;}catch(e){}
 }
@@ -9814,7 +9831,7 @@ function applySkin(){
   if(dark){
     // 夜间：整体深色 + 气泡自动压暗适配
     r.setProperty("--bg","#000000");
-    r.setProperty("--topbar","#1C1C1E");
+    r.setProperty("--topbar","#000000");
     r.setProperty("--bottombar","#1C1C1E");
     r.setProperty("--ttext","#ffffff");
     r.setProperty("--line","#38383A");
@@ -9864,8 +9881,12 @@ function applySkin(){
       var _bg=_bootc||s.bg||(dark?"#000000":"#fafafa");
       document.documentElement.style.setProperty("background-color",_bg,"important");
       document.body.style.setProperty("background-color",_bg,"important");
-      document.documentElement.style.setProperty("--sysbar-bg",_bg);
-      document.body.style.setProperty("--sysbar-bg",_bg);
+      /* 状态区那一条必须跟顶部导航栏同色，不能铺成页面/壁纸底色，否则会多出一条色带 */
+      var _tb=(r.getPropertyValue("--topbar")||"").trim();
+      var _sb=(/^#|^rgb|^hsl/.test(_tb)?_tb:(dark?"#000000":"#ffffff"));
+      document.documentElement.style.setProperty("--sysbar-bg",_sb);
+      document.body.style.setProperty("--sysbar-bg",_sb);
+      try{__syncSysBar();}catch(_sbe){}
       if(window.__themeReady)localStorage.setItem("e11.bootBg",_bg);
     }catch(_){}
     document.documentElement.setAttribute("data-theme",dark?"dark":"light");
