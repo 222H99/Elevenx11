@@ -191,7 +191,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-22v43-94";
+window.__E11_BUILD="2026-11-22v43-95";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2488,7 +2488,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-22v43-94">
+<meta name="app-build" content="2026-11-22v43-95">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4204,14 +4204,14 @@ setTimeout(function(){
       <div class="set-group"><div class="set-row"><span class="set-label">网易云登录<div class="set-sub" id="ny-set-state">扫码或 Cookie 登录后可在音乐页听 VIP 完整歌曲</div></span><button class="small-btn" id="btn-ny-login" style="font-size:12px;padding:6px 12px;">登录</button></div></div>
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
-      <div class="set-group"><div class="set-row"><span class="set-label">流畅模式<div class="set-sub">关闭毛玻璃模糊，减少低配机/APK 的滑动卡顿；APK 默认开启，网页默认关闭</div></span><button class="switch" id="sw-perf"></button></div><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">流畅模式<div class="set-sub">关闭毛玻璃模糊，减少低配机/APK 的滑动卡顿；APK 默认开启，网页默认关闭</div></span><button class="switch" id="sw-perf"></button></div><div class="set-row"><span class="set-label">作者声明<div class="set-sub">使用条款、借鉴说明与联系方式</div></span><button class="small-btn ghost" id="btn-about" style="white-space:nowrap;">查看</button></div><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
 <div class="set-sec-title">安装到桌面</div>
       <div class="set-group">
         <div class="set-row"><span class="set-label">PWA 安装状态<div class="set-sub" id="pwa-state">检查中…</div></span><button class="small-btn" id="btn-pwa-install" style="font-size:12px;padding:6px 12px;">安装</button></div>
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-94</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-95</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5460,6 +5460,7 @@ setTimeout(function(){
     <button class="auth-btn" id="auth-login">登录</button>
     <div class="auth-msg" id="auth-msg"></div>
     <div class="auth-note">账号由站主发放；忘记密码请让站主在后台重置。登录后数据会保存到你自己的私有空间。</div>
+    <button class="auth-force" id="auth-skip" type="button" style="margin-top:10px;">暂不登录，先用本机</button>
     <button class="auth-force" id="auth-force-update" type="button">打不开 / 一直白屏？强制更新</button>
     <div class="auth-note" style="margin-top:8px">同一账号可在网页 / APK / PWA 多设备同时登录；云端存档以最后一次保存为准。</div>
   </div>
@@ -6740,9 +6741,9 @@ setTimeout(function(){
          和旧版 v43-11 一样，打开就是上次退出时的聊天；要同步再登录。 */
       stateReady().then(function(ok){
         if(ok&&__e11LocalHasArchive()){
-          window.__e11AuthOk=true;window.__e11SkipLock=1;window.__lockPassed=1;
+          window.__e11AuthOk=true;window.__e11SkipLock=1;
           window.__e11CloudHold=0;window.__e11CloudStatus="本机存档";
-          try{__enterAfterAction();}catch(_){}
+          try{__entryStart();}catch(_){}
           try{chipSync();}catch(_eChip){}
         }else{
           showLoginCard();
@@ -6750,7 +6751,7 @@ setTimeout(function(){
       });
       return;
     }
-    window.__e11SkipLock=1;window.__lockPassed=1;
+    window.__e11SkipLock=1;
     /* v41 的做法：本地档先直接进，认证和云端都放后台。
        之前启动先 setWait + validSession，网络慢就一直卡在“正在进入”。 */
     session=s;window.__e11AuthOk=true;
@@ -6759,7 +6760,7 @@ setTimeout(function(){
     var _enterLocal=function(){
       if(_entered)return;_entered=true;
       try{if(_entryTimer){clearTimeout(_entryTimer);_entryTimer=null;}}catch(_){}
-      try{__enterAfterAction();}catch(_eEnter){
+      try{__entryStart();}catch(_eEnter){
         try{hideGate();}catch(_eHide){}
       }
     };
@@ -6783,7 +6784,7 @@ setTimeout(function(){
         window.__e11CloudHold=0;
         pullCloudIfNewer(true).then(function(){
           try{window.__e11CloudStatus="云端存档";chipSync();}catch(_){}
-          try{__enterAfterAction();}catch(_){}
+          try{__entryStart();}catch(_){}
         }).catch(function(){
           window.__e11CloudStatus="本机模式";_enterLocal();
         });
@@ -6804,7 +6805,7 @@ setTimeout(function(){
           /* v43-78：会话过期不再把人挡回登录页，本机有存档就直接用本机。 */
           clearSession();
           if(__e11LocalHasArchive()){
-            session=s;window.__e11AuthOk=true;window.__e11SkipLock=1;window.__lockPassed=1;
+            session=s;window.__e11AuthOk=true;window.__e11SkipLock=1;
             window.__e11CloudHold=0;window.__e11CloudStatus="本机存档";_enterLocal();
             try{chipSync();setChip("本机存档 · 未登录");}catch(_){}
             try{toast("登录已过期，已进入本机记录");}catch(_){}
@@ -6904,6 +6905,7 @@ setTimeout(function(){
     var t=e.target;if(!t||!t.closest)return;
     if(t.closest("#auth-login")){e.preventDefault();onLogin();}
     if(t.closest("#auth-pwd-go")){e.preventDefault();onPwd();}
+    if(t.closest("#auth-skip")){e.preventDefault();try{setAction(null);}catch(_eSk){}try{localStorage.setItem("e11.localOnly","1");}catch(_eSk2){}try{window.__e11LocalOnly=1;}catch(_eSk3){}try{hideGate();}catch(_eSk4){}try{__enterAfterAction();}catch(_eSk5){}try{toast("未登录云端，先用本机");}catch(_eSk6){}return;}
     if(t.closest("#btn-account-logout")){e.preventDefault();if(!authOk()){showLoginCard();return;}logout();}
     if(t.closest("#auth-force-update")){e.preventDefault();try{if(window.__e11CheckVersion)window.__e11CheckVersion(true);else location.reload();}catch(_){}}
   });
@@ -7168,293 +7170,15 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"2026-11-21",
-  noticeKey:"2026-11-21v43-54",
-  lead:"v43-54：像 v41 一样启动直接进；新增删除墓碑，删掉的聊天/字卡/信件/动态/留言/收藏/歌曲不会再被云端完整档合并回来。恢复云端时不再覆盖本机主题，不再莫名开夜间模式；安卓原生启动页也强制浅色，系统深色时不再黑屏。云端版本没变时只读几百字节指纹，直接使用本机完整档，不再每次下载 5MB。v43-50 的数据修复全部保留：云端现在单独保存一份完整档指纹，设备再写半完整档也不会把基线拉低；歌名、信件正文、封面不再被空字段覆盖，收藏和日记收藏参与并集合并。音乐播放地址会缓存到本机，重启后也能直接起播。读信夜间背景改成纯黑，系统提示和来消息弹窗不再自动消失。",
+  date:"2026-11-22",
+  noticeKey:null,
+  lead:"v43-95：进站密码恢复为 1026；云端可以先不登录，先用本机。",
   items:[
-    '<span class="an-gt">v43-54 · 删除不再复活</span>',
-    "歌单名字加多层兜底：即使云端某首歌 name 为空，也会按标题、文件名补回，不再出现空白歌名",
-    "播放地址缓存到本机 10 分钟；启动、恢复云端、进音乐页都会预热整个歌单，点歌更快",
-    "夜间读信背景改成纯黑，遮罩加深且不再模糊，和外面主页一致；白天和自定义信纸不变",
-    "「对方给你写了信 / 留言 / 动态」提示和来消息弹窗不再自动消失，只能点进聊天或手动关闭",
-    "收藏夹、日记收藏和完整档做并集，云端空数组不会再冲掉本机收藏；完整档指纹单独存 latest.full.manifest.json",
-    '<span class="an-gt">v43-45 · 本月小结 / 日记自动保存</span>',
-    "日记的「本月小结」拆成「我」和「对方」两栏：各自的心情分布、写下的天数、字数、贴纸数分开算，不再混在一起",
-    "日记正文打字停下约 0.8 秒自动保存，页面提示「已自动保存 HH:MM」；关闭日记、切后台、刷新前也会强制写入本机，不用再点保存按钮",
-    "同一条最后消息时，只有云端多出 20 条以上才判云端更完整；刚改过的日记和设置保存时间更新时优先保留本机，避免改完又被旧云档盖回去",
-    "新装 App、清数据或换设备后，本机默认档的时间是「现在」，旧逻辑会误判它比云端新，于是把云端几百条聊天覆盖成 0 条。v43-43 改成先比最后一条消息编号和消息条数，云端更完整就直接恢复云端",
-    "启动时先核对云端再允许同步：本机旧档 486 条、云端 534 条时，先把云端 534 条拉回来，再让页面继续；本机确实更新（消息编号更大）才保留本机",
-    "云端已知有聊天记录时，0 条消息的本机快照会被拒绝上传，并提示「云端已有聊天记录，已拒绝用空白存档覆盖」",
-    "打开页面后自动请求 version.json 比对版本，发现新版直接带时间戳换页；不再需要点「检查更新」，手动按钮也走同一条更可靠的版本文件检查",
-    "修掉版本比较只取 v43 的 bug：以前 v43-41 和 v43-42 会被判成同一个版本，所以同一天发新版时永远提示「已是最新」",
-    "APK 页面是本地资源，打开会自动向线上主站查版本；发现新版就弹出下载条，下载覆盖安装后聊天记录保留",
-    "登录请求遇到断网、超时或服务器 503 会自动重试一次；APK 里 Supabase 登录和存档请求增加原生 HttpURLConnection 兜底，绕开 WebView 的 Failed to fetch",
-    "信箱「跟随主题」夜间改成纯黑 #000，不再铺深灰渐变；白天仍跟随浅色主题保持白色",
-    "信件背景里的粉白、蓝白、米色、薰衣草、薄荷、蜜桃六个默认背景，夜间切换也会立刻生效，不再只在白天有反应",
-    "选了彩色信件背景时，来信详情和信纸仍按对应纸色显示，字色自动保持可读",
-    '<span class="an-gt">v43-39 · 背景 / 语音 / 删歌 / 评论提示</span>',
-    "换背景后立即写本机并立刻推云端，聊天背景和桌面背景都保持内联，不再被历史图片修复用旧图补回来；重开、切后台、刚换完就关掉都还是你最后选的那张",
-    "新录音同时抓原始采样，停止时优先编成 8k 单声道 WAV 再入库；不再依赖手机给的 mp4/webm 容器，安卓录的、iPhone 录的都能互相播",
-    "旧语音如果只是 MIME 写错（文件其实是 WAV 却标成 audio/mp4），播放前按文件头纠正，点了也能出声",
-    "歌单删除会立即落盘并同步云端；历史媒体修复只给还在歌单里的歌补封面，不再把删掉的歌加回来",
-    "评论/回复提示改为按未读和具体目标重建：只统计真正的新评论、以及挂在我评论下面的对方回复，楼中楼回复不会再被判成空提示丢掉",
-    "聊天里的“对方评论/回复”提示会带上动态和评论 id，点进去直接跳到那条动态并高亮对应回复；目标评论被删时退到该动态最新一条对方评论，动态被删会明确提示",
-    "只有真正的新动态才发“对方发了一条新动态”，评论/回复不会再额外冒一条重复提示",
-    '<span class="an-gt">v43-38 · 语音 / 全部字卡 / 摄像头图标</span>',
-    "语音播放改成 WebAudio 优先、audio 兜底：点一下就开始出声，iPhone 静音档也能听到；解码失败会明确提示格式不兼容，不会再点了没反应",
-    "语音长按不再误弹消息操作菜单；按住和轻点都能正常录音、播放",
-    "对方回复用哪组字卡只认设置里的显式选择；字卡页、信件页、动态页随手点到哪个分组，都不会再把回复缩小到那一组，默认始终是全部字卡",
-    "旧存档里残留的“回复分组”会自动恢复成所有分组；删除分组、清空全部字卡也不会再把回复锁到某个分组",
-    "聊天顶栏的电话图标换成摄像头同款图标，点进去仍是原来的通话浮层",
-    '<span class="an-gt">v43-37 · 背景分开 / 多选长图 / 日记 / 夜玻璃 / 字卡</span>',
-    "聊天背景和桌面不再共用：聊天只用自己的背景图/底色，桌面继续用自己的图；没单独设聊天背景时聊天用纯色底，不会再把桌面图铺进来",
-    "多选模式下长按图片不会再弹出大图，点一下就是勾选/取消；批量删除图片、文字和长图消息都能正常删掉",
-    "多选工具栏“生成长图”现在真的可用：按勾选顺序生成竖版聊天记录，文字、图片、语音、红包、推歌都能画进去，生成后可长按存相册或系统分享",
-    "日记“本月小结”改成手动点击每次都能打开；同一个月自动弹过一次也不会再挡住手动查看",
-    "信件夜间从“纯黑底 + 白纸块”换成夜玻璃：深色半透明信纸、正文和来信详情，字用近白色，选过彩色信纸预设的仍按预设走",
-    "新建字卡分组只切换当前浏览的分组，不再把“对方回复用哪组字卡”偷偷改成新分组；回复默认仍是所有分组",
-    '<span class="an-gt">v43-36 · 共用背景 / 语音 / 问卷 / 推歌玻璃</span>',
-    "桌面和聊天背景彻底共用：有自定义图时两边用同一张；没有自定义图时聊天也用桌面那条预设渐变，不再退回纯色/空白",
-    "聊天输入栏新增麦克风按钮：轻点一下开始录，点浮层任意位置结束并发送；按住也能说话，松手发送。长按阈值缩短到 0.42 秒，先出录音浮层再等权限，不会按了半天没反应",
-    "语音码率压到 32kbps，兜底 WAV 降到 16kHz，长语音不再把本地存档和云存档撑爆",
-    "问卷右上角小叉关闭后 600ms 内不再接受重新打开，关闭动作也不会穿透到下面的问卷卡片",
-    "聊天里的推歌卡片、推歌弹层、歌曲行和底部按钮都统一成液态玻璃：半透渐变、白边、内高光和模糊，和音乐小弹窗同一套风格",
-    "邀请推歌卡片沿用同一套液态玻璃，不再出现一张白底卡片混在聊天里",
-    '<span class="an-gt">v43-35 · 图片/表情 / 偷表情 / 玻璃邀请卡</span>',
-    "聊天里已发出的图片和表情不再外置成 bigref 编号，原图直接留在存档里；更新、换设备、清缓存后不会再只剩“图片已失效”",
-    "老表情消息如果只剩编号，会按图片内容哈希回表情库自动补回原图，不用重新发一遍",
-    "偷表情按表情库 id 记录，同一张偷过就跳过，不再重复入库、也不再重复刷“对方偷了你的表情包”",
-    "启动时会清掉以前同一张被偷多次留下的重复条目，只保留一张",
-    "聊天里的听歌/画画邀请卡改成液态玻璃：半透渐变、白色高光边、内高光和柔和投影，小屏也保留磨砂模糊",
-    '<span class="an-gt">v43-34 · 返回防误触 / 共用背景 / 歌单推歌</span>', 
-    "字卡页、模板页、日记、主页音乐页返回聊天后，聊天页左上角返回键 650ms 内不响应；原来抬手 click 会落到刚出现的聊天返回键，再点一次就回桌面",
-    "安卓系统返回从字卡/日记/音乐切到聊天后同样加返回锁，第二次系统返回不会继续退到桌面或退出",
-    "聊天背景固定优先用桌面背景 skin.meImage；即使以前单独设过聊天背景，也统一跟桌面共用",
-    "对方推歌约一半概率直接从我的歌单挑歌（最近推过的 8 首不重复），另一半仍去网易云随机搜；搜不到再回退歌单",
-    '<span class="an-gt">v43-33 · 听歌返回</span>',
-    "音乐页返回、安卓系统返回都会先收掉歌词、背景、封面、备注、一起听邀请等全屏浮层，再切回聊天页，不会出现聊天被浮层盖住点不动",
-    "退出音乐页时同步取消待自动通过的听歌邀请；原来邀请 1.8 秒后自动 accept 会再次 showView 音乐页，看起来就像返回失败",
-    "进入音乐页后延迟触发的随机邀请，如果人已经回到聊天页就不再执行，不会再把人强行拉走",
-    "听歌邀请浮层开着时用安卓系统返回，会先收邀请层并回聊天；不再需要先点接受或拒绝",
-    '<span class="an-gt">v43-32 · 返回 / 背景 / 问卷</span>',
-    "日记、字卡模板、设置、信件、留言、动态、音乐页的返回统一落聊天页，不再从主页入口直接退回主页",
-    "聊天背景没有单独设置（skin.bgImage 为空）时直接共用桌面背景 skin.meImage；去掉了原来的纯色兜底",
-    "问卷叉号改成 pointerup 就关，不等 iOS 延迟 click；关闭后 420ms 内屏蔽重新打开，避免同一下又点到下面的问卷卡片",
-    '<span class="an-gt">v43-31 · 返回层级</span>',
-    "日记关闭、字卡/模板返回统一回聊天页，不再跟随加号入口回主页",
-    "返回按钮和同一位置的返回点击 380ms 内只执行第一次，页面淡出时下层返回键不再被连点穿透",
-    "安卓系统返回与页面返回同一拍到达时，第二次直接消费掉，不会先关日记再关字卡、最后退到桌面",
-    "日记淡出、视图切换时旧层立即 pointer-events:none，减少上下两层返回键重叠可点",
-    '<span class="an-gt">v43-30 · 返回 / 缩放 / 闪屏</span>',
-    "日记页关闭后直接回主页，不再先落聊天页、还要再点一次返回",
-    "主页照片框拖动缩放改成每帧最多写一次样式，不再每个 pointermove 都强制布局；松手、切后台或被系统打断都会立即保存尺寸并回传",
-    "去掉常驻的 1.5 秒 sync 定时器，窗口静止时不再反复抢主线程；窗口变化交给 ResizeObserver 处理",
-    "启动层、根背景和安全区底色改用当前壁纸的平均色，不再只分纯黑/纯白：雨滴、粉色等皮肤退出再进入也是同色系，不会先闪白再变蓝",
-    "聊天页继续先在隐藏状态铺好再交接，底色也由壁纸平均色垫底，减少进入聊天时露白/露黑",
-    '<span class="an-gt">v43-29 · 历史图片修复包</span>',
-    "登录/进入后先检查本机缺哪些历史图，只缺图时才拉取当前账号自己的 recovery_media.json，不会拖慢图片完整的账号",
-    "补齐范围：主头像、对方头像、主页照片、情侣头像/照片、主页封面、皮肤照片、31 个己方表情、25 个对方表情、歌曲封面、音乐背景",
-    "修复包是只读的独立文件，不参与日常云同步；就算手机端又保存了一次只有 7 个表情的空档，下次进入仍会重新补齐",
-    "补齐后只补坏图/空图，不覆盖你后来换的新头像、新照片、新表情；补完会正常回传云端一次",
-    '<span class="an-gt">v43-28 · 历史图片 / 桌面固定</span>',
-    "头像、主页照片、表情包和歌曲封面不再外置成 bigref 编号：直接留在存档里，换设备、清缓存或 IndexedDB 没恢复时也不会只剩空白占位",
-    "云端旧存档里已经是 bigref 的，本机图库能把图补齐时会在登录后自动回传一次，让电脑网页也能拿到真实图片",
-    "关键图片没从本机库恢复时暂停覆盖云端，避免用一串空引用把云端可能还完好的图二次覆盖",
-    "关闭 v43-27 启动后自动压缩存量头像的逻辑：它可能触发整档回写，不适合在云存档还没完全合并时跑；新上传头像仍然先压 320px",
-    "电脑网页固定成 430×860 的手机窗口，窗口拉大、浏览器缩放不再把主页铺满整屏",
-    "主页照片框保存的尺寸就是最终尺寸，不再按窗口宽度二次裁剪；电脑窗口从 1440 缩到 1000，照片框实测保持 300px 不变",
-    '<span class="an-gt">v43-27 · 头像 / 照片提速</span>',
-    "头像上传改成先压到 320px WebP 再写 state 和存档，不再连续解码原图两遍；2400×1800、628KB 的图实测约 0.13 秒完成，头像 base64 从约 600KB 降到约 24KB",
-    "设置页头像、个人主页头像、情侣页两个头像、音乐页两个头像全部走同一条「先压后存」路径",
-    "老账号里已经存成 600/800px 的大头像，会在进入后空闲时自动缩到 320px 一次并回写存档；之后打开不再重新解码大图",
-    "个人主页大照片改为先压到 720px WebP 再落盘，2400×1800 实测约 0.19 秒，不再先存原图再压第二遍",
-    '<span class="an-gt">v43-26 · 推歌 / 照片 / 小弹窗</span>',
-    "推歌界面重做：底部卡片、分段切换、搜索框、真实封面、附言计数；封面先显示小图，点开推歌时再补 1500px 大图",
-    "对方推歌改成真·随机搜索：每次从 30 个关键词里换一个去网易云搜，搜到什么推什么，最近 8 首不重复；网络失败才退到我的歌单/种子",
-    "点开照片先立即显示聊天里已解码的 360px 缩略图，再无缝换原图，不再黑屏等几秒",
-    "音乐小弹窗播放键不再被替换成「⏳」：保留原 SVG，只降透明度；play/pause/playing/ended 都会同步按钮和封面",
-    '<span class="an-gt">v43-25 · 图片压缩 / 推歌</span>',
-    "图片自动压缩：聊天、动态、头像、封面、背景、个人照片统一处理；长边超限或原图超过 260KB 时重编码为 WebP（不支持则 JPEG），编码后反而更大就不替换",
-    "对方推歌：默认概率 3%，聊天里出现「TA 推给你」卡片，点卡片进入音乐页并播放；概率可在 设置 → 听歌 里改",
-    "我推歌：音乐页新增「💌 推歌给 TA」，可以搜网易云歌曲，也可以从我的歌单选；推完在聊天里生成卡片，点开就能听",
-    "推歌卡片支持备注、显示封面/歌名/歌手；从歌单推的本地歌曲也能在同一账号下播放",
-    '<span class="an-gt">v43-24 · 图标更正</span>',
-    "主屏幕图标、apple-touch-icon、manifest 和 APK 启动图标统一换成你最后上传的黑底白字手写 Eleven；之前那版烟雾图已全部替换",
-    '<span class="an-gt">v43-23 · 退出闪屏 / 音乐小弹窗</span>',
-    "退出登录不再 location.reload()：先停音乐、清内存状态，再原地 showLoginCard，消掉退出后黑一下再白一下",
-    "音乐小弹窗播放键统一走 togglePlay：audio 没挂 src 或已播完时自动重新起播，不再出现暂停后点播放没反应",
-    "小弹窗 timeupdate 优化：位置只在拖动后变、封面只在播放态/封面变时重建、收起时不再写进度，减少每 250ms 的布局与重绘",
-    '<span class="an-gt">v43-22 · 登录不再等云端、白屏兜底</span>',
-    "登录成功后立刻 showView/hideGate，先把本机主页铺出来；云端快照继续后台读，读到再替换。Supabase 慢或 9 秒超时也不会一直白",
-    "__enterAfterAction 把 showView、hideGate、applySkin、renderAll 拆成独立 try：以前任何一步抛错都会连页面一起不显示",
-    "有本地登录态冷启动时，等待从 6 秒缩到 1.8 秒就先进本地；版本检查从 12 秒缩到 3 秒，强制更新不再等整页缓存删完才换页",
-    '<span class="an-gt">v43-21 · 主屏幕 PWA 自动更新修正</span>',
-    "强制更新重载从只加 __u 改为同时加 __bust；旧 SW 的 cacheFirstIndex 会忽略 search，只加 __u 时 reload 仍返回旧整页，这就是主屏幕 PWA 看起来一直不更新的直接原因",
-    "sw.js 把 __u 也当作绕缓存标记；SW 激活接管旧页面时直接导航到带 __bust 的新地址，不再导航回原 URL 吃旧缓存",
-    "后台发现新版本时的 reload 也改成带 __bust 的 location.replace；聊天中仍不打断，切后台/下次打开再换",
-    '<span class="an-gt">v43-20 · PWA 安装与自动更新</span>',
-    "GitHub Pages 和本机同源部署直接用根目录 manifest.json；只有豆包主站/预览那种静态文件会被重定向到别的域时才退回 data manifest，避免 PWA 安装/更新时 start_url 和 scope 跟着当前 URL 飘",
-    "去掉 GitHub Pages 上每次启动都解析两张大图 base64 的开销，页面首屏更轻，减少 iPhone 主屏幕启动白屏时间",
-    "Service Worker 注册加 updateViaCache:'none'：打开、回前台、切回页面时都会绕过 HTTP 缓存检查 sw.js，不再等 10 分钟 CDN 缓存",
-    "版本检查仍然每 12 秒比对 version.json；发现远端版本更高时清旧 SW/旧整页缓存后带时间戳重载",
-    '<span class="an-gt">v43-19 · 空白兜底页修正</span>',
-    "修正空白兜底的 700ms 自检：恢复页不会把自己误判成有效页面而立刻消失；只有真的没有任何 view/登录层/载入层时才保留恢复页",
-    '<span class="an-gt">v43-18 · 登录后不再白屏</span>',
-    "登录成功、改密成功不再整页 reload：直接在同一个页面里恢复云端存档或建立账号空间，避免 iOS 主屏幕/PWA 在连续 2–3 次重载中间露出整片白",
-    "第一次在这台设备登录不再清库再重载：直接把本机当前状态写进账号云端空间，少一次刷新",
-    "hideGate 增加保护：必须先有一个页面真正铺出来才撤登录层；没有就保留等待卡并重试，绝不先露白底",
-    "新增空白兜底：登录层撤了但 2.8 秒内没有任何页面/弹层时，显示「页面没有载入出来 / 重新进入 / 强制更新」，不再只有纯白",
-    '<span class="an-gt">v43-17 · 自动更新 / 多设备登录</span>',
-    "新增 version.json 独立版本检查：页面启动和回到前台时比对远端版本；发现新版就注销旧 Service Worker、清掉旧整页缓存并带时间戳重载，不再只靠 sw.js 自己更新",
-    "登录页新增「打不开/一直白屏？强制更新」按钮：注销旧 SW、清掉 eleven11-runtime 旧缓存后重新打开，不动聊天和账号数据",
-    "同一账号支持网页、APK、PWA 多设备同时登录：Supabase 不会因为第二台设备登录而踢掉第一台；云端数据以最后一次保存为准，建议不要多台同时改同一份内容",
-    "登录/首次改密后仍会跳过「关于本站」并撤掉白色载入层，v43-16 的修复保留",
-    '<span class="an-gt">v43-16 · 登录白屏 / 信封返回</span>',
-    "已登录用户不再在登录后弹「关于本站」：它在登录锁定时被 CSS 藏住，解锁后会突然盖住主界面，看起来像白屏打不开",
-    "登录成功/密码保存后主动撤掉启动载入层，并清掉声明页；进入账号空间时不再停在 Eleven×11 的白色转圈",
-    "信封打开时隐藏并锁住信件页左上返回；点「收起」只关信封，420ms 内不会再把同一次触摸传给返回",
-    "寄信/回信动画期间同样锁住返回，动画结束再恢复，避免一次点击同时收起和退出信箱",
-    '<span class="an-gt">v43-15 · 读信返回 / 图片长按</span>',
-    "读完信点「收起」只关闭信封，页面停在信件列表；再点一次左上返回才回主页，不再一步跳回桌面",
-    "回主页仍走 v43-13 的交接绘制：旧页多停留两帧，主页画好后再撤，避免黑屏一闪",
-    "聊天图片按住约 0.38 秒才打开全屏大图；单击图片不会放大，只做普通点击",
-    "大图左上角「更多」可回到原来的消息菜单（撤回 / 删除 / 收藏 / 引用），右上角 × 或点空白关闭",
-    "长按聊天图片时压掉 WebView 原生长按菜单，不会同时弹出系统菜单",
-    '<span class="an-gt">v43-14 · 问卷答案消息</span>',
-    "对方答完问卷后，聊天里会多出一条和问卷同样样式的「对方 · 问卷答案」卡，点「查看答案」反复看每道题的选择",
-    "原问卷卡只更新成「查看结果」，不再把答案和原题混在一张卡里",
-    "问卷答案消息也计入未读红点和系统通知，不在聊天页时能收到提醒",
-    "防止重复触发：同一份问卷只发一次答案消息",
-    '<span class="an-gt">v43-14 · iOS 风格弹窗</span>',
-    "网页和 APK 里的确认框统一改成 iOS 警告框：毛玻璃遮罩、圆角卡片、蓝色取消 / 红色危险操作，深色模式同样适配",
-    "APK 原生 Toast 改成深色半透明胶囊、圆角、底部居中，不再用 Android 默认灰色提示",
-    "说明：系统相册选择器、权限授权框属于 Android 系统 UI，应用无法改成 iOS 外观",
-    '<span class="an-gt">v43-14 · bug 检查 / 性能</span>',
-    "问卷 JSON 改用 WeakMap 缓存，聊天重绘不再反复解析同一份问卷；文本一变自动失效，也不会写进存档",
-    "答案消息只增量插入新行并只保存一次，不再为了发一条答案整屏 renderChat",
-    "修正对方发来的答案卡顶部文案：应显示「对方已经填写」，不再误显示「你的作答」",
-    '<span class="an-gt">v43-13 · 信件收起 / 回主页黑屏</span>',
-    "读完信点「收起」直接回主页，不再先停在信件列表、还要再点一次返回",
-    "回主页时旧页先以 99.8% 不透明度停留约两帧（32ms），强制被盖住的主页完成绘制后再撤旧页，不再露一帧黑底",
-    "从信件页手动点返回同样走这套交接；其它页面之间的 110ms 淡出保持不变",
-    '<span class="an-gt">v43-12 · 主屏幕自动更新 / 缓存校验</span>',
-    "根因一：新 SW 安装时先把「旧整页」接进新缓存，接管后页面刷新还是旧版；旧逻辑又立刻 reload，等于白更一次",
-    "根因二：新 SW 接管后没有把真实版本告诉页面，页面不知道要换；部分设备从桌面图标恢复时也不重新导航，于是一直停在旧版",
-    "改法：安装时优先抓新整页，校验长度、</html>、app-build 都完整才写缓存；抓不到完整新页才退回接旧页，不会写入半截页",
-    "改法：SW 接管后把缓存里的 app-build 发给页面；主页且没在输入时提示并自动重载，聊天/设置/写字时不打断，等切后台或下次打开再换",
-    "改法：去掉 controllerchange 里的无条件 reload，避免「刷新一次仍是旧版、还被锁死」；首次打开拿到半截 HTML 时显示可重试页，不再白屏",
-    '<span class="an-gt">v43-11 · 聊天页不闪 / 性能</span>',
-    "点聊天页闪一下：不再在同一个瞬间直接抽走旧页。旧页先保持 99.8% 不透明度停留约两帧（约 32–48ms），让下面的聊天层完成合成后再撤掉；肉眼几乎无感，也不会露出一帧白底",
-    "进聊天页后 120ms 的第二次高度重算已去掉；软键盘失焦、尺寸校正全部移到页面显示之前，避免刚进页又缩一下/跳一下",
-    "聊天列表增加绘制隔离：滚动、来新消息、图片解码时只重绘列表内部，不再牵动整页",
-    "聊天页继续常驻合成层，但不再声明 will-change；毛玻璃已在聊天页关闭，减少低配机/WebView 的合成开销",
-    '<span class="an-gt">v43-10 · GitHub PWA 白屏</span>',
-    "GitHub Pages 会间歇返回 503，或 1.7MB 页面正文传到一半卡住；旧 Service Worker 会把半截页面交给浏览器，于是一直白屏",
-    "导航改为完整缓存优先：有整页缓存就直接打开，网络只在后台更新，下次打开自动换新版；新 SW 安装时先接住上一版整页，再删旧缓存，不再出现空窗",
-    "页面自己也会补写一份完整 HTML 缓存；启动层改成界面铺好才撤，慢网显示「正在载入」，12 秒还没完给「重新载入」按钮",
-    '<span class="an-gt">v43-9 · 本地音乐 MP4</span>',
-    "本地音乐导入支持 MP4/M4V，只取音轨播放，不保存画面；MP4 上限 120MB，普通音频 60MB",
-    "本地文件解码失败时会提示转成 M4A/MP3；播放按钮不再被加载图标覆盖成空按钮",
-    '<span class="an-gt">v43-8 · 启动 / 聊天 / 账号</span>',
-    "启动遮罩不再固定 10 秒压住登录层；登录、改密、进入空间时立即撤幕，兜底缩到 4.5 秒",
-    "一起听小弹窗按当前页面判断，切出音乐页后的 110ms 内不再误弹",
-    "账号登录去空格、转小写；超时从 9 秒放宽到 25 秒，并区分密码错误、429 限流、网络超时",
-    '<span class="an-gt">v43-7 · 完整 PWA / 表情图</span>',
-    "修复清单：以前用 data: manifest（start_url 为空），Chrome 报 start-url-not-valid，根本无法安装；现在改为真实 manifest.json，start_url/scope/图标全部有效",
-    "主站改为整目录发布：manifest、sw.js、图标不再 404；Service Worker 能真正注册并缓存页面，断网也能打开",
-    "设置里新增「安装到桌面 / 永久存储 / 表情图体检」：安装成 PWA 后全屏运行，并请求系统不要回收图片",
-    "安卓表情包图片失效：静态表情入库长边降到 800，超过约 950KB 自动再压一档，避开 WebView 超大 data URL 解码失败",
-    "每张表情除了 IndexedDB，再镜像一份到 Cache Storage；主库/备份丢了也能按表情 id 找回",
-    "安卓批量导入表情不再走原生单选，一次可选多张，GIF 也不会被原生解码成静态首帧",
-
-    '<span class="an-gt">v43-6z · 启动即桌面</span>',
-    "APK 从主屏幕或别的应用切回来不再整页重载：回到上次的聊天页/主页，不退回公告；新增任务保留和大内存开关",
-    "从后台回来表情面板先空白的问题：每次打开面板都重建格子，并立即把本机备份里的表情补回来",
-    "对方发来的图片/画作/表情如果原图丢了，不再显示空白气泡，改成「图片已失效 / 表情已失效」并自动从本机副本恢复",
-    "历史聊天图片失败：启动时在第一次渲染前按图片 id 扫三份自动备份、完整快照、未落库大图，能补的当场补回",
-    '<span class="an-gt">v43-6n · 我的回复</span>',
-    "对方留言下可以连续回复多条，不再回复一次就把入口收掉；每条回复都有自己的删除按钮",
-    "删除其中一条不会重写其它回复的时间/删除按钮；删到最后一条后恢复「点击回复」",
-    '<span class="an-gt">v43-6m · 留言配对 / 快速返回 / 保存</span>',
-    "对方主动发的留言不再被相邻位置误认成「我的回复」；只有 replyTo 或明确的旧回复标记才配对",
-    "快速返回又马上点进同一页时，不再因为残留的淡出动画把页面留成透明；设置/日记等页面仍然正常显示",
-    "IndexedDB 写入瞬时失败后，同一版改动会在下一次保存时自动重试，不再被误判成「已保存」而跳过",
-    "保存时先检查留言/信件/动态数组是否已经有序，只有真的乱序才排序，减少大量数据下每次落盘的重复开销",
-    '<span class="an-gt">v43-6l · 返回 / 留言 / 字卡分组</span>',
-    "日记、字卡、接力画画、一起听、设置从聊天或加号进入后，返回统一回聊天页；所有页面切换改成旧页原位淡出 0.1 秒，返回不再白闪/黑闪",
-    "安卓系统返回键先走页面内返回（二级页回聊天页），不再直接退 WebView 浏览历史导致白屏或退出",
-    "留言回复改为按 replyTo 精确挂在原留言下面，并区分「我的留言 / 对方留言 / 对方回复 / 我的回复」；多条回复不再错位",
-    "留言/评论的待发送回复同时写 localStorage，关网页过快也能在重开后按原定时间补发；评论回复概率只在建任务时掷一次，不再到点重复掷",
-    "字卡分组操作改成「屏蔽 / 恢复」「改名」「删除」文字按钮，热区加大；屏蔽整组会同步清掉信件/评论/回复设置里对该组的选中",
-    '<span class="an-gt">v43-6l · 画画发送</span>',
-    "从画画页点「发送到聊天」后，白画纸不再一帧切成深色聊天：画画页原位淡出约 0.1 秒，聊天页一直在下面当底，亮度是渐变过去的",
-    "发送时只追加这一条画作，不整屏重绘聊天列表；画作已解码并带宽高，进聊天立刻可见，不再先空一帧",
-    '<span class="an-gt">v43 · 启动 / PWA</span>',
-    "主站和预览站改用同源 data manifest，Chrome 不再报 start-url-not-valid / no-acceptable-icon；180/192/512/maskable 图标齐全，添加到主屏幕不再因清单失效崩溃",
-    "有本地登录态时先显示「正在进入你的空间」，首帧底色跟随夜间/白天，不再先闪白再闪黑；不再撤掉启动幕后停在空白",
-    "登录校验最多等 5 秒，网络超时自动进入本地模式，不再一直卡在加载",
-    "PWA 图标改成不透明底，旧主屏图标建议先删除再重新添加，避免旧 WebAPK 缓存",
-    '<span class="an-gt">v43 · 返回 / 数据</span>',
-    "日记、字卡板块的返回固定回到聊天页，不跟随上一个页面",
-    "本地改动先同步写本地快照，再写 IndexedDB；本地库写入失败，重进也不会变回默认",
-    "同一账号本地时间戳更新时，云端旧快照不再覆盖刚改的资料/设置",
-    '<span class="an-gt">v43 · 贴表情 / 键盘</span>',
-    "双击气泡可贴 ❤️/👍/😂 等表情；设置里新增开关和对方贴表情概率，关掉后双击不再弹面板，长按菜单不受影响",
-    "主页动态的评论和回复输入框会像留言板一样跟着键盘上移，键盘弹起后不会被挡住",
-    '<span class="an-gt">v43-6j · 加号应用统一返回聊天</span>',
-    "从聊天加号进字卡板块、设置、一起听、接力画画，返回键固定回聊天页；以前一起听可能被主页入口记录带偏，退到主页",
-    "刚进字卡页的 420ms 防误触保护不再拦返回键和顶栏/底栏，点进去马上返回也能一次退成功",
-    "收藏夹、问卷、搜索、红包、拍一拍、日记这些面板关闭后仍留在聊天页；从主页入口进的页面保持原来的返回目标",
-    '<span class="an-gt">v43-6b · 安卓系统通知</span>',
-    "APK 接入 Android 原生通知：设置页打开「消息通知」并允许系统权限后，来消息/动态/信件/留言会弹到通知栏，点通知直达聊天页",
-    '<span class="an-gt">v43-6 · 音乐封面 / APK</span>',
-    "一起听邀请弹窗补上当前歌曲的封面、歌名和歌手，不再只有头像和一个 ▶；没有真实封面时用固定生成的专辑封面兜底",
-    "新增 Android APK 安装包（内置当前网页；安装前建议先导出备份，旧 APK 若签名不同需先卸载）",
-    '<span class="an-gt">v43 · 主动补发</span>',
-    "主动动态、留言、信件的补发基准时间会立即落盘；这次没补出内容也会保存推进后的时间，避免重进后重复计算、等很久没动静或之后一次补一堆",
-    '<span class="an-gt">v43 · 版本</span>',
-    "应用版本更新为 2026-11-19v43-6j，设置页和更新检查同步显示新版本",
-    '<span class="an-gt">画画</span>',
-    "聊天里收到的画不再被压成长条，图片按原比例完整显示",
-    "画布恢复满宽，不再缩到 320；只压缩上下间距，底部两颗按钮仍完整可见",
-    "手指在画布外抬起时也会结束当前笔画，不会卡成「怎么滑都没反应」",
-    "等对方画的时候画布允许上下滑，不再整块吞掉页面手势",
-    "发送前重排画布，键盘收起或屏幕旋转后不会发成缩小图/裁切图",
-    '<span class="an-gt">聊天 / 加号</span>',
-    "发图片/表情包先解码并写入原图宽高再插入，图片按原比例显示，不再先空一帧再撑开、也不会被拉成长条",
-    "聊天里点设置再点返回，固定回聊天页；从主页进设置则回主页",
-    "聊天框表情面板在键盘弹起时不再只露一行，至少保留约 300px 高，表情格仍可上下滑",
-    "聊天页不再在离开时隐藏/重建图层，返回聊天或点进聊天不再白闪一下",
-
-    "键盘弹起时点加号先收键盘，面板不再只露半屏；加号热区向四周扩 6px",
-    "照片框读到照片后自动刷新，不再一直停在「照片没读取出来」",
-    "主页照片改用 data URL 直接显示，不再依赖会被回收的 blob；旧 blob 失效时明确提示重选",
-    "照片框恢复原来的透明玻璃框；透明 PNG 原样保留透明底，不会被压成白底/黑底；照片另存独立备份，重进主页/刷新/主存档异常也不会丢",
-    "主页一照片框每次回主页都会校验并补画：切页、从聊天/设置返回、编辑恢复后不再空白；照片缓存也不会被后面加载的图挤掉",
-    "刷新/切后台先同步快照再落库，最后一条消息、设置、壁纸、表情、日记不会因为异步写入被掐断而丢",
-    "表情包点中时直接标记已解码，发送不再等最多 500ms 的图片解码；面板重复打开复用已有格子",
-    "表情包点中时把图片真实宽高一起写进消息，直接贴到聊天尾部，不再先空一帧再撑开",
-    "写信点「寄出」先把信同步备份，1.9 秒信封动画没放完就刷新也能补回来，且不会重复",
-    "快速点击防抖从 420ms 降到 140ms，连续点加号、表情、发送不会第二下被吃掉",
-    '<span class="an-gt">网易云</span>',
-    "退出登录按钮加大到 82×36 以上并接入快速触摸；点后立刻显示「正在退出…」，后端 2.5 秒没响应也会先退出本地登录，不会一直卡住",
-    '<span class="an-gt">问卷</span>',
-    "问卷选项芯片接入全站快速触摸：点一下立刻出现选中态，不再等系统补发 click；单选、多选、提交逻辑不变",
-    '<span class="an-gt">网易云</span>',
-    "账号弹层恢复扫码登录：打开自动生成二维码，网易云音乐 App 扫码并在手机上确认后，自动同步昵称、头像和歌单",
-    "扫码成功后用拿到的 Cookie 调本站后端建立会话，浏览器不直接保存登录 Cookie；原 Cookie 登录仍保留作备用",
-    "扫码 Cookie 增加格式兼容：完整 Cookie、去掉 Path/Expires 等属性、仅 MUSIC_U、URL 解码后的 MUSIC_U 会依次重试；仍失败可点「用刚扫的结果重试」，不必重新扫",
-    '<span class="an-gt">弹层</span>',
-    "打开红包、问卷先收键盘；红包弹层限高可滚动，金额和按钮不会被挡",
-    "问卷弹层再按可视区 100% 限高，键盘弹起时“创建问卷”标题和第一题不再被顶出屏幕",
-    '<span class="an-gt">一起听 / 歌词</span>',
-    "歌词页的 ✕ 只关闭歌词，不再连带触发下面重叠的「··」背景按钮、把背景弹层也打开",
-    '<span class="an-gt">日记</span>',
-
-    "日记页键盘/工具条不再被 visualViewport 带着整体上移，点心情/贴纸前先收键盘",
-    "切到画画等版块会移除日记残留层，不再盖住新页面",
-    "关闭日记后固定回到聊天页，不再跟着上一个页面走；撤日记前先把聊天铺好，避免白闪",
-    "版本号继续自动跟 index.html 修改时间走，换文件自动更新",
+    "默认进站密码 1026，输对一次后这台设备记住，不再重复弹。",
+    "更新公告改成按版本记录，每次换版都会重新弹一次；设置里也能随时看。",
+    "登录页新增「暂不登录，先用本机」，不登录也能正常使用；云端入口仍在设置里。",
+    "登录成功最多 10 秒进页面，云端上传 12 秒超时，不再卡在「正在登录」。",
+    "修复云端批量删除标记再次清空信件/留言/动态，以及情侣空间统计为 0。"
   ],
   foot:"有问题或建议：小红书 @Eleven_（ID：5609831119）。"
 };
@@ -25603,6 +25327,7 @@ function initAbout(){
   }
   btn.addEventListener("click",()=>{
     if(btn.disabled)return;
+    if(window.__aboutViewer){window.__aboutViewer=0;$("about-screen").classList.remove("show");btn.textContent="同意并进入";return;}
     try{localStorage.setItem("__aboutAck",__curBuild||"1");}catch(e){}
     var _go=function(){
       /* 声明页读完先弹更新公告（如果有），关闭后再进锁屏/主页 */
@@ -25615,8 +25340,8 @@ function initAbout(){
 }
 
 /* ===== 进入密码锁屏 ===== */
-/* 默认密码：进站输 102611 → 紧接着问「想设置新密码吗」（一键重置/全新安装都走这条路） */
-const LOCK_DEFAULT="102611";
+/* 默认密码：进站输 1026；输对一次后本机记住，不再重复弹。 */
+const LOCK_DEFAULT="1026";
 function lockPwd(){return (state&&state.settings&&state.settings.entryPwd)||LOCK_DEFAULT;}
 /* bp107 起：进站密码统一切到 102611。
    bp107 用 __pw102611m 标记，bp108 换成 __pwForce=102611，bp109 再换到 __pwForce=109，
@@ -25625,24 +25350,25 @@ function lockPwd(){return (state&&state.settings&&state.settings.entryPwd)||LOCK
    第一次打开都必须先输 102611，紧接着进入「想设置新密码吗」这一步。 */
 function __pw102611(){
   try{
-    var _f=localStorage.getItem("__pwForce")==="102611-58";
-    var _fx=localStorage.getItem("__pwFixed")==="1";
-    if(_f&&_fx)return;
-    if(!window.__stateReady||!state||!state.settings)return;
-    state.settings.entryPwd="102611";
-    /* 只做「密码拉回 102611」的那一次，不再把人锁出去（已经免密的保持免密） */
-    /* 用户已明确不要进站密码页：密码校准只改 entryPwd，不再把人锁回密码页。 */
-    state.settings.unlocked=true;window.__lockPassed=true;
-    try{localStorage.setItem("lockFree","1");}catch(_){}
-    if(!_f){}
-    try{localStorage.setItem("__pw102611m","1");}catch(_){}
-    try{localStorage.setItem("__pwForce","102611-58");}catch(_){}
+    /* v43-95 恢复进站密码，默认 1026。老设备 v43-68 留下的 lockFree/unlocked 会绕过密码页，
+       所以这里只校准一次：把密码拉回 1026、撤掉免密，下一次启动必须输对 1026。 */
+    if(localStorage.getItem("__pwForce")==="1026-95")return;
+    if(typeof state==="undefined"||!state||!state.settings)return;
+    state.settings.entryPwd="1026";
+    state.settings.unlocked=false;
+    try{localStorage.removeItem("lockFree");}catch(_){}
+    try{localStorage.setItem("__pwForce","1026-95");}catch(_){}
     try{localStorage.setItem("__pwFixed","1");}catch(_){}
     try{localStorage.setItem("privateChat",JSON.stringify(state));}catch(_){}
     try{if(typeof dbSet==="function")dbSet("state",state).catch(function(){});}catch(_){}
-    try{if($("set-lockpwd"))$("set-lockpwd").value="102611";}catch(_){}
-    /* 这次打开如果还没过锁屏（上一版存档是 unlocked=true 直接进来的），马上补一次锁屏，不能等下次才生效 */
-    try{var _lsq=document.getElementById("lock-screen");if(_lsq)_lsq.classList.remove("show");}catch(_){}
+    try{if($("set-lockpwd"))$("set-lockpwd").value="1026";}catch(_){}
+    setTimeout(function(){
+      try{
+        var _ab=document.getElementById("about-screen");
+        if(_ab&&_ab.classList.contains("show"))return;
+        if(typeof initLock==="function")initLock();
+      }catch(_){}
+    },30);
   }catch(e){}
 }
 /* 退出/切后台时立刻落盘：安卓 WebView 不一定会触发 beforeunload，
@@ -25687,18 +25413,23 @@ try{
   setTimeout(function(){try{if(!localStorage.getItem("__e11ImportUpload")&&!localStorage.getItem("__e11HardReset"))clearInterval(_t);}catch(_){}},18000);
 })();
 function initLock(){
-  /* v43-68：进站密码页已取消。这里直接置免密并放行，不再显示 #lock-screen；
-     老设备没有 lockFree、云端存档 unlocked=false 也不会再弹密码页。 */
-  try{localStorage.setItem("lockFree","1");}catch(_){}
   if(typeof state==="undefined"||!state||!state.settings){setTimeout(initLock,120);return;}
-  try{state.settings.unlocked=true;}catch(_){}
-  window.__lockPassed=1;
-  try{document.getElementById("lock-screen").classList.remove("show");}catch(_){}
-  try{__afterLockPass();}catch(_){}
-  return;
+  /* v43-95：老版本默认 unlocked=true 会直接绕过密码页。这里在判断免密之前先校准一次，
+     否则 initLock 比存档迁移先跑，密码页还是不会出现。 */
+  try{
+    if(localStorage.getItem("__pwForce")!=="1026-95"){
+      state.settings.entryPwd="1026";
+      state.settings.unlocked=false;
+      try{localStorage.removeItem("lockFree");}catch(_){}
+      try{localStorage.setItem("__pwForce","1026-95");}catch(_){}
+      try{localStorage.setItem("privateChat",JSON.stringify(state));}catch(_){}
+      try{if(typeof dbSet==="function")dbSet("state",state).catch(function(){});}catch(_){}
+      try{if($("set-lockpwd"))$("set-lockpwd").value="1026";}catch(_){}
+    }
+  }catch(_ePwMig){}
   const inp=$("lock-input");if(!inp)return;
   lockSetup=false;
-  /* 账号登录已通过时，不再叠加本站的 102611 锁屏：账号本身就是入口 */
+  /* 账号登录已通过且已经免密时，不再叠加本站锁屏。 */
   if(window.__e11SkipLock&&state.settings&&state.settings.unlocked){
     window.__lockPassed=1;
     try{document.getElementById("lock-screen").classList.remove("show");}catch(e){}
@@ -25708,7 +25439,7 @@ function initLock(){
   inp.value="";
   inp.placeholder="••••••••••";
   if($("lock-skip"))$("lock-skip").style.display="none";
-  /* 锁屏不再提供「设置新密码 / 不设置」入口：输对 102611 直接进 */
+  /* 锁屏不提供「设置新密码 / 不设置」入口：输对默认密码直接进。 */
   // 已取消密码入口（持久化免密）→ 直接进入
   /* 免密标记单独存一个小键：state 是异步加载的，等它加载完再判断会晚一步，还是会先弹一次密码 */
   try{if(localStorage.getItem("lockFree")==="1"){state.settings.unlocked=true;}}catch(e){}
@@ -28284,6 +28015,13 @@ try{
   try{
     var _ab=document.getElementById("btn-announce");
     if(_ab)_ab.addEventListener("click",function(){renderAnnounce();document.getElementById("announce-screen").classList.add("show");});
+    var _abt=document.getElementById("btn-about");
+    if(_abt)_abt.addEventListener("click",function(){
+      window.__aboutViewer=1;
+      var _abS=document.getElementById("about-screen"),_abB=document.getElementById("about-agree-btn");
+      if(_abS){_abS.classList.add("show");var _sc=_abS.querySelector(".about-scroll");if(_sc)_sc.scrollTop=0;}
+      if(_abB){_abB.disabled=false;_abB.textContent="关闭";_abB.style.opacity="1";_abB.style.cursor="pointer";}
+    });
   }catch(e){}
   var _ps=document.getElementById("plus-search");
   if(_ps)_ps.addEventListener("click",function(e){
