@@ -208,7 +208,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-22v43-109";
+window.__E11_BUILD="2026-11-22v43-110";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2509,7 +2509,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-22v43-109">
+<meta name="app-build" content="2026-11-22v43-110">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4232,7 +4232,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-109</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-110</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -7447,7 +7447,7 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-22",
   noticeKey:null,
-  lead:"v43-109：恢复备份后消息必显示；坏字段/坏CSS自动修；退出云端不再像丢数据；进出黑屏兜底。",
+  lead:"v43-110：恢复备份后消息必显示；坏字段/坏CSS自动修；退出云端不再像丢数据；进出黑屏兜底。",
   items:[
     "顺序固定为：声明页 → 本地密码 → 云端登录；未输本地密码前，云端登录卡不会先盖上来。",
     "第一次在这台设备输对密码后记住；之后打开只显示声明页，不再反复要密码。一键重置或清除站点数据后重新输。",
@@ -7465,6 +7465,7 @@ var ANNOUNCE={
     "恢复备份后消息字段（side/role/sender/字符串时间/缺 id）自动归一，旧备份也能画出来。",
     "导入的气泡CSS会把 display/height/overflow/透明文字等藏消息的声明清掉，聊天不再整页空白。",
     "退出云端/重新登录时自动合并另一个登录作用域的本地库，聊天、设置、自动备份不再像消失。",
+    "记录用过的本地库名；旧版 iOS 没有 databases() 时，退出云端也能找回账号作用域的聊天。",
     "从后台切回或 PWA 恢复时自动撤启动层；4.5 秒没有页面时强制铺首页，避免一直黑屏。",
     "顶栏只保留纯白/纯黑，启动第一帧不再出现灰色。",
     "正文、字卡、信件、留言、动态、图片全部以 IndexedDB 为主库，不再每次改动同步序列化 2MB 到 localStorage。",
@@ -7862,6 +7863,14 @@ window.__idle=(function(){
 
 /* 每个账号使用独立 IndexedDB：001 保留旧库以接住历史数据，其他账号按 user_id 分库，互不可见 */
 const DB_NAME="privateChatDB_v1"+(window.__e11DbScope?("_"+window.__e11DbScope):""),STORE="kv";
+/* v43-110：iOS 旧版 Safari 没有 indexedDB.databases()，退出云端后找不到账号作用域的库。
+   每次打开时把用过的库名记下来，跨作用域合并就有明确候选。 */
+try{
+  var _kn=JSON.parse(localStorage.getItem("e11.knownDbNames.v1")||"[]");
+  if(!Array.isArray(_kn))_kn=[];
+  if(_kn.indexOf(DB_NAME)<0){_kn.push(DB_NAME);_kn=_kn.slice(-8);localStorage.setItem("e11.knownDbNames.v1",JSON.stringify(_kn));}
+  window.__e11KnownDbs=_kn;
+}catch(_eKn){}
 function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,1);r.onupgradeneeded=e=>{if(!e.target.result.objectStoreNames.contains(STORE))e.target.result.createObjectStore(STORE);};r.onsuccess=e=>{db=e.target.result;res(db);};r.onerror=e=>rej(r.error);});}
 function dbGet(k){return new Promise((res,rej)=>{
   if(!db){res(undefined);return;}
@@ -7989,6 +7998,8 @@ window.__e11MergeDbScopes=async function(){
     var names=[];
     try{if(indexedDB.databases){var dbs=await indexedDB.databases();names=(dbs||[]).map(function(x){return x&&x.name;}).filter(Boolean);}}catch(_){}
     ["privateChatDB_v1","privateChatDB_v1_anon"].forEach(function(n){if(names.indexOf(n)<0)names.push(n);});
+    try{var kn=JSON.parse(localStorage.getItem("e11.knownDbNames.v1")||"[]");if(Array.isArray(kn))kn.forEach(function(n){if(names.indexOf(n)<0)names.push(n);});}catch(_eKn2){}
+    try{if(window.__e11KnownDbs&&Array.isArray(window.__e11KnownDbs))window.__e11KnownDbs.forEach(function(n){if(names.indexOf(n)<0)names.push(n);});}catch(_eKn3){}
     names=names.filter(function(n){return n&&n.indexOf("privateChatDB_v1")===0&&n!==DB_NAME;});
     if(!names.length)return 0;
     var base=await dbGet("state");
