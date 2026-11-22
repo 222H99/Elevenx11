@@ -187,7 +187,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-22v43-67";
+window.__E11_BUILD="2026-11-22v43-68";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2484,7 +2484,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-22v43-67">
+<meta name="app-build" content="2026-11-22v43-68">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4058,8 +4058,6 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">回表情概率（%）<div class="set-sub">有表情包时，对方用自己的表情包回复</div></span><input class="set-input" id="set-emoji-prob" type="number" min="0" max="100" value="20"></div>
         <div class="set-row"><span class="set-label">偷表情玩法<div class="set-sub">我发表情时，对方有 5% 概率复制进他的表情库</div></span><div class="switch" id="sw-emoji-steal"></div></div>
         <div class="set-row"><span class="set-label">偷表情概率（%）<div class="set-sub">我发表情时，对方按这个概率复制进他的表情库</div></span><input class="set-input" id="set-emoji-steal-prob" type="number" min="0" max="100" step="1" value="5"></div>
-        <div class="set-row"><span class="set-label">回复用字卡分组<div class="set-sub">默认：所有分组</div></span>
-          <select class="sel" id="set-reply-group"></select></div>
       </div>
       <!-- 撤回与已读不回 -->
       <div class="set-sec-title">撤回与已读不回</div>
@@ -4171,7 +4169,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-67</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-68</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -8086,7 +8084,7 @@ function __prefApplyObject(p){
     return true;
   }catch(e){return false;}
 }
-/* v43-67：设置整份单独落一个小键。云端旧档、更新后首次启动、刷新/退出再进，
+/* v43-68：设置整份单独落一个小键。云端旧档、更新后首次启动、刷新/退出再进，
    都先按这个键里较新的设置恢复，不再只依赖 privateChat 大档和 5 个界面偏好。 */
 function __settingsBackup(){
   try{
@@ -8146,7 +8144,7 @@ function __prefReapplyAll(){
 }
 
 function save(){
-  /* v43-67：资料单独打修改时间。以前 profile 没有 __ts，云端只要存着一份非空的默认资料，
+  /* v43-68：资料单独打修改时间。以前 profile 没有 __ts，云端只要存着一份非空的默认资料，
      本机改过的昵称/签名就会被 applySnapshot 判成“云端有内容”而恢复默认。 */
   try{
     var _psig=JSON.stringify(state.profile||{});
@@ -8322,10 +8320,10 @@ function migrate(s){
     }
     /* v43-38：旧版本在字卡页切组会顺手把「回复分组」也改掉，云存档里因此残留了具体组。
        只要用户没有在设置里显式点过“回复用哪个分组”，启动时统一恢复成「所有分组」。 */
-    if(s.settings.replyGroupId&&s.settings.replyGroupPinned!==true&&s.settings.replyGroupAllMigrated!==true){
-      s.settings.replyGroupId=null;
-      s.settings.replyGroupAllMigrated=true;
-    }
+    /* 固定回复用全部分组：旧存档无论选过哪个组，都清回 null；设置页也已移除该选项。 */
+    s.settings.replyGroupId=null;
+    s.settings.replyGroupPinned=false;
+    s.settings.replyGroupAllMigrated=true;
   }catch(_){}
   if(s.settings.avatarSize===undefined)s.settings.avatarSize=30;
   if(s.settings.bubbleScale===undefined)s.settings.bubbleScale=100;
@@ -11174,19 +11172,9 @@ function activeCards(){
      （以前这里是全部字卡，所以对方在聊天里会冒出动态字卡、信件字卡的内容） */
   var _ok=function(c){return c&&!c.disabled&&!(groupById(c.groupId)||{}).disabled;};
   var pool=state.cards.filter(function(c){return _ok(c)&&cardKindOf(c)==="chat";});
-  try{
-    /* 默认就是「全部聊天字卡」，不跟浏览用的分组标签走；
-       只有在「设置 → 对方回复用哪个分组」明确选了某一组，才只用那一组（那组没卡则照旧用全部） */
-    /* v43-38：回复只认设置里的「回复用哪个分组」。字卡页随便点到哪个分组，
-       都不再影响对方回复；没设置就始终用全部聊天字卡。 */
-    var _rg=(state.settings&&state.settings.replyGroupId)||null;
-    if(_rg){
-      var _rIn=pool.filter(function(c){return c.groupId===_rg;});
-      if(_rIn.length)pool=_rIn;
-    }
-  }catch(e){}
-  /* 一张聊天字卡都没有时保持老行为（用全部可用字卡），避免对方直接哑掉 */
-  return pool.length?pool:state.cards.filter(_ok);
+  /* 聊天回复固定用「全部聊天分组」，不认任何单独分组设置，也不拿动态/信件字卡来补；
+     没有聊天字卡时宁可这一轮不回，也不乱跳到别的分组。 */
+  return pool;
 }
 function cardPool(){return activeCards().filter(c=>c.text&&String(c.text).trim());}
 function surveyQuestionHTML(q,i){
@@ -13185,15 +13173,8 @@ $("call-mini").addEventListener("click",expandCall);
 })();
 $("call-mute").addEventListener("click",toggleMute);
 function replyCards(){
-  let gid=state.settings.replyGroupId;
-  // 分组被删除/清空后自动归位，避免字卡池被“悬空分组”卡成空
-  if(gid&&!state.groups.some(function(g){return g.id===gid&&!g.disabled;})){gid=null;try{state.settings.replyGroupId=null;save();}catch(e){}}
-
-  if(gid){
-    const g=activeCards().filter(c=>c.groupId===gid);
-    if(g.length)return g; // 指定分组有字卡就用它
-  }
-  return activeCards(); // 否则回退到全部字卡（已排除被屏蔽的分组/字卡）
+  /* 永远用全部聊天分组；旧存档里残留的 replyGroupId 不再影响回复。 */
+  return activeCards();
 }
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 let replyTimers=[];
@@ -13471,7 +13452,7 @@ function __lsMsgText(m){
     return String(m.text||msgPreviewText(m)||"");
   }catch(_){return "[消息]";}
 }
-/* v43-67：长图里的红包 / 问卷 / 推歌 / 邀请不再退化成一行文字，
+/* v43-68：长图里的红包 / 问卷 / 推歌 / 邀请不再退化成一行文字，
    按聊天里真实的卡片版式单独绘制，尺寸固定，不随屏幕缩放改变。 */
 function __lsCardSpec(m,K){
   try{
@@ -16208,7 +16189,7 @@ $("set-survey-min-sec").addEventListener("change",e=>{state.settings.surveyMinSe
 $("set-survey-max-sec").addEventListener("change",e=>{state.settings.surveyMaxSec=Math.max(0,Math.round(Number(e.target.value)||0))*60;e.target.value=Math.round(state.settings.surveyMaxSec/60);save();});
 $("set-max-sec").addEventListener("change",e=>{state.settings.maxDelaySec=Math.max(0,Number(e.target.value)||0);e.target.value=state.settings.maxDelaySec;save();});
 $("set-min-sec").addEventListener("change",e=>{state.settings.minDelaySec=Math.max(0,Number(e.target.value)||0);e.target.value=state.settings.minDelaySec;save();});
-$("set-reply-group").addEventListener("change",e=>{state.settings.replyGroupId=e.target.value||null;state.settings.replyGroupPinned=!!e.target.value;state.settings.replyGroupAllMigrated=true;save();});
+if($("set-reply-group"))$("set-reply-group").addEventListener("change",e=>{state.settings.replyGroupId=e.target.value||null;state.settings.replyGroupPinned=!!e.target.value;state.settings.replyGroupAllMigrated=true;save();});
 $("sw-auto").addEventListener("click",e=>{state.settings.autoReply=!state.settings.autoReply;e.target.classList.toggle("on",state.settings.autoReply);save();toast(state.settings.autoReply?"自动回复已开启":"自动回复已关闭，对方不会自动回消息");});
 $("sw-chat-avatar")&&$("sw-chat-avatar").addEventListener("click",function(e){state.settings.showChatAvatar=(state.settings.showChatAvatar===false);e.target.classList.toggle("on",state.settings.showChatAvatar!==false);try{__prefSave();}catch(_){}save();try{applyChatAvatarVis();}catch(_){}toast(state.settings.showChatAvatar!==false?"聊天页显示头像已开启":"聊天页头像已隐藏，长图也不显示头像");});
 $("sw-read").addEventListener("click",e=>{state.settings.readReceipt=!state.settings.readReceipt;e.target.classList.toggle("on",state.settings.readReceipt);save();__refreshChatMeta();});
@@ -23111,7 +23092,7 @@ function pickCardsN(n,kind){
     try{
       /* v43-38：动态 / 主动来信等抽取字卡时，默认用该类别全部字卡；
          不再被「字卡页当前浏览的分组」限制。聊天只在设置里明确选了回复分组时收窄。 */
-      var gid=(kk==="chat"&&state.settings&&state.settings.replyGroupId)||null;
+      var gid=null; /* 聊天固定全部分组；其它类别也不跟浏览分组走 */
       if(gid){
         const inG=state.cards.filter(c=>okOf(c,kk)&&c.groupId===gid);
         if(inG.length)pool=inG;
@@ -24905,7 +24886,7 @@ try{
   setTimeout(function(){try{if(!localStorage.getItem("__e11ImportUpload")&&!localStorage.getItem("__e11HardReset"))clearInterval(_t);}catch(_){}},18000);
 })();
 function initLock(){
-  /* v43-67：进站密码页已取消。这里直接置免密并放行，不再显示 #lock-screen；
+  /* v43-68：进站密码页已取消。这里直接置免密并放行，不再显示 #lock-screen；
      老设备没有 lockFree、云端存档 unlocked=false 也不会再弹密码页。 */
   try{localStorage.setItem("lockFree","1");}catch(_){}
   if(typeof state==="undefined"||!state||!state.settings){setTimeout(initLock,120);return;}
@@ -29652,7 +29633,7 @@ body{margin:0;background:var(--bg,#fafafa);}
          此时 root.top 不能跟着 voffY 走，否则整页会被抬上去、工具条压住日记字 */
       if(_diaryOpen){voffX=0;voffY=0;}
       var _landView=(w>h*1.12&&w>=560);
-      /* v43-67：舞台只按屏幕宽度铺，不再把整站放大到 1.3 倍。
+      /* v43-68：舞台只按屏幕宽度铺，不再把整站放大到 1.3 倍。
          尺寸锁死为 1，390/430/480 宽的手机上按钮、字号、间距都保持设计稿原大小；
          旧版存过的 __uiKLock 比例（1.05~1.3）全部作废，避免“换大屏手机后整页变大”。 */
       window.__uiKLock=1;
