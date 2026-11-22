@@ -218,7 +218,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-127";
+window.__E11_BUILD="2026-11-23v43-128";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2526,7 +2526,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-127">
+<meta name="app-build" content="2026-11-23v43-128">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4262,14 +4262,14 @@ setTimeout(function(){
       <div class="set-group"><div class="set-row"><span class="set-label">网易云登录<div class="set-sub" id="ny-set-state">扫码或 Cookie 登录后可在音乐页听 VIP 完整歌曲</div></span><button class="small-btn" id="btn-ny-login" style="font-size:12px;padding:6px 12px;">登录</button></div></div>
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
-      <div class="set-group"><div class="set-row"><span class="set-label">流畅模式<div class="set-sub">关闭毛玻璃模糊，减少低配机/APK 的滑动卡顿；APK 默认开启，网页默认关闭</div></span><button class="switch" id="sw-perf"></button></div><div class="set-row"><span class="set-label">作者声明<div class="set-sub">使用条款、借鉴说明与联系方式</div></span><button class="small-btn ghost" id="btn-about" style="white-space:nowrap;">查看</button></div><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">流畅模式<div class="set-sub">关闭毛玻璃模糊，减少低配机/APK 的滑动卡顿；APK 默认开启，网页默认关闭</div></span><button class="switch" id="sw-perf"></button></div><div class="set-row"><span class="set-label">作者声明<div class="set-sub">使用条款、借鉴说明与联系方式</div></span><button class="small-btn ghost" id="btn-about" style="white-space:nowrap;">查看</button></div><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div><div class="set-row"><span class="set-label">站内刷新<div class="set-sub">重新载入页面；聊天、字卡、设置、头像和图片都不会被清空</div></span><button class="small-btn" id="btn-e11-refresh" style="white-space:nowrap;">刷新</button></div></div>
 <div class="set-sec-title">安装到桌面</div>
       <div class="set-group">
         <div class="set-row"><span class="set-label">PWA 安装状态<div class="set-sub" id="pwa-state">检查中…</div></span><button class="small-btn" id="btn-pwa-install" style="font-size:12px;padding:6px 12px;">安装</button></div>
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-127</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-128</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -7689,15 +7689,13 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-23",
   noticeKey:null,
-  lead:"v43-127：云端账号密码点不开、本机进站密码不能重置、启动黑屏，这三项都已修复；设置页仍是 7 个板块。",
+  lead:"v43-128：设置改动即时落盘、整页缩放不再带动设置/聊天字号、新增「站内刷新」，并核对动态/评论/留言/信件的时间与概率补发。",
   items:[
-    "云端账号密码：未登录时按钮显示「先登录」，点一下会直接弹登录卡，不再出现点了没反应；登录后按钮变成「修改」。",
-    "本机进站密码：锁屏页「忘记密码？重置本机密码」可以直接设新的 6 位密码，不用旧密码；聊天、字卡、设置都保留，旧密码立即失效。",
-    "修掉登录卡被后台巡检自动关掉的问题：以前登录卡刚弹出 1 秒就被当成残留层隐藏，看起来就是「点不动」。",
-    "启动黑屏：深色启动层由纯黑改成深灰并加转圈加载，APK 的 WebView 底色和从后台回前台也同步成深灰；顶栏、状态栏仍只保持纯黑/纯白。",
-    "设置页继续按 7 个板块：基础 / 聊天 / 社交 / 娱乐 / 接口 / 外观 / 数据，顶部标签可点、可左右滑，找设置不用滚一长页。",
-    "保留 v43-125 修复：已进入 App 后点「本机进站密码 → 修改」不会再闪退，可连续重设。",
-    "声明页致谢：一起听梦角推歌借鉴于小红书 @Failure. 老师（ID：95941868426）。",
+    "设置自动保存：改数字、开关、概率、主题后立刻写入 IndexedDB 和设置小备份；即使后台恢复或云端存档较旧，也不会把刚改的设置盖回去。",
+    "修掉自动缩放串页：设置页、聊天页、信件/留言/动态/字卡等整页不再被主页内容高度拖着二次缩放，只缩主页自己的内容。",
+    "站内刷新：设置 → 基础 → 系统里新增「站内刷新」，只重新载入页面，不清聊天、字卡、设置、头像和图片。",
+    "补发核对：动态、评论、留言、信件按每个到点时段单独掷概率，补发时间落在该发的时刻，基准推进到当下，不会同一段反复补。",
+    "更新前后数据一致：换页更新前再落一次设置小备份和核心档；更新只清运行时缓存，不动 IndexedDB。",
     "聊天记录仍以 IndexedDB 为主库，历史图片、表情包、一起听歌单不丢。",
   ],
   foot:"有问题或建议：小红书 @Eleven_（ID：5609831119）。"
@@ -9716,6 +9714,8 @@ window.__e11SyncCfgSnapshot=function(){
   }catch(_eCfgSnap){}
 };
 window.__e11PersistNow=function(){
+  /* v43-128：恢复/暂停写盘期间也先落设置小备份；设置页刚改的内容不能因为 __restoring 被丢掉。 */
+  try{if(state&&state.settings&&window.__settingsBackup)window.__settingsBackup(true);}catch(_ePnSet){}
   if(window.__restoring||window.__e11CloudPause)return;
   try{if(window.__e11SyncCfgSnapshot)window.__e11SyncCfgSnapshot();}catch(_eCfg0){}
   try{if(typeof save==="function")save();}catch(_){}
@@ -9772,6 +9772,9 @@ window.__e11PersistNow=function(){
     try{
       if(window.__restoring||!window.__stateReady||window.__e11BootLoading)return;
       if(window.__e11SyncProfileBackup)window.__e11SyncProfileBackup();
+      /* v43-128：设置改动先同步写一份小备份，不等 550ms，也不受 __restoring 阻止。
+         更新/云端恢复时本机新设置才能凭 __ts 胜出，不会被旧档盖回默认。 */
+      setTimeout(function(){try{if(state&&state.settings&&window.__settingsBackup)window.__settingsBackup(true);}catch(_eSetBak){}},0);
       clearTimeout(_asT);
       _asT=setTimeout(function(){
         try{if(typeof save==="function")save();}catch(_eAsSave){}
@@ -10566,7 +10569,11 @@ async function init(){
       try{
         /* 头像、照片仍按下面的专门逻辑补；背景保持各自快照原样，不互相覆盖 */
       }catch(_eSkinPhoto){}
-      state=migrate(s);try{window.__e11RepairBulkTombs&&window.__e11RepairBulkTombs(state);}catch(_eTombFix){}try{__ltReadApply();}catch(e){}try{__prefApply();}catch(e){}try{window.__perfApply&&window.__perfApply();}catch(_){}window.__stateReady=1;window.__e11DataReady=1;try{window.__e11BootLoading=0;}catch(_eBootLoad1){}try{
+      state=migrate(s);
+      /* v43-128：设置小备份的 __ts 比 IndexedDB/云端更晚时，以备份为准。
+         以前只在默认 state 上恢复一次，随后被 IDB 旧设置整份覆盖，表现就是“设置改完刷新又变回去”。 */
+      try{var _e11SetBakApplied=window.__settingsBackupRestore&&window.__settingsBackupRestore();if(_e11SetBakApplied)window.__settingsBackup&&window.__settingsBackup(true);}catch(_eSetBak3){}
+      try{window.__e11RepairBulkTombs&&window.__e11RepairBulkTombs(state);}catch(_eTombFix){}try{__ltReadApply();}catch(e){}try{__prefApply();}catch(e){}try{window.__perfApply&&window.__perfApply();}catch(_){}window.__stateReady=1;window.__e11DataReady=1;try{window.__e11BootLoading=0;}catch(_eBootLoad1){}try{
   var _runHydrateRest=function(){try{window.__e11HydrateRest&&window.__e11HydrateRest();}catch(_eHR){}};
   if(window.requestIdleCallback)requestIdleCallback(_runHydrateRest,{timeout:6000});else setTimeout(_runHydrateRest,2600);
 }catch(_eHRs){}/* 主题先别在这里定：这份还可能是默认浅色快照，等两份存档合并完（下面 6820 行）再 __themeReady，否则夜间用户会先被刷白 */applySkin();
@@ -18220,6 +18227,9 @@ $("set-diary-cards").addEventListener("change",e=>{state.settings.diaryCards=Mat
     if(tm)clearTimeout(tm);
     tm=setTimeout(function(){
       tm=null;
+      /* v43-128：即使正在恢复云端，也先把设置小备份落下来；恢复完成后按 __ts 合并，
+         不再直接丢掉用户在设置页刚改的值。 */
+      try{if(state&&state.settings&&window.__settingsBackup)window.__settingsBackup(true);}catch(_eSetBak2){}
       if(window.__restoring||window.__e11CloudPause)return;
       try{if(typeof save==="function")save();}catch(_){}
       try{if(window.__settingsBackup)window.__settingsBackup(true);}catch(_){}
@@ -18665,6 +18675,34 @@ window.__cmpBuild=__cmpBuild;
 if($("btn-check-update"))$("btn-check-update").addEventListener("click",function(){
   try{toast("正在检查…");}catch(e){}
   if(window.__e11CheckVersion)window.__e11CheckVersion(true);
+});
+
+/* v43-128：站内刷新。
+   只重新载入页面，不清 IndexedDB/localStorage，也不改版本；刷新前把当前设置、
+   核心档和设置小备份各写一次，避免最后 1 秒改的设置/字卡被浏览器卸载掐掉。 */
+window.__e11InAppRefresh=function(){
+  if(window.__e11Refreshing)return;
+  window.__e11Refreshing=1;
+  try{window.__commitSettingsActive&&window.__commitSettingsActive();}catch(_eR0){}
+  try{window.__settingsBackup&&window.__settingsBackup(true);}catch(_eR1){}
+  try{window.__e11SyncCfgSnapshot&&window.__e11SyncCfgSnapshot();}catch(_eR2){}
+  try{if(typeof save==="function")save();}catch(_eR3){}
+  try{if(typeof __flushSave==="function")__flushSave(true);}catch(_eR4){}
+  try{if(typeof __e11ExitSave==="function")__e11ExitSave(state);}catch(_eR5){}
+  try{localStorage.setItem("privateChat",JSON.stringify({__idbOnly:1,__savedAt:Number(state&&state.__savedAt)||Date.now()}));}catch(_eR6){}
+  try{
+    var dark=document.documentElement.getAttribute("data-boot")==="dark"||document.body.classList.contains("ui-dark");
+    var ov=document.createElement("div");
+    ov.setAttribute("data-e11-refresh","");
+    ov.style.cssText="position:fixed;inset:0;z-index:2147483000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:"+(dark?"#141416":"#fafafa")+";color:"+(dark?"#f5f5f7":"#111")+";font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','PingFang SC',sans-serif;";
+    ov.innerHTML='<div style="font-size:16px;font-weight:700;letter-spacing:.4px;">Eleven×11</div><div style="width:20px;height:20px;border-radius:50%;border:2px solid rgba(128,128,138,.22);border-top-color:#3478F6;animation:e11refreshspin .8s linear infinite;"></div><div style="font-size:12px;opacity:.62;">正在刷新，数据已保存…</div><style>@keyframes e11refreshspin{to{transform:rotate(360deg)}}</style>';
+    (document.body||document.documentElement).appendChild(ov);
+  }catch(_eR7){}
+  setTimeout(function(){try{location.reload();}catch(_eR8){try{location.href=location.href;}catch(_eR9){}}},260);
+};
+if($("btn-e11-refresh"))$("btn-e11-refresh").addEventListener("click",function(e){
+  try{e.preventDefault();}catch(_){}
+  window.__e11InAppRefresh();
 });
 
 /* ===== PWA 安装 / 永久存储 / 表情图体检 ===== */
@@ -28700,37 +28738,19 @@ function __fitApply(k){
 window.__fitApply=__fitApply;
 function __applyAppFit(_k){
   try{
-    /* 全站已经有统一缩放舞台：主页内容再高，也只缩主页自己（__fitApply 负责 inner），
-       不能再用它把聊天/设置/信件等所有整屏页一起二次缩小，否则同一块屏幕上
-       各页字号会随主页内容高度变化。这里只清掉旧的整页缩放。 */
-    if(window.__uiRootReady){
-      for(var vi=0;vi<window.__ayFitViews.length;vi++){
-        var vv=document.getElementById(window.__ayFitViews[vi]);
-        if(vv&&vv.style.transform&&vv.style.transform.indexOf("scale(")===0){
-          vv.style.transform="";vv.style.transformOrigin="";
-          vv.style.width="";vv.style.height="";vv.style.left="";vv.style.right="";vv.style.top="";vv.style.bottom="";
-        }
-      }
-      window.__fitAppliedK=1;
-      return;
-    }
-    var k=Number(_k)||Number(window.__fitK)||1;
-    if(k>0.995)k=1;if(k<0.62)k=0.62;
-    window.__fitAppliedK=k;
-    for(var i=0;i<window.__ayFitViews.length;i++){
-      var v=document.getElementById(window.__ayFitViews[i]);
-      if(!v)continue;
-      if(k>=1){
-        if(v.style.transform&&v.style.transform.indexOf("scale(")===0){v.style.transform="";v.style.transformOrigin="";v.style.width="";v.style.height="";v.style.left="";v.style.right="";v.style.top="";v.style.bottom="";}
-      }else{
-        var inv=100/k;
-        v.style.transformOrigin="top center";
-        v.style.transform="scale("+k+")";
-        v.style.width=inv+"%";v.style.height=inv+"%";
-        var off=-(inv-100)/2;
-        v.style.left=off+"%";v.style.right="auto";v.style.top="0";v.style.bottom="auto";
+    /* v43-128：整屏应用页（设置/聊天/信件/留言/动态/字卡等）永远不做二次缩放。
+       主页内容再高也只缩主页 inner（__fitApply 负责），否则同一块屏幕上设置页、
+       聊天页字号会跟着主页内容高度忽大忽小，表现为“自动缩放有问题”。
+       这里无条件清掉历史上写进整页的 scale/宽高偏移；不再因为 __uiRootReady 还没置位就先缩一遍。 */
+    for(var vi=0;vi<window.__ayFitViews.length;vi++){
+      var vv=document.getElementById(window.__ayFitViews[vi]);
+      if(!vv)continue;
+      if(vv.style.transform&&vv.style.transform.indexOf("scale(")===0){
+        vv.style.transform="";vv.style.transformOrigin="";
+        vv.style.width="";vv.style.height="";vv.style.left="";vv.style.right="";vv.style.top="";vv.style.bottom="";
       }
     }
+    window.__fitAppliedK=1;
   }catch(e){}
 }
 window.__applyAppFit=__applyAppFit;
@@ -30921,6 +30941,10 @@ try{
     /* v43-74：换页前先把当前编辑/设置同步落盘，更新后打开就是刚才调整过的状态。 */
     try{if(window.__commitSettingsActive)window.__commitSettingsActive();}catch(_){}
     try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_){}
+    /* v43-128：更新换页前再单独落一次“设置小备份 + 核心档”。
+       更新只清运行时缓存，不会动 IndexedDB；这两步保证最后 1 秒改的设置/字卡也不会被旧档盖回。 */
+    try{if(window.__settingsBackup)window.__settingsBackup(true);}catch(_eUpSet){}
+    try{if(typeof __e11ExitSave==="function")__e11ExitSave(state);}catch(_eUpCore){}
     try{if(window.__emergencySnapshot)window.__emergencySnapshot();}catch(_){}
     /* v43-100：自动更新不再替用户点“同意”，声明页仍然要出现 */
     /* 给用户一个明确反馈；后面的 location.replace 会带着新时间戳绕开 HTTP 缓存。 */
