@@ -191,7 +191,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-22v43-103";
+window.__E11_BUILD="2026-11-22v43-104";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2490,7 +2490,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-22v43-103">
+<meta name="app-build" content="2026-11-22v43-104">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4213,7 +4213,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-103</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-104</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5555,6 +5555,8 @@ setTimeout(function(){
     try{window.__bootDone&&window.__bootDone();}catch(_){}
   }
   function showLoginCard(){
+    /* v43-104：声明页/本地密码必须先于云端登录；密码没过之前只记下待登录，不把登录卡盖上来。 */
+    if(!window.__lockPassed){window.__cloudLoginPending=1;return;}
     try{window.__veilDone&&window.__veilDone();}catch(_e){}
     /* v43-103：声明页是固定第一层，登录卡不得把它撤掉（否则用户只看到锁屏/白屏）。 */
     if(waitCard)waitCard.style.display="none";
@@ -5563,6 +5565,7 @@ setTimeout(function(){
     if(gate)gate.classList.add("show");bodyLock(true);
     try{window.__bootDone&&window.__bootDone();}catch(_){}
   }
+  window.__showLoginCard=showLoginCard;
   function hideGate(){
   /* 先保证真的有一个页面在 open，再撤登录层。
      之前网络慢到 6 秒时 slowBoot 会直接 hideGate，而 init 还没铺好 view，
@@ -7318,9 +7321,10 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-22",
   noticeKey:null,
-  lead:"v43-103：启动和退出不再读写 2MB 级本地大档，正文统一存 IndexedDB；声明页/密码页真正可点，顶栏白天白、夜间黑。",
+  lead:"v43-104：声明页→本地密码→云端登录的顺序固定；第一次输对后本机不再反复要密码，只有重置或清数据后重输。",
   items:[
-    "声明页按钮第一帧就能点，不再等数据库；同意后直接出密码页，密码框不会被登录卡盖住。",
+    "顺序固定为：声明页 → 本地密码 → 云端登录；未输本地密码前，云端登录卡不会先盖上来。",
+    "第一次在这台设备输对密码后记住；之后打开只显示声明页，不再反复要密码。一键重置或清除站点数据后重新输。",
     "正文、字卡、信件、留言、动态、图片全部以 IndexedDB 为主库，不再每次改动同步序列化 2MB 到 localStorage。",
     "启动只读 IndexedDB，退出不再写大快照，黑屏和退出卡顿一起缩短。",
     "顶栏和状态栏固定跟随 App 主题：白天纯白、夜间纯黑。",
@@ -7408,6 +7412,11 @@ function __entryHome(){
   setTimeout(function(){if(typeof askNotifyPrompt==="function")askNotifyPrompt();},4000);
 }
 function __afterLockPass(){
+  /* v43-104：本地密码通过后，才允许云端登录卡出现。 */
+  if(window.__cloudLoginPending){
+    window.__cloudLoginPending=0;
+    try{if(window.__showLoginCard)window.__showLoginCard();return;}catch(_eCloudPend){}
+  }
   /* v43-98：密码页/恢复页退场后，登录等待层也必须一起退场。 */
   try{var _ag2=document.getElementById("auth-gate");if(_ag2)_ag2.classList.remove("show");}catch(_){}
   try{var _aw2=document.getElementById("auth-wait-card");if(_aw2)_aw2.style.display="none";}catch(_){}
@@ -25550,6 +25559,15 @@ function initAbout(){
 /* ===== 进入密码锁屏 ===== */
 /* 进站密码固定 6 位；文件里只保留校验指纹，不写密码明文。 */
 const LOCK_DEFAULT="p1:1jdgfyk-1312ccg";
+/* v43-104：只在这台设备第一次输对后记一个密码指纹；重置会清掉，所以重置后必须重输。 */
+const PW_PASS_KEY="e11.pwPass.v1";
+function __pwDevicePass(){
+  try{
+    if(localStorage.getItem("e11.forceLock.v1")==="1")return false;
+    var v=localStorage.getItem(PW_PASS_KEY);
+    return !!v&&v===lockPwd();
+  }catch(_){return false;}
+}
 function __lockHash(s){
   s=String(s||"");
   var a=0x811c9dc5;
@@ -25646,6 +25664,7 @@ function initLock(){
       state.settings.unlocked=false;
       try{localStorage.removeItem("lockFree");}catch(_){}
       try{sessionStorage.removeItem("__webPwOk");}catch(_){}
+      try{localStorage.removeItem(PW_PASS_KEY);}catch(_){}
     }
   }catch(_eForce){}
   /* 老存档迁移：密码明文只在校验时即时哈希，不落盘、不显示 */
@@ -25670,7 +25689,7 @@ function initLock(){
      添加到主屏幕/APK 才用永久免密。 */
   /* v43-102：固定的进站密码页每次打开都要出现。只在当前这次页面里输对后放行，
      不再用 lockFree / sessionStorage 让下一次打开直接跳过。 */
-  var _free=false;
+  var _free=__pwDevicePass();
   inp.value="";
   inp.placeholder="••••••••••";
   if($("lock-skip"))$("lock-skip").style.display="none";
@@ -25706,6 +25725,7 @@ function submitLock(){
       state.settings.unlocked=false;
       try{localStorage.removeItem("lockFree");}catch(_){}
       try{sessionStorage.removeItem("__webPwOk");}catch(_){}
+      try{localStorage.setItem(PW_PASS_KEY,state.settings.entryPwd);}catch(_){}
       try{__writeLocalSnapshot();}catch(_){}
       save();unlockGo();toast("已设置密码，之后每次进入都要输密码");
     }else{
@@ -25725,6 +25745,7 @@ function submitLock(){
       try{localStorage.removeItem("lockFree");}catch(_){}
       try{sessionStorage.removeItem("__webPwOk");}catch(_){}
       try{localStorage.removeItem("e11.forceLock.v1");}catch(_){}
+      try{localStorage.setItem(PW_PASS_KEY,lockPwd());}catch(_){}
       try{if(typeof save==="function")save();}catch(_){}
     }catch(_){}
     unlockGo();
@@ -25745,6 +25766,7 @@ $("lock-btn").addEventListener("click",submitLock);
 $("lock-input").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();submitLock();}});
 $("lock-forgot").addEventListener("click",function(){
   state.settings.entryPwd=LOCK_DEFAULT;
+  try{localStorage.removeItem(PW_PASS_KEY);}catch(_){}
   try{__writeLocalSnapshot();}catch(_){}
   save();
   $("lock-input").value="";
