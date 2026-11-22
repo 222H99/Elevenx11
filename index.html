@@ -191,7 +191,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-22v43-83";
+window.__E11_BUILD="2026-11-22v43-84";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2488,7 +2488,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-22v43-83">
+<meta name="app-build" content="2026-11-22v43-84">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4210,7 +4210,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-83</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-84</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -6367,6 +6367,7 @@ setTimeout(function(){
         ks.forEach(function(k){try{localStorage.removeItem(k);}catch(e){}});
       }catch(e){}
       try{localStorage.removeItem(LS_OWNER);}catch(e){}
+      try{localStorage.removeItem("e11.exit.v1");localStorage.removeItem("e11.core.v1");localStorage.removeItem("beautyVault:latest");}catch(e){}
       /* 刷新前页面可能把旧数据写进这两个应急键，必须一起清掉，否则下次启动会“复活”上一个账号的内容 */
       try{sessionStorage.removeItem("privateChat__emergency");sessionStorage.removeItem("bigPending__emergency");sessionStorage.removeItem("__forceIdbRestore");}catch(e){}
       /* 不删除数据库：001 的历史数据只活在旧库里；其他账号用独立 DB，切号后不会读到彼此 */
@@ -9051,13 +9052,20 @@ async function init(){
     var _exit0=__e11ExitRead();
     if(_exit0&&_exit0.state){
       var _curTsEx=Number(state&&state.__savedAt)||0;
-      if(_exit0.ts>_curTsEx||!state||!state.messages||!state.messages.length){
-        var _oldEx=state;
+      var _oldEx=state;
+      var _exHas=!!((_exit0.state.messages&&_exit0.state.messages.length)||(_exit0.state.cards&&_exit0.state.cards.length)||(_exit0.state.moments&&_exit0.state.moments.length)||(_exit0.state.letters&&_exit0.state.letters.length));
+      var _curHas=!!(_oldEx&&((_oldEx.messages&&_oldEx.messages.length)||(_oldEx.cards&&_oldEx.cards.length)||(_oldEx.moments&&_oldEx.moments.length)||(_oldEx.letters&&_oldEx.letters.length)));
+      /* v43-84：只要离站快照有内容，就按“下次进入拉取离站备份”的约定直接用它。
+         不再拿时间戳跟主档比，避免主档写盘失败/时间戳被刷新后又被旧档顶掉。 */
+      if(_exHas||!_curHas){
         state=migrate(_exit0.state);
         try{if(_oldEx)__mergeMediaSnapshots(state,_oldEx);}catch(_eExitMedia){}
-        /* 美化/布局/偏好这些小键也一起套用，恢复上次调整过的位置和大小。 */
         try{__bkApplyGlobals(_exit0.globals||{},_exit0.ts);}catch(_eExitGlobals){}
-        window.__e11ExitUsed=1;
+        window.__e11ExitUsed=1;window.__e11ForceExit=1;
+        try{window.__e11CloudStatus="离站备份";}catch(_eExitStatus){}
+      }else{
+        /* 离站快照只有设置没有内容时，只套小键，不破坏现有聊天。 */
+        try{__bkApplyGlobals(_exit0.globals||{},_exit0.ts);}catch(_eExitGlobals2){}
       }
     }
   }catch(_eExitInit){}
@@ -9134,7 +9142,8 @@ async function init(){
     var _idbTs=Number(s&&s.__savedAt)||0;
     var _forceIdb=false;
     try{_forceIdb=sessionStorage.getItem("__forceIdbRestore")==="1";if(_forceIdb)sessionStorage.removeItem("__forceIdbRestore");}catch(_){}
-    var _useIdb=!!(s&&s.messages)&&(_forceIdb||_idbTs>=_ltTs);
+    /* 本次进入已经采用离站快照时，IndexedDB 只用来补图片，绝不再用它的旧 state 顶掉离站数据。 */
+    var _useIdb=!!(s&&s.messages)&&!window.__e11ForceExit&&(_forceIdb||_idbTs>=_ltTs);
     /* 一份时间戳更新但消息为空的存档，不能把本地还有聊天记录的老存档顶掉：
        这就是「退出再进/换设备后点聊天只剩一大块空白」最常见的原因。 */
     try{
