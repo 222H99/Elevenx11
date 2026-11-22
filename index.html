@@ -191,7 +191,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-22v43-86";
+window.__E11_BUILD="2026-11-22v43-87";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2488,7 +2488,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-22v43-86">
+<meta name="app-build" content="2026-11-22v43-87">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4172,6 +4172,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">存储桶<div class="set-sub">默认 vault；后端里要先建同名私有桶</div></span><input class="set-input" id="set-cloud-bucket" type="text" placeholder="vault" autocomplete="off" spellcheck="false" style="width:100px;font-size:13px;text-align:left;"></div>
         <div class="set-row"><button class="small-btn ghost" id="btn-cloud-test" style="font-size:12px;padding:6px 12px;">测试连接</button><span class="set-sub" id="cloud-test-sub" style="margin-left:10px;flex:1;">未测试</span></div>
         <div class="set-row"><span class="set-label">从云端恢复<div class="set-sub">不会自动覆盖本机；只有点这个按钮才拉取云端存档</div></span><button class="small-btn ghost" id="btn-cloud-pull" style="font-size:12px;padding:6px 12px;">恢复云端</button><span class="set-sub" id="cloud-pull-sub" style="margin-left:10px;flex:1;"></span></div>
+        <div class="set-row"><span class="set-label">深度恢复（云端 + 本机备份）<div class="set-sub">聊天、字卡、信件、留言、动态逐类找最多的一份合并；某项在云端被清零时，从本机自动备份补回</div></span><button class="small-btn ghost" id="btn-deep-restore" style="font-size:12px;padding:6px 12px;">深度恢复</button><span class="set-sub" id="deep-restore-sub" style="margin-left:10px;flex:1;"></span></div>
         <div class="set-row"><span class="set-label">保存并切换<div class="set-sub">会清掉本机登录态，聊天记录保留；切换后需要重新登录</div></span><button class="small-btn" id="btn-cloud-save" style="font-size:12px;padding:6px 12px;">保存并重启</button></div>
         <div class="set-row"><span class="set-label">恢复官方云端<div class="set-sub">回到内置 Supabase，登录态会清掉</div></span><button class="small-btn ghost" id="btn-cloud-reset" style="font-size:12px;padding:6px 12px;">恢复官方</button></div>
       </div>
@@ -4210,7 +4211,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-86</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-87</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -6435,6 +6436,53 @@ setTimeout(function(){
     },1800);
   }
   window.__E11Diag={merge:__e11MergeCloudFull,needsFull:__e11ManifestNeedsFull,profileScore:__e11ProfileScore,settingsScore:__e11SettingsScore,manifestOf:__e11ManifestOf,cloudGet:cloudGet,cloudWins:__e11CloudWins,setSession:function(s){session=s;}};
+  /* v43-87：云端某项被旧版重置清零后，单靠「恢复云端」救不回来。
+     这里把云端、本机当前档、核心档、离站档、3 份自动备份一起枚举，
+     按 id 合并每一类内容，取并集而不是让空数组覆盖。 */
+  window.__E11DeepRestore=function(){
+    var cands=[];
+    function add(name,st){if(st&&typeof st==="object"&&!Array.isArray(st))cands.push({name:name,st:st});}
+    try{var cur=window.__e11StateGet&&window.__e11StateGet();add("本机当前",cur);}catch(_){}
+    try{var c=JSON.parse(localStorage.getItem("e11.core.v1")||"null");if(c&&c.state)add("文字核心档",c.state);}catch(_){}
+    try{var e=JSON.parse(localStorage.getItem("e11.exit.v1")||"null");if(e&&e.state)add("离站快照",e.state);}catch(_){}
+    var localP=Promise.resolve([]);
+    try{
+      if(typeof __bkSlots==="function"&&typeof dbGet==="function"){
+        localP=Promise.all(__bkSlots().map(function(k){
+          return dbGet(k).then(function(v){return v&&v.state?v.state:null;}).catch(function(){return null;});
+        }));
+      }
+    }catch(_){}
+    var cloudP=(typeof authOk==="function"&&authOk())?cloudGet().catch(function(){return null;}):Promise.resolve(null);
+    return Promise.all([localP,cloudP]).then(function(res){
+      var backs=res[0]||[],cloud=res[1];
+      backs.forEach(function(st,i){add("自动备份"+(i+1),st);});
+      if(cloud&&cloud.state)add("云端完整档",cloud.state);
+      var cats=["messages","cards","letters","guestbook","moments","redpackets","musicPlaylist","emojis","partnerEmojis","groups","favorites"];
+      function score(st){var n=0;cats.forEach(function(k){if(Array.isArray(st[k]))n+=st[k].length;});return n;}
+      var base=null,best=-1;
+      cands.forEach(function(c){var sc=score(c.st);if(sc>best){best=sc;base=c.st;}});
+      if(!base)throw new Error("没有找到可恢复的存档");
+      try{base=JSON.parse(JSON.stringify(base));}catch(_){}
+      cands.forEach(function(c){
+        cats.forEach(function(k){
+          var a=Array.isArray(base[k])?base[k]:[],b=Array.isArray(c.st[k])?c.st[k]:[];
+          if(b.length)base[k]=__e11MergeList(a,b);
+        });
+      });
+      if(Array.isArray(base.messages))base.messages.sort(function(a,b){var ta=Number(a&&a.time)||0,tb=Number(b&&b.time)||0;return ta-tb;});
+      var before={};cats.forEach(function(k){before[k]=Array.isArray((window.__e11StateGet&&window.__e11StateGet()||{})[k])?window.__e11StateGet()[k].length:0;});
+      var after={};cats.forEach(function(k){after[k]=Array.isArray(base[k])?base[k].length:0;});
+      var total=after.messages+after.cards+after.letters+after.guestbook+after.moments;
+      if(!total)throw new Error("云端和本机备份里都没有内容");
+      base.__savedAt=Date.now();
+      try{localStorage.removeItem("e11.resetLocalOnly.v1");localStorage.removeItem("__e11HardReset");}catch(_){}
+      return applySnapshot({state:base,extras:{},coreOnly:0,deep:1},{reloading:false}).then(function(){
+        return {before:before,after:after,src:cands.map(function(c){return c.name;})};
+      });
+    });
+  };
+
   window.__E11Cloud={schedule:cloudSchedule,flush:function(){clearTimeout(cloudTimer);cloudSchedule();},recoveryGet:cloudGetRecovery,uploadNow:function(){
     if(window.__e11NoCloud)return Promise.reject(new Error("已关闭云端同步"));
     if(!authOk())return Promise.reject(new Error("未登录"));
@@ -14701,16 +14749,25 @@ async function __emojiCacheGet(id){
 async function __recoverEmojiFromCache(){
   var changed=false;
   try{
-    var lists=[[state.emojis||[],"me"],[state.partnerEmojis||[],"partner"]];
-    for(var li=0;li<lists.length;li++){
-      var arr=lists[li][0];
-      for(var i=0;i<arr.length;i++){
-        var e=arr[i];if(!e||!e.id)continue;
+    var jobs=[];
+    [[state.emojis||[],"me"],[state.partnerEmojis||[],"partner"]].forEach(function(pair){
+      var arr=pair[0];
+      (arr||[]).forEach(function(e){
+        if(!e||!e.id)return;
         var src=e.src||e.url||"";
-        if(__emojiSrcOk(src)&&!e.__missing)continue;
-        var v=await __emojiCacheGet(e.id);
-        if(v){e.src=v;delete e.__missing;try{window.__emojiValidCache[v]=1;}catch(_){};changed=true;}
-      }
+        if(__emojiSrcOk(src)&&!e.__missing)return;
+        jobs.push(e);
+      });
+    });
+    if(!jobs.length)return false;
+    /* 并发 6 张，别一张一张串行等 IndexedDB；以前 60 张失效图会把启动拖很久 */
+    for(var i=0;i<jobs.length;i+=6){
+      var batch=jobs.slice(i,i+6);
+      await Promise.all(batch.map(function(e){
+        return __emojiCacheGet(e.id).then(function(v){
+          if(v){e.src=v;delete e.__missing;try{window.__emojiValidCache[v]=1;}catch(_){};changed=true;}
+        }).catch(function(){});
+      }));
     }
   }catch(_){}
   if(changed){try{save();}catch(_){};try{
@@ -14739,8 +14796,8 @@ function __restoreEmojiItemFromDb(id,cb){
       try{window.__emojiValidCache[src]=1;}catch(_){}
       fin(true,src);
     }).catch(function(){fin(false);});
-    /* 手机上 IndexedDB 一次读 33 张会很慢，1.2 秒会把还读得回来的图全部判失败。 */
-    setTimeout(function(){fin(false);},8000);
+    /* 单张读库最多等 2.5 秒；以前 8 秒会让几十张失效图把“检查”拖到几分钟 */
+    setTimeout(function(){fin(false);},2500);
   }catch(_){fin(false);}
 }
 function __restoreEmojiItemsFromDb(cb){
@@ -16989,16 +17046,52 @@ function __pwaPaint(){
   }
   __pwaStoragePaint();
 }
+var __pwaPersistProbe={at:0,granted:false};
+async function __pwaAskPersist(request){
+  /* 只在用户点按钮时申请，不再每次打开设置都申请一次：iOS 上 persist() 必然被拒，
+     反复调用既开不了，又会让设置页卡住。 */
+  var now=Date.now();
+  if(!request&&__pwaPersistProbe.at&&now-__pwaPersistProbe.at<60000)return __pwaPersistProbe.granted;
+  var granted=false;
+  try{if(navigator.storage&&navigator.storage.persisted)granted=!!(await navigator.storage.persisted());}catch(_){}
+  if(granted){__pwaPersistProbe={at:now,granted:true};return true;}
+  if(!request){__pwaPersistProbe={at:now,granted:false};return false;}
+  /* iOS Safari / 主屏幕 Web App 不提供网页可申请的持久存储权限，直接说明，不做无用的失败请求 */
+  if(__pwaIsIOS()){__pwaPersistProbe={at:now,granted:false};return false;}
+  try{if(navigator.storage&&navigator.storage.persist)granted=!!(await navigator.storage.persist());}catch(_){}
+  if(granted){__pwaPersistProbe={at:now,granted:true};return true;}
+  try{
+    if(navigator.webkitPersistentStorage&&navigator.webkitPersistentStorage.requestQuota){
+      granted=await new Promise(function(res){
+        try{navigator.webkitPersistentStorage.requestQuota(50*1024*1024,function(q){res(Number(q)>0);},function(){res(false);});}catch(_){res(false);}
+      });
+    }
+  }catch(_){}
+  __pwaPersistProbe={at:now,granted:!!granted};
+  return !!granted;
+}
 async function __pwaStoragePaint(request){
   var el=document.getElementById("pwa-store-state");
   if(!el)return null;
-  try{
-    if(!navigator.storage||!navigator.storage.persist){el.textContent="此浏览器不支持永久存储；请少清缓存并定期导出备份";return false;}
-    var granted=await navigator.storage.persisted();
-    if(!granted&&request)granted=await navigator.storage.persist();
-    el.textContent=granted?"已开启永久存储：系统空间紧张时不会优先清掉表情和图片":"未开启永久存储：系统空间紧张时可能回收图片；点右侧「申请」";
-    return granted;
-  }catch(_){el.textContent="永久存储状态读取失败";return false;}
+  var btn=document.getElementById("btn-pwa-persist");
+  var granted=false;
+  try{granted=await __pwaAskPersist(!!request);}catch(_){}
+  if(granted){
+    el.textContent="已开启永久存储：系统空间紧张时不会优先清掉表情和图片";
+    if(btn)btn.textContent="已开启";
+    return true;
+  }
+  if(__pwaIsIOS()){
+    if(btn)btn.textContent="说明";
+    el.textContent=__pwaStandalone()
+      ?"iOS 由系统管理存储，网页不能手动申请永久存储；从桌面图标运行不会被 7 天不打开清理。只要不删除图标/不卸载，数据会保留；建议定期导出备份。"
+      :"iOS 网页不能申请永久存储。先「添加到主屏幕」再从图标打开，系统就不会按 7 天不打开清理；建议定期导出备份。";
+    return false;
+  }
+  if(btn)btn.textContent="申请";
+  if(!navigator.storage||(!navigator.storage.persist&&!(navigator.webkitPersistentStorage&&navigator.webkitPersistentStorage.requestQuota)))el.textContent="此浏览器不支持永久存储；请少清缓存并定期导出备份";
+  else el.textContent="系统没有批准永久存储：可在浏览器站点设置里允许“持久存储”，或定期导出备份";
+  return false;
 }
 async function __pwaStorageUsage(){
   try{
@@ -17019,32 +17112,53 @@ function __pwaEmojiCounts(){
   return {total:total,bad:bad};
 }
 async function __pwaEmojiHealth(silent){
-  var el=document.getElementById("pwa-emoji-state"),before=__pwaEmojiCounts(),changed=false;
-  if(el)el.textContent="正在检查 "+before.total+" 张表情…";
+  var el=document.getElementById("pwa-emoji-state");
+  var before=__pwaEmojiCounts(),changed=false;
+  function tick(ms){return new Promise(function(res){setTimeout(res,ms||0);});}
+  function paintCount(txt){if(el)el.textContent=txt;}
+  if(el)paintCount("正在检查 "+before.total+" 张表情…");
+  await tick(0);
   try{__emojiNormalizeList(state.emojis||[]);__emojiNormalizeList(state.partnerEmojis||[]);}catch(_){}
   try{if(__restoreEmojiLibFromBackup())changed=true;}catch(_){}
   try{if(__repairEmojiState())changed=true;}catch(_){}
+  await tick(0);
+  /* 启动/云端恢复后的自动检查只做“轻量计数”，绝不逐张读 IndexedDB。
+     60 张图逐张读库、每张还可能等 8 秒超时，是“检查表情包很慢”的主要原因。
+     真正补图放到用户点「检查」时再做。 */
+  var mid=__pwaEmojiCounts();
+  if(silent){
+    paintCount(mid.bad?("共 "+mid.total+" 张，有 "+mid.bad+" 张待补；点右侧「检查」可尝试补回"):("共 "+mid.total+" 张，全部正常"));
+    return {before:before,after:mid,changed:changed};
+  }
   await new Promise(function(res){
     try{if(typeof __restoreEmojiItemsFromDb==="function")__restoreEmojiItemsFromDb(function(c){changed=changed||!!c;res();});else res();}catch(_){res();}
   });
-  try{
-    if(typeof __recoverMediaFromBackups==="function"){
-      var c=await __recoverMediaFromBackups();changed=changed||!!c;
-    }
-  }catch(_){}
-  try{
-    if(typeof __recoverEmojiFromCache==="function"){
-      var c2=await __recoverEmojiFromCache();changed=changed||!!c2;
-    }
-  }catch(_){}
-  try{__repairEmojiState();}catch(_){}
+  mid=__pwaEmojiCounts();
+  if(mid.bad){
+    paintCount("正在从自动备份补回 "+mid.bad+" 张失效表情…");
+    await tick(80);
+    try{
+      if(typeof __recoverMediaFromBackups==="function"){
+        var c=await __recoverMediaFromBackups();changed=changed||!!c;
+      }
+    }catch(_){}
+    await tick(0);
+    paintCount("正在从本机缓存补回…");
+    try{
+      if(typeof __recoverEmojiFromCache==="function"){
+        var c2=await __recoverEmojiFromCache();changed=changed||!!c2;
+      }
+    }catch(_){}
+    try{__repairEmojiState();}catch(_){}
+  }
   try{
     var gg=document.getElementById("emoji-grid");if(gg)gg.dataset.epSig="";
     if(document.getElementById("emoji-panel")&&document.getElementById("emoji-panel").classList.contains("open"))renderEmojis();
     var vc=document.getElementById("view-chat");if(vc&&vc.classList.contains("open"))renderChat(true);
   }catch(_){}
   var after=__pwaEmojiCounts();
-  if(el)el.textContent=after.bad?("共 "+after.total+" 张，仍有 "+after.bad+" 张失效：可删除后重新导入，或先导出备份"):("共 "+after.total+" 张，全部正常"+(changed?"（已自动补回）":""));
+  if(after.bad)paintCount("共 "+after.total+" 张，仍有 "+after.bad+" 张失效：可删除后重新导入，或先导出备份");
+  else paintCount("共 "+after.total+" 张，全部正常"+(changed?"（已自动补回）":""));
   if(!silent)try{toast(after.bad?("检查完成，还有 "+after.bad+" 张失效"):("表情图全部正常"+(changed?"，已补回失效图":"")));}catch(_){}
   return {before:before,after:after,changed:changed};
 }
@@ -17067,7 +17181,9 @@ try{
   if(document.getElementById("btn-pwa-persist"))document.getElementById("btn-pwa-persist").addEventListener("click",async function(){
     var ok=await __pwaStoragePaint(true);
     var u=await __pwaStorageUsage();
-    toast(ok?"永久存储已开启":("永久存储没有开启"+(u?("；已用 "+(u.usage/1048576).toFixed(1)+" MB"):"")));
+    if(ok)toast("永久存储已开启");
+    else if(__pwaIsIOS())toast("iOS 不支持网页申请永久存储；从桌面图标打开不会被 7 天清理，建议定期导出备份");
+    else toast("永久存储没有开启"+(u?("；已用 "+(u.usage/1048576).toFixed(1)+" MB"):""));
   });
   if(document.getElementById("btn-pwa-emoji-check"))document.getElementById("btn-pwa-emoji-check").addEventListener("click",function(){__pwaEmojiHealth(false);});
   window.addEventListener("e11-install-ready",__pwaPaint);
@@ -30869,9 +30985,26 @@ body{margin:0;background:var(--bg,#fafafa);}
       try{
         var r=window.__E11CloudPull?await window.__E11CloudPull(true):false;
         if(r===1){try{localStorage.removeItem("e11.resetLocalOnly.v1");}catch(_){}
-          if(st)st.textContent="已恢复";toast("已从云端恢复");}
+          if(st)st.textContent="已恢复";
+          var _cc=window.__e11StateGet&&window.__e11StateGet();
+          var _cs=_cc?("聊天 "+( _cc.messages||[]).length+" 条 · 字卡 "+( _cc.cards||[]).length+" 张 · 信件 "+( _cc.letters||[]).length+" 封 · 留言 "+( _cc.guestbook||[]).length+" 条 · 动态 "+( _cc.moments||[]).length+" 条"):"";
+          toast("已从云端恢复"+( _cs?("： "+_cs):""));}
         else{if(st)st.textContent="云端没有可恢复的存档";toast("云端没有可恢复的存档");}
       }catch(e){if(st)st.textContent="恢复失败";toast("云端恢复失败："+String(e&&e.message||e).slice(0,100));}
+      b.disabled=false;
+    });
+    if($("btn-deep-restore"))$("btn-deep-restore").addEventListener("click",async function(){
+      if(!(await __iosConfirm("深度恢复会把云端、本机当前档和 3 份自动备份里的聊天、字卡、信件、留言、动态按 id 合并，只补不回删。继续？",{okText:"深度恢复"})))return;
+      var b=this,st=$("deep-restore-sub");b.disabled=true;if(st)st.textContent="正在汇总云端和本机备份…";
+      try{
+        var r=await window.__E11DeepRestore();
+        if(st)st.textContent="已恢复";
+        try{toast("深度恢复完成：聊天 "+r.after.messages+" 条 · 字卡 "+r.after.cards+" 张 · 信件 "+r.after.letters+" 封 · 留言 "+r.after.guestbook+" 条 · 动态 "+r.after.moments+" 条");}catch(_){}
+        setTimeout(function(){location.reload();},900);
+      }catch(e){
+        if(st)st.textContent="没有可恢复的内容";
+        toast("深度恢复失败："+String(e&&e.message||e).slice(0,100));
+      }
       b.disabled=false;
     });
     if($("btn-cloud-save"))$("btn-cloud-save").addEventListener("click",function(){
