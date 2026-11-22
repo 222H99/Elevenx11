@@ -191,7 +191,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-22v43-102";
+window.__E11_BUILD="2026-11-22v43-103";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2490,7 +2490,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-22v43-102">
+<meta name="app-build" content="2026-11-22v43-103">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4213,7 +4213,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-102</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-103</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5556,7 +5556,7 @@ setTimeout(function(){
   }
   function showLoginCard(){
     try{window.__veilDone&&window.__veilDone();}catch(_e){}
-    try{var _ab=document.getElementById("about-screen");if(_ab)_ab.classList.remove("show");}catch(_eA){}
+    /* v43-103：声明页是固定第一层，登录卡不得把它撤掉（否则用户只看到锁屏/白屏）。 */
     if(waitCard)waitCard.style.display="none";
     if(pwdCard)pwdCard.classList.remove("show");
     if(card)card.style.display="block";
@@ -5587,7 +5587,7 @@ setTimeout(function(){
     }
   }catch(_eCheck){}
   try{window.__veilDone&&window.__veilDone();}catch(_e){}
-  try{var _ab=document.getElementById("about-screen");if(_ab)_ab.classList.remove("show");}catch(_eA){}
+  /* v43-103：本地/免登录路径曾经在这里把声明页移除，导致开屏直接锁屏或白屏；声明页必须保留。 */
   try{var _ae=document.activeElement;if(_ae&&(_ae.tagName==="INPUT"||_ae.tagName==="TEXTAREA"||_ae.tagName==="SELECT"||_ae.isContentEditable))_ae.blur();}catch(_e0){};if(gate)gate.classList.remove("show");bodyLock(false);
   /* 真正进入账号空间后才定最终主题：登录/读云端之前一直沿用第一帧的明暗，
      否则默认浅色存档会先把夜间页面刷白，再跳回黑色。 */
@@ -5600,7 +5600,7 @@ setTimeout(function(){
     if(_cs)_cs.textContent=(window.__e11PwdMode==="change"?"进站密码固定为 6 位，不在页面明文显示。":"请输入固定的 6 位进站密码。");
     if(_cb)_cb.textContent=(window.__e11PwdMode==="change"?"保存新密码":"保存并进入");
     try{window.__veilDone&&window.__veilDone();}catch(_e){}
-    try{var _ab=document.getElementById("about-screen");if(_ab)_ab.classList.remove("show");}catch(_eA){}
+    /* v43-103：密码卡不得撤声明页。 */
     if(card)card.style.display="none";
     if(waitCard)waitCard.style.display="none";
     if(pwdCard)pwdCard.classList.add("show");
@@ -5686,6 +5686,7 @@ setTimeout(function(){
     });
   }
   function cloudUrl(){return "/storage/v1/object/"+encodeURIComponent(cfg.bucket)+"/"+encodeURIComponent(session.user.id)+"/latest.json";}
+  function cloudFullUrl(){return "/storage/v1/object/"+encodeURIComponent(cfg.bucket)+"/"+encodeURIComponent(session.user.id)+"/latest.full.json";}
   function cloudManifestUrl(){return "/storage/v1/object/"+encodeURIComponent(cfg.bucket)+"/"+encodeURIComponent(session.user.id)+"/latest.manifest.json";}
   /* 完整档自己的固定指纹：只由「完整档」更新，不会被设备把 latest 写小时的半完整指纹覆盖。
      这样即使 latest.manifest 被旧版写成 866 张卡、9 首歌，启动时仍知道完整档有 934 张卡、11 首歌。 */
@@ -5794,7 +5795,8 @@ setTimeout(function(){
   }
   function cloudBackupGet(){
     var url="/storage/v1/object/"+encodeURIComponent(cfg.bucket)+"/"+encodeURIComponent(session.user.id)+"/latest.full.json";
-    return api(url,{token:session.access_token,timeout:12000}).catch(function(){return null;});
+    /* 完整档通常 2–4MB，手机 4G 下 12 秒会超时，表现为“恢复不全”；给到 45 秒。 */
+    return api(url,{token:session.access_token,timeout:45000}).catch(function(){return null;});
   }
   function __e11MergeProfile(base,add){
     var b=base||{},a=add||{},d=__e11DefaultProfile();
@@ -5949,6 +5951,32 @@ setTimeout(function(){
     out.exportedAt=latest.exportedAt||full.exportedAt||new Date().toISOString();
     return out;
   }
+  /* v43-103：文字核心档超过 0.9MB 时，额外把带图的完整档写到 latest.full.json。
+     以前只写 latest.json 且 coreOnly=1，换设备/重装主屏只能拿到文字，头像照片表情全缺。 */
+  function putVaultFull(payload){
+    try{
+      if(!cfgReady()||!authOk()||!session||!session.access_token)return Promise.reject(new Error("未登录"));
+      var url=cfg.url+cloudFullUrl();
+      var headers={"apikey":cfg.key,"Authorization":"Bearer "+session.access_token,"Content-Type":"application/json","x-upsert":"true","cache-control":"no-cache"};
+      var ctrl=null,timer=null;
+      try{if(typeof AbortController!=="undefined"){ctrl=new AbortController();timer=setTimeout(function(){try{ctrl.abort();}catch(_){}},45000);}}catch(_){}
+      return fetch(url,{method:"POST",headers:headers,body:JSON.stringify(payload),cache:"no-store",signal:ctrl?ctrl.signal:undefined}).then(function(r){
+        if(timer){clearTimeout(timer);timer=null;}
+        return r.text().then(function(t){
+          var d=null;try{d=t?JSON.parse(t):null;}catch(_){d=t;}
+          if(!r.ok){var e=new Error((d&&(d.message||d.error))||("HTTP "+r.status));e.status=r.status;throw e;}
+          try{cloudFullManifestPut(payload);}catch(_){}
+          try{window.__e11CloudFullAt=Date.now();window.__e11CloudFullOk=1;}catch(_){}
+          window.__e11CloudStatus="完整档已同步";chipSync();
+          return d;
+        });
+      }).catch(function(e){
+        if(timer){clearTimeout(timer);timer=null;}
+        try{window.__e11CloudFullOk=0;window.__e11CloudFullErr=String(e&&e.message||e);}catch(_){}
+        throw e;
+      });
+    }catch(e){return Promise.reject(e);}
+  }
   function cloudGet(opt){
     var _fresh=!!(opt&&opt.fresh);
     var uid=(session&&session.user&&session.user.id)||"";
@@ -5963,6 +5991,8 @@ setTimeout(function(){
     /* 全新设备不用先等两个 manifest 再下正文：正文和 manifest 同时发出去，
        网络总耗时基本等于下载 latest.json 本身，恢复更快；manifest 仍用来核对完整性。 */
     var latestP=_fresh?getLatest():null;
+    /* 全新设备：latest 与 full 并行下，恢复更快；full 有则直接合并，没有就只用 latest。 */
+    var fullP=_fresh?cloudBackupGet():null;
     var manP=cloudManifestGet();
     var p=manP.then(function(man){
       var _fast=__e11CloudFastLocal(uid,man);
@@ -5974,7 +6004,10 @@ setTimeout(function(){
          - 最新档少任何一块：拉 latest.full.json 做全量并集，不再“看起来有 500 条就以为完整”。 */
         var st=d&&d.state;
         var need=false;
-        if(man&&man.counts)need=__e11ManifestNeedsFull(st,man);
+        /* v43-103：核心档本身就是“只带文字”的标记，必须再拉完整档，
+           否则换设备后头像/照片/表情/封面缺失，用户看到的就是“没同步全部数据”。 */
+        if(st&&(st.coreOnly||d.coreOnly))need=true;
+        else if(man&&man.counts)need=__e11ManifestNeedsFull(st,man);
         else if(_fresh){
           /* 没拿到指纹时，只有“正文明显不像一份真实存档”才去拉完整档；
              正常的大档直接用，少下 2.7MB。 */
@@ -5993,7 +6026,7 @@ setTimeout(function(){
           }catch(_){}
         }
         if(!need)return d;
-        return cloudBackupGet().then(function(full){
+        return (fullP||cloudBackupGet()).then(function(full){
           if(full&&full.state&&Array.isArray(full.state.messages)&&full.state.messages.length){
             var merged=__e11MergeCloudFull(full,d);note(merged);
             /* 合并后的这份就是完整档：把完整指纹抬到真实数量，下次启动就不用再下 5MB。 */
@@ -6396,7 +6429,7 @@ setTimeout(function(){
       try{localStorage.setItem(k,extras[k]);}catch(e){}
     });
     var __lsOk=false;
-    try{localStorage.setItem("privateChat",JSON.stringify(st));__lsOk=true;}catch(e){}
+    try{localStorage.setItem("privateChat",JSON.stringify({__idbOnly:1,__savedAt:Number(st&&st.__savedAt)||Date.now()}));__lsOk=true;}catch(e){}
     /* localStorage 满/被禁时，3MB 云端档写不进去，刷新又会读回空白，表现就是“恢复好几次还全没了”。
        这里必须同步落一份完整 state 到 IndexedDB，再允许 reload；IDB 容量比 localStorage 大得多。 */
     if(!__lsOk){
@@ -6483,22 +6516,29 @@ setTimeout(function(){
       if(!authOk()||window.__e11CloudPause||window.__restoring||window.__e11CloudHold)return;
       var _rev=Number(window.__chatRev)||0;
       if(!_hardReset&&!_importUpload&&_rev&&_rev===Number(lastCloudRev||0))return;
-      var snap;
+      var snap,_full=null,_fullTxt="";
       try{snap=snapshot();}catch(e){return;}
       var txt;try{txt=JSON.stringify(snap);}catch(e){return;}
       /* v43-79：整库带图超过约 0.9MB 时，Supabase 会拒收/超时，表现为“同步失败”。
-         超限就改传“文字核心档”，至少聊天/字卡/动态/设置能同步成功；图片留在本机。 */
+         超限就改传“文字核心档”，同时把带图完整档另写 latest.full.json，云端不再缺图。 */
       if(txt.length>900000){
         try{
-          snap.state=__e11TextCore(snap.state);snap.coreOnly=1;
+          _full=snap;_fullTxt=txt;
+          var _coreEnv={};try{for(var _ck in _full)_coreEnv[_ck]=_full[_ck];}catch(_){}
+          snap=_coreEnv;
+          snap.state=__e11TextCore(_full.state);snap.coreOnly=1;
           snap.savedAt=Date.now();snap.state.__savedAt=snap.savedAt;
           txt=JSON.stringify(snap);
-        }catch(_eCoreCloud){}
+        }catch(_eCoreCloud){_full=null;}
       }
-      if(txt===lastCloudHash)return;
+      if(txt===lastCloudHash&&(!_full||_fullTxt===window.__e11LastFullHash))return;
       window.__e11CloudStatus="同步中";chipSync();
       putVault(snap).then(function(){
-        try{cloudFullManifestPut(snap);}catch(_){}
+        /* 核心档成功后，后台传完整档；不阻塞聊天和页面。 */
+        if(_full){
+          window.__e11LastFullHash=_fullTxt;
+          putVaultFull(_full).catch(function(e){try{console.warn("[e11 full]",e&&e.message||e);}catch(_){}});
+        }
         lastCloudHash=txt;lastCloudRev=_rev;window.__e11CloudStatus="已同步";chipSync();
         try{
           if(_hardReset)localStorage.removeItem("__e11HardReset");
@@ -6610,6 +6650,15 @@ setTimeout(function(){
   var __e11PullBusy=0;
   function pullCloudIfNewer(force){
     if(window.__e11NoCloud)return Promise.resolve(-2);
+    /* v43-103：声明页还盖着时先不拉云端（2–4MB 的下载和解析会把主线程占住，
+       用户表现为“同意也点不动、密码也输不了”）。点了同意/进入后再拉。 */
+    try{
+      var _abP=document.getElementById("about-screen");
+      if(!force&&!window.__aboutDone&&_abP&&_abP.classList.contains("show")){
+        window.__e11PullAfterAbout=1;return Promise.resolve(false);
+      }
+    }catch(_){}
+
     /* 一键重置后云端已清空，但上传可能因为断网没成功：先不要拉旧档；
        导入后同理，先让本机导入版上传，避免被云端更旧的完整档压回去。 */
     try{
@@ -7269,12 +7318,14 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-22",
   noticeKey:null,
-  lead:"v43-102：声明页和密码页每次打开都恢复显示；图片不再挤占本地空间，卡顿和存储提示一起处理。",
+  lead:"v43-103：启动和退出不再读写 2MB 级本地大档，正文统一存 IndexedDB；声明页/密码页真正可点，顶栏白天白、夜间黑。",
   items:[
-    "声明页和密码页固定每次打开都出现：点过「同意并进入」、输对密码后才进入本次页面；关掉网页或重新打开会再次出现。",
-    "一键重置后一定重新输密码，从云端恢复回来的“已解锁”状态也不会绕过。",
-    "本地存储减负：不再把大图备份塞进 localStorage，文字和设置照常保存，减少“空间不足/图片存不下”的提示和卡顿。",
-    "文件里不再出现云端密码明文，只保留校验指纹。"
+    "声明页按钮第一帧就能点，不再等数据库；同意后直接出密码页，密码框不会被登录卡盖住。",
+    "正文、字卡、信件、留言、动态、图片全部以 IndexedDB 为主库，不再每次改动同步序列化 2MB 到 localStorage。",
+    "启动只读 IndexedDB，退出不再写大快照，黑屏和退出卡顿一起缩短。",
+    "顶栏和状态栏固定跟随 App 主题：白天纯白、夜间纯黑。",
+    "换设备/重装后先拉完整 cloud 档，再补图片和表情，恢复后逐项核对条数；导入备份、自动备份都按全量恢复。",
+    "一键重置后重新走声明页并重新输密码；文件里没有密码明文，只保留校验指纹。"
   ],
   foot:"有问题或建议：小红书 @Eleven_（ID：5609831119）。"
 };
@@ -7335,6 +7386,7 @@ function __entryStart(){
 /* 密码通过之后：先弹未读公告，关掉再进主页；没有公告就直接进 */
 function __entryHome(){
   /* 进入主页时声明页必须已经退场；即便 ack 判断出错，也不能让它继续盖住主页/设置 */
+  try{window.__aboutDone=1;}catch(_){}
   try{var _abH=document.getElementById("about-screen");if(_abH)_abH.classList.remove("show");}catch(_eAbH){}
   /* v43-98：恢复完成进主页时，必须同时撤掉“正在恢复”的登录/等待层，
      否则数据已经在下面了，用户看到的还是那层恢复提示。 */
@@ -7871,7 +7923,7 @@ function __bkPaint(){
           try{__bkApplyGlobals(v.globals||v.global||{},_rstTs);}catch(_){}
           try{window.__restoring=1;}catch(_){}
           return dbSet("state",st).then(function(){
-            try{localStorage.setItem("privateChat",JSON.stringify(st));}catch(_){try{localStorage.removeItem("privateChat");}catch(__){}}
+            try{localStorage.setItem("privateChat",JSON.stringify({__idbOnly:1,__savedAt:Number(st&&st.__savedAt)||Date.now()}));}catch(_){}
             try{if(window.__e11ExitSave)window.__e11ExitSave(st);}catch(_eExitRst){}
             try{sessionStorage.setItem("__forceIdbRestore","1");}catch(_){}
             toast("已恢复，正在重新打开…");
@@ -8201,6 +8253,9 @@ function __e11CorePack(st){
   return core;
 }
 function __e11CoreWrite(st,force){
+  /* v43-103：主库存 IndexedDB 后，不再每次改动都往 localStorage 同步写一份文字大档。
+     旧文字档只作为首次升级/IDB 读不到时的回退，不再参与日常写盘。 */
+  return false;
   try{
     /* 一键重置/恢复期间绝不能再把旧状态写回核心档 */
     if(window.__restoring&&!force)return false;
@@ -8232,6 +8287,9 @@ function __e11ExitGlobals(){
   return out;
 }
 function __e11ExitSave(st){
+  /* v43-103：退出不再同步序列化整份文字档写 localStorage。
+     退出/切后台只留一个很小的指针，正文早已在 IndexedDB；退出黑屏因此消失。 */
+  return false;
   try{
     if(window.__restoring)return false;
     var src=st||(typeof state!=="undefined"?state:null);
@@ -8272,7 +8330,7 @@ try{
       var _rv=Number(window.__chatRev)||0;
       if(_rv===__e11ExitLastRev)return;
       __e11ExitLastRev=_rv;
-      __e11ExitSave(state);
+      /* v43-103：不再每 10 秒写 localStorage 大档；落盘由 __flushSave 写 IndexedDB 负责。 */
     }catch(_){}
   },10000);
 }catch(_){}
@@ -8698,18 +8756,17 @@ window.__e11PersistNow=function(){
 };
 (function(){
   function flushAll(){
-    /* 先提交设置页里还没失焦的输入，再 save() 打上设置/皮肤时间戳，最后写偏好和备份；
-       顺序反了会把旧值写进备份，更新后被云端旧档盖回默认。 */
+    /* v43-103：退出/切后台只做一次同步的文字离站快照。
+       以前这里 save + 偏好 + 设置 + 离站 + 表情 + emergency + 整库 IDB + 整库备份，
+       2MB 级数据要序列化 5～6 遍，真机退出就是几秒黑屏。图片/大库早就由节流写盘负责，
+       退出不需要再整库重写。 */
     try{if(window.__commitSettingsActive)window.__commitSettingsActive();}catch(e){}
-    try{if(typeof save==="function")save();}catch(e){}
-    try{__prefSave();}catch(e){}
-    try{if(window.__settingsBackup)window.__settingsBackup(true);}catch(e){}
-    /* 离站快照先同步落盘，后面 IndexedDB 写不完也不影响下次进入。 */
-    try{if(window.__e11ExitSave)window.__e11ExitSave();}catch(e){}
-    try{if(window.__e11BeautySave)window.__e11BeautySave(state,true);}catch(e){}
-    try{__emergencySnapshot();}catch(e){}
-    try{__flushSave(true);}catch(e){}
-    try{if(window.__bkSaveNow)window.__bkSaveNow();}catch(e){}
+    try{
+      window.__e11ExitFast=1;
+      if(window.__e11ExitSave)window.__e11ExitSave(state);
+      else __e11ExitSave(state);
+      try{localStorage.setItem("privateChat",JSON.stringify({__idbOnly:1,__savedAt:Number(state&&state.__savedAt)||Date.now()}));}catch(_){}
+    }catch(e){}finally{window.__e11ExitFast=0;}
   }
   try{document.addEventListener("visibilitychange",function(){if(document.visibilityState==="hidden")flushAll();});}catch(e){}
   try{window.addEventListener("pagehide",flushAll);}catch(e){}
@@ -9081,51 +9138,9 @@ function __healState(){
 }
 async function init(){
   aboutLoadStatus("正在读取本地记录…");
-  try{const l=localStorage.getItem("privateChat");if(l)state=migrate(JSON.parse(l));}catch(_){}
-  /* v43-79：优先比对“文字核心档”。主档因空间不足写失败/只剩 idb-only 标记时，
-     核心档才是最后一次退出前的文字和设置。 */
-  try{
-    var _core0=__e11CoreRead();
-    if(_core0&&_core0.state){
-      var _curTs0=Number(state&&state.__savedAt)||0;
-      if(_core0.ts>_curTs0||!state||!state.messages||!state.messages.length){
-        var _old0=state;
-        state=migrate(_core0.state);
-        try{if(_old0)__mergeMediaSnapshots(state,_old0);}catch(_eCoreMedia0){}
-        window.__e11CoreUsed=1;
-      }
-    }
-  }catch(_eCoreInit){}
-  /* 下次进入：离开网站前写下的那份快照只要更新，就先用它。 */
-  try{
-    var _exit0=__e11ExitRead();
-    if(_exit0&&_exit0.state){
-      var _curTsEx=Number(state&&state.__savedAt)||0;
-      var _oldEx=state;
-      var _exHas=!!((_exit0.state.messages&&_exit0.state.messages.length)||(_exit0.state.cards&&_exit0.state.cards.length)||(_exit0.state.moments&&_exit0.state.moments.length)||(_exit0.state.letters&&_exit0.state.letters.length));
-      var _curHas=!!(_oldEx&&((_oldEx.messages&&_oldEx.messages.length)||(_oldEx.cards&&_oldEx.cards.length)||(_oldEx.moments&&_oldEx.moments.length)||(_oldEx.letters&&_oldEx.letters.length)));
-      /* v43-84：只要离站快照有内容，就按“下次进入拉取离站备份”的约定直接用它。
-         不再拿时间戳跟主档比，避免主档写盘失败/时间戳被刷新后又被旧档顶掉。 */
-      if(_exHas||!_curHas){
-        state=migrate(_exit0.state);
-        try{if(_oldEx)__mergeMediaSnapshots(state,_oldEx);}catch(_eExitMedia){}
-        try{__bkApplyGlobals(_exit0.globals||{},_exit0.ts);}catch(_eExitGlobals){}
-        window.__e11ExitUsed=1;window.__e11ForceExit=1;
-        try{window.__e11CloudStatus="离站备份";}catch(_eExitStatus){}
-      }else{
-        /* 离站快照只有设置没有内容时，只套小键，不破坏现有聊天。 */
-        try{__bkApplyGlobals(_exit0.globals||{},_exit0.ts);}catch(_eExitGlobals2){}
-      }
-    }
-  }catch(_eExitInit){}
-  /* 刷新瞬间 localStorage 可能已满，快照写在 sessionStorage 里；只要它比本地主档新，就先用它 */
-  try{
-    var _emRaw=sessionStorage.getItem("privateChat__emergency");
-    if(_emRaw){
-      var _emState=migrate(JSON.parse(_emRaw));
-      if(_emState&&_emState.messages&&(Number(_emState.__savedAt)||0)>(Number(state&&state.__savedAt)||0))state=_emState;
-    }
-  }catch(_){}
+  /* v43-103：启动不再同步读取 2MB 级 localStorage 文字档/离站档。
+     以前开屏要先 JSON.parse 三份大档，真机主线程被占住，表现就是黑屏很久、点不动。
+     现在只读 IndexedDB 主库；只有 IDB 整库缺失时，才回退读一次旧文字档做迁移。 */
   /* 旧存档里若有网易云签名播放地址，清掉（只允许存在内存里） */
   try{
     var _pl0=(state&&state.musicPlaylist)||[];
@@ -9167,6 +9182,14 @@ async function init(){
     try{dbGet("emojiLib").then(function(b){if(b)window.__emojiLibDb=b;}).catch(function(){});}catch(_eEmojiDb){}
     aboutLoadStatus("正在同步聊天记录…");
     var s=await dbGet("state");
+    /* v43-103：IDB 是唯一主路径；只有整库完全读不到时，才回退旧文字档/离站档，
+       避免老设备首次升级丢数据，也不让正常启动再付一次大档解析成本。 */
+    if((!s||!s.messages||s.messages.length<2)&&(!state||!state.messages||state.messages.length<2)){
+      try{var _c0=__e11CoreRead();if(_c0&&_c0.state)state=migrate(_c0.state),window.__e11CoreUsed=1;}catch(_cF0){}
+      try{var _e0=__e11ExitRead();if(_e0&&_e0.state){state=migrate(_e0.state);__bkApplyGlobals(_e0.globals||{},_e0.ts);window.__e11ExitUsed=1;window.__e11ForceExit=1;}}catch(_eF1){}
+      try{var _em0=sessionStorage.getItem("privateChat__emergency");if(_em0)state=migrate(JSON.parse(_em0));}catch(_eF2){}
+      try{var _pm0=localStorage.getItem("privateChat");if(_pm0){var _po0=JSON.parse(_pm0);if(_po0&&!_po0.__idbOnly)state=migrate(_po0);}}catch(_eF3){}
+    }
     /* P0：把写盘时替换出去的大图引用换回真图，之后的 migrate/render 看到的仍是完整 state。
        本机 localStorage 已经有一份更新的完整档时，先不 hydrate IndexedDB 那份，省掉一次全库换图。 */
     try{
@@ -9207,9 +9230,17 @@ async function init(){
       try{state=await __hydrateBig(state);}catch(_eH2){}
       try{__restoreEmojiLibFromBackup();}catch(_eEmojiLib0){}
       /* 不等用户点开面板：启动时就把每张表情的独立副本小批量贴回来 */
-      try{setTimeout(function(){try{__restoreEmojiItemsFromDb(function(ch){if(ch){try{renderEmojis();}catch(_){}}});}catch(_){}},900);}catch(_){}
+      try{setTimeout(function(){try{if(!window.__aboutDone)return;__restoreEmojiItemsFromDb(function(ch){if(ch){try{renderEmojis();}catch(_){}}});}catch(_){}},9000);}catch(_){}
     }
     var _sameSnap=_useIdb&&_ltTs>0&&_idbTs===_ltTs;
+    /* v43-103：确认 IndexedDB 主库可用后，清掉旧版留下的 1–2MB 文字大档，
+       释放 localStorage 配额；以后正文只走 IndexedDB。 */
+    if(_useIdb){
+      try{localStorage.removeItem("e11.core.v1");}catch(_p1){}
+      try{localStorage.removeItem("e11.exit.v1");}catch(_p2){}
+      try{sessionStorage.removeItem("privateChat__emergency");}catch(_p3){}
+      try{sessionStorage.removeItem("bigPending__emergency");}catch(_p4){}
+    }
     /* v43-82：用的是核心/文字档时，也要把 IndexedDB 里的图片、表情补回来。 */
     if(s&&!_useIdb){try{__mergeMediaSnapshots(state,s);}catch(_eCoreMediaDb){}}
     if(s&&s.messages&&!_useIdb){try{dbSet("state",state).catch(function(){});}catch(e){}}
@@ -9272,7 +9303,7 @@ async function init(){
             return dbSet(x[0],x[1]).then(function(){try{window.__bigStore.stored.add(x[2]);}catch(_e){};}).catch(function(){});
           })):Promise.resolve();
           _recW.then(function(){return dbSet("state",_recPack.slim);}).catch(function(){});
-          try{localStorage.setItem("privateChat",JSON.stringify(_recPack.slim));}catch(_eR2){}
+          try{localStorage.setItem("privateChat",JSON.stringify({__idbOnly:1,__savedAt:Number(state&&state.__savedAt)||Date.now()}));}catch(_eR2){}
         }catch(_eR){}
       }
       try{__backfillEmojiMessageIds();}catch(_eBf2){}
@@ -9725,13 +9756,8 @@ function __syncSysBar(){
     var tcs=document.querySelectorAll('meta[name="theme-color"]');
     /* 顶栏颜色真正跟 App 顶部导航栏一致：默认夜间纯黑、白天纯白；
        用户自定义顶栏背景时，状态栏/地址栏也跟着同一个颜色，避免上面多出一条色带。 */
+    /* v43-103：按用户固定要求，顶栏/状态栏白天纯白、夜间纯黑，不再被自定义顶栏色带偏。 */
     var _barColor=sysDark?"#000000":"#ffffff";
-    try{
-      var _tb=getComputedStyle(document.documentElement).getPropertyValue("--topbar").trim();
-      if(/^#|^rgb|^hsl/.test(_tb))_barColor=_tb;
-      else if(sysDark)_barColor="#000000";
-      else _barColor="#ffffff";
-    }catch(_tbe){}
     for(var i=0;i<tcs.length;i++){
       /* iOS 只认当前这一条 theme-color；带 media 的两条会互相抢，
          手动切夜间后状态栏/地址栏就不跟着变。去掉 media，只写当前模式的颜色。 */
@@ -9988,7 +10014,7 @@ function applySkin(){
     r.setProperty("--parttext",s.partTextColor||autoText(partb));
   }else{
     r.setProperty("--bg",s.bg);
-    r.setProperty("--topbar",s.topbar);
+    r.setProperty("--topbar","#ffffff"); /* v43-103：白天顶栏固定纯白 */
     r.setProperty("--bottombar",s.bottombar);
     r.setProperty("--ttext","#111111");
     r.setProperty("--line","#E5E5EA");
@@ -16990,7 +17016,13 @@ $("sw-keep-alive").addEventListener("click",e=>{state.settings.keepAlive=!state.
 window.__perfApply=function(){
   try{
     var st=(state&&state.settings)||{};
-    if(typeof st.perfLite!=="boolean")st.perfLite=!!window.AndroidUI;
+    /* v43-103：手机/PWA 默认开流畅模式（只关毛玻璃，不改布局），
+       先解决“点不动、滑不动”；用户仍可在设置里关掉。 */
+    if(typeof st.perfLite!=="boolean"){
+      var _touch=false;
+      try{_touch=window.AndroidUI||(navigator.maxTouchPoints>0)||(window.matchMedia&&matchMedia("(pointer:coarse)").matches);}catch(_){}
+      st.perfLite=!!_touch;
+    }
     document.body.classList.toggle("perf-lite",st.perfLite===true);
     var sw=document.getElementById("sw-perf");if(sw)sw.classList.toggle("on",st.perfLite===true);
   }catch(e){}
@@ -17946,6 +17978,14 @@ function __importBackupText(txt,f){
       }catch(_){}
       /* v43-102：导入也不再写免密小键，密码页固定每次打开都出现。 */
       try{localStorage.removeItem("lockFree");}catch(_){}
+      /* v43-103：导入备份里的“离站快照/旧主档/大图待写队列”绝不能回写。
+         否则下次启动会优先读到备份里的旧 e11.exit.v1，把刚导入的新数据顶回旧内容，
+         用户看到的就是“导入成功但只恢复了一部分/根本没变”。 */
+      try{
+        if(data.extras&&typeof data.extras==="object"){
+          ["e11.exit.v1","privateChat","bigPending","__e11HardReset","__e11ImportUpload","e11.resetLocalOnly.v1","e11.forceLock.v1"].forEach(function(k){try{delete data.extras[k];}catch(_){}});
+        }
+      }catch(_){}
       /* 把备份里带的全部 localStorage 键原样写回（旧版 v1/v2 也照此处理：多出来的就多写几个键） */
       try{
         if(data.extras&&typeof data.extras==="object"){
@@ -17978,7 +18018,7 @@ function __importBackupText(txt,f){
       var _lsFail=false;
       /* 导入前先清掉旧的大存档和大图待写队列，否则配额被旧数据占满，新数据写不进去 */
       try{localStorage.removeItem("privateChat");localStorage.removeItem("bigPending");}catch(_){}
-      try{localStorage.setItem("privateChat",JSON.stringify(state));}catch(_e){_lsFail=true;}
+      try{localStorage.setItem("privateChat",JSON.stringify({__idbOnly:1,__savedAt:Number(state&&state.__savedAt)||Date.now()}));}catch(_e){_lsFail=true;}
       var _allIdb=(data.idb&&typeof data.idb==="object")?data.idb:null;
       var _afterCommit=function(){
         /* 告诉启动流程必须用 IndexedDB 里的导入版，不能被 localStorage 里旧的空存档顶回去 */
@@ -25455,6 +25495,7 @@ function initAbout(){
   try{__curBuild=window.__buildId||"";if(!__curBuild){var _mb=document.querySelector('meta[name="app-build"]');__curBuild=(_mb&&_mb.content)||"";}}catch(e){}
   /* v43-102：声明页固定每次开屏都出现，不再读任何“已读”标记。
      只有这次页面里点过「同意并进入」才不再弹；关掉网页/重开一定重新出现。 */
+  window.__aboutDone=0;
   $("about-screen").classList.add("show");
   /* 等声明页真正画到屏幕上，再撤掉启动遮罩（否则中间会闪一帧白） */
   requestAnimationFrame(function(){requestAnimationFrame(function(){
@@ -25462,32 +25503,39 @@ function initAbout(){
     if(_v){_v.style.opacity="0";setTimeout(function(){if(_v&&_v.parentNode)_v.parentNode.removeChild(_v);},240);}
   });});
   const btn=$("about-agree-btn");
-  btn.disabled=true;
-  btn.textContent="正在载入…";
-  btn.style.opacity=".5";
-  btn.style.cursor="not-allowed";
-  var _dbReady=false;
-  // 等后台数据加载完毕
-  const _waitReady=()=>{
-    if(window._dbReady){
-      _dbReady=true;
-      try{window.__idle(function(){if(typeof backfillSurveyHistory==="function")backfillSurveyHistory();});}catch(e){}
-      _tryEnable();return;
-    }
-    setTimeout(_waitReady,100);
+  /* v43-103：声明页按钮不再等 IndexedDB。数据加载放在点了“同意”之后，
+     按钮第一帧就能点；真机就不会出现“正在载入…”卡半分钟、点不动。 */
+  btn.disabled=false;
+  btn.textContent="同意并进入";
+  btn.style.opacity="1";
+  btn.style.cursor="pointer";
+  var _dbReady=true;
+  /* 有些旧保存路径会异步把 .show 撤掉；只要用户还没点同意，就确保声明页一直在最上层。 */
+  var _keepAbout=function(){
+    try{
+      if(window.__aboutDone||window.__lockPassed)return;
+      var ab=document.getElementById("about-screen");
+      if(!ab)return;
+      if(!ab.classList.contains("show"))ab.classList.add("show");
+      var ag=document.getElementById("auth-gate");
+      if(ag&&ag.classList.contains("show"))ag.classList.remove("show");
+    }catch(_){}
   };
-  _waitReady();
-  /* 极端情况下 IndexedDB/旧存档读取会卡住：5 秒后强制放行，避免声明页白屏且按钮点不动 */
-  setTimeout(function(){try{if(!_dbReady){_dbReady=true;_tryEnable();}}catch(e){}},5000);
-  function _tryEnable(){
-    if(!_dbReady)return;
-    btn.disabled=false;
-    btn.textContent="同意并进入";
-    btn.style.opacity="1";
-    btn.style.cursor="pointer";
-  }
+  setTimeout(_keepAbout,120);setTimeout(_keepAbout,700);setTimeout(_keepAbout,1800);
+  window.__keepAbout=_keepAbout;
   btn.addEventListener("click",()=>{
     if(btn.disabled)return;
+    window.__aboutDone=1;
+    try{
+      var _lkClick=document.getElementById("lock-screen");if(_lkClick)_lkClick.classList.add("show");
+      var _agClick=document.getElementById("auth-gate");if(_agClick)_agClick.classList.remove("show");
+      document.body.classList.remove("auth-locked");
+    }catch(_){}
+    /* 声明页退场后再做后台重活：拉云端、铺第二页图片、恢复表情。 */
+    setTimeout(function(){
+      try{if(window.__e11PullAfterAbout&&window.__E11CloudPull)window.__E11CloudPull(false);}catch(_){}
+      try{preloadCp2Images&&preloadCp2Images();}catch(_){}
+    },60);
     if(window.__aboutViewer){window.__aboutViewer=0;$("about-screen").classList.remove("show");btn.textContent="同意并进入";return;}
     var _go=function(){
       /* 声明页读完先弹更新公告（如果有），关闭后再进锁屏/主页 */
@@ -25528,7 +25576,7 @@ function __pwInit(){
     try{sessionStorage.removeItem("__webPwOk");}catch(_){}
     try{localStorage.setItem("__pwForce",PW_MARK);}catch(_){}
     try{localStorage.setItem("__pwFixed","1");}catch(_){}
-    try{localStorage.setItem("privateChat",JSON.stringify(state));}catch(_){}
+    try{__writeLocalSnapshot();}catch(_){}
     try{if(typeof dbSet==="function")dbSet("state",state).catch(function(){});}catch(_){}
     setTimeout(function(){
       try{
@@ -25544,15 +25592,13 @@ function __pwInit(){
 window.__e11FlushNow=function(){
   if(window.__restoring)return;
   try{window.__commitSettingsActive&&window.__commitSettingsActive();}catch(_){}
-  /* v43-99：退出这一下不再 save()+coreWrite+emergencySnapshot 各序列化一遍；
-     emergencySnapshot 已经写了一份同步的离站快照，够扛进程被系统杀掉。 */
-  try{if(typeof __prefSave==="function")__prefSave();}catch(_){}
-  try{if(window.__settingsBackup)window.__settingsBackup(true);}catch(_){}
-  window.__e11ExitFast=1;
-  try{__emergencySnapshot();}catch(_){}finally{window.__e11ExitFast=0;}
-  try{__flushSave(true);}catch(_){}
-  try{if(window.__bkSaveNow)window.__bkSaveNow();}catch(_){}
-  try{window.__e11Cloud&&__E11Cloud.flush&&__E11Cloud.flush();}catch(_){}
+  /* v43-103：和 pagehide 同一条轻量路径：只写一次同步离站快照，不再整库 IDB/备份。 */
+  try{
+    window.__e11ExitFast=1;
+    if(window.__e11ExitSave)window.__e11ExitSave(state);
+    else __e11ExitSave(state);
+    try{localStorage.setItem("privateChat",JSON.stringify({__idbOnly:1,__savedAt:Number(state&&state.__savedAt)||Date.now()}));}catch(_){}
+  }catch(_){}finally{window.__e11ExitFast=0;}
 };
 window.__androidPause=window.__e11FlushNow;
 /* 每 20 秒只在数据真的变过时补一次本机快照，不改数据也能防住进程被系统回收。 */
@@ -25581,8 +25627,17 @@ try{
   setTimeout(function(){try{if(!localStorage.getItem("__e11ImportUpload")&&!localStorage.getItem("__e11HardReset"))clearInterval(_t);}catch(_){}},18000);
 })();
 function initLock(){
-  if(typeof state==="undefined"||!state||!state.settings){setTimeout(initLock,120);return;}
   if(window.__lockPassed){try{document.getElementById("lock-screen").classList.remove("show");}catch(_lpd){}return;}
+  /* v43-103：先把锁屏摆到屏幕上，再去等 state。以前 state 慢 1 秒，
+     用户点完“同意”看到的是一片空白，以为密码页又没了。 */
+  try{
+    var _lk0=document.getElementById("lock-screen");
+    if(_lk0)_lk0.classList.add("show");
+    var _g0=document.getElementById("auth-gate");if(_g0)_g0.classList.remove("show");
+    var _w0=document.getElementById("auth-wait-card");if(_w0)_w0.style.display="none";
+    document.body.classList.remove("auth-locked");
+  }catch(_lkShow0){}
+  if(typeof state==="undefined"||!state||!state.settings){setTimeout(initLock,120);return;}
   var _standalone=false;
   try{_standalone=typeof __pwaStandalone==="function"?__pwaStandalone():false;}catch(_eSa){}
   /* 一键重置后强制重新输密码，云端恢复回来的 unlocked 也不能绕过 */
@@ -25601,7 +25656,7 @@ function initLock(){
       try{localStorage.removeItem("lockFree");}catch(_){}
       try{sessionStorage.removeItem("__webPwOk");}catch(_){}
       try{localStorage.setItem("__pwForce",PW_MARK);}catch(_){}
-      try{localStorage.setItem("privateChat",JSON.stringify(state));}catch(_){}
+      try{__writeLocalSnapshot();}catch(_){}
       try{if(typeof dbSet==="function")dbSet("state",state).catch(function(){});}catch(_){}
     }
     var _raw=String(state.settings.entryPwd||"");
@@ -25651,13 +25706,13 @@ function submitLock(){
       state.settings.unlocked=false;
       try{localStorage.removeItem("lockFree");}catch(_){}
       try{sessionStorage.removeItem("__webPwOk");}catch(_){}
-      try{localStorage.setItem("privateChat",JSON.stringify(state));}catch(_){}
+      try{__writeLocalSnapshot();}catch(_){}
       save();unlockGo();toast("已设置密码，之后每次进入都要输密码");
     }else{
       state.settings.entryPwd=LOCK_DEFAULT;
       state.settings.unlocked=true;
       try{localStorage.removeItem("lockFree");}catch(_){}
-      try{localStorage.setItem("privateChat",JSON.stringify(state));}catch(_){}
+      try{__writeLocalSnapshot();}catch(_){}
       save();unlockGo();toast("没有设置密码，之后打开直接进入");
     }
     return;
@@ -25682,7 +25737,7 @@ function unlockGo(){
   /* v43-102：免密只作用于当前页面，不写入任何持久键。 */
   try{localStorage.removeItem("lockFree");}catch(e){}
   try{sessionStorage.removeItem("__webPwOk");}catch(e){}
-  try{localStorage.setItem("privateChat",JSON.stringify(state));}catch(_){}
+  try{__writeLocalSnapshot();}catch(_){}
   save();
   __afterLockPass();
 }
@@ -25690,7 +25745,7 @@ $("lock-btn").addEventListener("click",submitLock);
 $("lock-input").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();submitLock();}});
 $("lock-forgot").addEventListener("click",function(){
   state.settings.entryPwd=LOCK_DEFAULT;
-  try{localStorage.setItem("privateChat",JSON.stringify(state));}catch(_){}
+  try{__writeLocalSnapshot();}catch(_){}
   save();
   $("lock-input").value="";
   $("lock-input").placeholder="••••••••••";
@@ -25700,7 +25755,7 @@ $("lock-forgot").addEventListener("click",function(){
 $("lock-skip").addEventListener("click",function(){
   $("lock-skip").style.display="none";
   state.settings.unlocked=true; // 取消密码入口：持久化免密，之后每次直接进入
-  try{localStorage.setItem("privateChat",JSON.stringify(state));}catch(_){}
+  try{__writeLocalSnapshot();}catch(_){}
   save();
   toast("已取消密码，之后每次进入直接进入");
   unlockGo();
@@ -26516,7 +26571,7 @@ window.__dockTopPx=function(){
     if(el.style)el.style.transform="";
     reflowPage();
     saveLayout();
-    try{localStorage.setItem("privateChat",JSON.stringify(state));}catch(_){}
+    try{__writeLocalSnapshot();}catch(_){}
   }
   function restoreBlock(id){
     if(!trash)return;
@@ -26635,7 +26690,7 @@ window.__dockTopPx=function(){
           }
         }catch(e){}
       },140);
-      try{localStorage.setItem("privateChat",JSON.stringify(state));}catch(_){}
+      try{__writeLocalSnapshot();}catch(_){}
       return;
     }
     var cw=page.clientWidth||348;
@@ -26666,7 +26721,7 @@ window.__dockTopPx=function(){
     state.cp2Layout.widgets=wids;
     if(window.__cp2Reapply)window.__cp2Reapply();
     saveLayout();
-    try{localStorage.setItem("privateChat",JSON.stringify(state));}catch(_){}
+    try{__writeLocalSnapshot();}catch(_){}
   }
   var layBtn=document.getElementById("cp2-layout-btn");
   if(layBtn){
