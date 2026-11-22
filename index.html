@@ -191,7 +191,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-22v43-74";
+window.__E11_BUILD="2026-11-22v43-75";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2488,7 +2488,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-22v43-74">
+<meta name="app-build" content="2026-11-22v43-75">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4171,6 +4171,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">anon / publishable Key</span><input class="set-input" id="set-cloud-key" type="password" placeholder="sb_publishable_..." autocomplete="off" spellcheck="false" style="width:58%;min-width:160px;font-size:13px;text-align:left;"></div>
         <div class="set-row"><span class="set-label">存储桶<div class="set-sub">默认 vault；后端里要先建同名私有桶</div></span><input class="set-input" id="set-cloud-bucket" type="text" placeholder="vault" autocomplete="off" spellcheck="false" style="width:100px;font-size:13px;text-align:left;"></div>
         <div class="set-row"><button class="small-btn ghost" id="btn-cloud-test" style="font-size:12px;padding:6px 12px;">测试连接</button><span class="set-sub" id="cloud-test-sub" style="margin-left:10px;flex:1;">未测试</span></div>
+        <div class="set-row"><span class="set-label">从云端恢复<div class="set-sub">不会自动覆盖本机；只有点这个按钮才拉取云端存档</div></span><button class="small-btn ghost" id="btn-cloud-pull" style="font-size:12px;padding:6px 12px;">恢复云端</button><span class="set-sub" id="cloud-pull-sub" style="margin-left:10px;flex:1;"></span></div>
         <div class="set-row"><span class="set-label">保存并切换<div class="set-sub">会清掉本机登录态，聊天记录保留；切换后需要重新登录</div></span><button class="small-btn" id="btn-cloud-save" style="font-size:12px;padding:6px 12px;">保存并重启</button></div>
         <div class="set-row"><span class="set-label">恢复官方云端<div class="set-sub">回到内置 Supabase，登录态会清掉</div></span><button class="small-btn ghost" id="btn-cloud-reset" style="font-size:12px;padding:6px 12px;">恢复官方</button></div>
       </div>
@@ -4209,7 +4210,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-74</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-75</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -6441,7 +6442,7 @@ setTimeout(function(){
   /* 启动时如果本机时代比云端更旧（典型：新装 APK 只拿到很旧的本地档），
      先拉云端完整档再进主页，避免旧档继续往云端回写。 */
   var __e11PullBusy=0;
-  function pullCloudIfNewer(){
+  function pullCloudIfNewer(force){
     if(window.__e11NoCloud)return Promise.resolve(-2);
     /* 一键重置后云端已清空，但上传可能因为断网没成功：先不要拉旧档；
        导入后同理，先让本机导入版上传，避免被云端更旧的完整档压回去。 */
@@ -6454,14 +6455,24 @@ setTimeout(function(){
       if(!ok)return false;
       var local=window.__e11StateGet?window.__e11StateGet():null;
       var localTs=Number(local&&local.__savedAt)||0;
+      var uid=(session&&session.user&&session.user.id)||"";
+      var meta0=__e11CloudMetaGet(uid);
+      /* v43-75：正常重新进入网站只认“上次退出时”的本机档，不再自动把云端档拉下来覆盖。
+         这台设备以前同步过、本机又有内容时，只有用户主动点「从云端恢复」才拉取（force=1）。 */
+      var _hasLocal=!!(local&&(
+        (Array.isArray(local.messages)&&local.messages.length)||
+        (Array.isArray(local.cards)&&local.cards.length)||
+        (Array.isArray(local.moments)&&local.moments.length)||
+        (Array.isArray(local.letters)&&local.letters.length)
+      ));
+      if(!force&&_hasLocal&&meta0&&Number(meta0.savedAt)>0)return 0;
       return cloudGet().then(function(cloud){
         if(!cloud)return false;
-        var uid=(session&&session.user&&session.user.id)||"";
-        var meta=__e11CloudMetaGet(uid);
+        var meta=meta0;
         var cloudFresh=!meta||!Number(meta.savedAt)||Number(cloud.savedAt)>Number(meta.savedAt)+1;
         /* 云端自从上次读取后变过，就合并一次：不再只靠“谁消息多”判断，
            否则另一台设备只改了资料/字卡/设置，这边永远看不到最新云端内容。 */
-        if(!cloudFresh&&!__e11CloudWins(cloud,local,Number(cloud.savedAt)||0,localTs))return false;
+        if(!force&&!cloudFresh&&!__e11CloudWins(cloud,local,Number(cloud.savedAt)||0,localTs))return false;
         window.__e11CloudPause=1;
         /* 不再用整页等待层堵住入口：云端下载放到后台，用户已经进去了就原地更新。
            这样网络慢也不会“一直加载进不去”。 */
@@ -8863,20 +8874,10 @@ async function init(){
        先从自动备份槽救回最近一份，别让「刷新后全部数据消失」直接落成初始示例内容 */
     var _lsSnapNow=null;try{_lsSnapNow=localStorage.getItem("privateChat");}catch(_lsE){_lsSnapNow=null;}
     try{if(_lsSnapNow){var _lsNowObj=JSON.parse(_lsSnapNow);if(_lsNowObj&&_lsNowObj.__idbOnly)_lsSnapNow=null;}}catch(_){_lsSnapNow=null;}
+    /* v43-75：自动备份不再在启动/刷新时自动恢复。正常进入只认最后一次退出时写下的
+       本机主档；备份必须由用户在「设置 → 自动备份」里点「恢复」才会覆盖当前数据。 */
     if((!s||!s.messages||!s.messages.length)&&!_lsSnapNow){
-      try{
-        var _bkM=await __bkMeta();
-        for(var _bi=0;_bkM.length&&_bi<_bkM.length;_bi++){
-          var _bv=null;
-          try{_bv=await dbGet("bk_slot_"+_bkM[_bi].slot);}catch(_be){_bv=null;}
-          if(_bv&&_bv.state&&_bv.state.messages&&_bv.state.messages.length){
-            s=await __hydrateBig(_bv.state);
-            try{s.__savedAt=Date.now();}catch(_bs){}
-            window.__autoRecovered={msgs:s.messages.length,ts:_bv.ts||0};
-            break;
-          }
-        }
-      }catch(_eBk){}
+      try{window.__e11NoLocalMain=1;}catch(_eNoMain){}
     }
     /* 两份存档可能因配额被替换成空图：先按 id/位置互相补图，再决定用哪一份 */
     try{__mergeMediaSnapshots(state,s);}catch(_eMergeMedia){}
@@ -30506,6 +30507,16 @@ body{margin:0;background:var(--bg,#fafafa);}
     if($("btn-cloud-test"))$("btn-cloud-test").addEventListener("click",function(){
       var b=this,v=cv(),st=$("cloud-test-sub");b.disabled=true;if(st)st.textContent="测试中…";
       C.test(v.url,v.key).then(function(){if(st)st.textContent="连接成功，可以保存";toast("云端接口连接成功");}).catch(function(e){if(st)st.textContent="失败："+String(e&&e.message||e).slice(0,120);toast("云端接口连接失败");}).then(function(){b.disabled=false;});
+    });
+    if($("btn-cloud-pull"))$("btn-cloud-pull").addEventListener("click",async function(){
+      if(!(await __iosConfirm("用云端存档覆盖本机当前数据？本机还没上传的改动会丢失。",{okText:"恢复云端"})))return;
+      var b=this,st=$("cloud-pull-sub");b.disabled=true;if(st)st.textContent="正在读取云端…";
+      try{
+        var r=window.__E11CloudPull?await window.__E11CloudPull(true):false;
+        if(r===1){if(st)st.textContent="已恢复";toast("已从云端恢复");}
+        else{if(st)st.textContent="云端没有可恢复的存档";toast("云端没有可恢复的存档");}
+      }catch(e){if(st)st.textContent="恢复失败";toast("云端恢复失败："+String(e&&e.message||e).slice(0,100));}
+      b.disabled=false;
     });
     if($("btn-cloud-save"))$("btn-cloud-save").addEventListener("click",function(){
       var v=cv(),on=$("sw-cloud-custom")&&$("sw-cloud-custom").classList.contains("on");
