@@ -191,7 +191,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-22v43-104";
+window.__E11_BUILD="2026-11-22v43-105";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2490,7 +2490,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-22v43-104">
+<meta name="app-build" content="2026-11-22v43-105">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4213,7 +4213,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-104</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-105</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -6581,19 +6581,30 @@ setTimeout(function(){
         }));
       }
     }catch(_){}
-    /* 只读 latest.json（文字档），不再顺带拉 2.7MB 的 latest.full.json；深度恢复只需要文字内容，先快起来。 */
+    /* v43-105：深度恢复必须同时拿 latest.json 和 latest.full.json。
+       只读文字档会恢复聊天条数，却没有头像/照片/表情原图/一起听封面，用户看到的就是“恢复不全”。 */
     var cloudP=Promise.resolve(null);
     if(typeof authOk==="function"&&authOk()){
-      _paint("正在读取云端文字档…");
-      cloudP=api(cloudUrl(),{token:session.access_token,timeout:12000}).catch(function(){return null;});
+      _paint("正在读取云端完整档…");
+      var _latestP=api(cloudUrl(),{token:session.access_token,timeout:12000}).catch(function(){return null;});
+      var _fullP=(typeof cloudBackupGet==="function")?cloudBackupGet().catch(function(){return null;}):Promise.resolve(null);
+      cloudP=Promise.all([_latestP,_fullP]).then(function(pair){return {latest:pair[0],full:pair[1]};});
     }
     return Promise.all([localP,cloudP]).then(function(res){
-      var backs=res[0]||[],cloud=res[1];
+      var backs=res[0]||[],cloudWrap=res[1]||{};
+      var cloud=cloudWrap.latest||null,cloudFull=cloudWrap.full||null;
       _paint("正在合并内容…");
       backs.forEach(function(st,i){add("自动备份"+(i+1),st);});
-      if(cloud&&cloud.state)add("云端完整档",cloud.state);
+      if(cloudFull&&cloudFull.state)add("云端完整档",cloudFull.state);
+      if(cloud&&cloud.state)add("云端文字档",cloud.state);
       var cats=["messages","cards","letters","guestbook","moments","redpackets","musicPlaylist","emojis","partnerEmojis","groups","favorites"];
-      function score(st){var n=0;cats.forEach(function(k){if(Array.isArray(st[k]))n+=st[k].length;});return n;}
+      function score(st){
+        var n=0;cats.forEach(function(k){if(Array.isArray(st[k]))n+=st[k].length;});
+        try{if(Array.isArray(st.musicPlaylist))n+=st.musicPlaylist.length*2;}catch(_){}
+        try{if(st.musicBgImg||st.musicCoverImg||st.musicDiscInnerImg||st.musicDiscBgImg)n+=4;}catch(_){}
+        try{if(st.profile&&(st.profile.mpName||st.profile.mpAv1||st.profile.mpCover))n+=4;}catch(_){}
+        return n;
+      }
       var base=null,best=-1;
       cands.forEach(function(c){var sc=score(c.st);if(sc>best){best=sc;base=c.st;}});
       if(!base)throw new Error("没有找到可恢复的存档");
@@ -6604,6 +6615,25 @@ setTimeout(function(){
           if(b.length)base[k]=__e11MergeList(a,b);
         });
       });
+      /* v43-105：一起听的封面/背景/歌单和资料字段也要从完整档补回，不能只合并数组。 */
+      try{
+        var _fillScalars=["musicBg","musicBgImg","musicCoverImg","musicDiscBgImg","musicDiscInnerImg","musicRoomNote","musicCur","musicVol","musicLoop"];
+        cands.forEach(function(c){
+          _fillScalars.forEach(function(k){
+            var v=c.st[k];
+            if((base[k]===undefined||base[k]===null||base[k]===""||base[k]===0)&&v!==undefined&&v!==null&&v!==""&&v!==0)base[k]=v;
+          });
+          ["profile","skin","settings"].forEach(function(k){
+            if(c.st[k]&&typeof c.st[k]==="object"){
+              base[k]=base[k]||{};
+              Object.keys(c.st[k]).forEach(function(kk){
+                var v=c.st[k][kk];
+                if((base[k][kk]===undefined||base[k][kk]===null||base[k][kk]===""||base[k][kk]===0)&&v!==undefined&&v!==null&&v!==""&&v!==0)base[k][kk]=v;
+              });
+            }
+          });
+        });
+      }catch(_eDeepFill){}
       if(Array.isArray(base.messages))base.messages.sort(function(a,b){var ta=Number(a&&a.time)||0,tb=Number(b&&b.time)||0;return ta-tb;});
       var before={};cats.forEach(function(k){before[k]=Array.isArray((window.__e11StateGet&&window.__e11StateGet()||{})[k])?window.__e11StateGet()[k].length:0;});
       var after={};cats.forEach(function(k){after[k]=Array.isArray(base[k])?base[k].length:0;});
@@ -6624,7 +6654,7 @@ setTimeout(function(){
     });
   };
 
-  window.__E11Cloud={schedule:cloudSchedule,flush:function(){clearTimeout(cloudTimer);cloudSchedule();},recoveryGet:cloudGetRecovery,uploadNow:function(){
+  window.__E11Cloud={schedule:cloudSchedule,flush:function(){clearTimeout(cloudTimer);cloudSchedule();},recoveryGet:cloudGetRecovery,fullGet:cloudBackupGet,uploadNow:function(){
     if(window.__e11NoCloud)return Promise.reject(new Error("已关闭云端同步"));
     if(!authOk())return Promise.reject(new Error("未登录"));
     try{if(localStorage.getItem("e11.resetLocalOnly.v1")&&!__e11LocalHasArchive())return Promise.reject(new Error("本机已重置，云端存档保留中"));}catch(_){}
@@ -7321,10 +7351,12 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-22",
   noticeKey:null,
-  lead:"v43-104：声明页→本地密码→云端登录的顺序固定；第一次输对后本机不再反复要密码，只有重置或清数据后重输。",
+  lead:"v43-105：修复发送消息未及时落库、历史图片/表情/一起听资料恢复不全；自动备份改为完整档。",
   items:[
     "顺序固定为：声明页 → 本地密码 → 云端登录；未输本地密码前，云端登录卡不会先盖上来。",
     "第一次在这台设备输对密码后记住；之后打开只显示声明页，不再反复要密码。一键重置或清除站点数据后重新输。",
+    "发消息后最多 1.2 秒写入 IndexedDB，马上关闭网页/切后台也不会丢；重开聊天能看到最后一条。",
+    "深度恢复和自动备份改为完整档：历史聊天图片、表情包、一起听歌单/封面/背景一起合并，不再只恢复文字。",
     "正文、字卡、信件、留言、动态、图片全部以 IndexedDB 为主库，不再每次改动同步序列化 2MB 到 localStorage。",
     "启动只读 IndexedDB，退出不再写大快照，黑屏和退出卡顿一起缩短。",
     "顶栏和状态栏固定跟随 App 主题：白天纯白、夜间纯黑。",
@@ -7863,10 +7895,11 @@ function __bkSave(force){
     var used={};meta.forEach(function(x){used[x.slot]=1;});
     var slot=0;for(var i=0;i<3;i++){if(!used[i]){slot=i;break;}}
     var globals=__bkCollectGlobals();
-    /* v43-79：备份只存“文字核心”，不再把整库大图复制 3 份。
-       以前 3 个槽位各存一份全量图，直接把手机配额撑爆，备份和主档一起写失败。 */
-    var core=__e11CorePack(state);
-    var snap={ts:Date.now(),core:1,state:core,globals:globals};
+    /* v43-105：自动备份改为完整状态（含图片/表情/一起听），恢复时才能真正恢复全部。
+       IndexedDB 容量足够；每个槽仍只在自动备份时写，不参与每次编辑。 */
+    var _bkState=state;
+    try{_bkState=JSON.parse(JSON.stringify(state));}catch(_eBkClone){}
+    var snap={ts:Date.now(),full:1,state:_bkState,globals:globals};
     return dbSet("bk_slot_"+slot,snap).then(function(){
       var m={slot:slot,ts:snap.ts,msgs:(state.messages||[]).length,cards:(state.cards||[]).length,letters:(state.letters||[]).length,moments:(state.moments||[]).length,globals:Object.keys(globals).length};
       var list=meta.filter(function(x){return x.slot!==slot;});
@@ -7880,7 +7913,7 @@ function __bkCompactOld(){
   if(!db)return Promise.resolve(false);
   return Promise.all(__bkSlots().map(function(k){
     return dbGet(k).catch(function(){return null;}).then(function(v){
-      if(!v||v.core||!v.state)return false;
+      if(!v||v.core||v.full||!v.state)return false; /* v43-105：完整备份不能再压成文字核心档 */
       try{
         var core=__e11CorePack(v.state);
         return dbSet(k,{ts:v.ts||Date.now(),core:1,state:core,globals:v.globals||{}}).then(function(){return true;});
@@ -8389,18 +8422,18 @@ function __flushSave(immediate){
   /* 按钮里常见的 save();__flushSave(); 不再同步整库序列化。
      能看见页面时合并到 save() 的 320ms 空闲写盘；只有切后台/关页面才立即写。 */
   if(!immediate&&!document.hidden){try{save();}catch(e){}return;}
-  /* v43-100：整库写盘（要复制/序列化所有聊天和图片）在页面上最多 3 秒一次。
-     以前每次点按钮、每敲一个字后的空闲任务都会整库走一遍，图片多时就是连续卡顿。
-     到点会补一次，不会漏写；退出/切后台不节流。 */
+  /* v43-105：页面上最多 1.2 秒写一次 IndexedDB。
+     以前是 6 秒，发完消息马上关网页/切后台时最后一两条还没进库，重开就看不到。
+     1.2 秒兼顾“不要每敲一个字整库复制”和“发出去就落地”。 */
   try{
     var _fnow=Date.now();
-    if(!window.__e11FullWriteForce&&!document.hidden&&_fnow-(window.__e11FullWriteAt||0)<6000){
+    if(!window.__e11FullWriteForce&&!document.hidden&&_fnow-(window.__e11FullWriteAt||0)<1200){
       clearTimeout(window.__e11FullWake);
       window.__e11FullWake=setTimeout(function(){
         window.__e11FullWriteForce=1;
         try{__flushSave(true);}catch(_){}
         window.__e11FullWriteForce=0;
-      },Math.max(300,6000-(_fnow-(window.__e11FullWriteAt||0))));
+      },Math.max(200,1200-(_fnow-(window.__e11FullWriteAt||0))));
       return;
     }
     window.__e11FullWriteAt=_fnow;
@@ -15171,9 +15204,22 @@ window.__e11TryMediaRepair=function(){
   var st=window.__e11StateGet?window.__e11StateGet():null;
   if(!st||!__e11NeedsMediaRepair(st))return;
   window.__e11RepairBusy=1;
-  window.__E11Cloud.recoveryGet().then(function(rep){
+  var _repairP=window.__E11Cloud.recoveryGet().catch(function(){return null;}).then(function(rep){
+    if(rep&&rep.state)return rep;
+    /* v43-105：recovery_media.json 没有时，从 latest.full.json 补历史聊天图片、表情和一起听封面。 */
+    if(window.__E11Cloud.fullGet)return window.__E11Cloud.fullGet().catch(function(){return null;});
+    return null;
+  });
+  _repairP.then(function(rep){
     if(!rep||!rep.state)return;
     var changed=window.__mergeMediaRepair(rep);
+    try{
+      if(window.__mergeMediaSnapshots)window.__mergeMediaSnapshots(st,rep.state);
+      ["musicBg","musicBgImg","musicCoverImg","musicDiscBgImg","musicDiscInnerImg","musicRoomNote","musicCur"].forEach(function(k){
+        if((st[k]===undefined||st[k]===null||st[k]===""||st[k]===0)&&rep.state[k]!==undefined&&rep.state[k]!==null&&rep.state[k]!==""&&rep.state[k]!==0){st[k]=rep.state[k];changed=true;}
+      });
+      if(rep.state.profile){var _pf=rep.state.profile;Object.keys(_pf).forEach(function(k){if((!st.profile[k]||st.profile[k]==="")&&_pf[k])st.profile[k]=_pf[k];});}
+    }catch(_eMusicRepair){}
     if(!changed)return;
     try{window.__e11CloudPause=0;}catch(_){}
     try{if(typeof save==="function")save();}catch(_){}
@@ -18103,16 +18149,22 @@ $("btn-reset-all").addEventListener("click",async()=>{
     _done();
   }
   function _dropDBThenGo(){
-    try{
-      if(db&&db.close)db.close();
-      var rq=indexedDB.deleteDatabase(DB_NAME);
-      rq.onsuccess=rq.onerror=rq.onblocked=()=>{setTimeout(_clearCacheThenGo,120);};
-      setTimeout(_clearCacheThenGo,1200);
-    }catch(_){_clearCacheThenGo();}
+    /* v43-105：不再删除整个 IndexedDB，否则自动备份槽会跟着一起没，
+       用户重置后点“恢复自动备份”永远读不出来。只清当前数据，保留 bk_slot/bk_meta。 */
+    try{if(db&&db.close)db.close();}catch(_eCloseDb){}
+    setTimeout(_clearCacheThenGo,120);
   }
   if(db){
-    const tx=db.transaction(STORE,"readwrite");
-    tx.objectStore(STORE).clear();
+    var tx=db.transaction(STORE,"readwrite");
+    var store=tx.objectStore(STORE);
+    var req=store.openCursor();
+    req.onsuccess=function(e){
+      var c=e.target.result;
+      if(!c)return;
+      var k=String(c.key||"");
+      if(k.indexOf("bk_slot_")!==0&&k!=="bk_snap_meta"){try{c.delete();}catch(_eDel){}};
+      try{c.continue();}catch(_eCont){}
+    };
     tx.oncomplete=()=>_dropDBThenGo();
     tx.onerror=()=>{toast("重置失败，请重试");};
   }else{_dropDBThenGo();}
