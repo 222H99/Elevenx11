@@ -210,7 +210,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-122";
+window.__E11_BUILD="2026-11-23v43-123";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2516,7 +2516,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-122">
+<meta name="app-build" content="2026-11-23v43-123">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4254,7 +4254,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-122</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-123</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -9103,6 +9103,10 @@ function __e11ExitSave(st,force){
      主库的图片/表情会和这份快照按 id 合并，不会被冲掉。 */
   try{
     if(window.__restoring)return false;
+    /* 主库读失败时，界面还能用，但绝不拿默认空档覆盖上一次的离站快照 */
+    if(window.__e11ExitPreserve)return false;
+    /* v43-123：数据还在读 IndexedDB 时，绝不能用默认空档写离站快照 */
+    if(window.__e11BootLoading&&!window.__e11ExitAllowEarly)return false;
     /* 首屏数据还没从 IndexedDB 读出来时，state 只是默认空档。
        这时刷新/退出绝不能写“空快照”，否则会把上一次的聊天和设置冲成默认。 */
     if(!window.__stateReady&&!window.__e11ExitAllowEarly)return false;
@@ -9753,7 +9757,7 @@ window.__e11PersistNow=function(){
   var _asT=null;
   function _touch(){
     try{
-      if(window.__restoring||!window.__stateReady)return;
+      if(window.__restoring||!window.__stateReady||window.__e11BootLoading)return;
       if(window.__e11SyncProfileBackup)window.__e11SyncProfileBackup();
       clearTimeout(_asT);
       _asT=setTimeout(function(){
@@ -10237,6 +10241,7 @@ function __healState(){
   }catch(e){}
 }
 async function init(){
+  try{window.__e11BootLoading=1;}catch(_eBootLoad0){}
   aboutLoadStatus("正在读取本地记录…");
   /* v43-103：启动不再同步读取 2MB 级 localStorage 文字档/离站档。
      以前开屏要先 JSON.parse 三份大档，真机主线程被占住，表现就是黑屏很久、点不动。
@@ -10269,7 +10274,10 @@ async function init(){
   try{if(typeof showView==="function")showView(_e11BootView);}catch(e){}try{window.__bootDone&&window.__bootDone();}catch(_e){}
   
   try{if(window.__cp2Reapply)window.__cp2Reapply();}catch(e){}
-  try{window.__stateReady=1;}catch(e){}
+  /* v43-123：界面先出来时 stateReady 可以置 1（很多控件等它），
+     但另设 BootLoading：IndexedDB 没读完前禁止写离站快照，
+     否则关网页会用默认空档覆盖上一份快照，表现就是“资料/聊天又丢了”。 */
+  try{window.__viewReady=1;window.__stateReady=1;}catch(e){}
   /* v43-111：首屏稳定后再合并其它登录作用域的库，避免启动黑屏。 */
   try{setTimeout(function(){try{var run=function(){try{window.__e11MergeDbScopes&&window.__e11MergeDbScopes().then(function(n){if(n)try{toast("已合并本机其它登录状态的数据");}catch(_){}});}catch(_){}};if(window.requestIdleCallback)requestIdleCallback(run,{timeout:3000});else run();}catch(_){}},2800);}catch(_){}
   /* 有坏掉的历史表情时才读备份，正常启动不多花时间 */
@@ -10545,7 +10553,7 @@ async function init(){
       try{
         /* 头像、照片仍按下面的专门逻辑补；背景保持各自快照原样，不互相覆盖 */
       }catch(_eSkinPhoto){}
-      state=migrate(s);try{window.__e11RepairBulkTombs&&window.__e11RepairBulkTombs(state);}catch(_eTombFix){}try{__ltReadApply();}catch(e){}try{__prefApply();}catch(e){}try{window.__perfApply&&window.__perfApply();}catch(_){}window.__stateReady=1;try{
+      state=migrate(s);try{window.__e11RepairBulkTombs&&window.__e11RepairBulkTombs(state);}catch(_eTombFix){}try{__ltReadApply();}catch(e){}try{__prefApply();}catch(e){}try{window.__perfApply&&window.__perfApply();}catch(_){}window.__stateReady=1;window.__e11DataReady=1;try{window.__e11BootLoading=0;}catch(_eBootLoad1){}try{
   var _runHydrateRest=function(){try{window.__e11HydrateRest&&window.__e11HydrateRest();}catch(_eHR){}};
   if(window.requestIdleCallback)requestIdleCallback(_runHydrateRest,{timeout:6000});else setTimeout(_runHydrateRest,2600);
 }catch(_eHRs){}/* 主题先别在这里定：这份还可能是默认浅色快照，等两份存档合并完（下面 6820 行）再 __themeReady，否则夜间用户会先被刷白 */applySkin();
@@ -10605,6 +10613,9 @@ try{window.__scheduleCp2Render&&window.__scheduleCp2Render();}catch(e){}
       try{__backfillEmojiMessageIds();}catch(_eBf3){}
       try{await __recoverBrokenImages();}catch(_eBrokenBig2){}
     }
+    /* v43-123：无论用 IndexedDB 还是离站/本地档，走到这里数据都已确定；
+       解除 BootLoading，之后再关网页才允许写离站快照。 */
+    window.__e11DataReady=1;try{window.__e11BootLoading=0;}catch(_eBootLoad2){}
     /* 存档最终确定后再定主题，并补画一次；早先的首屏一直用 __bootDark，不会白闪 */
     try{/* 最终主题等 hideGate 再定，见 hideGate 注释 */applySkin();}catch(_eThemeFinal){}
     /* 两份存档合并完之后再统一改一次密码：此时 state 才是最终那份，改了才不会被旧快照盖回去 */
@@ -10662,7 +10673,7 @@ try{window.__scheduleCp2Render&&window.__scheduleCp2Render();}catch(e){}
     /* 应用一直开着时也定期轮换完整备份；离开页面仍由 __e11ExitSave 立即写。
        以前只在启动时检查一次，连续用几天不重进就一直没有新备份。 */
     try{setInterval(function(){if(!document.hidden&&window.__stateReady){try{__bkAuto();}catch(_){}}},10*60*1000);}catch(_eBkTimer){}
-  }catch(e){window._dbReady=true;aboutLoadStatus("加载完成（离线模式）");try{__storageGuard();}catch(_eG2){}
+  }catch(e){window._dbReady=true;aboutLoadStatus("加载完成（离线模式）");try{window.__e11ExitPreserve=1;window.__viewReady=1;window.__stateReady=1;window.__e11DataReady=1;window.__e11BootLoading=0;}catch(_eFallbackReady){}try{__storageGuard();}catch(_eG2){}
       try{if(window.__rebuildSocialNotices)window.__rebuildSocialNotices();}catch(e){}try{if(typeof showView==="function")showView((window.__bootView&&window.__bootView())||(window.__wantChatOnReady?"view-chat":"view-me"));}catch(_e2){}try{window.__bootDone&&window.__bootDone();}catch(_e3){}try{renderAll();}catch(_e){}try{setTimeout(function(){if(window.__prewarmChat)window.__prewarmChat();},260);}catch(_e3){}}
   try{setTimeout(function(){
     window.__idle(function(){
