@@ -208,7 +208,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-22v43-114";
+window.__E11_BUILD="2026-11-22v43-115";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2513,7 +2513,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-22v43-114">
+<meta name="app-build" content="2026-11-22v43-115">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4236,7 +4236,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-114</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-115</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5962,8 +5962,12 @@ setTimeout(function(){
       if(st.__chatClearedAt)return false;
       var del=(st.deletedIds&&st.deletedIds.messages)||{};
       var delN=Object.keys(del).length,curN=Array.isArray(st.messages)?st.messages.length:0;
+      var _dts=Object.keys(del).map(function(id){return Number(del[id])||0;}).filter(function(x){return x>0;});
+      var _span=_dts.length?(Math.max.apply(null,_dts)-Math.min.apply(null,_dts)):0;
+      /* 一次扫描批量写下的墓碑时间戳几乎相同；用户逐条删除会分散在几分钟。 */
+      var _massCluster=delN>=5&&_span<5000;
       st.chatTombstoneRepairV1=Date.now();
-      if(delN>=3&&delN>curN*2){
+      if(_massCluster||(delN>=3&&delN>curN*2)){
         try{delete st.deletedIds.messages;}catch(_){st.deletedIds.messages={};}
         try{localStorage.setItem("e11.tombRepair.v1",String(Date.now()));}catch(_){}
         return true;
@@ -6693,16 +6697,22 @@ setTimeout(function(){
     try{
       if(typeof __bkSlots==="function"&&typeof dbGet==="function"){
         /* v43-114：完整备份里有图片/表情，手机端读一份就可能超过 2 秒。
-           旧逻辑 1.8 秒就判失败，3 份历史备份全被当成“读不出来”，深度恢复自然恢复不了历史消息。 */
-        localP=Promise.all(__bkSlots().map(function(k,i){
-          return __e11DbGetTimed(k,12000).then(function(v){return v&&v.state?v.state:null;}).catch(function(){return null;});
-        }));
+           旧逻辑 1.8 秒就判失败，3 份历史备份全被当成“读不出来”，深度恢复自然恢复不了历史消息。
+           v43-115：改成分批顺序读，避免 3 份大档同时进内存把手机顶卡。 */
+        var _backs=[],_chain=Promise.resolve();
+        __bkSlots().forEach(function(k,i){
+          _chain=_chain.then(function(){
+            _paint("正在读取本机备份 "+(i+1)+"/3…");
+            return __e11DbGetTimed(k,12000).then(function(v){_backs.push(v&&v.state?v.state:null);}).catch(function(){_backs.push(null);});
+          });
+        });
+        localP=_chain.then(function(){return _backs;});
       }
     }catch(_){}
     /* v43-105：深度恢复必须同时拿 latest.json 和 latest.full.json。
        只读文字档会恢复聊天条数，却没有头像/照片/表情原图/一起听封面，用户看到的就是“恢复不全”。 */
     var cloudP=Promise.resolve(null);
-    if(typeof authOk==="function"&&authOk()){
+    if(typeof authOk==="function"&&authOk()&&typeof session!=="undefined"&&session&&session.user){
       _paint("正在读取云端完整档…");
       var _latestP=api(cloudUrl(),{token:session.access_token,timeout:12000}).catch(function(){return null;});
       var _fullP=(typeof cloudBackupGet==="function")?cloudBackupGet().catch(function(){return null;}):Promise.resolve(null);
@@ -8313,7 +8323,14 @@ window.__bkMergeNewest=function(){
       if(!meta.length)return 0;
       /* 以前只读“最新一份”备份。如果最新备份恰好是在消息丢失之后写的，旧历史只剩更早的槽里，
          永远补不回来。这里把 3 份轮换备份全部按内容指纹并集合并，只补不删。 */
-      var slots=(meta||[]).slice(0,3);
+      var curN=(state.messages||[]).length,curC=(state.cards||[]).length,curL=(state.letters||[]).length,curM=(state.moments||[]).length;
+      var slots=(meta||[]).slice(0,3).filter(function(m){
+        /* 小档全部读（很便宜），确保条数相同但内容不同的老历史也能补回来；
+           大档只在“备份确实比现在多”时才读，避免每次启动把 3 份带图大档全塞进内存。 */
+        if(curN<30)return true;
+        return Number(m&&m.msgs||0)>curN||Number(m&&m.cards||0)>curC||Number(m&&m.letters||0)>curL||Number(m&&m.moments||0)>curM;
+      });
+      if(!slots.length)return 0;
       return slots.reduce(function(p,m){
         return p.then(function(){return dbGet("bk_slot_"+m.slot).catch(function(){return null;}).then(function(bk){added+=mergeOne(bk);});});
       },Promise.resolve()).then(function(){
@@ -8664,9 +8681,22 @@ function __hydrateBig(root,opts){
   if(!refs.length)return Promise.resolve(root);
   var uniq={};refs.forEach(function(r){uniq[r.id]=1;});
   var ids=Object.keys(uniq);
-  return Promise.all(ids.map(function(id){
-    return dbGet(__BIG_KEY+id).catch(function(){return null;}).then(function(v){return [id,v];});
-  })).then(function(pairs){
+  function one(id){return dbGet(__BIG_KEY+id).catch(function(){return null;}).then(function(v){return [id,v];});}
+  function readAll(){
+    if(!(opts&&opts.batch))return Promise.all(ids.map(one));
+    /* 后台补历史图片时分批读：一次只开 8 个请求，读完让出主线程，
+       避免几百张图同时从 IndexedDB 解出来把页面卡死。 */
+    var out=[],i=0;
+    return new Promise(function(resolve){
+      function step(){
+        if(i>=ids.length)return resolve(out);
+        var chunk=ids.slice(i,i+8);i+=8;
+        Promise.all(chunk.map(one)).then(function(ps){out=out.concat(ps);setTimeout(step,0);},function(){resolve(out);});
+      }
+      step();
+    });
+  }
+  return readAll().then(function(pairs){
     var map={};pairs.forEach(function(p){
       if(typeof p[1]==="string"&&p[1].slice(0,11)==="data:image/"){
         map[p[0]]=p[1];window.__bigStore.stored.add(p[0]);window.__bigStore.ids.set(p[1],p[0]);
@@ -8691,7 +8721,7 @@ function __hydrateBig(root,opts){
 
 window.__e11HydrateRest=function(){
   if(window.__e11HydratingRest)return window.__e11HydratingRest;
-  window.__e11HydratingRest=Promise.resolve().then(function(){return __hydrateBig(state);}).catch(function(){}).then(function(){window.__e11HydratingRest=null;return true;});
+  window.__e11HydratingRest=Promise.resolve().then(function(){return __hydrateBig(state,{batch:1});}).catch(function(){}).then(function(){window.__e11HydratingRest=null;return true;});
   return window.__e11HydratingRest;
 };
 /* v43-79：本机文字核心档。把大图/base64 全部换成空串，只保留聊天、字卡、动态、
@@ -9879,7 +9909,9 @@ async function init(){
   /* v43-106：聊天页兜底巡检。state 里有消息但页面上一条行都没画出来时，
      1 秒后强制重绘一次；避免个别存档/自定义样式导致“消息在库里但聊天页空白”。 */
   /* v43-108：1.5 秒后后台从最近自动备份补回缺失内容，不阻塞首屏。 */
-  try{setTimeout(function(){try{var run=function(){try{window.__bkMergeNewest&&window.__bkMergeNewest();}catch(_){}};if(window.requestIdleCallback)requestIdleCallback(run,{timeout:5000});else run();}catch(_){}},5000);}catch(_){}
+  /* 历史恢复要在用户打开聊天后尽快出现；现在只读“确实比当前多”的备份槽，
+     放在首屏后 2.5 秒直接跑，不再等到 5 秒/空闲。 */
+  try{setTimeout(function(){try{window.__bkMergeNewest&&window.__bkMergeNewest();}catch(_){}},2500);}catch(_){}
   try{
     if(!window.__chatGuardTimer)window.__chatGuardTimer=setInterval(function(){
       try{
@@ -10057,7 +10089,10 @@ async function init(){
       try{
         /* 头像、照片仍按下面的专门逻辑补；背景保持各自快照原样，不互相覆盖 */
       }catch(_eSkinPhoto){}
-      state=migrate(s);try{window.__e11RepairBulkTombs&&window.__e11RepairBulkTombs(state);}catch(_eTombFix){}try{__ltReadApply();}catch(e){}try{__prefApply();}catch(e){}try{window.__perfApply&&window.__perfApply();}catch(_){}window.__stateReady=1;try{setTimeout(function(){try{window.__e11HydrateRest&&window.__e11HydrateRest();}catch(_eHR){}},2600);}catch(_eHRs){}/* 主题先别在这里定：这份还可能是默认浅色快照，等两份存档合并完（下面 6820 行）再 __themeReady，否则夜间用户会先被刷白 */applySkin();
+      state=migrate(s);try{window.__e11RepairBulkTombs&&window.__e11RepairBulkTombs(state);}catch(_eTombFix){}try{__ltReadApply();}catch(e){}try{__prefApply();}catch(e){}try{window.__perfApply&&window.__perfApply();}catch(_){}window.__stateReady=1;try{
+  var _runHydrateRest=function(){try{window.__e11HydrateRest&&window.__e11HydrateRest();}catch(_eHR){}};
+  if(window.requestIdleCallback)requestIdleCallback(_runHydrateRest,{timeout:6000});else setTimeout(_runHydrateRest,2600);
+}catch(_eHRs){}/* 主题先别在这里定：这份还可能是默认浅色快照，等两份存档合并完（下面 6820 行）再 __themeReady，否则夜间用户会先被刷白 */applySkin();
       try{__restoreEmojiLibFromBackup();}catch(_eEmojiLib){}
       try{__backfillEmojiMessageIds();}catch(_eBf){}
       try{__mergeMediaSnapshots(state,s);}catch(_eMergeMedia2){}
