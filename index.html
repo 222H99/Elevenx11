@@ -142,7 +142,11 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
     window.__e11NativeApiFetch=1;
     var orig=window.fetch;
     var API_RE=/^https:\/\/elevenx11-production\.up\.railway\.app\/api\//;
-    var SUPA_RE=/^https:\/\/mqdrndfnftoagqarvmij\.supabase\.co\/(auth|storage)\/v1\//;
+    var SUPA_RE=(function(){
+      var d="https://mqdrndfnftoagqarvmij.supabase.co";
+      try{var c=JSON.parse(localStorage.getItem("e11.cloudCfg.v1")||"null");if(c&&c.on&&c.url)d=String(c.url).replace(/\/+$/,"");}catch(e){}
+      return new RegExp("^"+d.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"\\/(auth|storage)\\/v1\\/");
+    })();
     window.fetch=function(input,init){
       var url="";
       try{url=typeof input==="string"?input:(input&&input.url)||"";}catch(e){}
@@ -187,7 +191,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-22v43-71";
+window.__E11_BUILD="2026-11-22v43-72";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2484,7 +2488,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-22v43-71">
+<meta name="app-build" content="2026-11-22v43-72">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3418,6 +3422,23 @@ html.kb-typing #rotate-guard,html.kb-typing body #rotate-guard{display:none!impo
 </style>
 </head>
 <body>
+<script>
+/* v43-72：编辑完卡片/主页后 600ms 内屏蔽主页应用图标，避免收尾那一下误点进音乐、设置等应用 */
+(function(){
+  var until=0;
+  window.__e11ShieldApps=function(ms){until=Date.now()+(Number(ms)||450);};
+  function block(e){
+    if(Date.now()>=until)return;
+    var t=e.target;
+    if(t&&t.closest&&t.closest('.me-app')){
+      try{e.preventDefault();}catch(_){}
+      try{e.stopImmediatePropagation();}catch(_){}
+    }
+  }
+  document.addEventListener('pointerdown',block,true);
+  document.addEventListener('click',block,true);
+})();
+</script>
 <div id="rotate-guard" aria-hidden="true"><div class="rg-icon"></div><div class="rg-t">请竖屏使用 Eleven×11</div><div class="rg-s">横屏已关闭，转回竖屏即可继续</div></div>
 <div id="__veil" aria-hidden="true" style="position:fixed;inset:0;z-index:99997;display:flex;align-items:center;justify-content:center;background-image:radial-gradient(120% 80% at 50% 0%,rgba(255,255,255,.92),rgba(255,255,255,0) 62%),linear-gradient(168deg,#eef1f6,#e4eaf3 58%,#dfe6f1);background-size:cover;background-position:center;background-repeat:no-repeat;background-color:#f3f5f8;opacity:1;transition:opacity .22s ease;">
   <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
@@ -4137,7 +4158,21 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">API Key</span><input class="set-input" id="set-api-key" type="password" placeholder="sk-..." autocomplete="off" spellcheck="false" style="width:58%;min-width:160px;font-size:13px;text-align:left;"></div>
         <div class="set-row"><span class="set-label">模型</span><input class="set-input" id="set-api-model" type="text" placeholder="gpt-4o-mini" autocomplete="off" spellcheck="false" style="width:58%;min-width:160px;font-size:13px;text-align:left;"></div>
         <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;"><span class="set-label">人设提示词<div class="set-sub">留空使用内置：短句、自然、不要解释自己是 AI</div></span><textarea id="set-api-prompt" class="set-input" rows="3" placeholder="你是「对方」，正在和「我」私聊……" style="width:100%;font-size:13px;line-height:1.6;text-align:left;resize:vertical;"></textarea></div>
+        <div class="set-row"><span class="set-label">温度<span class="set-sub" id="api-temp-val" style="display:inline;margin-left:6px;">0.80</span></span><div class="snd-vol"><input id="set-api-temp" type="range" min="0" max="2" step="0.1" value="0.8"><span class="snd-vol-val" id="api-temp-txt">0.80</span></div></div>
+        <div class="set-row"><span class="set-label">最大回复 Tokens<div class="set-sub">0 表示不限制，由接口默认决定</div></span><input class="set-input" id="set-api-max-tokens" type="number" min="0" max="8192" step="1" value="0" style="width:90px;"></div>
+        <div class="set-row"><span class="set-label">超时（秒）</span><input class="set-input" id="set-api-timeout" type="number" min="5" max="60" step="1" value="22" style="width:80px;"></div>
+        <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;"><span class="set-label">额外请求头（JSON，选填）<div class="set-sub">有些中转接口需要 x-api-key、HTTP-Referer 等；不要重复填 Authorization / Content-Type</div></span><textarea id="set-api-headers" class="set-input" rows="2" placeholder='{"x-api-key":"你的中转密钥"}' style="width:100%;font-size:12px;line-height:1.5;text-align:left;resize:vertical;"></textarea></div>
         <div class="set-row"><button class="small-btn" id="btn-api-test" style="font-size:12px;padding:6px 12px;">测试连接</button><span class="set-sub" id="api-test-sub" style="margin-left:10px;flex:1;">未测试</span></div>
+      </div>
+      <div class="set-sec-title">自己的云端接口（存档）</div>
+      <div class="set-group">
+        <div class="set-row"><span class="set-label">启用自定义云端<div class="set-sub">仅支持 Supabase 兼容后端；需要先在后端建好账号和 vault 存储桶</div></span><button class="switch" id="sw-cloud-custom"></button></div>
+        <div class="set-row"><span class="set-label">云端地址<div class="set-sub">填 Project URL，例：https://xxxx.supabase.co</div></span><input class="set-input" id="set-cloud-url" type="url" inputmode="url" placeholder="https://xxxx.supabase.co" autocomplete="off" spellcheck="false" style="width:58%;min-width:160px;font-size:13px;text-align:left;"></div>
+        <div class="set-row"><span class="set-label">anon / publishable Key</span><input class="set-input" id="set-cloud-key" type="password" placeholder="sb_publishable_..." autocomplete="off" spellcheck="false" style="width:58%;min-width:160px;font-size:13px;text-align:left;"></div>
+        <div class="set-row"><span class="set-label">存储桶<div class="set-sub">默认 vault；后端里要先建同名私有桶</div></span><input class="set-input" id="set-cloud-bucket" type="text" placeholder="vault" autocomplete="off" spellcheck="false" style="width:100px;font-size:13px;text-align:left;"></div>
+        <div class="set-row"><button class="small-btn ghost" id="btn-cloud-test" style="font-size:12px;padding:6px 12px;">测试连接</button><span class="set-sub" id="cloud-test-sub" style="margin-left:10px;flex:1;">未测试</span></div>
+        <div class="set-row"><span class="set-label">保存并切换<div class="set-sub">会清掉本机登录态，聊天记录保留；切换后需要重新登录</div></span><button class="small-btn" id="btn-cloud-save" style="font-size:12px;padding:6px 12px;">保存并重启</button></div>
+        <div class="set-row"><span class="set-label">恢复官方云端<div class="set-sub">回到内置 Supabase，登录态会清掉</div></span><button class="small-btn ghost" id="btn-cloud-reset" style="font-size:12px;padding:6px 12px;">恢复官方</button></div>
       </div>
       <div class="set-sec-title">语音配置（云端 TTS）</div>
       <div class="set-group">
@@ -4174,7 +4209,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-71</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-72</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5454,15 +5489,47 @@ setTimeout(function(){
    账号由站主用 supabase_setup/create_accounts.mjs 创建；密码只在登录时使用。 */
 (function(){
   "use strict";
-  var LS_AUTH="e11.auth.v1", LS_CFG="e11.cfg.v1", LS_OWNER="e11.localOwner.v1";
+  var LS_AUTH="e11.auth.v1", LS_CFG="e11.cfg.v1", LS_OWNER="e11.localOwner.v1", LS_CLOUD="e11.cloudCfg.v1";
   var SS_ACTION="e11.authAction.v1";
   var OWNER_ACCOUNT="001";
-  var DEFAULTS={url:"https://mqdrndfnftoagqarvmij.supabase.co",key:"sb_publishable_L8bXeUSTh6wbZqeoVIqGXw_C4W6txeE",domain:"eleven11.local"};
+  var DEFAULTS={url:"https://mqdrndfnftoagqarvmij.supabase.co",key:"sb_publishable_L8bXeUSTh6wbZqeoVIqGXw_C4W6txeE",domain:"eleven11.local",bucket:"vault"};
+  var CLOUD=(function(){
+    var c=null;
+    try{var x=JSON.parse(localStorage.getItem(LS_CLOUD)||"null");if(x&&typeof x==="object")c=x;}catch(e){}
+    return c;
+  })();
+  var customOn=!!(CLOUD&&CLOUD.on&&String(CLOUD.url||"").trim()&&String(CLOUD.key||"").trim());
   var cfg=(function(){
     var c={};
     try{var o=JSON.parse(localStorage.getItem(LS_CFG)||"null");if(o)c=o;}catch(e){}
-    return {url:String(c.url||DEFAULTS.url||"").replace(/\/+$/,""),key:String(c.key||DEFAULTS.key||""),domain:String(c.domain||DEFAULTS.domain||"eleven11.local")};
+    var base=customOn?CLOUD:{};
+    return {url:String(base.url||c.url||DEFAULTS.url||"").replace(/\/+$/,""),key:String(base.key||c.key||DEFAULTS.key||""),domain:String(c.domain||DEFAULTS.domain||"eleven11.local"),bucket:String(base.bucket||DEFAULTS.bucket||"vault").replace(/^\/+|\/+$/g,"")||"vault"};
   })();
+  function clearAuth(){try{localStorage.removeItem(LS_AUTH);}catch(e){}}
+  window.__E11CloudCfg={
+    current:function(){return {on:customOn,url:cfg.url,key:cfg.key,bucket:cfg.bucket};},
+    official:function(){return {url:DEFAULTS.url,key:DEFAULTS.key,bucket:DEFAULTS.bucket};},
+    test:function(url,key){
+      url=String(url||"").trim().replace(/\/+$/,"");key=String(key||"").trim();
+      if(!url||!key)return Promise.reject(new Error("先填云端地址和 Key"));
+      if(!/^https?:\/\//.test(url))return Promise.reject(new Error("云端地址要以 http:// 或 https:// 开头"));
+      var ac=null;try{ac=new AbortController();}catch(_){}
+      var tm=setTimeout(function(){try{ac&&ac.abort();}catch(_){}},12000);
+      return fetch(url+"/auth/v1/health",{method:"GET",headers:{"apikey":key},cache:"no-store",signal:ac?ac.signal:undefined}).then(function(r){
+        clearTimeout(tm);if(!r.ok)throw new Error("HTTP "+r.status);return r.text();
+      }).then(function(t){clearTimeout(tm);if(!String(t||"").trim())throw new Error("接口返回为空");return true;},function(e){clearTimeout(tm);throw e;});
+    },
+    apply:function(o){
+      o=o||{};
+      var url=String(o.url||"").trim().replace(/\/+$/,""),key=String(o.key||"").trim(),bucket=String(o.bucket||"vault").trim()||"vault";
+      if(!url||!key)throw new Error("云端地址和 Key 都要填");
+      if(!/^https?:\/\//.test(url))throw new Error("云端地址要以 http:// 或 https:// 开头");
+      try{localStorage.setItem(LS_CLOUD,JSON.stringify({on:!!o.on,url:url,key:key,bucket:bucket}));}catch(e){throw new Error("浏览器不让保存，检查是否禁用了本地存储");}
+      clearAuth();return true;
+    },
+    reset:function(){try{localStorage.removeItem(LS_CLOUD);}catch(e){}clearAuth();return true;}
+  };
+
   var session=null, busy=false, cloudTimer=null, lastCloudHash="", lastCloudRev=0;
   var gate=document.getElementById("auth-gate");
   var card=document.getElementById("auth-card");
@@ -5607,11 +5674,11 @@ setTimeout(function(){
       saveSession(ns);return ns;
     });
   }
-  function cloudUrl(){return "/storage/v1/object/vault/"+encodeURIComponent(session.user.id)+"/latest.json";}
-  function cloudManifestUrl(){return "/storage/v1/object/vault/"+encodeURIComponent(session.user.id)+"/latest.manifest.json";}
+  function cloudUrl(){return "/storage/v1/object/"+encodeURIComponent(cfg.bucket)+"/"+encodeURIComponent(session.user.id)+"/latest.json";}
+  function cloudManifestUrl(){return "/storage/v1/object/"+encodeURIComponent(cfg.bucket)+"/"+encodeURIComponent(session.user.id)+"/latest.manifest.json";}
   /* 完整档自己的固定指纹：只由「完整档」更新，不会被设备把 latest 写小时的半完整指纹覆盖。
      这样即使 latest.manifest 被旧版写成 866 张卡、9 首歌，启动时仍知道完整档有 934 张卡、11 首歌。 */
-  function cloudFullManifestUrl(){return "/storage/v1/object/vault/"+encodeURIComponent(session.user.id)+"/latest.full.manifest.json";}
+  function cloudFullManifestUrl(){return "/storage/v1/object/"+encodeURIComponent(cfg.bucket)+"/"+encodeURIComponent(session.user.id)+"/latest.full.manifest.json";}
   /* 记住“上次已经取到并落盘的云端版本”。下次启动先只读几百字节的 manifest：
      版本没变、本机数据又达到完整指纹，就直接用本机，不再重复下载 5MB。
      云端一旦被另一台设备保存，savedAt 变了，仍然会正常拉取。 */
@@ -5715,7 +5782,7 @@ setTimeout(function(){
     return n;
   }
   function cloudBackupGet(){
-    var url="/storage/v1/object/vault/"+encodeURIComponent(session.user.id)+"/latest.full.json";
+    var url="/storage/v1/object/"+encodeURIComponent(cfg.bucket)+"/"+encodeURIComponent(session.user.id)+"/latest.full.json";
     return api(url,{token:session.access_token,timeout:12000}).catch(function(){return null;});
   }
   function __e11MergeProfile(base,add){
@@ -5924,7 +5991,7 @@ setTimeout(function(){
     },function(e){window.__e11CloudGetPending=null;throw e;});
   }
   function cloudGetRecovery(){
-    var url="/storage/v1/object/vault/"+encodeURIComponent(session.user.id)+"/recovery_media.json";
+    var url="/storage/v1/object/"+encodeURIComponent(cfg.bucket)+"/"+encodeURIComponent(session.user.id)+"/recovery_media.json";
     var isMissing=function(e){return !!e&&(e.status===404||(e.status===400&&/not[_ ]?found|object not found/i.test(String(e.message||""))));};
     return api(url,{token:session.access_token,timeout:45000}).then(function(d){return d;}).catch(function(e){
       if(isMissing(e))return null;
@@ -15637,7 +15704,7 @@ function openCardEdit(id){
   cardEditId=id;$("card-edit-text").value=c.text;$("card-edit-overlay").classList.add("show");
   setTimeout(()=>$("card-edit-text").focus(),150);
 }
-function closeCardEdit(){cardEditId=null;$("card-edit-overlay").classList.remove("show");}
+function closeCardEdit(){cardEditId=null;$("card-edit-overlay").classList.remove("show");try{if(window.__e11ShieldApps)window.__e11ShieldApps(600);}catch(_){}}
 function saveCardEdit(){
   if(!cardEditId)return;
   const t=$("card-edit-text").value.trim();if(!t){toast("字卡不能为空");return;}
@@ -25792,6 +25859,7 @@ window.__dockTopPx=function(){
     el.appendChild(rz);
   }
   function setEditing(on){
+    var _wasEditing=editing;
     editing=on;
     if(!on)clearTimer();
     var its=items();
@@ -26607,7 +26675,7 @@ setInterval(function(){try{
 })();
 function openMeEdit(){$("me-name-edit").value=state.profile.mpName||state.me.name||"";$("me-handle-edit").value=state.profile.handle||"";$("me-region-edit").value=state.profile.region||"";$("me-sign-edit").value=state.profile.bio||"";$("me-edit-overlay").classList.add("show");setTimeout(()=>$("me-name-edit").focus(),150);}
 $("me-widget").addEventListener("click",e=>{if(e.target.closest(".me-av")||e.target.closest(".me-av-edit"))return;openMeEdit();});
-if($("me-edit-cancel"))$("me-edit-cancel").addEventListener("click",()=>$("me-edit-overlay").classList.remove("show"));
+if($("me-edit-cancel"))$("me-edit-cancel").addEventListener("click",()=>{$("me-edit-overlay").classList.remove("show");try{if(window.__e11ShieldApps)window.__e11ShieldApps(600);}catch(_){}});
 $("me-edit-overlay").addEventListener("click",e=>{if(e.target===e.currentTarget)$("me-edit-overlay").classList.remove("show");});
 $("me-av-edit").addEventListener("click",()=>window.__nativePick("file-me-av"));
 $("me-av").addEventListener("click",()=>window.__nativePick("file-me-av"));
@@ -26650,7 +26718,7 @@ $("me-edit-save").addEventListener("click",()=>{
   state.profile.region=$("me-region-edit").value.trim();
   state.profile.bio=$("me-sign-edit").value.trim();
   save();renderMe();renderChat();toast("已保存");
-  $("me-edit-overlay").classList.remove("show");
+  $("me-edit-overlay").classList.remove("show");try{if(window.__e11ShieldApps)window.__e11ShieldApps(600);}catch(_){}
 });
 
 /* ===== 渲染入口 ===== */
@@ -26977,6 +27045,7 @@ setTimeout(function(){
   document.body.appendChild(bar);
   var _iconHintShown=false;
   function setEditing(on){
+    var _wasEditing=editing;
     editing=on;
     if(on&&!_iconHintShown){_iconHintShown=true;try{toast("点任意一个图标，就能单独换它的图片");}catch(e){}}
     Array.prototype.slice.call(document.querySelectorAll('.me-app')).forEach(function(el){
@@ -26989,6 +27058,7 @@ setTimeout(function(){
     });
     bar.style.display=on?'flex':'none';
     if(!on)cur=null;
+    if(!on&&_wasEditing){try{if(window.__e11ShieldApps)window.__e11ShieldApps(600);}catch(_){}};
   }
   function addResize(el){
     if(el.querySelector('.cp2-resize'))return;
@@ -29954,7 +30024,7 @@ body{margin:0;background:var(--bg,#fafafa);}
    语音消息只存文本和 voice 名，点播放时才走 TTS，不把音频塞进 5MB 云档。 */
 (function(){
   var KEY="e11.apiCfg";
-  var DEF={chatOn:false,base:"",key:"",model:"gpt-4o-mini",prompt:"",partnerVoiceOn:true,voiceProb:12,ttsOn:true,ttsVoice:"alloy",ttsModel:"",ttsBase:"",ttsProvider:"openai",mmGroup:"",mmKey:"",voiceLang:"原文",voiceSpeed:1,voiceGender:"男",voiceStyle:""};
+  var DEF={chatOn:false,base:"",key:"",model:"gpt-4o-mini",prompt:"",temperature:0.8,maxTokens:0,timeout:22,extraHeaders:"",partnerVoiceOn:true,voiceProb:12,ttsOn:true,ttsVoice:"alloy",ttsModel:"",ttsBase:"",ttsProvider:"openai",mmGroup:"",mmKey:"",voiceLang:"原文",voiceSpeed:1,voiceGender:"男",voiceStyle:""};
   function cfg(){
     var o=Object.assign({},DEF);
     try{var x=JSON.parse(localStorage.getItem(KEY)||"null");if(x&&typeof x==="object")Object.assign(o,x);}catch(e){}
@@ -30023,9 +30093,22 @@ body{margin:0;background:var(--bg,#fafafa);}
   window.__e11ApiChat=function(messages,timeout){
     var c=cfg(),url=chatEndpoint(c.base);
     if(!c.base||!c.key)return Promise.reject(new Error("还没填接口地址或 API Key"));
+    var temp=Number(c.temperature);if(!isFinite(temp)||temp<0||temp>2)temp=0.8;
+    var mt=Number(c.maxTokens);if(!isFinite(mt)||mt<0)mt=0;
+    var body={model:c.model||"gpt-4o-mini",messages:messages,temperature:temp};
+    if(mt>0)body.max_tokens=Math.min(8192,Math.round(mt));
+    var headers={"Content-Type":"application/json","Authorization":"Bearer "+c.key};
+    try{
+      var eh=c.extraHeaders;
+      if(typeof eh==="string"&&eh.trim())eh=JSON.parse(eh);
+      if(eh&&typeof eh==="object")Object.keys(eh).forEach(function(k){
+        if(!/^authorization$|^content-type$/i.test(k)&&eh[k]!=null)headers[k]=String(eh[k]);
+      });
+    }catch(_eH){return Promise.reject(new Error("额外请求头不是合法 JSON"));}
+    var sec=Number(c.timeout);if(!isFinite(sec)||sec<5||sec>60)sec=22;
     var ac=null;try{ac=new AbortController();}catch(_){}
-    var timer=setTimeout(function(){try{ac&&ac.abort();}catch(_){}},timeout||22000);
-    return extFetch(url,{method:"POST",cache:"no-store",headers:{"Content-Type":"application/json","Authorization":"Bearer "+c.key,},body:JSON.stringify({model:c.model||"gpt-4o-mini",messages:messages,temperature:0.8}),signal:ac?ac.signal:undefined}).then(function(r){
+    var timer=setTimeout(function(){try{ac&&ac.abort();}catch(_){}},timeout||sec*1000);
+    return extFetch(url,{method:"POST",cache:"no-store",headers:headers,body:JSON.stringify(body),signal:ac?ac.signal:undefined}).then(function(r){
       clearTimeout(timer);
       if(!r.ok)return r.text().then(function(t){var e=new Error("HTTP "+r.status+(t?(" · "+t.slice(0,180)):""));e.status=r.status;throw e;});
       return r.json();
@@ -30225,12 +30308,15 @@ body{margin:0;background:var(--bg,#fafafa);}
   function status(id,txt){var e=$(id);if(e)e.textContent=txt;}
   function paint(){
     var c=cfg();
-    var vals=[["set-api-base",c.base],["set-api-key",c.key],["set-api-model",c.model],["set-api-prompt",c.prompt],["set-mm-key",c.mmKey||""],["set-tts-voice",c.ttsVoice],["set-tts-model",c.ttsModel],["set-tts-base",c.ttsBase],["set-tts-provider",c.ttsProvider||"openai"],["set-mm-group",c.mmGroup||""],["set-voice-prob",c.voiceProb],["set-voice-lang",c.voiceLang||"原文"],["set-voice-gender",c.voiceGender||"男"],["set-voice-style",c.voiceStyle||""]];
+    var vals=[["set-api-base",c.base],["set-api-key",c.key],["set-api-model",c.model],["set-api-prompt",c.prompt],["set-api-temp",c.temperature],["set-api-max-tokens",c.maxTokens],["set-api-timeout",c.timeout],["set-api-headers",c.extraHeaders],["set-mm-key",c.mmKey||""],["set-tts-voice",c.ttsVoice],["set-tts-model",c.ttsModel],["set-tts-base",c.ttsBase],["set-tts-provider",c.ttsProvider||"openai"],["set-mm-group",c.mmGroup||""],["set-voice-prob",c.voiceProb],["set-voice-lang",c.voiceLang||"原文"],["set-voice-gender",c.voiceGender||"男"],["set-voice-style",c.voiceStyle||""]];
     vals.forEach(function(p){
       var el=$(p[0]);if(!el)return;
       if(document.activeElement===el)return;
       el.value=p[1]===undefined||p[1]===null?"":String(p[1]);
     });
+    var _at=Number(c.temperature);if(!isFinite(_at))_at=0.8;
+    if($("api-temp-val"))$("api-temp-val").textContent=_at.toFixed(2);
+    if($("api-temp-txt"))$("api-temp-txt").textContent=_at.toFixed(2);
     mark($("sw-api-on"),c.chatOn);
     mark($("sw-partner-voice"),c.partnerVoiceOn!==false);
     mark($("sw-cloud-voice"),c.ttsOn!==false);
@@ -30250,7 +30336,38 @@ body{margin:0;background:var(--bg,#fafafa);}
     bind(id,"input",function(){var v=this.value;if(num)v=Math.max(0,Math.min(100,Math.round(Number(v)||0)));setCfg({[key]:v});});
   }
   bind("sw-api-on","click",function(){var c=cfg();setCfg({chatOn:!c.chatOn});paint();toast(!c.chatOn?"已开启自定义接口（聊天会走你的 API）":"已关闭自定义接口，恢复字卡回复");});
-  bindInput("set-api-base","base");bindInput("set-api-key","key");bindInput("set-api-model","model");bindInput("set-api-prompt","prompt");
+  bindInput("set-api-base","base");bindInput("set-api-key","key");bindInput("set-api-model","model");bindInput("set-api-prompt","prompt");bindInput("set-api-max-tokens","maxTokens");bindInput("set-api-timeout","timeout");bindInput("set-api-headers","extraHeaders");
+  bind("set-api-temp","input",function(){var v=Number(this.value);if(!isFinite(v))v=0.8;setCfg({temperature:v});if($("api-temp-val"))$("api-temp-val").textContent=v.toFixed(2);if($("api-temp-txt"))$("api-temp-txt").textContent=v.toFixed(2);});
+  /* 自己的云端接口：测试 / 保存切换 / 恢复官方 */
+  (function(){
+    var C=window.__E11CloudCfg;if(!C)return;
+    function cv(){return {url:$("set-cloud-url")?$("set-cloud-url").value.trim():"",key:$("set-cloud-key")?$("set-cloud-key").value.trim():"",bucket:$("set-cloud-bucket")?$("set-cloud-bucket").value.trim()||"vault":"vault"};}
+    function paintCloud(){
+      var cur=C.current();
+      if($("sw-cloud-custom"))$("sw-cloud-custom").classList.toggle("on",!!cur.on);
+      if($("set-cloud-url")&&document.activeElement!==$("set-cloud-url"))$("set-cloud-url").value=cur.url||"";
+      if($("set-cloud-key")&&document.activeElement!==$("set-cloud-key"))$("set-cloud-key").value=cur.key||"";
+      if($("set-cloud-bucket")&&document.activeElement!==$("set-cloud-bucket"))$("set-cloud-bucket").value=cur.bucket||"vault";
+      if($("cloud-test-sub"))$("cloud-test-sub").textContent=cur.on?"自定义云端已启用":"官方云端";
+    }
+    paintCloud();
+    if($("sw-cloud-custom"))$("sw-cloud-custom").addEventListener("click",function(){this.classList.toggle("on");});
+    if($("btn-cloud-test"))$("btn-cloud-test").addEventListener("click",function(){
+      var b=this,v=cv(),st=$("cloud-test-sub");b.disabled=true;if(st)st.textContent="测试中…";
+      C.test(v.url,v.key).then(function(){if(st)st.textContent="连接成功，可以保存";toast("云端接口连接成功");}).catch(function(e){if(st)st.textContent="失败："+String(e&&e.message||e).slice(0,120);toast("云端接口连接失败");}).then(function(){b.disabled=false;});
+    });
+    if($("btn-cloud-save"))$("btn-cloud-save").addEventListener("click",function(){
+      var v=cv(),on=$("sw-cloud-custom")&&$("sw-cloud-custom").classList.contains("on");
+      try{C.apply({on:on,url:v.url,key:v.key,bucket:v.bucket});}catch(e){toast(String(e&&e.message||e));return;}
+      toast(on?"已保存自定义云端，正在重启…":"已保存官方云端，正在重启…");
+      setTimeout(function(){location.reload();},600);
+    });
+    if($("btn-cloud-reset"))$("btn-cloud-reset").addEventListener("click",function(){
+      try{C.reset();}catch(e){}
+      toast("已恢复官方云端，正在重启…");
+      setTimeout(function(){location.reload();},600);
+    });
+  })();
   bind("sw-partner-voice","click",function(){var c=cfg();setCfg({partnerVoiceOn:!(c.partnerVoiceOn!==false)});paint();});
   bindInput("set-voice-prob","voiceProb",true);
   bind("sw-cloud-voice","click",function(){var c=cfg();setCfg({ttsOn:!(c.ttsOn!==false)});paint();toast(!c.ttsOn?"云端语音已关，对方只发文字/语音条会失败":"云端语音已开");});
