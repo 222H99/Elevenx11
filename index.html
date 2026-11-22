@@ -193,7 +193,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-22v43-106";
+window.__E11_BUILD="2026-11-22v43-107";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -449,6 +449,8 @@ input,textarea{-webkit-user-select:text;user-select:text;}
   background:rgba(0,0,0,.06);color:#8E8E93;line-height:10px;}  /* 撤回提示：与「主动」同款小标签，居中不占整行 */
 body.fs-1 .msg-sys.msg-recall,body.fs-2 .msg-sys.msg-recall,body.fs-3 .msg-sys.msg-recall,body.fs-4 .msg-sys.msg-recall{font-size:calc(10px * var(--fs));}
 .msg-row{display:flex;margin:2px 0;max-width:100%;align-items:flex-start;}
+/* v43-107：任何导入/自定义样式都不许把消息行隐藏；消息看不见时先保底可见 */
+#msglist>.msg-row{display:flex!important;visibility:visible!important;opacity:1!important;}
 /* iMessage 那种「气泡弹出来」的入场：我发的从底部弹起，对方的从左侧滑入 */
 @keyframes wxsPopOut{0%{opacity:0;transform:translate3d(0,8px,0) scale(.97)}100%{opacity:1;transform:translate3d(0,0,0) scale(1)}}
 @keyframes wxsPopIn{0%{opacity:0;transform:translate3d(-10px,0,0) scale(.97)}100%{opacity:1;transform:translate3d(0,0,0) scale(1)}}
@@ -2492,7 +2494,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-22v43-106">
+<meta name="app-build" content="2026-11-22v43-107">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4215,7 +4217,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-106</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-107</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5826,12 +5828,29 @@ setTimeout(function(){
   }
   function __e11MergeSettings(base,add){
     var b=base||{},a=add||{},d={};try{d=defaultState().settings||{};}catch(_){}
-    var o=Object.assign({},a);
-    Object.keys(b).forEach(function(k){
+    /* v43-107：以“最新一份”为主，但不拿默认值覆盖自定义值。 */
+    var bt=Number(b.__ts)||0,at=Number(a.__ts)||0;
+    var primary=at>=bt?a:b,secondary=at>=bt?b:a;
+    var o=Object.assign({},primary);
+    Object.keys(secondary).forEach(function(k){
       if(k==="__ts")return;
-      var bv=b[k],av=o[k];
-      if(av===undefined)o[k]=bv;
-      else if(d[k]!==undefined&&av===d[k]&&bv!==d[k])o[k]=bv;
+      var sv=secondary[k],pv=o[k];
+      if(pv===undefined)o[k]=sv;
+      else if(d[k]!==undefined&&pv===d[k]&&sv!==d[k])o[k]=sv;
+    });
+    return o;
+  }
+  function __e11MergeSkin(base,add){
+    var b=base||{},a=add||{},d={};try{d=defaultState().skin||{};}catch(_){}
+    var bt=Number(b.__ts)||0,at=Number(a.__ts)||0;
+    /* 美化必须是自定义值优先：默认的白色/默认色不能把云端自定义皮肤冲掉。 */
+    var primary=at>=bt?a:b,secondary=at>=bt?b:a;
+    var o=Object.assign({},primary);
+    Object.keys(secondary).forEach(function(k){
+      if(k==="__ts")return;
+      var sv=secondary[k],pv=o[k];
+      if(pv===undefined)o[k]=sv;
+      else if(d[k]!==undefined&&pv===d[k]&&sv!==d[k])o[k]=sv;
     });
     return o;
   }
@@ -5944,6 +5963,7 @@ setTimeout(function(){
       if(k==="diary"||k==="messages"||k==="__savedAt"||Array.isArray(add[k]))return;
       if(k==="profile"){base[k]=__e11MergeProfile(base[k],add[k]);return;}
       if(k==="settings"){base[k]=__e11MergeSettings(base[k],add[k]);return;}
+      if(k==="skin"){base[k]=__e11MergeSkin(base[k],add[k]);return;}
       if(k==="me"||k==="partner"){base[k]=__e11MergeIdentity(base[k],add[k],k);return;}
       if(add[k]&&typeof add[k]==="object"){
         var o={};Object.keys(base[k]||{}).forEach(function(x){o[x]=base[k][x];});
@@ -6089,7 +6109,9 @@ setTimeout(function(){
       var _pr=_st.profile||{};["meAvatar","cpMeAvatar","cpPartnerAvatar","cpPhotoAvatar","cpPhoto"].forEach(function(k){if(_ref(_pr[k]))_bad=true;});
       [].concat(_st.emojis||[],_st.partnerEmojis||[]).forEach(function(e){if(e&&_ref(e.src))_bad=true;});
       (_st.musicPlaylist||[]).forEach(function(sg){if(sg&&_ref(sg.cover))_bad=true;});
-      if(_bad)return Promise.reject(new Error("关键图片还没从本机库恢复，已暂停覆盖云端"));
+      /* v43-107：coreOnly 也带完整的设置/美化/字卡/资料，允许上传；
+         只挡“完整图片档”的覆盖，避免把云端图换成空引用。 */
+      if(_bad&&!(payload&&payload.coreOnly))return Promise.reject(new Error("关键图片还没从本机库恢复，已暂停覆盖云端"));
     }catch(_eRef){}
     var url=cfg.url+cloudUrl();
     var headers={"apikey":cfg.key,"Authorization":"Bearer "+session.access_token,"Content-Type":"application/json","x-upsert":"true","cache-control":"no-cache"};
@@ -6363,7 +6385,11 @@ setTimeout(function(){
     try{
       var _lts=Number(localState&&localState.settings&&localState.settings.__ts)||0;
       var _cts=Number(st.settings&&st.settings.__ts)||0;
-      if(_lts>_cts+1000)st.settings=__e11MergeSettings(st.settings,localState.settings); /* 本机设置更新：本机值优先，云端只补缺项 */
+      if(_lts>_cts+1000){
+        /* 本机确实比云端新：整份本机设置优先，云端只补缺项。 */
+        var _lset=localState.settings||{};
+        st.settings=Object.assign({},st.settings||{},_lset);
+      }
     }catch(_eSetMerge){}
     /* 本机删掉的东西必须继续算删掉：即使这次是云端赢，也要把本机墓碑带进合并结果。 */
     try{st.deletedIds=__e11MergeDeleted(st.deletedIds,localState&&localState.deletedIds);}catch(_eDel){}
@@ -6420,10 +6446,13 @@ setTimeout(function(){
     try{
       if(_localSkin){
         st.skin=st.skin||{};
-        var _lsts=Number(_localSkin.__ts)||0,_csts=Number(st.skin.__ts)||0;
-        st.skin.dark=!!_localSkin.dark;if(_localSkin.themeMode)st.skin.themeMode=_localSkin.themeMode;
-        if(_lsts>_csts+1000)st.skin=Object.assign({},st.skin,_localSkin);
-        else if(_localSkin.bgImage)st.skin.bgImage=_localSkin.bgImage;
+        /* v43-107：美化（颜色、气泡、字卡背景、头像框）以云端为准，
+           只把“这台设备自己的明暗开关”留在本机。以前整份本机皮肤会把云端美化顶掉。 */
+        var _lk={dark:_localSkin.dark,themeMode:_localSkin.themeMode};
+        st.skin=Object.assign({},st.skin,_lk);
+        Object.keys(_localSkin).forEach(function(k){
+          if(st.skin[k]===undefined||st.skin[k]===null||st.skin[k]==="")st.skin[k]=_localSkin[k];
+        });
       }
     }catch(_eKeepSkin){}
     /* 云端快照可能只存了文字/旧版本，图在别的槽里；先用本机同账号的好图把空图补回来，
@@ -6533,10 +6562,29 @@ setTimeout(function(){
       if(!_hardReset&&!_importUpload&&_rev&&_rev===Number(lastCloudRev||0))return;
       var snap,_full=null,_fullTxt="";
       try{snap=snapshot();}catch(e){return;}
+      /* v43-107：本机还有图片没换回本体（bigref）时，不能把整档拒传，
+         否则设置/美化/字卡/资料也一起永远同步不出去。这里改成只传文字核心档，
+         保留云端原来的完整图片档，等本机图片恢复后再补传完整档。 */
+      var _refBad=false;
+      try{
+        var _isRef=function(v){return typeof v==="string"&&v.slice(0,8)==="\u0000bigref:";};
+        var _st0=snap.state||{};
+        _refBad=!!(_isRef(_st0.me&&_st0.me.avatar)||_isRef(_st0.partner&&_st0.partner.avatar)||
+          _isRef((_st0.me&&_st0.me.photos||[])[0])||_isRef((_st0.partner&&_st0.partner.photos||[])[0]));
+        var _pr0=_st0.profile||{};["meAvatar","cpMeAvatar","cpPartnerAvatar","cpPhotoAvatar","cpPhoto"].forEach(function(k){if(_isRef(_pr0[k]))_refBad=true;});
+        [].concat(_st0.emojis||[],_st0.partnerEmojis||[]).forEach(function(e){if(e&&_isRef(e.src))_refBad=true;});
+        (_st0.musicPlaylist||[]).forEach(function(sg){if(sg&&_isRef(sg.cover))_refBad=true;});
+      }catch(_eRefBad){}
       var txt;try{txt=JSON.stringify(snap);}catch(e){return;}
       /* v43-79：整库带图超过约 0.9MB 时，Supabase 会拒收/超时，表现为“同步失败”。
          超限就改传“文字核心档”，同时把带图完整档另写 latest.full.json，云端不再缺图。 */
-      if(txt.length>900000){
+      if(_refBad){
+        try{
+          snap.state=__e11TextCore(snap.state);snap.coreOnly=1;
+          snap.savedAt=Date.now();snap.state.__savedAt=snap.savedAt;
+          txt=JSON.stringify(snap);_full=null;_fullTxt="";
+        }catch(_eCoreBad){return;}
+      }else if(txt.length>900000){
         try{
           _full=snap;_fullTxt=txt;
           var _coreEnv={};try{for(var _ck in _full)_coreEnv[_ck]=_full[_ck];}catch(_){}
@@ -6627,22 +6675,42 @@ setTimeout(function(){
           if(b.length)base[k]=__e11MergeList(a,b);
         });
       });
-      /* v43-105：一起听的封面/背景/歌单和资料字段也要从完整档补回，不能只合并数组。 */
+      /* v43-107：设置、美化皮肤、主页资料不能只补“空字段”。
+         默认档里每个字段都有默认值，旧逻辑会认为不是空，于是云端的自定义颜色、
+         背景、字号、昵称、签名永远进不来（换设备就是“设置/美化/资料没同步”）。
+         这里按“和默认值差多少个字段”挑最完整的一份，直接覆盖默认值。 */
       try{
+        var _def=defaultState();
+        function _diffScore(obj,def,skip){
+          var n=0;if(!obj||typeof obj!=="object")return -1;
+          Object.keys(obj).forEach(function(k){
+            if(skip&&skip.indexOf(k)>=0)return;
+            var v=obj[k],dv=def?def[k]:undefined;
+            if(v===undefined||v===null||v==="")return;
+            if(Array.isArray(v)&&!v.length)return;
+            if(typeof v==="object")return;
+            if(dv===undefined||v!==dv)n++;
+          });
+          return n;
+        }
+        ["settings","skin","profile"].forEach(function(k){
+          var _skip=k==="skin"?["dark","themeMode"]:(k==="settings"?["entryPwd","unlocked"]:[]);
+          var best=base[k]||{},bestN=_diffScore(base[k],_def[k],_skip);
+          cands.forEach(function(c){
+            var n=_diffScore(c.st[k],_def[k],_skip);
+            if(n>bestN){bestN=n;best=JSON.parse(JSON.stringify(c.st[k]));}
+          });
+          if(!best||typeof best!=="object")return;
+          var _keep={};
+          if(k==="settings"){["entryPwd","unlocked"].forEach(function(x){if(base.settings&&base.settings[x]!==undefined)_keep[x]=base.settings[x];});}
+          if(k==="skin"){["dark","themeMode"].forEach(function(x){if(base.skin&&base.skin[x]!==undefined)_keep[x]=base.skin[x];});}
+          base[k]=Object.assign({},(_def[k]||{}),best,_keep);
+        });
         var _fillScalars=["musicBg","musicBgImg","musicCoverImg","musicDiscBgImg","musicDiscInnerImg","musicRoomNote","musicCur","musicVol","musicLoop"];
         cands.forEach(function(c){
           _fillScalars.forEach(function(k){
             var v=c.st[k];
             if((base[k]===undefined||base[k]===null||base[k]===""||base[k]===0)&&v!==undefined&&v!==null&&v!==""&&v!==0)base[k]=v;
-          });
-          ["profile","skin","settings"].forEach(function(k){
-            if(c.st[k]&&typeof c.st[k]==="object"){
-              base[k]=base[k]||{};
-              Object.keys(c.st[k]).forEach(function(kk){
-                var v=c.st[k][kk];
-                if((base[k][kk]===undefined||base[k][kk]===null||base[k][kk]===""||base[k][kk]===0)&&v!==undefined&&v!==null&&v!==""&&v!==0)base[k][kk]=v;
-              });
-            }
           });
         });
       }catch(_eDeepFill){}
@@ -7363,14 +7431,17 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-22",
   noticeKey:null,
-  lead:"v43-106：修好登录层挡住聊天/设置返回、消息不可见；密码页与声明页只在首次/重置后出现。",
+  lead:"v43-107：修好云端设置/美化/字卡/资料合并；消息行保底可见；启动黑屏；免密与内置欢迎语。",
   items:[
     "顺序固定为：声明页 → 本地密码 → 云端登录；未输本地密码前，云端登录卡不会先盖上来。",
     "第一次在这台设备输对密码后记住；之后打开只显示声明页，不再反复要密码。一键重置或清除站点数据后重新输。",
     "发消息后最多 1.2 秒写入 IndexedDB，马上关闭网页/切后台也不会丢；重开聊天能看到最后一条。",
     "深度恢复和自动备份改为完整档：历史聊天图片、表情包、一起听歌单/封面/背景一起合并，不再只恢复文字。",
     "修掉云端登录层自动盖住 App：密码通过后直接进入，消息和设置返回不再被透明层挡住。",
-    "声明页和密码页只在第一次进入或一键重置后出现；固定 6 位密码输对后本机记住。",
+    "声明页和密码页只在第一次进入或一键重置后出现；固定 6 位密码输对后本机记住，更新/导入/退出登录都不再重输。",
+    "云端恢复会完整合并设置、美化皮肤、字卡和主页资料，不再被本机默认值盖掉。",
+    "消息行增加保底可见规则；即使导入过自定义样式，自己和对方的消息也不会被隐藏。",
+    "去掉内置的“开启私密聊天”欢迎消息，聊天从空白开始。",
     "主存档意外读不到时，启动会自动从最近一份完整自动备份救回；一键重置前也会先备份。",
     "顶栏只保留纯白/纯黑，启动第一帧不再出现灰色。",
     "正文、字卡、信件、留言、动态、图片全部以 IndexedDB 为主库，不再每次改动同步序列化 2MB 到 localStorage。",
@@ -7750,10 +7821,8 @@ function defaultState(){
     redpackets:[],
     musicPlaylist:[],
     musicBg:0,musicBgImg:"",musicDiscBgImg:"",musicDiscInnerImg:"",musicCoverImg:"",musicCur:-1,musicVol:0.8,musicLoop:false,miniPos:null,miniCollapsed:false,
-    messages:[
-      {id:uid(),from:"partner",type:"text",text:"嗨，这是我们的私密聊天空间，只有你能看到。",src:"",time:Date.now(),quoteId:null}
-    ],
-    seq:20,
+    messages:[],
+    seq:0,
     drawSession:false
   };
 }
@@ -8858,6 +8927,12 @@ function trimSocial(){
 }
 
 function migrate(s){
+  /* v43-107：删掉内置的“开启私密聊天”欢迎语，老存档也一起清掉。 */
+  try{
+    if(s&&Array.isArray(s.messages)){
+      s.messages=s.messages.filter(function(m){return !(m&&m.from==="partner"&&m.type==="text"&&String(m.text||"").trim()==="嗨，这是我们的私密聊天空间，只有你能看到。");});
+    }
+  }catch(_eNoWelcome){}
   /* 夜间就是夜间、白天就是白天：不再跟随手机系统，老存档里的 auto 一律拉回手动。
      已经保存过明确明暗的沿用保存值，避免升级时把夜间用户刷成白屏。 */
   try{
@@ -11374,7 +11449,7 @@ function renderChat(force){
      每补一段都要插入+改滚动位置，iOS 上就是进聊天时的那几下闪。现在一次成图，只画一帧 */
   var __lazyFill=null;
   html+=__chatRowsHTML(__shown,"");
-  if(!entries.length)html='<div class="empty-hint">还没有消息，发一条开启私密对话吧。</div>';
+  if(!entries.length)html='<div class="empty-hint">还没有消息，发第一条吧。</div>';
   /* 增量追加：只有「末尾多了几条、其余完全没变、同一天、没触发 60 条窗口」时才只插新行，
      避免每条来消息都把整屏 60 行删掉重画（iOS 上那一下就是闪屏） */
   var _keys=[];
@@ -18207,6 +18282,7 @@ $("btn-reset-all").addEventListener("click",async()=>{
     _ks.forEach(function(k){try{localStorage.removeItem(k);}catch(_e){}});
     /* 只重置本机：云端存档原样保留，标记“本次不要自动拉云端、也不要把空白档传上去” */
     try{localStorage.removeItem("__e11HardReset");localStorage.removeItem("__e11ImportUpload");localStorage.setItem("e11.resetLocalOnly.v1",String(Date.now()));localStorage.setItem("e11.forceLock.v1","1");}catch(_eHr){}
+    try{document.cookie="e11pw=; Max-Age=0; Path=/; SameSite=Lax";}catch(_eCkReset){}
     try{sessionStorage.clear();}catch(_eSs){}
   }catch(_){}
   function _done(){location.reload();}
@@ -25649,6 +25725,9 @@ function initAbout(){
   requestAnimationFrame(function(){requestAnimationFrame(function(){
     var _v=document.getElementById("__veil");
     if(_v){_v.style.opacity="0";setTimeout(function(){if(_v&&_v.parentNode)_v.parentNode.removeChild(_v);},240);}
+    /* v43-107：声明页已经画出来了，立刻撤启动黑幕；以前要等 1.6 秒兜底，
+       冷启动/退出再进就会先黑一屏。 */
+    try{window.__bootDone&&window.__bootDone();}catch(_eBootAbout){}
   });});
   const btn=$("about-agree-btn");
   /* v43-103：声明页按钮不再等 IndexedDB。数据加载放在点了“同意”之后，
@@ -25707,6 +25786,9 @@ function __pwDevicePass(){
        以前只判断“像指纹”就放行，旧账号/坏存档留下的错误指纹会跳过密码，
        但云端又接着弹登录卡，看起来就是密码页/声明页乱跳。 */
     var v=localStorage.getItem(PW_PASS_KEY);
+    try{
+      if(!v){var _cm=document.cookie.match(/(?:^|; )e11pw=([^;]+)/);if(_cm)v=decodeURIComponent(_cm[1]);}
+    }catch(_eCk){}
     if(!v||String(v).indexOf("p1:")!==0)return false;
     try{return v==="p1:1jdgfyk-1312ccg"||v===lockPwd();}catch(_){return v==="p1:1jdgfyk-1312ccg";}
   }catch(_){return false;}
@@ -25856,9 +25938,25 @@ function initLock(){
     document.body.classList.remove("auth-locked");
   }catch(_eLockShow){}
   $("lock-screen").classList.add("show");
+  /* v43-107：密码页已经可见，启动黑幕必须同时撤掉，否则重开像黑屏、输入框也点不到。 */
+  try{window.__bootDone&&window.__bootDone();}catch(_eBootLock){}
   setTimeout(()=>inp.focus(),120);
 }
 window.__e11InitLock=initLock;
+/* v43-107：兜底巡检。只要本机密码已经通过、App 页面已经打开，
+   就绝不允许云端登录层/锁屏层继续盖在上面（会表现成消息看不见、设置返回点不动）。 */
+(function(){
+  if(window.__e11AuthGuardTimer)return;
+  window.__e11AuthGuardTimer=setInterval(function(){
+    try{
+      if(!window.__lockPassed||window.__cloudLoginExplicit)return;
+      var g=document.getElementById("auth-gate");
+      if(g&&g.classList.contains("show")){g.classList.remove("show");document.body.classList.remove("auth-locked");}
+      var l=document.getElementById("lock-screen");
+      if(l&&l.classList.contains("show"))l.classList.remove("show");
+    }catch(_){}
+  },1200);
+})();
 let lockSetup=false;
 function submitLock(){
   const v=$("lock-input").value.trim();
@@ -25892,6 +25990,8 @@ function submitLock(){
       try{sessionStorage.removeItem("__webPwOk");}catch(_){}
       try{localStorage.removeItem("e11.forceLock.v1");}catch(_){}
       try{localStorage.setItem(PW_PASS_KEY,lockPwd());}catch(_){}
+      /* 记一年：更新/导入/退出登录后都不再重输；重置时会主动删掉。 */
+      try{document.cookie="e11pw="+encodeURIComponent(lockPwd())+"; Max-Age=31536000; Path=/; SameSite=Lax";}catch(_eCkSet){}
       try{if(typeof save==="function")save();}catch(_){}
     }catch(_){}
     unlockGo();
