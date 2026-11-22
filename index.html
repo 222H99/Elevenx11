@@ -191,7 +191,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-22v43-101";
+window.__E11_BUILD="2026-11-22v43-102";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2490,7 +2490,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-22v43-101">
+<meta name="app-build" content="2026-11-22v43-102">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4213,7 +4213,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-101</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-102</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -7269,13 +7269,12 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-22",
   noticeKey:null,
-  lead:"v43-100：恢复开屏声明页和进站密码页，密码不再明文写在文件里；一键重置后必须重新输密码。",
+  lead:"v43-102：声明页和密码页每次打开都恢复显示；图片不再挤占本地空间，卡顿和存储提示一起处理。",
   items:[
-    "开屏声明页恢复：网页每次打开都会先看到作者声明，只有自己点“同意并进入”才继续，不再被登录状态自动跳过。",
-    "进站密码页恢复：网页新打开时必须输 6 位密码；同一个标签页输对一次后不再反复弹，添加到主屏幕/APK 仍可永久免密。",
-    "一键重置后强制重新输入进站密码，云端恢复回来的“已解锁”状态也不能绕过。",
-    "文件里不再出现任何密码明文：进站密码只保留校验指纹，登录页和设置页也不再显示密码。",
-    "图片存储空间不足的提示改为 30 分钟最多一次；配额满时暂停重复写图，先保住文字和设置，减少反复卡顿。"
+    "声明页和密码页固定每次打开都出现：点过「同意并进入」、输对密码后才进入本次页面；关掉网页或重新打开会再次出现。",
+    "一键重置后一定重新输密码，从云端恢复回来的“已解锁”状态也不会绕过。",
+    "本地存储减负：不再把大图备份塞进 localStorage，文字和设置照常保存，减少“空间不足/图片存不下”的提示和卡顿。",
+    "文件里不再出现云端密码明文，只保留校验指纹。"
   ],
   foot:"有问题或建议：小红书 @Eleven_（ID：5609831119）。"
 };
@@ -8206,7 +8205,7 @@ function __e11CoreWrite(st,force){
     /* 一键重置/恢复期间绝不能再把旧状态写回核心档 */
     if(window.__restoring&&!force)return false;
     var now=Date.now();
-    if(!force&&window.__e11CoreLast&&now-Number(window.__e11CoreLast)<2400)return false;
+    if(!force&&window.__e11CoreLast&&now-Number(window.__e11CoreLast)<10000)return false;
     var core=__e11CorePack(st);
     var txt=JSON.stringify({app:"privateChat",core:1,ts:core.__savedAt,state:core});
     try{localStorage.setItem(__E11_CORE_KEY,txt);window.__e11CoreLast=now;return true;}
@@ -8314,13 +8313,9 @@ function __writeLocalSnapshot(sig){
 }
 
 function __e11StorageWarn(msg){
-  /* 图片落库失败时不要每次保存都弹一遍：同一类提示 30 分钟只出现一次。 */
-  try{
-    var now=Date.now();
-    if(now-(window.__e11StorageWarnAt||0)<30*60*1000)return;
-    window.__e11StorageWarnAt=now;
-    toast(msg);
-  }catch(_){}
+  /* v43-102：图片写不进本地库时不再弹提示。文字和设置会照常保存，
+     这类“空间不足/图片没存下”的提示只会让用户以为整个 App 坏了。 */
+  try{console.warn("[storage]",msg);}catch(_){}
 }
 function __flushSave(immediate){
   if(window.__restoring)return;
@@ -8332,13 +8327,13 @@ function __flushSave(immediate){
      到点会补一次，不会漏写；退出/切后台不节流。 */
   try{
     var _fnow=Date.now();
-    if(!window.__e11FullWriteForce&&!document.hidden&&_fnow-(window.__e11FullWriteAt||0)<3000){
+    if(!window.__e11FullWriteForce&&!document.hidden&&_fnow-(window.__e11FullWriteAt||0)<6000){
       clearTimeout(window.__e11FullWake);
       window.__e11FullWake=setTimeout(function(){
         window.__e11FullWriteForce=1;
         try{__flushSave(true);}catch(_){}
         window.__e11FullWriteForce=0;
-      },Math.max(300,3000-(_fnow-(window.__e11FullWriteAt||0))));
+      },Math.max(300,6000-(_fnow-(window.__e11FullWriteAt||0))));
       return;
     }
     window.__e11FullWriteAt=_fnow;
@@ -8655,7 +8650,7 @@ function __backupPendingBig(pending){
     for(var i=pending.length-1;i>=0;i--){
       var id=pending[i][0],data=pending[i][1];
       if(typeof data!=="string"||!data)continue;
-      if(total+data.length>1200000)break;
+      if(total+data.length>180000)break;
       take.unshift([id,data]);total+=data.length;
     }
     var _bpJson=take.length?JSON.stringify(take):"";
@@ -9029,6 +9024,13 @@ function __storageGuard(){
   try{var k="__ls_probe__";localStorage.setItem(k,"1");localStorage.removeItem(k);lsOk=true;}catch(e){}
   try{idbOk=!!db;}catch(e){}
   if(lsOk&&idbOk)return;
+  /* v43-102：用户点过 × 之后 30 天内不再重复盖这条；localStorage 不可用时用 sessionStorage 记。 */
+  try{
+    var _off=0;
+    try{_off=Number(localStorage.getItem("e11.storageWarnOff.v1"))||0;}catch(_){}
+    if(!_off)try{_off=Number(sessionStorage.getItem("e11.storageWarnOff.v1"))||0;}catch(_){}
+    if(_off&&Date.now()-_off<30*24*60*60*1000)return;
+  }catch(_){}
   if(window.__storageWarnEl)return;
   var msg=!lsOk&&!idbOk
     ? "当前浏览器禁用了本地存储：刷新或关闭页面会丢失<b>全部数据</b>。请先到「设置 → 导出备份」保存一份。"
@@ -9043,7 +9045,11 @@ function __storageGuard(){
     document.body.appendChild(el);
     window.__storageWarnEl=el;
     el.querySelector("#__storage_warn_go").addEventListener("click",function(){try{showView("view-settings");}catch(e){}});
-    el.querySelector("#__storage_warn_x").addEventListener("click",function(){try{el.remove();}catch(e){}});
+    el.querySelector("#__storage_warn_x").addEventListener("click",function(){
+      try{localStorage.setItem("e11.storageWarnOff.v1",String(Date.now()));}catch(_){}
+      try{sessionStorage.setItem("e11.storageWarnOff.v1",String(Date.now()));}catch(_){}
+      try{el.remove();}catch(e){}
+    });
   }catch(e){}
 }
 window.__storageGuard=__storageGuard;
@@ -17938,11 +17944,8 @@ function __importBackupText(txt,f){
           }catch(_){}
         }
       }catch(_){}
-      /* 备份里带了“免密/需密码”的状态，导入后同步到小键，换设备导入也不会反而被拦一次 */
-      try{
-        if(state.settings&&state.settings.unlocked)localStorage.setItem("lockFree","1");
-        else localStorage.removeItem("lockFree");
-      }catch(_){}
+      /* v43-102：导入也不再写免密小键，密码页固定每次打开都出现。 */
+      try{localStorage.removeItem("lockFree");}catch(_){}
       /* 把备份里带的全部 localStorage 键原样写回（旧版 v1/v2 也照此处理：多出来的就多写几个键） */
       try{
         if(data.extras&&typeof data.extras==="object"){
@@ -25450,21 +25453,8 @@ function initAbout(){
   /* 已读标记改成「记住读到的是哪一版」：换了新版本就再弹一次声明页 */
   var __curBuild="";
   try{__curBuild=window.__buildId||"";if(!__curBuild){var _mb=document.querySelector('meta[name="app-build"]');__curBuild=(_mb&&_mb.content)||"";}}catch(e){}
-  var __aboutAcked=false;
-  try{var __ackv=localStorage.getItem("__aboutAck");__aboutAcked=(!!__curBuild&&__ackv===__curBuild);}catch(e){}
-  /* v43-100：不再因为本机有登录态就把声明页自动标记成“已读”。
-     以前这里直接写 __aboutAck，网页打开时声明页就再也不出现；现在只有用户自己点过才跳过。 */
-  if(__aboutAcked){
-    /* 跳过声明页时也要把启动加载遮罩淡掉，否则会一直盖着主界面（原来只有正常路径才会撤） */
-    try{
-      var _v0=document.getElementById("__veil");
-      if(_v0){_v0.style.transition="opacity .2s";_v0.style.opacity="0";setTimeout(function(){if(_v0&&_v0.parentNode)_v0.parentNode.removeChild(_v0);},260);}
-    }catch(e){}
-    /* 不再播开屏动画：直接进锁屏/主界面，点开就是内容 */
-    $("about-screen").classList.remove("show");
-    __entryStart();
-    return;
-  }
+  /* v43-102：声明页固定每次开屏都出现，不再读任何“已读”标记。
+     只有这次页面里点过「同意并进入」才不再弹；关掉网页/重开一定重新出现。 */
   $("about-screen").classList.add("show");
   /* 等声明页真正画到屏幕上，再撤掉启动遮罩（否则中间会闪一帧白） */
   requestAnimationFrame(function(){requestAnimationFrame(function(){
@@ -25499,7 +25489,6 @@ function initAbout(){
   btn.addEventListener("click",()=>{
     if(btn.disabled)return;
     if(window.__aboutViewer){window.__aboutViewer=0;$("about-screen").classList.remove("show");btn.textContent="同意并进入";return;}
-    try{localStorage.setItem("__aboutAck",__curBuild||"1");}catch(e){}
     var _go=function(){
       /* 声明页读完先弹更新公告（如果有），关闭后再进锁屏/主页 */
       $("about-screen").classList.remove("show");
@@ -25528,7 +25517,7 @@ function lockPwd(){
 }
 /* v43-100：每次大版本只校准一次进站密码；文件里只有校验指纹，没有密码明文。
    老设备留下的 lockFree/unlocked 会绕过密码页，所以这里撤掉免密，下一次必须重新输。 */
-var PW_MARK="e11pw-100";
+var PW_MARK="e11pw-102";
 function __pwInit(){
   try{
     if(localStorage.getItem("__pwForce")===PW_MARK)return;
@@ -25593,6 +25582,7 @@ try{
 })();
 function initLock(){
   if(typeof state==="undefined"||!state||!state.settings){setTimeout(initLock,120);return;}
+  if(window.__lockPassed){try{document.getElementById("lock-screen").classList.remove("show");}catch(_lpd){}return;}
   var _standalone=false;
   try{_standalone=typeof __pwaStandalone==="function"?__pwaStandalone():false;}catch(_eSa){}
   /* 一键重置后强制重新输密码，云端恢复回来的 unlocked 也不能绕过 */
@@ -25623,16 +25613,9 @@ function initLock(){
   lockSetup=false;
   /* 网页版按“这次打开”记密码：同一个标签页内输对后不弹，新开网页仍然要输。
      添加到主屏幕/APK 才用永久免密。 */
+  /* v43-102：固定的进站密码页每次打开都要出现。只在当前这次页面里输对后放行，
+     不再用 lockFree / sessionStorage 让下一次打开直接跳过。 */
   var _free=false;
-  try{
-    _free=_standalone?(localStorage.getItem("lockFree")==="1"):(sessionStorage.getItem("__webPwOk")==="1");
-  }catch(_eFree){}
-  if(window.__e11SkipLock&&state.settings&&state.settings.unlocked&&_free){
-    window.__lockPassed=1;
-    try{document.getElementById("lock-screen").classList.remove("show");}catch(e){}
-    __afterLockPass();
-    return;
-  }
   inp.value="";
   inp.placeholder="••••••••••";
   if($("lock-skip"))$("lock-skip").style.display="none";
@@ -25673,7 +25656,7 @@ function submitLock(){
     }else{
       state.settings.entryPwd=LOCK_DEFAULT;
       state.settings.unlocked=true;
-      try{localStorage.setItem("lockFree","1");}catch(_){}
+      try{localStorage.removeItem("lockFree");}catch(_){}
       try{localStorage.setItem("privateChat",JSON.stringify(state));}catch(_){}
       save();unlockGo();toast("没有设置密码，之后打开直接进入");
     }
@@ -25684,8 +25667,8 @@ function submitLock(){
     try{
       state.settings.unlocked=true;
       state.settings.entryPwd=LOCK_DEFAULT;
-      try{localStorage.setItem("lockFree","1");}catch(_){}
-      try{sessionStorage.setItem("__webPwOk","1");}catch(_){}
+      try{localStorage.removeItem("lockFree");}catch(_){}
+      try{sessionStorage.removeItem("__webPwOk");}catch(_){}
       try{localStorage.removeItem("e11.forceLock.v1");}catch(_){}
       try{if(typeof save==="function")save();}catch(_){}
     }catch(_){}
@@ -25696,8 +25679,9 @@ function submitLock(){
 function unlockGo(){
   window.__lockPassed=1;
   $("lock-screen").classList.remove("show");$("lock-input").value="";
-  try{if(state.settings.unlocked)localStorage.setItem("lockFree","1");else localStorage.removeItem("lockFree");}catch(e){}
-  try{if(state.settings.unlocked)sessionStorage.setItem("__webPwOk","1");else sessionStorage.removeItem("__webPwOk");}catch(e){}
+  /* v43-102：免密只作用于当前页面，不写入任何持久键。 */
+  try{localStorage.removeItem("lockFree");}catch(e){}
+  try{sessionStorage.removeItem("__webPwOk");}catch(e){}
   try{localStorage.setItem("privateChat",JSON.stringify(state));}catch(_){}
   save();
   __afterLockPass();
