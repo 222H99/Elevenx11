@@ -187,7 +187,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-22v43-65";
+window.__E11_BUILD="2026-11-22v43-66";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2484,7 +2484,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-22v43-65">
+<meta name="app-build" content="2026-11-22v43-66">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4171,7 +4171,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-65</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-66</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -8081,7 +8081,7 @@ function __prefApplyObject(p){
     return true;
   }catch(e){return false;}
 }
-/* v43-65：设置整份单独落一个小键。云端旧档、更新后首次启动、刷新/退出再进，
+/* v43-66：设置整份单独落一个小键。云端旧档、更新后首次启动、刷新/退出再进，
    都先按这个键里较新的设置恢复，不再只依赖 privateChat 大档和 5 个界面偏好。 */
 function __settingsBackup(){
   try{
@@ -8141,7 +8141,7 @@ function __prefReapplyAll(){
 }
 
 function save(){
-  /* v43-65：资料单独打修改时间。以前 profile 没有 __ts，云端只要存着一份非空的默认资料，
+  /* v43-66：资料单独打修改时间。以前 profile 没有 __ts，云端只要存着一份非空的默认资料，
      本机改过的昵称/签名就会被 applySnapshot 判成“云端有内容”而恢复默认。 */
   try{
     var _psig=JSON.stringify(state.profile||{});
@@ -8250,10 +8250,17 @@ function __emergencySnapshot(){
 }
 window.__emergencySnapshot=__emergencySnapshot;
 (function(){
-  function flushPref(){try{__prefSave();}catch(e){}}
-  try{document.addEventListener("visibilitychange",function(){if(document.visibilityState==="hidden"){flushPref();try{if(window.__commitSettingsActive)window.__commitSettingsActive();}catch(e){}try{__emergencySnapshot();}catch(e){}try{__flushSave(true);}catch(e){}}});}catch(e){}
-  try{window.addEventListener("pagehide",function(){flushPref();try{if(window.__commitSettingsActive)window.__commitSettingsActive();}catch(e){}try{__emergencySnapshot();}catch(e){}try{__flushSave(true);}catch(e){}});}catch(e){}
-  try{window.addEventListener("beforeunload",function(){flushPref();try{if(window.__commitSettingsActive)window.__commitSettingsActive();}catch(e){}try{__emergencySnapshot();}catch(e){}try{__flushSave(true);}catch(e){}});}catch(e){}
+  function flushAll(){
+    /* 先提交设置页里还没失焦的输入，再写偏好和设置备份；顺序反了会把旧值写进备份。 */
+    try{if(window.__commitSettingsActive)window.__commitSettingsActive();}catch(e){}
+    try{__prefSave();}catch(e){}
+    try{if(window.__settingsBackup)window.__settingsBackup();}catch(e){}
+    try{__emergencySnapshot();}catch(e){}
+    try{__flushSave(true);}catch(e){}
+  }
+  try{document.addEventListener("visibilitychange",function(){if(document.visibilityState==="hidden")flushAll();});}catch(e){}
+  try{window.addEventListener("pagehide",flushAll);}catch(e){}
+  try{window.addEventListener("beforeunload",flushAll);}catch(e){}
 })();
 
 /* ===== 写信/留言/主页 条数控制：仅限制最多15条，避免无限膨胀（不再用内置内容填充）===== */
@@ -13459,7 +13466,7 @@ function __lsMsgText(m){
     return String(m.text||msgPreviewText(m)||"");
   }catch(_){return "[消息]";}
 }
-/* v43-65：长图里的红包 / 问卷 / 推歌 / 邀请不再退化成一行文字，
+/* v43-66：长图里的红包 / 问卷 / 推歌 / 邀请不再退化成一行文字，
    按聊天里真实的卡片版式单独绘制，尺寸固定，不随屏幕缩放改变。 */
 function __lsCardSpec(m,K){
   try{
@@ -24839,10 +24846,10 @@ function __pw102611(){
     if(!window.__stateReady||!state||!state.settings)return;
     state.settings.entryPwd="102611";
     /* 只做「密码拉回 102611」的那一次，不再把人锁出去（已经免密的保持免密） */
-    if(!_f){
-      state.settings.unlocked=false;window.__lockPassed=false;
-      try{localStorage.removeItem("lockFree");}catch(_){}
-    }
+    /* 用户已明确不要进站密码页：密码校准只改 entryPwd，不再把人锁回密码页。 */
+    state.settings.unlocked=true;window.__lockPassed=true;
+    try{localStorage.setItem("lockFree","1");}catch(_){}
+    if(!_f){}
     try{localStorage.setItem("__pw102611m","1");}catch(_){}
     try{localStorage.setItem("__pwForce","102611-58");}catch(_){}
     try{localStorage.setItem("__pwFixed","1");}catch(_){}
@@ -24850,18 +24857,16 @@ function __pw102611(){
     try{if(typeof dbSet==="function")dbSet("state",state).catch(function(){});}catch(_){}
     try{if($("set-lockpwd"))$("set-lockpwd").value="102611";}catch(_){}
     /* 这次打开如果还没过锁屏（上一版存档是 unlocked=true 直接进来的），马上补一次锁屏，不能等下次才生效 */
-    try{
-      var _ab=document.getElementById("about-screen");
-      if(!_f&&!window.__lockPassed&&!(_ab&&_ab.classList.contains("show")))initLock();
-    }catch(_){}
+    try{var _lsq=document.getElementById("lock-screen");if(_lsq)_lsq.classList.remove("show");}catch(_){}
   }catch(e){}
 }
 /* 退出/切后台时立刻落盘：安卓 WebView 不一定会触发 beforeunload，
    用户改完字卡/日记/一起听资料直接按 Home，回来就少一段。 */
 window.__e11FlushNow=function(){
   if(window.__restoring)return;
-  try{window.__e11SavePrefs&&window.__e11SavePrefs();}catch(_){}
   try{window.__commitSettingsActive&&window.__commitSettingsActive();}catch(_){}
+  try{if(typeof __prefSave==="function")__prefSave();}catch(_){}
+  try{if(window.__settingsBackup)window.__settingsBackup();}catch(_){}
   try{__emergencySnapshot();}catch(_){}
   try{if(typeof save==="function")save();}catch(_){}
   try{window.__e11Cloud&&__E11Cloud.flush&&__E11Cloud.flush();}catch(_){}
@@ -24895,7 +24900,16 @@ try{
   setTimeout(function(){try{if(!localStorage.getItem("__e11ImportUpload")&&!localStorage.getItem("__e11HardReset"))clearInterval(_t);}catch(_){}},18000);
 })();
 function initLock(){
-  try{__pw102611();}catch(e){}  const inp=$("lock-input");if(!inp)return;
+  /* v43-66：进站密码页已取消。这里直接置免密并放行，不再显示 #lock-screen；
+     老设备没有 lockFree、云端存档 unlocked=false 也不会再弹密码页。 */
+  try{localStorage.setItem("lockFree","1");}catch(_){}
+  if(typeof state==="undefined"||!state||!state.settings){setTimeout(initLock,120);return;}
+  try{state.settings.unlocked=true;}catch(_){}
+  window.__lockPassed=1;
+  try{document.getElementById("lock-screen").classList.remove("show");}catch(_){}
+  try{__afterLockPass();}catch(_){}
+  return;
+  const inp=$("lock-input");if(!inp)return;
   lockSetup=false;
   /* 账号登录已通过时，不再叠加本站的 102611 锁屏：账号本身就是入口 */
   if(window.__e11SkipLock&&state.settings&&state.settings.unlocked){
@@ -29633,7 +29647,7 @@ body{margin:0;background:var(--bg,#fafafa);}
          此时 root.top 不能跟着 voffY 走，否则整页会被抬上去、工具条压住日记字 */
       if(_diaryOpen){voffX=0;voffY=0;}
       var _landView=(w>h*1.12&&w>=560);
-      /* v43-65：舞台只按屏幕宽度铺，不再把整站放大到 1.3 倍。
+      /* v43-66：舞台只按屏幕宽度铺，不再把整站放大到 1.3 倍。
          尺寸锁死为 1，390/430/480 宽的手机上按钮、字号、间距都保持设计稿原大小；
          旧版存过的 __uiKLock 比例（1.05~1.3）全部作废，避免“换大屏手机后整页变大”。 */
       window.__uiKLock=1;
