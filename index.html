@@ -3455,7 +3455,7 @@ html.kb-typing #rotate-guard,html.kb-typing body #rotate-guard{display:none!impo
 </head>
 <body>
 <!-- v43-121：静态首屏。HTML 一解析到这里就先显示品牌，不再等 2MB 脚本执行完才出画面。 -->
-<div id="e11-static-splash" style="position:fixed;inset:0;z-index:99990;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transition:opacity .12s ease;"><div style="font:700 20px -apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;color:#111;letter-spacing:.6px;">Eleven×11</div><div id="e11-static-splash-sub" style="font:500 12px -apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;color:#8e8e93;">正在打开…</div></div>
+<div id="e11-static-splash" style="position:fixed;inset:0;z-index:100001;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transition:opacity .12s ease;"><div style="font:700 20px -apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;color:#111;letter-spacing:.6px;">Eleven×11</div><div id="e11-static-splash-sub" style="font:500 12px -apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;color:#8e8e93;">正在打开…</div></div>
 <script>
 (function(){try{var d=localStorage.getItem("__theme.v1")==="dark";if(!d){try{var ps=JSON.parse(localStorage.getItem("privateChat")||"null");d=!!(ps&&ps.skin&&ps.skin.dark);}catch(_){}}var a=document.getElementById("e11-static-splash"),b=document.getElementById("e11-static-splash-sub");if(a){a.style.background=d?"#000":"#fff";}if(b){b.style.color=d?"rgba(255,255,255,.55)":"#8e8e93";}var t=document.querySelector("#e11-static-splash div");if(t)t.style.color=d?"#fff":"#111";}catch(_){}})();
 </script>
