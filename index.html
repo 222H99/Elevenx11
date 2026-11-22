@@ -210,7 +210,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-123";
+window.__E11_BUILD="2026-11-23v43-124";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2516,7 +2516,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-123">
+<meta name="app-build" content="2026-11-23v43-124">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4090,6 +4090,7 @@ setTimeout(function(){
       <!-- 资料 -->
       <div class="set-sec-title">资料</div>
       <div class="set-group">
+        <div class="set-row"><span class="set-label">本机进站密码<div class="set-sub">修改后每次打开都要输入新密码，原来的默认密码会失效</div></span><button class="small-btn ghost" id="btn-lock-pwd" style="white-space:nowrap;">修改</button></div>
         <div class="set-row"><span class="set-label">我的名字</span><input class="set-input" id="set-me-name" style="width:120px;" value="我"></div>
         <div class="set-row"><span class="set-label">对方名字</span><input class="set-input" id="set-partner-name" style="width:120px;" value="对方"></div>
       </div>
@@ -4254,7 +4255,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-123</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-124</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5439,6 +5440,7 @@ setTimeout(function(){
     <ul>
       <li><b>主动发消息提示、撤回、已读不回</b> —— 参考自「言字卡」，作者 @言序（ID：1842523578）</li>
       <li><b>密码验证进入模式</b> —— 参考自「mochi」，作者 @言序（ID：1842523578）</li>
+      <li><b>一起听梦角推歌</b> —— 借鉴于小红书 <b>@Failure.</b> 老师（ID：95941868426）</li>
     </ul>
 
     <h2>页面布局</h2>
@@ -7653,39 +7655,18 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"2026-11-22",
+  date:"2026-11-23",
   noticeKey:null,
-  lead:"v43-116：MiniMax 海外版和克隆 Voice ID 可用；语音转文字；夜间模式即时保存；全量导入导出验证通过。",
+  lead:"v43-124：设置里可以直接改本机进站密码；改完默认密码立即失效，只有新密码能进。",
   items:[
-    "MiniMax 语音新增「海外版 / 国内版 / 自动」区域；默认走海外 api.minimax.io，克隆 Voice ID 原样传给 voice_id，不再被当成默认音色。",
-    "语音转文字：聊天「+ → 语音转文字」边说边转，录语音时也会自动在语音条下面显示转录；支持中文/粤语/English/日本語/한국어。",
-    "夜间/浅色切换当场写盘并打新时间戳，切完马上退出再打开仍然是上次的配色。",
-    "全量导入导出验证：备份包会带上聊天、设置、字卡、表情、图片库和全部本机键；导入后不再被旧离站快照顶回旧数据。",
-    "所有聊天、设置、语音配置、听写语言都会自动保存，下次打开保持离开前的数据。",
-    "顺序固定为：声明页 → 本地密码 → 云端登录；未输本地密码前，云端登录卡不会先盖上来。",
-    "第一次在这台设备输对密码后记住；之后打开只显示声明页，不再反复要密码。一键重置或清除站点数据后重新输。",
-    "发消息后最多 1.2 秒写入 IndexedDB，马上关闭网页/切后台也不会丢；重开聊天能看到最后一条。",
-    "深度恢复和自动备份改为完整档：历史聊天图片、表情包、一起听歌单/封面/背景一起合并，不再只恢复文字。",
-    "修掉云端登录层自动盖住 App：密码通过后直接进入，消息和设置返回不再被透明层挡住。",
-    "声明页和密码页只在第一次进入或一键重置后出现；固定 6 位密码输对后本机记住，更新/导入/退出登录都不再重输。",
-    "云端恢复会完整合并设置、美化皮肤、字卡和主页资料，不再被本机默认值盖掉。",
-    "消息行增加保底可见规则；即使导入过自定义样式，自己和对方的消息也不会被隐藏。",
-    "去掉内置的“开启私密聊天”欢迎消息，聊天从空白开始。",
-    "修好设置里打开「作者声明」后点关闭没反应/跳到密码页的问题。",
-    "聊天页兜底重绘加了次数上限，渲染异常时不会再每 1.5 秒重建整页造成卡死。",
-    "启动 1.5 秒后在后台比对最近自动备份，把主存档缺失的历史消息、字卡等按 id 补回。",
-    "主存档意外读不到时，启动会自动从最近一份完整自动备份救回；一键重置前也会先备份。",
-    "恢复备份后消息字段（side/role/sender/字符串时间/缺 id）自动归一，旧备份也能画出来。",
-    "导入的气泡CSS会把 display/height/overflow/透明文字等藏消息的声明清掉，聊天不再整页空白。",
-    "退出云端/重新登录时自动合并另一个登录作用域的本地库，聊天、设置、自动备份不再像消失。",
-    "记录用过的本地库名；旧版 iOS 没有 databases() 时，退出云端也能找回账号作用域的聊天。",
-    "从后台切回或 PWA 恢复时自动撤启动层；4.5 秒没有页面时强制铺首页，避免一直黑屏。",
-    "顶栏只保留纯白/纯黑，启动第一帧不再出现灰色。",
-    "正文、字卡、信件、留言、动态、图片全部以 IndexedDB 为主库，不再每次改动同步序列化 2MB 到 localStorage。",
-    "启动只读 IndexedDB，退出不再写大快照，黑屏和退出卡顿一起缩短。",
-    "顶栏和状态栏固定跟随 App 主题：白天纯白、夜间纯黑。",
-    "换设备/重装后先拉完整 cloud 档，再补图片和表情，恢复后逐项核对条数；导入备份、自动备份都按全量恢复。",
-    "一键重置后重新走声明页并重新输密码；文件里没有密码明文，只保留校验指纹。"
+    "设置页「资料」新增「本机进站密码 → 修改」：输入 6 位数字即可换掉默认密码。",
+    "更换后每次打开都要输入新密码，默认密码立即失效；输错会提示「密码错误，请重新输入」。",
+    "自定义密码后「忘记密码」按钮会隐藏，不能再一键恢复默认密码来绕过你自己设的锁。",
+    "密码只保存校验指纹，文件里不出现明文；一键重置或清除站点数据后需要重新设置。",
+    "声明页补充致谢：一起听梦角推歌借鉴于小红书 @Failure. 老师（ID：95941868426）。",
+    "修好退出网站/切后台时用空数据覆盖离站快照的问题：数据没读完不再写入空快照。",
+    "夜间模式、资料卡、字卡改完直接退出再打开仍保留；头像不再挤爆本地存储导致资料丢失。",
+    "聊天记录仍以 IndexedDB 为主库，历史聊天图片、表情包、一起听歌单不会因为换版丢失。",
   ],
   foot:"有问题或建议：小红书 @Eleven_（ID：5609831119）。"
 };
@@ -27170,6 +27151,8 @@ const PW_PASS_KEY="e11.pwPass.v1";
 function __pwDevicePass(){
   try{
     if(localStorage.getItem("e11.forceLock.v1")==="1")return false;
+    /* v43-124：用户改过密码后，每次打开都必须重新输入新密码，不再用旧指纹免密。 */
+    try{if(lockPwd()!==LOCK_DEFAULT)return false;}catch(_eCustomPass){}
     /* v43-106：本机指纹必须等于当前密码或固定密码才放行。
        以前只判断“像指纹”就放行，旧账号/坏存档留下的错误指纹会跳过密码，
        但云端又接着弹登录卡，看起来就是密码页/声明页乱跳。 */
@@ -27178,7 +27161,7 @@ function __pwDevicePass(){
       if(!v){var _cm=document.cookie.match(/(?:^|; )e11pw=([^;]+)/);if(_cm)v=decodeURIComponent(_cm[1]);}
     }catch(_eCk){}
     if(!v||String(v).indexOf("p1:")!==0)return false;
-    try{return v==="p1:1jdgfyk-1312ccg"||v===lockPwd();}catch(_){return v==="p1:1jdgfyk-1312ccg";}
+    try{return v===lockPwd();}catch(_){return false;}
   }catch(_){return false;}
 }
 function __lockHash(s){
@@ -27316,9 +27299,11 @@ function initLock(){
   }
   state.settings.unlocked=false;
   // 每次进入都要求输入密码
+  var _customPwd=(lockPwd()!==LOCK_DEFAULT);
   $("lock-sub").textContent="Across the boundary of light and dark, together with you.";
   $("lock-btn").textContent="进入";
-  $("lock-tip").textContent="提示：固定 6 位数字";
+  $("lock-tip").textContent=_customPwd?"提示：输入你设置的 6 位密码":"提示：固定 6 位数字";
+  try{if($("lock-forgot"))$("lock-forgot").style.display=_customPwd?"none":"";}catch(_eForgot){}
   /* 声明页点“同意并进入”后直接给密码页：登录等待层还盖着时先撤掉，
      否则密码输入框被 auth-gate/auth-locked 一起藏住，看起来就是“密码页不见了”。 */
   try{
@@ -27347,45 +27332,72 @@ window.__e11InitLock=initLock;
   },1200);
 })();
 let lockSetup=false;
+/* v43-124：设置页“本机进站密码 → 修改”。旧版有 lockSetup 逻辑但没有入口。 */
+function __openLockSetup(){
+  try{
+    try{var _abSet=document.getElementById("about-screen");if(_abSet)_abSet.classList.remove("show");}catch(_eAbSet){}
+    lockSetup=true;
+    state.settings.unlocked=false;
+    try{localStorage.removeItem(PW_PASS_KEY);}catch(_){}
+    try{document.cookie="e11pw=; Max-Age=0; Path=/; SameSite=Lax";}catch(_){}
+    var ls=$("lock-screen");if(ls)ls.classList.add("show");
+    if($("lock-skip"))$("lock-skip").style.display="none";
+    if($("lock-forgot"))$("lock-forgot").style.display="none";
+    if($("lock-sub"))$("lock-sub").textContent="设置本机进站密码";
+    if($("lock-btn"))$("lock-btn").textContent="保存密码";
+    if($("lock-tip"))$("lock-tip").textContent="输入 6 位数字；留空可恢复默认密码";
+    var inp=$("lock-input");if(inp){inp.value="";inp.placeholder="••••••••••";setTimeout(function(){try{inp.focus();}catch(_){}},120);}
+    try{window.__bootDone&&window.__bootDone();}catch(_){}
+  }catch(_eOpenSetup){}
+}
+window.__e11OpenLockSetup=__openLockSetup;
+try{if($("btn-lock-pwd"))$("btn-lock-pwd").addEventListener("click",__openLockSetup);}catch(_eBindLockPwd){}
 function submitLock(){
   const v=$("lock-input").value.trim();
   if(lockSetup){
     if(v){
+      if(!/^\d{6}$/.test(v)){toast("请输入 6 位数字密码");$("lock-input").value="";return;}
       state.settings.entryPwd=__lockHash(v);
-      state.settings.unlocked=false;
+      state.settings.settingsTs=state.settings.__ts=Date.now();
+      state.settings.unlocked=true;
       try{localStorage.removeItem("lockFree");}catch(_){}
       try{sessionStorage.removeItem("__webPwOk");}catch(_){}
+      /* 换了新密码，旧的免密指纹一律作废；这次通过后只记新指纹 */
+      try{localStorage.removeItem(PW_PASS_KEY);}catch(_){}
+      try{document.cookie="e11pw=; Max-Age=0; Path=/; SameSite=Lax";}catch(_){}
       try{localStorage.setItem(PW_PASS_KEY,state.settings.entryPwd);}catch(_){}
+      try{document.cookie="e11pw="+encodeURIComponent(state.settings.entryPwd)+"; Max-Age=31536000; Path=/; SameSite=Lax";}catch(_){}
       try{__writeLocalSnapshot();}catch(_){}
-      save();unlockGo();toast("已设置密码，之后每次进入都要输密码");
+      save();try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_){}
+      lockSetup=false;unlockGo();toast("密码已更新，原来的默认密码不再能进");
     }else{
       state.settings.entryPwd=LOCK_DEFAULT;
       state.settings.unlocked=true;
       try{localStorage.removeItem("lockFree");}catch(_){}
       try{__writeLocalSnapshot();}catch(_){}
-      save();unlockGo();toast("没有设置密码，之后打开直接进入");
+      save();unlockGo();toast("已恢复默认密码，下次打开需要输入默认密码");
     }
     return;
   }
-  if(v===String.fromCharCode(49,48,50,54,49,49)||__lockHash(v)===lockPwd()){
-    /* v43-106：旧存档里的 entryPwd 被云端合并坏掉时，固定进站密码仍必须能进；
-       输对后把本机指纹校准回固定密码，后面不再弹错。 */
-    try{state.settings.entryPwd=LOCK_DEFAULT;}catch(_){}
-    /* 任何一次输对进站密码，这个网页标签页/这台设备就记住，不再反复弹。 */
+  /* v43-124：只认当前密码。以前这里无论改成什么密码，都额外放行默认 6 位，
+     还会把 entryPwd 改回默认——等于用户改的密码永远不生效。 */
+  if(__lockHash(v)===lockPwd()){
     try{
       state.settings.unlocked=true;
-      state.settings.entryPwd=LOCK_DEFAULT;
       try{localStorage.removeItem("lockFree");}catch(_){}
       try{sessionStorage.removeItem("__webPwOk");}catch(_){}
       try{localStorage.removeItem("e11.forceLock.v1");}catch(_){}
+      /* 记住的是“当前密码”的指纹，不是默认密码 */
       try{localStorage.setItem(PW_PASS_KEY,lockPwd());}catch(_){}
-      /* 记一年：更新/导入/退出登录后都不再重输；重置时会主动删掉。 */
       try{document.cookie="e11pw="+encodeURIComponent(lockPwd())+"; Max-Age=31536000; Path=/; SameSite=Lax";}catch(_eCkSet){}
       try{if(typeof save==="function")save();}catch(_){}
     }catch(_){}
     unlockGo();
   }
-  else{toast("密码错误，进不去哦");$("lock-input").value="";$("lock-input").focus();}
+  else{
+    try{if($("lock-tip"))$("lock-tip").textContent="密码错误，请重新输入";}catch(_eTip){}
+    toast("密码错误，进不去哦");$("lock-input").value="";$("lock-input").focus();
+  }
 }
 function unlockGo(){
   window.__lockPassed=1;
@@ -27400,13 +27412,19 @@ function unlockGo(){
 $("lock-btn").addEventListener("click",submitLock);
 $("lock-input").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();submitLock();}});
 $("lock-forgot").addEventListener("click",function(){
+  /* v43-124：自定义密码后默认密码不再能进；这里也不能一键把密码改回默认，
+     否则等于绕过用户自己设的锁。 */
+  if(lockPwd()!==LOCK_DEFAULT){
+    toast("已设置自定义密码，必须输入正确密码才能进入");
+    $("lock-input").value="";$("lock-input").focus();return;
+  }
   state.settings.entryPwd=LOCK_DEFAULT;
   try{localStorage.removeItem(PW_PASS_KEY);}catch(_){}
   try{__writeLocalSnapshot();}catch(_){}
   save();
   $("lock-input").value="";
   $("lock-input").placeholder="••••••••••";
-  toast("已恢复默认密码，请用默认密码进入");
+  toast("当前就是默认密码，请直接输入");
   $("lock-input").focus();
 });
 $("lock-skip").addEventListener("click",function(){
