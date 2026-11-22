@@ -210,7 +210,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-124";
+window.__E11_BUILD="2026-11-23v43-125";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2516,7 +2516,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-124">
+<meta name="app-build" content="2026-11-23v43-125">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4255,7 +4255,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-124</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-125</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -7657,15 +7657,15 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-23",
   noticeKey:null,
-  lead:"v43-124：设置里可以直接改本机进站密码；改完默认密码立即失效，只有新密码能进。",
+  lead:"v43-125：修好进站密码无法再次修改——点「修改」后密码页不会再自动消失，可以连续换新密码。",
   items:[
-    "设置页「资料」新增「本机进站密码 → 修改」：输入 6 位数字即可换掉默认密码。",
-    "更换后每次打开都要输入新密码，默认密码立即失效；输错会提示「密码错误，请重新输入」。",
-    "自定义密码后「忘记密码」按钮会隐藏，不能再一键恢复默认密码来绕过你自己设的锁。",
-    "密码只保存校验指纹，文件里不出现明文；一键重置或清除站点数据后需要重新设置。",
+    "修好「进站密码不可以重新设置」：已经进入 App 后点设置里的「修改」，密码页不会再闪一下就被自动关掉，可以正常输入并保存新密码。",
+    "改完密码后可以再次修改，次数不限；每次保存后旧的密码立即失效。",
+    "自定义密码后每次打开都要输入新密码，输错会提示「密码错误，请重新输入」；默认密码不能进。",
+    "自定义密码后「忘记密码」按钮隐藏，不能一键恢复默认密码绕过。",
+    "密码只保存校验指纹，文件里不出现明文；清除站点数据后需要重新设置。",
     "声明页补充致谢：一起听梦角推歌借鉴于小红书 @Failure. 老师（ID：95941868426）。",
-    "修好退出网站/切后台时用空数据覆盖离站快照的问题：数据没读完不再写入空快照。",
-    "夜间模式、资料卡、字卡改完直接退出再打开仍保留；头像不再挤爆本地存储导致资料丢失。",
+    "保留 v43-123 的修复：退出/切后台不再用空数据覆盖离站快照，夜间模式、资料、字卡退出后仍保留。",
     "聊天记录仍以 IndexedDB 为主库，历史聊天图片、表情包、一起听歌单不会因为换版丢失。",
   ],
   foot:"有问题或建议：小红书 @Eleven_（ID：5609831119）。"
@@ -27337,6 +27337,9 @@ function __openLockSetup(){
   try{
     try{var _abSet=document.getElementById("about-screen");if(_abSet)_abSet.classList.remove("show");}catch(_eAbSet){}
     lockSetup=true;
+    /* 已经进过 App 时 __lockPassed=1，巡检会把这个改密锁屏当成残留层自动关掉；
+       改密期间必须先清掉通过标记，否则点“修改”只会闪一下、根本没法重设。 */
+    window.__lockPassed=0;
     state.settings.unlocked=false;
     try{localStorage.removeItem(PW_PASS_KEY);}catch(_){}
     try{document.cookie="e11pw=; Max-Age=0; Path=/; SameSite=Lax";}catch(_){}
