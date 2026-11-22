@@ -210,7 +210,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-121";
+window.__E11_BUILD="2026-11-23v43-122";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2516,7 +2516,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-121">
+<meta name="app-build" content="2026-11-23v43-122">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4254,7 +4254,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-121</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-122</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -9116,16 +9116,9 @@ function __e11ExitSave(st,force){
       if(src.skin&&src.skin.themeMode&&src.skin.themeMode!=="manual"&&window.matchMedia)_ed=!!window.matchMedia("(prefers-color-scheme: dark)").matches;
       localStorage.setItem("__theme.v1",_ed?"dark":"light");
     }catch(_eThemeExit){}
-    /* v43-121：退出快照只带最近 500 条聊天。
-       旧逻辑会把几百上千条整份深拷贝 + JSON.stringify，退出瞬间主线程被占住，
-       手机端看起来就是“一退出就黑屏”。完整历史仍在 IndexedDB，快照只兜底最后改动。 */
+    /* v43-122：退出快照默认带“全部聊天”，不再只留 500 条。
+       性能靠 JSON.stringify 一次的同步成本控制；只有真的超过 localStorage 配额时才降级截断。 */
     var _srcExit=src;
-    try{
-      if(Array.isArray(src.messages)&&src.messages.length>500){
-        _srcExit=Object.assign({},src);
-        _srcExit.messages=src.messages.slice(-500);
-      }
-    }catch(_eSlice){}
     var core=__e11TextCore(_srcExit);
     try{
       core.__savedAt=_exitTs;core.__exit=1;
@@ -9657,21 +9650,52 @@ function __emergencySnapshot(){
 window.__emergencySnapshot=__emergencySnapshot;
 /* v43-73：编辑完立刻落盘。卡片/资料/一起听名字这类“改一下就该记住”的数据，
    不再等 350ms 防抖、也不等退出/刷新，避免更新或退出时被旧档盖回默认。 */
-/* v43-121：资料卡/字卡改完立刻同步写一份小配置快照。
-   IndexedDB 和 pagehide 都可能被系统直接掐掉；localStorage 是同步的，
-   只要用户点了“保存”，关页后下次一定还能把刚改的昵称/签名/字卡拿回来。 */
+/* v43-122：配置快照只存“小字段”，绝不把头像/聊天背景的 base64 塞进 localStorage。
+   之前整份 profile 可能带几 MB 图片，setItem 超配额被 catch 吞掉，
+   于是“主题能恢复、资料却永远不恢复”。现在配置快照恒定几十 KB。 */
+window.__e11CfgSmallObj=function(obj,maxLen){
+  var out={};if(!obj||typeof obj!=="object")return out;
+  Object.keys(obj).forEach(function(k){
+    var v=obj[k];
+    if(v===undefined||v===null)return;
+    if(typeof v==="string"){
+      if(v.length<=(maxLen||2000)&&v.slice(0,5)!=="data:"&&v.indexOf("data:image")<0)out[k]=v;
+    }else if(typeof v==="number"||typeof v==="boolean"){out[k]=v;}
+  });
+  return out;
+};
+window.__e11SmallProfile=function(){
+  var p=state.profile||{},out=window.__e11CfgSmallObj(p,2000);
+  out.__ts=Number(p.__ts)||Date.now();
+  return out;
+};
+/* 资料单独一条小备份键：即使 cfgBak 因为别的配置超配额写失败，资料也不会陪葬。 */
+window.__e11SyncProfileBackup=function(){
+  try{
+    if(window.__restoring)return;
+    var prof=window.__e11SmallProfile();
+    localStorage.setItem("e11.profile.v1",JSON.stringify(prof));
+  }catch(_eProfBak){}
+};
 window.__e11SyncCfgSnapshot=function(){
   try{
     if(window.__restoring)return;
     var cfg={ts:Date.now()};
-    if(state.profile)cfg.profile=state.profile;
-    if(state.settings)cfg.settings=state.settings;
-    if(state.skin)cfg.skin=state.skin;
+    if(state.profile)cfg.profile=window.__e11SmallProfile();
+    if(state.settings)cfg.settings=window.__e11CfgSmallObj(state.settings,2000);
+    if(state.skin)cfg.skin=window.__e11CfgSmallObj(state.skin,2000);
     if(Array.isArray(state.cards)){
-      /* 字卡只存最近 400 张，避免一编辑就同步写几 MB 卡主线程 */
-      cfg.cards=state.cards.slice(-400);
+      cfg.cards=state.cards.slice(-160).map(function(c){
+        return {id:c.id,text:typeof c.text==="string"?c.text.slice(0,4000):c.text,title:typeof c.title==="string"?c.title.slice(0,500):c.title,group:c.group,__ts:c.__ts};
+      });
     }
-    localStorage.setItem("e11.cfgBak.v1",JSON.stringify(cfg));
+    try{
+      localStorage.setItem("e11.cfgBak.v1",JSON.stringify(cfg));
+    }catch(_eCfgFull){
+      /* 超配额：至少把资料和设置的小字段保住 */
+      try{localStorage.setItem("e11.cfgBak.v1",JSON.stringify({ts:cfg.ts,profile:cfg.profile,settings:cfg.settings}));}catch(_eCfgMin){}
+    }
+    window.__e11SyncProfileBackup();
   }catch(_eCfgSnap){}
 };
 window.__e11PersistNow=function(){
@@ -9721,6 +9745,26 @@ window.__e11PersistNow=function(){
   /* 回到前台后允许下一次切后台/退出再写一次离站快照。 */
   try{document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")window.__e11FlushDone=0;});}catch(e){}
   try{window.addEventListener("pageshow",function(){window.__e11FlushDone=0;});}catch(e){}
+})();
+
+/* v43-122：全站兜底自动保存。任何输入框/选择器改动都会触发 save，
+   不再依赖每个控件各自有没有记得调用 save；用户改完直接关网页也不会丢。 */
+(function(){
+  var _asT=null;
+  function _touch(){
+    try{
+      if(window.__restoring||!window.__stateReady)return;
+      if(window.__e11SyncProfileBackup)window.__e11SyncProfileBackup();
+      clearTimeout(_asT);
+      _asT=setTimeout(function(){
+        try{if(typeof save==="function")save();}catch(_eAsSave){}
+        try{if(window.__e11SyncCfgSnapshot)window.__e11SyncCfgSnapshot();}catch(_eAsCfg){}
+      },550);
+    }catch(_eAs){}
+  }
+  try{document.addEventListener("input",_touch,true);}catch(_eAs1){}
+  try{document.addEventListener("change",_touch,true);}catch(_eAs2){}
+  try{document.addEventListener("paste",_touch,true);}catch(_eAs3){}
 })();
 
 /* ===== 写信/留言/主页 条数控制：仅限制最多15条，避免无限膨胀（不再用内置内容填充）===== */
@@ -10341,7 +10385,10 @@ async function init(){
             var b=_cfgBak[k],c=root[k];
             if(!b||typeof b!=="object")return;
             var bt=Number(b.__ts)||Number(_cfgBak.ts)||0,ct=Number(c&&c.__ts)||0;
-            if(!c||bt>ct+300){root[k]=b;ch=true;}
+            if(!c||bt>ct+300){
+              /* 只合并小字段，主档里的头像/背景图不能被没图的小快照整份顶掉 */
+              root[k]=Object.assign({},c||{},b);ch=true;
+            }
           });
           if(Array.isArray(_cfgBak.cards)&&_cfgBak.cards.length){
             var by={};(Array.isArray(root.cards)?root.cards:[]).forEach(function(x){if(x&&x.id)by[x.id]=x;});
@@ -10365,6 +10412,29 @@ async function init(){
         if(_ch1||_ch2){try{window.__profileSaveSig=JSON.stringify((s&&s.profile)||state.profile||{});}catch(_eCfgSig){}}
       }
     }catch(_eCfgBakErr){}
+    /* v43-122：资料专用小备份。即使 cfgBak 写失败，姓名/账号/地区/签名也能回来。 */
+    try{
+      var _profBak=JSON.parse(localStorage.getItem("e11.profile.v1")||"null");
+      if(_profBak&&_profBak.__ts){
+        [state,s].forEach(function(root){
+          if(!root||typeof root!=="object")return;
+          root.profile=root.profile||{};
+          var curTs=Number(root.profile.__ts)||0;
+          if(_profBak.__ts>curTs+300){
+            Object.assign(root.profile,_profBak);
+            try{window.__profileSaveSig=JSON.stringify(root.profile);}catch(_ePB){}
+          }
+        });
+      }
+    }catch(_eProfBakErr){}
+    /* v43-122：设置页“个人信息”的双方名字跟着 profile 小快照一起恢复 */
+    try{
+      [state,s].forEach(function(root){
+        if(!root||!root.profile)return;
+        if(root.profile.myDisplayName)root.me=root.me||{},root.me.name=root.profile.myDisplayName;
+        if(root.profile.partnerDisplayName)root.partner=root.partner||{},root.partner.name=root.profile.partnerDisplayName;
+      });
+    }catch(_eNamesBak){}
     /* P0.5：主存档整个不见了（localStorage 和 IndexedDB 都没有可用记录）时，
        先从自动备份槽救回最近一份，别让「刷新后全部数据消失」直接落成初始示例内容 */
     var _lsSnapNow=null;try{_lsSnapNow=localStorage.getItem("privateChat");}catch(_lsE){_lsSnapNow=null;}
@@ -18000,8 +18070,19 @@ $("game-sheet-import").addEventListener("click",function(){
 });
 var __nameSyncT=null;
 function __scheduleNameSync(){clearTimeout(__nameSyncT);__nameSyncT=setTimeout(function(){bindSetting();renderTopStatus();renderChat();},260);}
-$("set-me-name").addEventListener("input",e=>{state.me.name=e.target.value.trim()||"我";save();__scheduleNameSync();});
-$("set-partner-name").addEventListener("input",e=>{state.partner.name=e.target.value||"对方";save();__scheduleNameSync();});
+$("set-me-name").addEventListener("input",e=>{
+  state.me.name=e.target.value.trim()||"我";
+  /* v43-122：设置页“个人信息”的名字也写进 profile 小快照，退出再进能恢复 */
+  state.profile=state.profile||{};state.profile.myDisplayName=state.me.name;state.profile.__ts=Date.now();
+  save();try{if(window.__e11SyncProfileBackup)window.__e11SyncProfileBackup();}catch(_){}
+  __scheduleNameSync();
+});
+$("set-partner-name").addEventListener("input",e=>{
+  state.partner.name=e.target.value||"对方";
+  state.profile=state.profile||{};state.profile.partnerDisplayName=state.partner.name;state.profile.__ts=Date.now();
+  save();try{if(window.__e11SyncProfileBackup)window.__e11SyncProfileBackup();}catch(_){}
+  __scheduleNameSync();
+});
 $("set-reply-times").addEventListener("change",e=>{state.settings.replyTimes=Math.max(1,Math.round(Number(e.target.value)||1));e.target.value=state.settings.replyTimes;save();});
 $("set-reply-prob")&&$("set-reply-prob").addEventListener("change",e=>{state.settings.replyProb=Math.min(100,Math.max(0,Number(e.target.value)||0));e.target.value=state.settings.replyProb;save();toast("回复概率已设为 "+state.settings.replyProb+"%");});
 function bindProbInput(id,key,label){const el=$(id);if(!el)return;el.addEventListener("input",e=>{state.settings[key]=Math.min(100,Math.max(0,Number(e.target.value)||0));save();});el.addEventListener("change",e=>{state.settings[key]=Math.min(100,Math.max(0,Number(e.target.value)||0));e.target.value=state.settings[key];save();toast(label+"已设为 "+state.settings[key]+"%");});}
@@ -28948,6 +29029,7 @@ try{
     state.profile.__ts=Date.now();
     try{if(window.__profileSaveSig)window.__profileSaveSig=JSON.stringify(state.profile);}catch(_){}
     try{renderMe();}catch(e){}
+    try{if(window.__e11SyncProfileBackup)window.__e11SyncProfileBackup();}catch(_){}
     save();
     try{if(window.__e11SyncCfgSnapshot)window.__e11SyncCfgSnapshot();}catch(_){}
   }
