@@ -208,7 +208,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-22v43-111";
+window.__E11_BUILD="2026-11-22v43-112";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2510,7 +2510,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-22v43-111">
+<meta name="app-build" content="2026-11-22v43-112">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4233,7 +4233,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-111</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-112</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -7993,6 +7993,28 @@ function __e11ContentFit(st){
     return score;
   }catch(_){return 0;}
 }
+/* 设置/美化/资料谁更新：有 __ts 用 __ts，没有就用整份存档时间。
+   旧逻辑按“改动项数量”选，改得少的新设置会被改得多的旧设置盖回去。 */
+function __e11CfgStamp(st,k){
+  try{
+    var o=st&&st[k];
+    if(o&&typeof o==="object"){
+      var t=Number(o.__ts);
+      if(isFinite(t)&&t>0)return t;
+    }
+  }catch(_){}
+  return Number(st&&st.__savedAt)||0;
+}
+function __e11PickCfg(base,other){
+  var ch=false;
+  ["settings","skin","profile"].forEach(function(k){
+    var o=other&&other[k];
+    if(!o||typeof o!=="object")return;
+    var a=__e11CfgStamp(other,k),b=__e11CfgStamp(base,k);
+    if(a>b+500||!base[k]){base[k]=o;ch=true;}
+  });
+  return ch;
+}
 window.__e11MergeDbScopes=async function(){
   try{
     if(window.__e11DbMergeDone)return 0;window.__e11DbMergeDone=1;
@@ -8024,12 +8046,7 @@ window.__e11MergeDbScopes=async function(){
           if(add){base[k]=cur;changed+=add;}
         });
         try{
-          if(__e11ContentFit(st)>__e11ContentFit(base)){
-            if(st.settings)base.settings=Object.assign({},st.settings);
-            if(st.skin)base.skin=Object.assign({},st.skin);
-            if(st.profile)base.profile=Object.assign({},st.profile);
-            changed++;
-          }
+          if(__e11PickCfg(base,st))changed++;
         }catch(_){}
         try{base.deletedIds=Object.assign({},st.deletedIds||{},base.deletedIds||{});}catch(_){}
       }
@@ -8051,7 +8068,7 @@ window.__e11MergeDbScopes=async function(){
       }
     }
     if(!base||!changed)return changed;
-    if(Array.isArray(base.messages))base.messages.sort(function(a,b){return (Number(a&&a.time)||0)-(Number(b&&b.time)||0);});
+    if(Array.isArray(base.messages))base.messages.sort(__e11MsgOrder);
     try{var mx=Number(base.seq)||0;base.messages.forEach(function(m){var n=parseInt(String(m&&m.id||"").replace(/^m/,""),10);if(isFinite(n)&&n>mx)mx=n;});base.seq=mx+1;}catch(_){}
     base.__savedAt=Date.now();
     await dbSet("state",base);
@@ -8071,7 +8088,7 @@ window.__e11MergeDbScopes=async function(){
             });
             if(add)live[k]=cur;
           });
-          try{if(__e11ContentFit(base)>__e11ContentFit(live)){if(base.settings)live.settings=Object.assign({},base.settings);if(base.skin)live.skin=Object.assign({},base.skin);if(base.profile)live.profile=Object.assign({},base.profile);}}catch(_){}
+          try{if(__e11PickCfg(live,base))changed++;}catch(_){}
           if(add>0||changed){live.__savedAt=Date.now();window.__e11SetState(live);try{save();}catch(_){};try{if(window.__e11RefreshAllViews)window.__e11RefreshAllViews();else renderAll();}catch(_){};try{var vc=document.getElementById("view-chat");if(vc&&vc.classList.contains("open"))renderChat(true);}catch(_){};changed+=add;}
         }
       }
@@ -8088,6 +8105,41 @@ window.__e11DbGet=function(k){return dbGet(k);};
 window.__e11CloseDB=function(){try{if(db&&db.close)db.close();}catch(e){}};
 let saveTimer;
 let _emojiSig="";
+/* 自动保存兜底：不只依赖某个控件记得调 save()。
+   每 1.5 秒比对设置/美化/资料和各类数据的轻量指纹；发现变化就自动 save + 落盘。
+   图片值只记长度，不重复序列化几 MB 的 dataURL。 */
+function __e11LiteJson(v){
+  try{
+    return JSON.stringify(v,function(k,val){
+      if(k==="__ts")return undefined;
+      if(typeof val==="string"&&val.indexOf("data:")===0)return "data:"+val.length;
+      return val;
+    });
+  }catch(_){return "";}
+}
+function __e11AutoSig(){
+  try{
+    var ms=state.messages||[],last=ms.length?ms[ms.length-1]:null;
+    var cats=["cards","letters","guestbook","moments","redpackets","emojis","partnerEmojis","groups","favorites","musicPlaylist"];
+    var counts=cats.map(function(k){var a=state[k]||[];var z=a.length?a[a.length-1]:null;return k+":"+a.length+":"+(z&&z.id||"")+":"+(z&&z.time||"");}).join("|");
+    return [ms.length,last&&last.id,last&&last.time,counts,__e11LiteJson(state.settings||{}),__e11LiteJson(state.skin||{}),__e11LiteJson(state.profile||{})].join("~");
+  }catch(_){return "";}
+}
+try{
+  var __e11AutoSigLast=null;
+  setInterval(function(){
+    try{
+      if(window.__restoring||window.__e11CloudPause||document.hidden||!window.__stateReady)return;
+      var sig=__e11AutoSig();
+      if(sig===__e11AutoSigLast)return;
+      var first=__e11AutoSigLast===null;
+      __e11AutoSigLast=sig;
+      if(first)return;
+      try{if(typeof save==="function")save();}catch(_eAsSave){}
+      if(typeof __flushSave==="function")__flushSave(true);
+    }catch(_eAs){}
+  },1500);
+}catch(_eAsInit){}
 
 /* —— 自动备份：快照存 IndexedDB，轮换 3 个槽位，不占 localStorage —— */
 const BK_META="bk_snap_meta";
@@ -8674,9 +8726,12 @@ function __e11MergeExitState(s,e){
     if(!s||!e||!e.state)return false;
     var ex=e.state,ts=Number(e.ts||ex.__savedAt)||0;
     if(!ts||ts<=Number(s.__savedAt||0)+150)return false;
+    try{__e11NormalizeMessages(ex);__e11NormalizeMessages(s);}catch(_eNormExit){}
     var ch=false;
+    /* 设置/美化/资料是整份配置：离站快照更新时整份替换。
+       以前用 Object.assign 合并，旧键会残留，关掉/改回的项看起来“没保存”。 */
     ["settings","skin","profile"].forEach(function(k){
-      if(ex[k]&&typeof ex[k]==="object"){s[k]=Object.assign({},s[k]||{},ex[k]);ch=true;}
+      if(ex[k]&&typeof ex[k]==="object"){s[k]=ex[k];ch=true;}
     });
     ["cards","letters","guestbook","moments","redpackets","musicPlaylist","emojis","partnerEmojis","groups","favorites","surveyHistory"].forEach(function(k){
       var a=Array.isArray(s[k])?s[k]:[],b=Array.isArray(ex[k])?ex[k]:[];
@@ -8702,7 +8757,7 @@ function __e11MergeExitState(s,e){
           ["recalled","read","answered","noReply","active","emojiId","kind"].forEach(function(f){if(m[f]!==undefined&&old[f]!==m[f]){old[f]=m[f];ch=true;}});
         }
       });
-      s.messages.sort(function(a,b){return (Number(a&&a.time)||0)-(Number(b&&b.time)||0);});
+      s.messages.sort(__e11MsgOrder);
     }
     s.__savedAt=ts;ch=true;
     return ch;
@@ -9195,6 +9250,33 @@ function trimSocial(){
 /* v43-108：统一修消息字段。老备份/别家模板可能把发送方写成 side/role/sender、
    把时间写成字符串，或干脆没有 id；以前这些行要么画不出来，要么 time 相减成 NaN，
    聊天页整块空白。这里统一成本站认识的 from/type/time/id/text，坏行也能显示。 */
+function __e11TimeMs(t){
+  if(typeof t==="string"){
+    var d=Date.parse(t);
+    if(isFinite(d))return d;
+    t=Number(t);
+  }
+  t=Number(t);
+  if(!isFinite(t)||t<=0)return 0;
+  if(t<1e11)t*=1000; /* 旧版按秒存的时间 */
+  return t;
+}
+function __e11IdSeq(id){
+  var m=/^(?:m|msg|r|rp|red)(\d+)/i.exec(String(id||""));
+  return m?Number(m[1]):0;
+}
+/* 消息排序必须完全确定：时间相同就按消息序号，再按 id。
+   只按 time 排时，同一毫秒发的一串消息、恢复备份合并进来的消息会互相换位。 */
+function __e11MsgOrder(a,b){
+  var ta=__e11TimeMs(a&&a.time),tb=__e11TimeMs(b&&b.time);
+  if(ta!==tb)return ta-tb;
+  var sa=__e11IdSeq(a&&a.id),sb=__e11IdSeq(b&&b.id);
+  if(sa!==sb)return sa-sb;
+  var ia=String(a&&a.id||""),ib=String(b&&b.id||"");
+  return ia<ib?-1:(ia>ib?1:0);
+}
+window.__e11TimeMs=__e11TimeMs;
+window.__e11MsgOrder=__e11MsgOrder;
 function __e11NormalizeMessages(s){
   if(!s||!s.messages)return;
   if(!Array.isArray(s.messages)){
@@ -9209,14 +9291,8 @@ function __e11NormalizeMessages(s){
     if(f==="me"||f==="mine"||f==="self"||f==="user"||f==="sent"||f==="right"||f==="out"||f==="我"||f==="自己")m.from="me";
     else if(f==="partner"||f==="ta"||f==="other"||f==="received"||f==="left"||f==="in"||f==="对方"||f==="她"||f==="他")m.from="partner";
     else if(!m.from)m.from=(m.type==="sys")?"partner":"partner";
-    var t=m.time!==undefined?m.time:(m.ts!==undefined?m.ts:m.at);
-    if(typeof t==="string"){
-      var d=Date.parse(t);
-      if(isFinite(d))t=d;else t=Number(t);
-    }
-    t=Number(t);
-    if(!isFinite(t)||t<=0)t=Date.now()-((s.messages.length-i)*1000);
-    if(t>0&&t<1e11)t*=1000; /* 旧版按秒存的时间 */
+    var t=__e11TimeMs(m.time!==undefined?m.time:(m.ts!==undefined?m.ts:m.at));
+    if(!t)t=Date.now()-((s.messages.length-i)*1000);
     m.time=t;
     var id=String(m.id||m.mid||m.msgId||m.messageId||"");
     if(!id)id="m"+(Number(t)||Date.now())+"_"+i;
@@ -9236,7 +9312,7 @@ function __e11NormalizeMessages(s){
     }
     seen[id]=m;out.push(m);
   });
-  out.sort(function(a,b){return (Number(a.time)||0)-(Number(b.time)||0);});
+  out.sort(__e11MsgOrder);
   s.messages=out;
 }
 function migrate(s){
@@ -11725,9 +11801,15 @@ function __cleanStaleLetterSys(){
 window.__cleanStaleLetterSys=__cleanStaleLetterSys;
 function __chatBuildEntries(){
   var entries=[];
-  (state.messages||[]).forEach(function(m){entries.push({k:"m",t:m.time,m:m});});
-  (state.redpackets||[]).forEach(function(r){entries.push({k:"r",t:r.time,r:r});});
-  entries.sort(function(a,b){return a.t-b.t;});
+  var cast=function(v){var t=__e11TimeMs(v&&v.time);if(t!==Number(v&&v.time))try{v.time=t;}catch(_){}return t;};
+  (state.messages||[]).forEach(function(m,i){entries.push({k:"m",t:cast(m),m:m,o:entries.length});});
+  (state.redpackets||[]).forEach(function(r){entries.push({k:"r",t:cast(r),r:r,o:entries.length});});
+  entries.sort(function(a,b){
+    if(a.t!==b.t)return a.t-b.t;
+    var sa=__e11IdSeq(a.m?a.m.id:a.r&&a.r.id),sb=__e11IdSeq(b.m?b.m.id:b.r&&b.r.id);
+    if(sa!==sb)return sa-sb;
+    return a.o-b.o;
+  });
   return entries;
 }
 function __chatRowsHTML(seg,initDay){
@@ -11771,7 +11853,7 @@ function __chatForceVisible(){
       var sig="s"+(state.seq||0)+"/"+msgs.length+"/"+(msgs[msgs.length-1]&&msgs[msgs.length-1].id||"");
       if(window.__chatSimpleSig===sig)return false;
       window.__chatSimpleSig=sig;
-      var seg=msgs.slice(-120);
+      var seg=msgs.slice().sort(__e11MsgOrder).slice(-120);
       list.innerHTML=seg.map(function(m){
         var side=m&&m.from==="me"?"me":"partner";
         var txt="";
@@ -17343,7 +17425,7 @@ $("set-diary-cards").addEventListener("change",e=>{state.settings.diaryCards=Mat
       try{if(typeof __prefSave==="function")__prefSave();}catch(_){}
       try{if(typeof __flushSave==="function")__flushSave(true);}catch(_){}
       try{if(window.__e11BeautySave)window.__e11BeautySave(state,true);}catch(_eB){}
-    },350);
+    },150);
   }
   root.addEventListener("change",persist,true);
   root.addEventListener("input",persist,true);
@@ -18140,7 +18222,7 @@ $("file-avatar").addEventListener("change",e=>{
         }
         renderCouple();
       }catch(_e){}
-      save();try{__avatarBakSync();}catch(_){}bindSetting();renderTopStatus();renderChat(true);try{renderMoments();}catch(_){}toast("头像已更新");
+      save();try{__avatarBakSync();}catch(_){}try{__flushSave(true);}catch(_){}bindSetting();renderTopStatus();renderChat(true);try{renderMoments();}catch(_){}toast("头像已更新");
     }).catch(function(){toast("头像处理失败，请重试");});
   };
   r.readAsDataURL(f);e.target.value="";
