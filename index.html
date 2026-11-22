@@ -191,7 +191,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-22v43-98";
+window.__E11_BUILD="2026-11-22v43-99";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2490,7 +2490,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-22v43-98">
+<meta name="app-build" content="2026-11-22v43-99">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4213,7 +4213,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-98</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-99</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -7270,11 +7270,12 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-22",
   noticeKey:null,
-  lead:"v43-98：进站密码只留 6 位 102611，输对一次就永久免密；换设备或重加主屏幕会完整恢复云端存档。",
+  lead:"v43-99：修好夜间模式点了不变黑、退出再进黑屏太久、发消息和设置开关卡顿。",
   items:[
-    "进站密码只保留 6 位 102611，旧的四位密码自动清掉；输入正确一次后，这台设备不再反复弹密码页。",
-    "换设备或重新添加到主屏幕时，不再把默认欢迎语误判成本机存档，会直接拉云端全部聊天、字卡、信件、留言和动态。",
-    "恢复提速：云端正文和完整性指纹同时下载，文字先到，头像/照片/表情/歌曲封面随后补齐；完成时会提示恢复了多少内容。"
+    "夜间模式修好：设置里打开后整页（含顶部安全区和根底色）立即变黑，重启后仍保持夜间；选「跟随系统」也会真正按手机深浅色切换。",
+    "退出/进入不再长时间黑屏：进入后立刻校准并记住真实主题，不再被上一版留下的旧夜间底色拖住。",
+    "发消息、点设置开关更跟手：整库存档改为空闲时写盘，发送消息只保存一次，退出时也只落一份快照，不再连续卡几秒。",
+    "密码和换设备恢复保持不变：6 位 102611、输对一次永久免密、新设备完整拉回云端存档。"
   ],
   foot:"有问题或建议：小红书 @Eleven_（ID：5609831119）。"
 };
@@ -7341,6 +7342,12 @@ function __entryHome(){
   try{var _ag=document.getElementById("auth-gate");if(_ag)_ag.classList.remove("show");}catch(_eGate){}
   try{var _aw=document.getElementById("auth-wait-card");if(_aw)_aw.style.display="none";}catch(_eWait){}
   try{document.body.classList.remove("auth-locked");}catch(_eLock){}
+  /* v43-99：免密/本地进入时不一定走 hideGate，__themeReady 会一直空着。
+     结果就是夜间开关写进了 skin.dark，但 __effectiveDark 还停在首帧 __bootDark，
+     点了没反应；同时 __theme.v1 也不会更新，退出再进会按旧值闪黑。
+     这里在存档已经铺好之后补一次最终主题，放在 showView 之前：
+     showView 内部偶尔会因为某个节点还没铺好抛错，不能让它把主题一起挡掉。 */
+  try{window.__themeReady=1;if(typeof applySkin==="function")applySkin();}catch(_eThemeHome){}
   showView((window.__bootView&&window.__bootView())||"view-me");
   /* 锁屏密码是在 init 之后才解开的：先补离开期间到点的动态/评论/留言/来信，
      再启动各自的计时器。顺序反过来会把补发基准清掉。 */
@@ -8528,7 +8535,19 @@ function save(){
   if(window.__restoring)return;
   /* v43-79：每次改动先同步落一份“文字核心档”。大图写不进本地库时，
      文字/设置/聊天也不会跟着一起丢。 */
-  try{__e11CoreWrite(state,false);}catch(_eCoreSave){}
+  /* v43-99：发消息/点设置开关时不再同步把整份 2MB 存档 stringify 一遍。
+     有空闲就放到 requestIdleCallback；切后台/关页面由 __e11FlushNow 强制同步写。 */
+  try{
+    if(document.hidden||typeof requestIdleCallback!=="function"){
+      __e11CoreWrite(state,false);
+    }else if(!window.__e11CoreIdlePending){
+      window.__e11CoreIdlePending=1;
+      requestIdleCallback(function(){
+        window.__e11CoreIdlePending=0;
+        try{__e11CoreWrite(state,false);}catch(_eCoreIdle){}
+      },{timeout:900});
+    }
+  }catch(_eCoreSave){}
   try{if(window.__e11BeautySave)window.__e11BeautySave(state,false);}catch(_eBeautySave){}
   /* v43-68：资料单独打修改时间。以前 profile 没有 __ts，云端只要存着一份非空的默认资料，
      本机改过的昵称/签名就会被 applySnapshot 判成“云端有内容”而恢复默认。 */
@@ -8626,7 +8645,8 @@ function __emergencySnapshot(){
     if(typeof state==="undefined"||!state)return;
     state.__savedAt=Date.now();
     /* v43-82：退出时只写“核心档 + 小指针”，不再把整库塞进 localStorage。 */
-    try{__e11CoreWrite(state,true);}catch(_eCoreEm){}
+    /* v43-99：__e11ExitSave 本身就会写一份文字核心；退出瞬间不再重复写两遍。 */
+    if(!window.__e11ExitFast){try{__e11CoreWrite(state,true);}catch(_eCoreEm){}}
     try{window.__e11ExitSave&&window.__e11ExitSave(state);}catch(_eExitEm){}
     try{localStorage.setItem("privateChat",JSON.stringify({__idbOnly:1,__savedAt:state.__savedAt}));}catch(_eLs){}
   }catch(e){}
@@ -9772,7 +9792,10 @@ function __effectiveDark(){
      __themeReady 只在最终存档确定后置位，比 __stateReady 更晚、更准。 */
   if(!window.__themeReady&&typeof window.__bootDark==="boolean")return !!window.__bootDark;
   var s=(state&&state.skin)||{};
-  /* 固定手动明暗：不再让系统深色模式把 App 在运行中改来改去 */
+  /* 只有用户明确选「外观跟随系统」时才读系统深浅色；手动模式永远以 skin.dark 为准。 */
+  if((s.themeMode||"manual")==="auto"){
+    try{return !!(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches);}catch(_eAuto){}
+  }
   return !!s.dark;
 }
 window.__effectiveDark=__effectiveDark;
@@ -9957,7 +9980,11 @@ function applySkin(){
       /* v43-30：根/系统安全区底色用实际皮肤底色，而不是只分黑/白两档。
          有壁纸时优先用壁纸平均色 --wallbg；否则用 skin.bg。 */
       var _bootc=(r.getPropertyValue("--bootbg")||"").trim();
-      var _bg=_bootc||s.bg||(dark?"#000000":"#fafafa");
+      /* v43-99：夜间没有壁纸时，根部/安全区必须用纯黑。
+         旧代码这里用 skin.bg（白色）并以 !important 内联写死，把 body.ui-dark 的黑色覆盖掉，
+         结果设置页/聊天页黑了，顶部安全区和根底色还是白的，看起来就像“夜间模式没生效”。 */
+      var _hasWall=!!(s.bgImage||s.meImage);
+      var _bg=dark?((_hasWall&&_bootc)?_bootc:"#000000"):(_bootc||s.bg||"#fafafa");
       document.documentElement.style.setProperty("background-color",_bg,"important");
       document.body.style.setProperty("background-color",_bg,"important");
       /* 状态区那一条必须跟顶部导航栏同色，不能铺成页面/壁纸底色，否则会多出一条色带 */
@@ -12454,7 +12481,7 @@ function sendMyText(){
   }catch(e){}
   const _id=pushMsg("me","text",t,{quoteId:quoteTarget});
   inp.value="";clearQuote();
-  try{state.draftText="";localStorage.removeItem("draft.v1");save();}catch(e){}
+  try{state.draftText="";localStorage.removeItem("draft.v1");}catch(e){}
   try{window.__syncTapVeil&&window.__syncTapVeil();}catch(e){}
   /* 只追加这一条：不必把整屏几十条消息重建一遍 */
   let _ok=false;
@@ -16837,18 +16864,24 @@ $("sw-active-tag").addEventListener("click",e=>{state.settings.showActiveTag=(st
 $("sw-dark").addEventListener("click",e=>{
   var now=!__effectiveDark();
   state.skin.themeMode="manual";state.skin.dark=now;
+  /* v43-99：先把最终主题标记和首帧底色一起定死，再 applySkin。
+     否则 __themeReady 为空时 __effectiveDark 会退回首帧 __bootDark，
+     开关变成“点亮了但页面不变黑”。 */
+  window.__bootDark=!!now;window.__themeReady=1;
   try{e.target.classList.toggle("on",now);}catch(_){}
   try{if($("sw-theme-auto"))$("sw-theme-auto").classList.remove("on");}catch(_){}
   try{applySkin();}catch(_){}
-  save();try{__flushSave(true);}catch(_){} /* 明暗选择立刻落盘：退出/刷新不回到旧主题 */
+  save(); /* 设置开关只走合并写盘；不再每次同步整库落盘，避免点一下卡半秒 */
   toast(now?"已切到夜间配色":"已切到浅色配色");
 });
 if($("sw-theme-auto"))$("sw-theme-auto").addEventListener("click",e=>{
   state.skin.themeMode=(state.skin.themeMode==="manual")?"auto":"manual";
   if(state.skin.themeMode==="manual")state.skin.dark=__effectiveDark();
+  else{try{state.skin.dark=!!(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches);}catch(_eAuto2){}}
+  window.__bootDark=!!state.skin.dark;window.__themeReady=1;
   try{e.target.classList.toggle("on",state.skin.themeMode!=="manual");}catch(_){}
   try{applySkin();}catch(_){}
-  save();try{__flushSave(true);}catch(_){} /* 跟随/手动选择也立刻落盘 */
+  save();
   toast(state.skin.themeMode==="auto"?"配色已跟随系统":"配色改为手动控制");
 });
 /* 系统深浅色切换时，跟随模式下立刻重算一遍配色 */
@@ -16857,12 +16890,15 @@ if($("sw-theme-auto"))$("sw-theme-auto").addEventListener("click",e=>{
     var mq=window.matchMedia?window.matchMedia("(prefers-color-scheme: dark)"):null;if(!mq)return;
     var h=function(){
       try{
-        if((state.skin.themeMode||"auto")!=="manual"){
+        if((state.skin.themeMode||"manual")!=="manual"){
+          state.skin.dark=!!mq.matches;
           applySkin();
           if($("sw-dark"))$("sw-dark").classList.toggle("on",__effectiveDark());
         }
       }catch(e){}
     };
+    /* 启动时如果选的是跟随系统，先把 skin.dark 对齐当前系统，不要停在旧值 */
+    try{if((state.skin.themeMode||"manual")==="auto")state.skin.dark=!!mq.matches;}catch(_eInitMq){}
     if(mq.addEventListener)mq.addEventListener("change",h);
     else if(mq.addListener)mq.addListener(h);
   }catch(e){}
@@ -25490,10 +25526,12 @@ function __pw102611(){
 window.__e11FlushNow=function(){
   if(window.__restoring)return;
   try{window.__commitSettingsActive&&window.__commitSettingsActive();}catch(_){}
-  try{if(typeof save==="function")save();}catch(_){}
+  /* v43-99：退出这一下不再 save()+coreWrite+emergencySnapshot 各序列化一遍；
+     emergencySnapshot 已经写了一份同步的离站快照，够扛进程被系统杀掉。 */
   try{if(typeof __prefSave==="function")__prefSave();}catch(_){}
   try{if(window.__settingsBackup)window.__settingsBackup(true);}catch(_){}
-  try{__emergencySnapshot();}catch(_){}
+  window.__e11ExitFast=1;
+  try{__emergencySnapshot();}catch(_){}finally{window.__e11ExitFast=0;}
   try{__flushSave(true);}catch(_){}
   try{if(window.__bkSaveNow)window.__bkSaveNow();}catch(_){}
   try{window.__e11Cloud&&__E11Cloud.flush&&__E11Cloud.flush();}catch(_){}
@@ -27423,6 +27461,26 @@ setTimeout(function(){
     if(_bv&&(_has||_gateOn))window.__bootDone&&window.__bootDone();
   }catch(e){}
 },1600);
+/* v43-99：有些进入路径（免密、本地模式、云端请求失败后的兜底）不会走 __entryHome，
+   __themeReady 一直为空，夜间开关和退出再进的底色都会失效。
+   这里在页面已经真正打开、登录层已经撤掉之后补一次；还在密码页时绝不抢跑。 */
+setTimeout(function(){
+  var _tries=0;
+  var _tf=setInterval(function(){
+    try{
+      _tries++;
+      if(window.__themeReady||_tries>30){clearInterval(_tf);return;}
+      if(!window.__stateReady)return;
+      var _g=document.getElementById("auth-gate");
+      if(document.body.classList.contains("auth-locked"))return;
+      if(_g&&_g.classList.contains("show"))return;
+      if(!document.querySelector(".view.open"))return;
+      clearInterval(_tf);
+      window.__themeReady=1;
+      if(typeof applySkin==="function")applySkin();
+    }catch(_eThemeFallback){clearInterval(_tf);}
+  },500);
+},2200);
 setTimeout(function(){
   try{
     var _v2=document.getElementById("__veil");
