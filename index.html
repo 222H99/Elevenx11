@@ -6796,6 +6796,16 @@ setTimeout(function(){
         if(gr.id==="g1"&&(gr.name==="默认"||!gr.name))continue;
         return true;
       }
+      /* 有墓碑说明这台设备确实用过、并且删过东西；即使现在只剩欢迎语，
+         也不能当成“全新设备”再自动拉云端，免得把用户刚删掉的又拉回来。 */
+      try{
+        var del=d.deletedIds||{};
+        for(var k in del){
+          if(!Object.prototype.hasOwnProperty.call(del,k))continue;
+          var ids=del[k];
+          if(ids&&typeof ids==="object"&&Object.keys(ids).length)return true;
+        }
+      }catch(_eDel){}
       return false;
     }catch(e){return false;}
   }
