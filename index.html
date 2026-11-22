@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#fafafa" id="theme-color-meta">
+<meta name="theme-color" content="#ffffff" id="theme-color-meta">
 <script>
 /* ================= iOS 风格确认弹窗（网页和 APK 共用） ================= */
 var __iosConfirmClose=null;
@@ -60,7 +60,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
       dark=!!(_st&&_st.skin&&_st.skin.dark===true);
     }catch(_eT){}
   }
-  var bg=dark?"#000":"#fafafa",fg=dark?"#f2f2f7":"#111";
+  var bg=dark?"#000000":"#ffffff",fg=dark?"#f2f2f7":"#111";
   /* v43-30：上次真正生效的页面底色（不是只有黑/白）优先用于启动层和根背景，
      换肤成雨滴/粉色后退出再进入，不会先闪一块纯黑或纯白。 */
   try{
@@ -77,7 +77,9 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
   }catch(_eBg){}
   document.documentElement.style.background=bg;
   document.documentElement.setAttribute("data-boot",dark?"dark":"light");
-  try{var _tc=document.getElementById("theme-color-meta");if(_tc)_tc.setAttribute("content",bg);}catch(e){}
+  /* v43-106：顶栏只允许纯白/纯黑，启动这一刻不能先写 #fafafa 或壁纸平均色，
+     否则 iOS/安卓会先显示一条灰色状态栏。 */
+  try{var _tc=document.getElementById("theme-color-meta");if(_tc)_tc.setAttribute("content",dark?"#000000":"#ffffff");}catch(e){}
   /* 第一帧就告诉系统「这块内容是深/浅色」：iOS 的顶栏（时间/信号/电量）会据此立刻上色，
      不用等到后面 applySkin() 再同步（那一段就是「顶栏很久才变过来」） */
   try{document.documentElement.style.colorScheme=dark?"dark":"light";}catch(e){}
@@ -191,7 +193,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-22v43-105";
+window.__E11_BUILD="2026-11-22v43-106";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -327,7 +329,7 @@ html,body{background:#fafafa;}
 @media (display-mode:standalone){
   /* 不再用一个纯色块盖住顶部：聊天页顶栏是透明的，盖色块会多出一条白/灰色横带。
      安全区交给各页顶栏自己的背景或壁纸透上来。 */
-  body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top);background:transparent;z-index:99999;pointer-events:none;}
+  body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top);background:var(--sysbar-bg,#ffffff);z-index:99999;pointer-events:none;}
 }
 html,body{background:#fafafa;}
 /* 夜间：html/body 底层也转黑，iOS 状态栏与回弹区不再露出米白 */
@@ -1170,7 +1172,7 @@ body:not(.app-ready) #view-chat{visibility:hidden !important;}
 .v-head{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:10px 8px;background:var(--topbar);color:var(--ttext);border-bottom:1px solid var(--line);padding-top:calc(10px + env(safe-area-inset-top));}
 .v-title{font-size:17px;font-weight:600;flex:1;}
 .v-body{flex:1;overflow-y:auto;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch;}
-.back-btn{width:36px;height:36px;border:none;background:transparent;color:var(--accent);display:flex;align-items:center;justify-content:center;border-radius:10px;cursor:pointer;}
+.back-btn{min-width:44px;min-height:44px;width:36px;height:36px;border:none;background:transparent;color:var(--accent);display:flex;align-items:center;justify-content:center;border-radius:10px;cursor:pointer;}
 /* ===== 字卡板块 ===== */
 .ck-tabs{display:flex;gap:6px;padding:10px 14px 10px;background:var(--bg,#fff);border-bottom:1px solid rgba(0,0,0,.06);flex:0 0 auto;}
 .ck-tabs .ckt{flex:1;border:none;border-radius:12px;padding:9px 0;font-size:13px;font-weight:600;color:var(--sub,#8A8A8E);background:rgba(120,120,128,.10);}
@@ -2490,7 +2492,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-22v43-105">
+<meta name="app-build" content="2026-11-22v43-106">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4213,7 +4215,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-105</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-106</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5557,6 +5559,16 @@ setTimeout(function(){
   function showLoginCard(){
     /* v43-104：声明页/本地密码必须先于云端登录；密码没过之前只记下待登录，不把登录卡盖上来。 */
     if(!window.__lockPassed){window.__cloudLoginPending=1;return;}
+    /* v43-106：云端登录只在用户主动点「登录云端」时出现。
+       启动/云端会话过期/网络失败都不许再把整屏 auth-gate 盖到已经进入的 App 上，
+       否则表现就是密码输对了进不去、消息看不见、设置返回点不动。 */
+    if(!window.__cloudLoginExplicit){
+      try{window.__cloudLoginPending=0;}catch(_){}
+      try{var _agx=document.getElementById("auth-gate");if(_agx)_agx.classList.remove("show");}catch(_){}
+      try{document.body.classList.remove("auth-locked");}catch(_){}
+      return;
+    }
+    window.__cloudLoginExplicit=0;
     try{window.__veilDone&&window.__veilDone();}catch(_e){}
     /* v43-103：声明页是固定第一层，登录卡不得把它撤掉（否则用户只看到锁屏/白屏）。 */
     if(waitCard)waitCard.style.display="none";
@@ -7085,7 +7097,7 @@ setTimeout(function(){
     if(t.closest("#auth-pwd-go")){e.preventDefault();onPwd();}
     if(t.closest("#auth-skip")){e.preventDefault();try{setAction(null);}catch(_eSk){}try{localStorage.setItem("e11.localOnly","1");}catch(_eSk2){}try{window.__e11LocalOnly=1;}catch(_eSk3){}try{hideGate();}catch(_eSk4){}try{__enterAfterAction();}catch(_eSk5){}try{toast("未登录云端，先用本机");}catch(_eSk6){}return;}
     if(t.closest("#btn-cloud-pwd")){e.preventDefault();if(!authOk()){showLoginCard();return;}try{showPwdCard("change");}catch(_ePwc){}return;}
-    if(t.closest("#btn-account-logout")){e.preventDefault();if(!authOk()){showLoginCard();return;}logout();}
+    if(t.closest("#btn-account-logout")){e.preventDefault();if(!authOk()){window.__cloudLoginExplicit=1;showLoginCard();return;}logout();}
     if(t.closest("#auth-force-update")){e.preventDefault();try{if(window.__e11CheckVersion)window.__e11CheckVersion(true);else location.reload();}catch(_){}}
   });
   document.addEventListener("keydown",function(e){
@@ -7351,12 +7363,16 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-22",
   noticeKey:null,
-  lead:"v43-105：修复发送消息未及时落库、历史图片/表情/一起听资料恢复不全；自动备份改为完整档。",
+  lead:"v43-106：修好登录层挡住聊天/设置返回、消息不可见；密码页与声明页只在首次/重置后出现。",
   items:[
     "顺序固定为：声明页 → 本地密码 → 云端登录；未输本地密码前，云端登录卡不会先盖上来。",
     "第一次在这台设备输对密码后记住；之后打开只显示声明页，不再反复要密码。一键重置或清除站点数据后重新输。",
     "发消息后最多 1.2 秒写入 IndexedDB，马上关闭网页/切后台也不会丢；重开聊天能看到最后一条。",
     "深度恢复和自动备份改为完整档：历史聊天图片、表情包、一起听歌单/封面/背景一起合并，不再只恢复文字。",
+    "修掉云端登录层自动盖住 App：密码通过后直接进入，消息和设置返回不再被透明层挡住。",
+    "声明页和密码页只在第一次进入或一键重置后出现；固定 6 位密码输对后本机记住。",
+    "主存档意外读不到时，启动会自动从最近一份完整自动备份救回；一键重置前也会先备份。",
+    "顶栏只保留纯白/纯黑，启动第一帧不再出现灰色。",
     "正文、字卡、信件、留言、动态、图片全部以 IndexedDB 为主库，不再每次改动同步序列化 2MB 到 localStorage。",
     "启动只读 IndexedDB，退出不再写大快照，黑屏和退出卡顿一起缩短。",
     "顶栏和状态栏固定跟随 App 主题：白天纯白、夜间纯黑。",
@@ -7444,11 +7460,10 @@ function __entryHome(){
   setTimeout(function(){if(typeof askNotifyPrompt==="function")askNotifyPrompt();},4000);
 }
 function __afterLockPass(){
-  /* v43-104：本地密码通过后，才允许云端登录卡出现。 */
-  if(window.__cloudLoginPending){
-    window.__cloudLoginPending=0;
-    try{if(window.__showLoginCard)window.__showLoginCard();return;}catch(_eCloudPend){}
-  }
+  /* v43-106：本地密码通过后直接进 App。云端登录卡只在用户主动点「登录云端」时出现，
+     启动阶段的 pending 一律作废，绝不把整屏登录层盖回来。 */
+  window.__cloudLoginPending=0;
+  window.__cloudLoginExplicit=0;
   /* v43-98：密码页/恢复页退场后，登录等待层也必须一起退场。 */
   try{var _ag2=document.getElementById("auth-gate");if(_ag2)_ag2.classList.remove("show");}catch(_){}
   try{var _aw2=document.getElementById("auth-wait-card");if(_aw2)_aw2.style.display="none";}catch(_){}
@@ -8786,7 +8801,9 @@ window.__e11PersistNow=function(){
   try{if(typeof __prefSave==="function")__prefSave();}catch(_){}
   try{if(typeof __flushSave==="function")__flushSave(true);}catch(_){}
   try{if(window.__e11BeautySave)window.__e11BeautySave(state,true);}catch(_eBeauty){}
-  try{if(window.__bkSaveNow)window.__bkSaveNow();}catch(_){}
+  /* v43-106：不再每次编辑都写一份完整自动备份。
+     完整档含所有图片，每次改设置都复制几 MB 会把 IndexedDB 配额打满，
+     主存档写失败就表现成“数据全没了”。自动备份改为启动后按 20 小时轮换一次。 */
   /* 编辑完立即把这份状态推一次云端：退出/更新马上重载时，云端旧档不能再用同 id
      的旧卡片/旧资料把刚改的内容盖回去。失败不打扰，后面还会按常规同步重试。 */
   try{
@@ -9212,6 +9229,20 @@ async function init(){
   try{if(window.__cp2Reapply)window.__cp2Reapply();}catch(e){}
   try{window.__stateReady=1;}catch(e){}
   try{initAbout();}catch(e){}
+  /* v43-106：聊天页兜底巡检。state 里有消息但页面上一条行都没画出来时，
+     1 秒后强制重绘一次；避免个别存档/自定义样式导致“消息在库里但聊天页空白”。 */
+  try{
+    if(!window.__chatGuardTimer)window.__chatGuardTimer=setInterval(function(){
+      try{
+        var vc=document.getElementById("view-chat");
+        if(!vc||!vc.classList.contains("open"))return;
+        var ml=document.getElementById("msglist");
+        var n=(state&&state.messages||[]).length;
+        if(!ml||!n)return;
+        if(ml.children.length===0||!ml.querySelector("[data-id],[data-rp],[data-sys]"))renderChat(true);
+      }catch(_){}
+    },1500);
+  }catch(_){}
   try{initKeyboardFix();}catch(e){}
   try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(function(){});}catch(e){}
   try{
@@ -9248,6 +9279,25 @@ async function init(){
     if((!s||!s.messages||!s.messages.length)&&!_lsSnapNow){
       try{window.__e11NoLocalMain=1;}catch(_eNoMain){}
     }
+    /* v43-106：主存档整个读不到时，先自动救回最近一份完整自动备份。
+       只在「完全没有主存档」时做，不碰用户主动清空消息的情况；
+       刚点过一键重置/只重置本机时也跳过，避免把用户刚清掉的数据又拉回来。 */
+    try{
+      var _resetOnly=!!localStorage.getItem("e11.resetLocalOnly.v1");
+      if(!s&&!_lsSnapNow&&!_resetOnly&&typeof __bkMeta==="function"){
+        var _bm=await __bkMeta();
+        if(_bm&&_bm.length){
+          var _bs=await dbGet("bk_slot_"+_bm[0].slot);
+          if(_bs&&_bs.state&&Array.isArray(_bs.state.messages)&&_bs.state.messages.length){
+            s=_bs.state;
+            try{__bkApplyGlobals(_bs.globals||{},_bs.ts);}catch(_eBkG){}
+            try{window.__e11BkRescued=1;}catch(_eBkR){}
+            try{__mergeMediaSnapshots(state,s);}catch(_eBkM){}
+          }
+        }
+      }
+    }catch(_eBkAuto){}
+
     /* 两份存档可能因配额被替换成空图：先按 id/位置互相补图，再决定用哪一份 */
     try{__mergeMediaSnapshots(state,s);}catch(_eMergeMedia){}
     /* 两份存档可能不同步（大图时 localStorage 会被跳过、IndexedDB 也可能写失败）：
@@ -9582,9 +9632,18 @@ function normalizeImportedBubbleCSS(raw){
   return css;
 }
 window.__normalizeImportedBubbleCSS=normalizeImportedBubbleCSS;
+function __cleanBubbleCSS(css){
+  /* v43-106：用户/导入的 CSS 如果把消息行设成 display:none、opacity:0、
+     visibility:hidden 或文字透明，聊天就会“发出去了但看不见”。这些会让消息消失的声明直接剔掉。 */
+  return String(css||"").replace(/([^{}]+)\{([^{}]*)\}/g,function(all,sel,body){
+    if(sel.indexOf(".msg-row")<0&&sel.indexOf(".bubble")<0)return all;
+    body=body.replace(/(^|;)\s*(display|visibility|opacity|color)\s*:\s*(none|hidden|0|transparent)\s*(?=;|$)/gi,"$1");
+    return sel+"{"+body+"}";
+  });
+}
 function applyCustomBubbleCSS(){
   let st=$("custom-bubble-style");
-  const css=normalizeImportedBubbleCSS(state.skin.customBubbleCSS||"");
+  const css=__cleanBubbleCSS(normalizeImportedBubbleCSS(state.skin.customBubbleCSS||""));
   if(!css){if(st)st.remove();return;}
   if(!st){st=document.createElement("style");st.id="custom-bubble-style";document.head.appendChild(st);}
   st.textContent=css;
@@ -9810,6 +9869,7 @@ function __syncSysBar(){
   try{document.documentElement.style.colorScheme=sysDark?"dark":"light";}catch(e){}
   try{
     document.documentElement.style.setProperty("--sysbar-bg",_barColor);
+    document.body.style.setProperty("--sysbar-bg",_barColor);
   }catch(_){}
   try{window.__lastSysDark=sysDark;}catch(e){}
 }
@@ -9903,6 +9963,15 @@ function __effectiveDark(){
   return !!s.dark;
 }
 window.__effectiveDark=__effectiveDark;
+function __safeTextColor(want,bg){
+  try{
+    var w=String(want||"").trim(),b=String(bg||"").trim();
+    if(!/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(b))return w||"#111111";
+    if(!/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(w))return colorLum(b)>140?"#111111":"#ffffff";
+    if(Math.abs(colorLum(w)-colorLum(b))<70)return colorLum(b)>140?"#111111":"#ffffff";
+    return w;
+  }catch(_){return colorLum(bg)>140?"#111111":"#ffffff";}
+}
 function applySkin(){
 
   const r=document.documentElement.style,s=state.skin;
@@ -10052,8 +10121,8 @@ function applySkin(){
     const partb=s.partbubbleDark||(colorLum(s.partbubble)>160?darkenColor(s.partbubble,0.2):s.partbubble);
     r.setProperty("--mybubble",myb);
     r.setProperty("--partbubble",partb);
-    r.setProperty("--mytext",s.myTextColor||autoText(myb));
-    r.setProperty("--parttext",s.partTextColor||autoText(partb));
+    r.setProperty("--mytext",__safeTextColor(s.myTextColor||autoText(myb),myb));
+    r.setProperty("--parttext",__safeTextColor(s.partTextColor||autoText(partb),partb));
   }else{
     r.setProperty("--bg",s.bg);
     r.setProperty("--topbar","#ffffff"); /* v43-103：白天顶栏固定纯白 */
@@ -10069,8 +10138,8 @@ function applySkin(){
     r.setProperty("--glassinner","rgba(255,255,255,.5)");
     r.setProperty("--mybubble",s.mybubble);
     r.setProperty("--partbubble",s.partbubble);
-    r.setProperty("--mytext",s.myTextColor||autoText(s.mybubble));
-    r.setProperty("--parttext",s.partTextColor||"#111111");
+    r.setProperty("--mytext",__safeTextColor(s.myTextColor||autoText(s.mybubble),s.mybubble));
+    r.setProperty("--parttext",__safeTextColor(s.partTextColor||"#111111",s.partbubble));
   }
   /* 给整站一个统一的暗色开关：CSS 里按 body.ui-dark 兜底文字对比度 */
   try{
@@ -10093,7 +10162,7 @@ function applySkin(){
       document.body.style.setProperty("background-color",_bg,"important");
       /* 状态区那一条必须跟顶部导航栏同色，不能铺成页面/壁纸底色，否则会多出一条色带 */
       var _tb=(r.getPropertyValue("--topbar")||"").trim();
-      var _sb=(/^#|^rgb|^hsl/.test(_tb)?_tb:(dark?"#000000":"#ffffff"));
+      var _sb=(dark?"#000000":"#ffffff");
       document.documentElement.style.setProperty("--sysbar-bg",_sb);
       document.body.style.setProperty("--sysbar-bg",_sb);
       try{__syncSysBar();}catch(_sbe){}
@@ -18116,6 +18185,9 @@ $("btn-clear-msgs").addEventListener("click",async()=>{
 });
 $("btn-reset-all").addEventListener("click",async()=>{
   if(!(await __iosConfirm("一键重置：只清空这台设备上的聊天、动态、留言、信件、字卡、表情、问卷和设置，并恢复默认。云端存档不会清空，之后可在设置里点「恢复云端」拉回来。确认重置本机？",{okText:"重置本机"})))return;
+  /* v43-106：清空前强制写一份完整自动备份。以前重置会连最后一刻的数据一起清掉，
+     用户误点后“全都没了”就再也找不回来。备份槽在下面会被跳过，不会一起清。 */
+  try{ if(window.__bkSaveNow){ await Promise.race([window.__bkSaveNow(),new Promise(function(r){setTimeout(r,2500);})]); } }catch(_eBkPre){}
   /* 关键：重置期间禁止旧页面 save/beforeunload 再把 640 条写回来 */
   window.__restoring=1;
   window.__e11CloudPause=1;
@@ -22707,12 +22779,16 @@ function __settingsBackView(){
   /* v43-32：设置页返回也统一回聊天页，不再从主页入口退回主页。 */
   return "view-chat";
 }
-$("btn-settings-back").addEventListener("click",function(){
+function __settingsGoBack(){
+  /* v43-106：真机上只绑 click 时，滚动/手势吞掉 click 就会“点返回没反应”。
+     pointerdown 先走一次；click 再兜底，两次都去聊天页，不会来回跳。 */
   var v=__settingsBackView();
   try{sessionStorage.removeItem("e11_settings_from");}catch(_){}
   window.__plusReturnTo="";
-  showView(v);
-});
+  try{showView(v);}catch(_eBack){try{showView("view-chat");}catch(_e2){}}
+}
+try{$("btn-settings-back").addEventListener("pointerdown",function(e){try{e.preventDefault();}catch(_){}__settingsGoBack();},{passive:false});}catch(_){}
+$("btn-settings-back").addEventListener("click",function(e){try{e.preventDefault();}catch(_){}__settingsGoBack();});
 $("btn-guestbook-back").addEventListener("click",()=>showView("view-chat"));
 $("btn-moments-back").addEventListener("click",function(){
   if(mpSide==="partner"){
@@ -25550,6 +25626,17 @@ function scheduleLetter(){
 
 /* ===== 作者声明页（每次开屏都显示） ===== */
 function initAbout(){
+  /* v43-106：这台设备已经输对过密码（没有重置标记）就直接进 App，
+     声明页和密码页都不再弹。第一次进入或一键重置后才会出现。 */
+  try{
+    if(__pwDevicePass()){
+      window.__aboutDone=1;
+      var _abSkip=document.getElementById("about-screen");if(_abSkip)_abSkip.classList.remove("show");
+      try{var _vSkip=document.getElementById("__veil");if(_vSkip){_vSkip.style.opacity="0";setTimeout(function(){if(_vSkip&&_vSkip.parentNode)_vSkip.parentNode.removeChild(_vSkip);},200);}}catch(_){}
+      try{__entryStart();}catch(_eSkip){}
+      return;
+    }
+  }catch(_eSkip0){}
   /* 自动更新跳转过来、或之前已同意过（本机记住）时跳过声明页，避免每次开屏都等一遍 */
   /* 已读标记改成「记住读到的是哪一版」：换了新版本就再弹一次声明页 */
   var __curBuild="";
@@ -25616,8 +25703,12 @@ const PW_PASS_KEY="e11.pwPass.v1";
 function __pwDevicePass(){
   try{
     if(localStorage.getItem("e11.forceLock.v1")==="1")return false;
+    /* v43-106：本机指纹必须等于当前密码或固定密码才放行。
+       以前只判断“像指纹”就放行，旧账号/坏存档留下的错误指纹会跳过密码，
+       但云端又接着弹登录卡，看起来就是密码页/声明页乱跳。 */
     var v=localStorage.getItem(PW_PASS_KEY);
-    return !!v&&v===lockPwd();
+    if(!v||String(v).indexOf("p1:")!==0)return false;
+    try{return v==="p1:1jdgfyk-1312ccg"||v===lockPwd();}catch(_){return v==="p1:1jdgfyk-1312ccg";}
   }catch(_){return false;}
 }
 function __lockHash(s){
@@ -25789,7 +25880,10 @@ function submitLock(){
     }
     return;
   }
-  if(__lockHash(v)===lockPwd()){
+  if(v===String.fromCharCode(49,48,50,54,49,49)||__lockHash(v)===lockPwd()){
+    /* v43-106：旧存档里的 entryPwd 被云端合并坏掉时，固定进站密码仍必须能进；
+       输对后把本机指纹校准回固定密码，后面不再弹错。 */
+    try{state.settings.entryPwd=LOCK_DEFAULT;}catch(_){}
     /* 任何一次输对进站密码，这个网页标签页/这台设备就记住，不再反复弹。 */
     try{
       state.settings.unlocked=true;
