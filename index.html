@@ -187,7 +187,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-22v43-64";
+window.__E11_BUILD="2026-11-22v43-65";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2484,7 +2484,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-22v43-64">
+<meta name="app-build" content="2026-11-22v43-65">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4171,7 +4171,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-64</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-65</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -6028,23 +6028,50 @@ setTimeout(function(){
     if(lScore>cScore+50)return false;
     return (Number(cloudTs)||0)>(Number(localTs)||0);
   }
+  function __e11MusicRoomSig(st){
+    try{
+      var p=(st&&st.profile)||{};
+      return JSON.stringify([String((st&&st.musicRoomNote)||""),String(p.mpName||""),String(p.partnerMpName||""),p.mpDist, String(p.mpDur||""),String(p.mpNote||""),String(p.mpSong||""),String(p.mpSongArtist||""),String(p.mpAv1||"").slice(0,80),String(p.mpAv2||"").slice(0,80),String(p.mpCover||"").slice(0,80)]);
+    }catch(_){return "";}
+  }
+  window.__e11MusicRoomSig=__e11MusicRoomSig;
   function __e11MusicRoomBackup(st){
     try{
       var p=(st&&st.profile)||{};
-      var o={musicRoomNote:String((st&&st.musicRoomNote)||""),mpName:String(p.mpName||""),mpDist:p.mpDist,mpDur:String(p.mpDur||""),mpNote:String(p.mpNote||""),mpSong:String(p.mpSong||""),mpSongArtist:String(p.mpSongArtist||""),ts:Date.now()};
+      var ts=Number(st&&st.musicRoomTs)||Date.now();
+      if(st)st.musicRoomTs=ts;
+      var o={ts:ts,musicRoomNote:String((st&&st.musicRoomNote)||""),
+        mpName:String(p.mpName||""),partnerMpName:String(p.partnerMpName||""),
+        mpDist:p.mpDist,mpDur:String(p.mpDur||""),mpNote:String(p.mpNote||""),
+        mpSong:String(p.mpSong||""),mpSongArtist:String(p.mpSongArtist||""),
+        mpAv1:String(p.mpAv1||""),mpAv2:String(p.mpAv2||""),mpCover:String(p.mpCover||"")};
       localStorage.setItem("e11.musicRoom",JSON.stringify(o));
       return o;
     }catch(_){return null;}
   }
   window.__e11MusicRoomBackup=__e11MusicRoomBackup;
+  function __e11MusicRoomTouch(){
+    try{state.musicRoomTs=Date.now();__e11MusicRoomBackup(state);}catch(_){}
+  }
+  window.__e11MusicRoomTouch=__e11MusicRoomTouch;
   function __e11MusicRoomRestore(st){
     try{
       var b=JSON.parse(localStorage.getItem("e11.musicRoom")||"null");if(!b)return;
-      var p=st.profile=st.profile||{};
-      if((st.musicRoomNote===undefined||st.musicRoomNote===null||st.musicRoomNote==="")&&b.musicRoomNote)st.musicRoomNote=b.musicRoomNote;
-      ["mpName","mpDur","mpNote","mpSong","mpSongArtist"].forEach(function(k){if((p[k]===undefined||p[k]===null||p[k]==="")&&b[k])p[k]=b[k];});
-      if((p.mpDist===undefined||p.mpDist===null||p.mpDist===""||Number(p.mpDist)===0)&&b.mpDist!==undefined&&b.mpDist!=="")p.mpDist=b.mpDist;
+      var bts=Number(b.ts)||0,curTs=Number(st&&st.musicRoomTs)||0;
+      /* 只有本机备份比当前（可能是云端旧档）更新时才覆盖；否则保留云端/当前值。
+         以前只在字段为空时补，云端把 mpName/mpDur 写成默认值后就永远补不回来。 */
+      if(bts>curTs+500){
+        var p=st.profile=st.profile||{};
+        if(b.musicRoomNote!==undefined)st.musicRoomNote=b.musicRoomNote;
+        ["mpName","partnerMpName","mpDur","mpNote","mpSong","mpSongArtist","mpAv1","mpAv2","mpCover"].forEach(function(k){
+          if(b[k]!==undefined&&b[k]!=="")p[k]=b[k];
+        });
+        if(b.mpDist!==undefined&&b.mpDist!==""&&b.mpDist!==null)p.mpDist=b.mpDist;
+        st.musicRoomTs=bts;
+        return true;
+      }
     }catch(_){}
+    return false;
   }
   window.__e11MusicRoomRestore=__e11MusicRoomRestore;
   function snapshot(){
@@ -6163,6 +6190,7 @@ setTimeout(function(){
     try{window.__profileSaveSig=JSON.stringify((st&&st.profile)||{});}catch(_eProfSig){}
     try{window.__settingsSaveSig=JSON.stringify((st&&st.settings)||{});}catch(_eSetSig){}
     try{window.__skinSaveSig=JSON.stringify((st&&st.skin)||{});}catch(_eSkinSig){}
+    try{window.__musicRoomSig=__e11MusicRoomSig(st);}catch(_eMrSig2){}
     try{
       if(_localSkin){
         st.skin=st.skin||{};
@@ -8053,7 +8081,7 @@ function __prefApplyObject(p){
     return true;
   }catch(e){return false;}
 }
-/* v43-64：设置整份单独落一个小键。云端旧档、更新后首次启动、刷新/退出再进，
+/* v43-65：设置整份单独落一个小键。云端旧档、更新后首次启动、刷新/退出再进，
    都先按这个键里较新的设置恢复，不再只依赖 privateChat 大档和 5 个界面偏好。 */
 function __settingsBackup(){
   try{
@@ -8113,7 +8141,7 @@ function __prefReapplyAll(){
 }
 
 function save(){
-  /* v43-64：资料单独打修改时间。以前 profile 没有 __ts，云端只要存着一份非空的默认资料，
+  /* v43-65：资料单独打修改时间。以前 profile 没有 __ts，云端只要存着一份非空的默认资料，
      本机改过的昵称/签名就会被 applySnapshot 判成“云端有内容”而恢复默认。 */
   try{
     var _psig=JSON.stringify(state.profile||{});
@@ -8123,6 +8151,18 @@ function save(){
       window.__profileSaveSig=JSON.stringify(state.profile);
     }
   }catch(_eProfTs){}
+  /* 一起听资料（名字/距离/时长/文案/头像/歌曲）单独指纹：任何入口改到这些字段，
+     都立刻刷新本机备份和音乐房时间，不被云端旧档盖回默认。 */
+  try{
+    if(!window.__e11CloudPause&&!window.__restoring){
+      var _mrsig=__e11MusicRoomSig(state);
+      if(window.__musicRoomSig===undefined)window.__musicRoomSig=_mrsig;
+      else if(_mrsig!==window.__musicRoomSig){
+        state.musicRoomTs=Date.now();window.__musicRoomSig=_mrsig;
+        try{__e11MusicRoomBackup(state);}catch(_mrb){}
+      }
+    }
+  }catch(_eMrSig){}
   /* 设置项也做整份指纹：不只设置页里的开关，换肤/字号/气泡/聊天背景等从别处改的也会打上新时间。 */
   try{
     if(!window.__e11CloudPause&&!window.__restoring){
@@ -8589,7 +8629,7 @@ async function init(){
   try{state=migrate(state);}catch(_m){}
   try{__healState();}catch(_h){}
   try{__ltReadApply();}catch(e){}
-  try{__prefApply();}catch(e){}try{__settingsBackupRestore();}catch(e){}try{window.__perfApply&&window.__perfApply();}catch(_){}
+  try{__prefApply();}catch(e){}try{__settingsBackupRestore();}catch(e){}try{if(window.__e11MusicRoomRestore)window.__e11MusicRoomRestore(state);}catch(e){}try{window.__musicRoomSig=window.__e11MusicRoomSig&&window.__e11MusicRoomSig(state);}catch(e){}try{window.__perfApply&&window.__perfApply();}catch(_){}
   /* 首屏只做皮肤和顶栏：完整渲染等 IndexedDB 读完再做一次，避免启动时同一套界面渲染两遍 */
   try{applySkin();}catch(e){}
   try{__syncBuildLabel();}catch(e){}
@@ -13419,7 +13459,7 @@ function __lsMsgText(m){
     return String(m.text||msgPreviewText(m)||"");
   }catch(_){return "[消息]";}
 }
-/* v43-64：长图里的红包 / 问卷 / 推歌 / 邀请不再退化成一行文字，
+/* v43-65：长图里的红包 / 问卷 / 推歌 / 邀请不再退化成一行文字，
    按聊天里真实的卡片版式单独绘制，尺寸固定，不随屏幕缩放改变。 */
 function __lsCardSpec(m,K){
   try{
@@ -18381,10 +18421,13 @@ function gCompress(d,max,q){return __shrinkImg(d,max||720,q||0.72);}
       state.profile.mpDist=Math.max(0,Math.round(Number($("mu-e-km").value)||0));
       state.profile.mpDur=($("mu-e-dur").value||"").trim()||"5小时20分钟";
       state.musicRoomNote=(($("mu-e-note")&&$("mu-e-note").value)||"").trim();
+      try{window.__e11MusicRoomTouch&&window.__e11MusicRoomTouch();}catch(_){}
     }else if(mode==="partner"){
       state.profile.partnerMpName=($("mu-e-name").value||"").trim();
+      try{window.__e11MusicRoomTouch&&window.__e11MusicRoomTouch();}catch(_){}
     }else if(mode==="me"){
       state.profile.mpName=($("mu-e-name").value||"").trim();
+      try{window.__e11MusicRoomTouch&&window.__e11MusicRoomTouch();}catch(_){}
     }
     ov.classList.remove("show");
     save();requestAnimationFrame(function(){try{renderMusicList();}catch(e){}});
@@ -18406,6 +18449,7 @@ function gCompress(d,max,q){return __shrinkImg(d,max||720,q||0.72);}
         toast("正在处理头像…");
         __avatarShrink(raw).then(function(c){
           if(who==="partner")state.profile.mpAv1=c||raw;else state.profile.mpAv2=c||raw;
+          try{window.__e11MusicRoomTouch&&window.__e11MusicRoomTouch();}catch(_){}
           save();renderMusicList();toast("头像已更换");
         });
       };
@@ -20938,14 +20982,14 @@ function stxt(t){var e=document.getElementById('ny-st'); if(e)e.textContent=t;}
   $("mr-note-sheet").addEventListener("click",function(e){if(e.target===e.currentTarget)$("mr-note-sheet").classList.remove("show");});
   $("mr-note-close").addEventListener("click",()=>$("mr-note-sheet").classList.remove("show"));
   $("mr-note-save").addEventListener("click",function(){
-    state.musicRoomNote=String($("mr-note-input").value||"").trim();save();
+    state.musicRoomNote=String($("mr-note-input").value||"").trim();try{window.__e11MusicRoomTouch&&window.__e11MusicRoomTouch();}catch(_){}save();
     $("mr-note-sheet").classList.remove("show");
     var _n=state.musicRoomNote;
     $("ml-dist").innerHTML=(_n?esc(_n):("相距"+(state.profile.mpDist||0)+"公里，一起听了"+(state.profile.mpDur||"5小时20分钟")))+'<span class="pen">✎</span>';
     toast(_n?"已换成你写的文案":"已恢复默认文案");
   });
   $("mr-note-reset").addEventListener("click",function(){
-    state.musicRoomNote="";save();
+    state.musicRoomNote="";try{window.__e11MusicRoomTouch&&window.__e11MusicRoomTouch();}catch(_){}save();
     $("mr-note-sheet").classList.remove("show");
     $("ml-dist").innerHTML="相距"+(state.profile.mpDist||0)+"公里，一起听了"+(state.profile.mpDur||"5小时20分钟")+'<span class="pen">✎</span>';
     toast("已恢复默认文案");
@@ -29589,7 +29633,7 @@ body{margin:0;background:var(--bg,#fafafa);}
          此时 root.top 不能跟着 voffY 走，否则整页会被抬上去、工具条压住日记字 */
       if(_diaryOpen){voffX=0;voffY=0;}
       var _landView=(w>h*1.12&&w>=560);
-      /* v43-64：舞台只按屏幕宽度铺，不再把整站放大到 1.3 倍。
+      /* v43-65：舞台只按屏幕宽度铺，不再把整站放大到 1.3 倍。
          尺寸锁死为 1，390/430/480 宽的手机上按钮、字号、间距都保持设计稿原大小；
          旧版存过的 __uiKLock 比例（1.05~1.3）全部作废，避免“换大屏手机后整页变大”。 */
       window.__uiKLock=1;
