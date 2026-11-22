@@ -28938,16 +28938,25 @@ $("cp-file-av-partner").addEventListener("change",e=>{
   const rd=new FileReader();rd.onload=()=>{var raw=String(rd.result);toast("正在处理头像…");__avatarShrink(raw).then(function(c){state.profile.cpPartnerAvatar=c||raw;save();renderCouple();toast("情侣头像已更新");});};rd.readAsDataURL(f);e.target.value="";
 });
 try{
-  var _ne=$("me-name-edit");
-  if(_ne&&!_ne._direct){
-    _ne._direct=1;
-    var _nt=null;
-    _ne.addEventListener("input",function(){
-      clearTimeout(_nt);
-      var v=this.value.trim();
-      _nt=setTimeout(function(){state.profile.mpName=v;try{renderMe();}catch(e){}save();},150);
-    });
+  /* v43-121：四个资料字段都做输入即存。用户改完直接退出/杀进程，不点“确认保存”也不会丢。 */
+  var _nt=null;
+  function _meDraftSync(){
+    state.profile.mpName=$("me-name-edit").value.trim();
+    state.profile.handle=$("me-handle-edit").value.trim();
+    state.profile.region=$("me-region-edit").value.trim();
+    state.profile.bio=$("me-sign-edit").value.trim();
+    state.profile.__ts=Date.now();
+    try{if(window.__profileSaveSig)window.__profileSaveSig=JSON.stringify(state.profile);}catch(_){}
+    try{renderMe();}catch(e){}
+    save();
+    try{if(window.__e11SyncCfgSnapshot)window.__e11SyncCfgSnapshot();}catch(_){}
   }
+  ["me-name-edit","me-handle-edit","me-region-edit","me-sign-edit"].forEach(function(id){
+    var el=$(id);if(!el||el._direct)return;el._direct=1;
+    el.addEventListener("input",function(){clearTimeout(_nt);_nt=setTimeout(_meDraftSync,180);});
+    el.addEventListener("blur",function(){clearTimeout(_nt);_meDraftSync();try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_){}});
+  });
+  window.__meDraftSync=_meDraftSync;
 }catch(e){}
 $("me-edit-save").addEventListener("click",()=>{
   state.profile.mpName=$("me-name-edit").value.trim();
