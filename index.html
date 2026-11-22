@@ -191,7 +191,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-22v43-85";
+window.__E11_BUILD="2026-11-22v43-86";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2488,7 +2488,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-22v43-85">
+<meta name="app-build" content="2026-11-22v43-86">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4210,7 +4210,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-85</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-86</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -4313,7 +4313,7 @@ setTimeout(function(){
         </div>
         <div class="set-row"><label class="small-btn ghost" for="file-import" style="width:100%;display:flex;align-items:center;justify-content:center;cursor:pointer;text-align:center;">导入数据（全量/分类自动识别）</label></div>
         <div class="set-row"><button class="small-btn ghost" style="width:100%;" id="btn-clear-msgs">清空聊天记录</button></div>
-        <div class="set-row"><button class="small-btn ghost" style="width:100%;color:var(--danger);" id="btn-reset-all">一键重置（重置所有内容）</button></div>
+        <div class="set-row" style="flex-direction:column;align-items:stretch;"><button class="small-btn ghost" style="width:100%;color:var(--danger);" id="btn-reset-all">一键重置（只清本机）</button><div class="set-sub" style="margin-top:6px;">只清这台设备的聊天、字卡、动态和设置；云端存档保留，可在上面「从云端恢复」拉回</div></div>
       </div>
       <div class="set-sec-title">存储空间</div>
       <div class="set-group">
@@ -6367,7 +6367,7 @@ setTimeout(function(){
         ks.forEach(function(k){try{localStorage.removeItem(k);}catch(e){}});
       }catch(e){}
       try{localStorage.removeItem(LS_OWNER);}catch(e){}
-      try{localStorage.removeItem("e11.exit.v1");localStorage.removeItem("e11.core.v1");localStorage.removeItem("beautyVault:latest");}catch(e){}
+      try{localStorage.removeItem("e11.exit.v1");localStorage.removeItem("e11.core.v1");localStorage.removeItem("beautyVault:latest");localStorage.removeItem("e11.resetLocalOnly.v1");}catch(e){}
       /* 刷新前页面可能把旧数据写进这两个应急键，必须一起清掉，否则下次启动会“复活”上一个账号的内容 */
       try{sessionStorage.removeItem("privateChat__emergency");sessionStorage.removeItem("bigPending__emergency");sessionStorage.removeItem("__forceIdbRestore");}catch(e){}
       /* 不删除数据库：001 的历史数据只活在旧库里；其他账号用独立 DB，切号后不会读到彼此 */
@@ -6389,8 +6389,10 @@ setTimeout(function(){
     if(window.__e11NoCloud)return;
     if(!authOk()||window.__e11CloudPause||window.__restoring||window.__e11CloudHold)return;
     /* 重置/导入后本机是最新意图：允许空档覆盖云端，成功后清掉标记 */
-    var _hardReset=null,_importUpload=null;
-    try{_hardReset=localStorage.getItem("__e11HardReset");_importUpload=localStorage.getItem("__e11ImportUpload");}catch(_){}
+    var _hardReset=null,_importUpload=null,_resetOnly=null;
+    try{_hardReset=localStorage.getItem("__e11HardReset");_importUpload=localStorage.getItem("__e11ImportUpload");_resetOnly=localStorage.getItem("e11.resetLocalOnly.v1");}catch(_){}
+    /* v43-86：一键重置只清本机，云端存档保留；空白本机绝不能把云端覆盖掉 */
+    if(_resetOnly&&!__e11LocalHasArchive())return;
     if(_hardReset||_importUpload)window.__e11AllowBlankCloud=1;
     clearTimeout(cloudTimer);
     cloudTimer=setTimeout(function(){
@@ -6417,6 +6419,7 @@ setTimeout(function(){
         try{
           if(_hardReset)localStorage.removeItem("__e11HardReset");
           if(_importUpload)localStorage.removeItem("__e11ImportUpload");
+          try{localStorage.removeItem("e11.resetLocalOnly.v1");}catch(_){}
           if(_hardReset||_importUpload){try{localStorage.removeItem("__e11ImportSkipPull");}catch(_){}try{sessionStorage.removeItem("__e11ImportSkipPull");}catch(_){}}
         }catch(_){}
         delete window.__e11AllowBlankCloud;
@@ -6435,6 +6438,7 @@ setTimeout(function(){
   window.__E11Cloud={schedule:cloudSchedule,flush:function(){clearTimeout(cloudTimer);cloudSchedule();},recoveryGet:cloudGetRecovery,uploadNow:function(){
     if(window.__e11NoCloud)return Promise.reject(new Error("已关闭云端同步"));
     if(!authOk())return Promise.reject(new Error("未登录"));
+    try{if(localStorage.getItem("e11.resetLocalOnly.v1")&&!__e11LocalHasArchive())return Promise.reject(new Error("本机已重置，云端存档保留中"));}catch(_){}
     if(window.__e11CloudHold)return Promise.reject(new Error("正在同步云端，请稍候"));
     var snap=snapshot();
     return putVault(snap).then(function(){lastCloudHash=JSON.stringify(snap);window.__e11CloudStatus="已同步";chipSync();});
@@ -6464,6 +6468,8 @@ setTimeout(function(){
        导入后同理，先让本机导入版上传，避免被云端更旧的完整档压回去。 */
     try{
       if(localStorage.getItem("__e11HardReset")||sessionStorage.getItem("__e11ImportSkipPull"))return Promise.resolve(false);
+      /* 本机刚做过「只重置本机」：不自动拉云端；只有用户手动点「恢复云端」(force) 才拉 */
+      if(!force&&localStorage.getItem("e11.resetLocalOnly.v1"))return Promise.resolve(false);
     }catch(_){}
     if(__e11PullBusy||!authOk()||window.__e11CloudPause)return Promise.resolve(false);
     __e11PullBusy=1;
@@ -6659,7 +6665,8 @@ setTimeout(function(){
       try{setAction(null);}catch(_eDropAct){}
       /* v43-80：本机存档被系统清掉/被配额挤掉时，不能直接进默认示例。
          只有“本机完全没有聊天/字卡/动态”才自动恢复云端；本机有数据一律不覆盖。 */
-      if(!__e11LocalHasArchive()){
+      var _resetOnlyBoot=false;try{_resetOnlyBoot=!!localStorage.getItem("e11.resetLocalOnly.v1");}catch(_){}
+      if(!__e11LocalHasArchive()&&!_resetOnlyBoot){
         try{if(_entryTimer){clearTimeout(_entryTimer);_entryTimer=null;}}catch(_){}
         _entryTimer=setTimeout(_enterLocal,9000);
         try{setWait("正在恢复你的存档","本机没有找到聊天存档，只恢复这个账号自己的云端资料。");}catch(_){}
@@ -8225,6 +8232,8 @@ function __e11CorePack(st){
 }
 function __e11CoreWrite(st,force){
   try{
+    /* 一键重置/恢复期间绝不能再把旧状态写回核心档 */
+    if(window.__restoring&&!force)return false;
     var now=Date.now();
     if(!force&&window.__e11CoreLast&&now-Number(window.__e11CoreLast)<1500)return false;
     var core=__e11CorePack(st);
@@ -8536,6 +8545,8 @@ function __prefReapplyAll(){
 }
 
 function save(){
+  /* 重置/恢复中禁止任何写盘：否则刷新前旧页面会把刚清掉的内容再写回来 */
+  if(window.__restoring)return;
   /* v43-79：每次改动先同步落一份“文字核心档”。大图写不进本地库时，
      文字/设置/聊天也不会跟着一起丢。 */
   try{__e11CoreWrite(state,false);}catch(_eCoreSave){}
@@ -17884,7 +17895,7 @@ $("btn-clear-msgs").addEventListener("click",async()=>{
   save();renderChat();renderRedpackets();toast("聊天记录已清空");
 });
 $("btn-reset-all").addEventListener("click",async()=>{
-  if(!(await __iosConfirm("一键重置：将清空全部聊天、动态、留言、信件、字卡、表情、问卷等所有数据，并恢复默认设置。云端存档也会一起清空。此操作不可撤销。确认重置？",{okText:"重置"})))return;
+  if(!(await __iosConfirm("一键重置：只清空这台设备上的聊天、动态、留言、信件、字卡、表情、问卷和设置，并恢复默认。云端存档不会清空，之后可在设置里点「恢复云端」拉回来。确认重置本机？",{okText:"重置本机"})))return;
   /* 关键：重置期间禁止旧页面 save/beforeunload 再把 640 条写回来 */
   window.__restoring=1;
   window.__e11CloudPause=1;
@@ -17899,15 +17910,16 @@ $("btn-reset-all").addEventListener("click",async()=>{
   }catch(_){}
   try{
     /* 只保留登录态、账号归属和后端配置，其余内容/设置/缓存全部清空 */
-    var _keep={"e11.auth.v1":1,"e11.localOwner.v1":1,"e11.cfg.v1":1};
+    var _keep={"e11.auth.v1":1,"e11.localOwner.v1":1,"e11.cfg.v1":1,"e11.cloudCfg.v1":1};
     var _ks=[];for(var _i=0;_i<localStorage.length;_i++){var _k=localStorage.key(_i);if(_k&&!_keep[_k])_ks.push(_k);}
     _ks.forEach(function(k){try{localStorage.removeItem(k);}catch(_e){}});
-    try{localStorage.setItem("__e11HardReset","1");}catch(_eHr){}
+    /* 只重置本机：云端存档原样保留，标记“本次不要自动拉云端、也不要把空白档传上去” */
+    try{localStorage.removeItem("__e11HardReset");localStorage.removeItem("__e11ImportUpload");localStorage.setItem("e11.resetLocalOnly.v1",String(Date.now()));}catch(_eHr){}
     try{sessionStorage.clear();}catch(_eSs){}
   }catch(_){}
   function _done(){location.reload();}
   function _clearCacheThenGo(){
-    try{if(window.__E11Cloud&&window.__E11Cloud.resetCloud)window.__E11Cloud.resetCloud(_blank);}catch(_){}
+    /* 不调用 resetCloud：云端存档必须保留，供之后手动「恢复云端」 */
     try{
       if(window.caches&&caches.keys){
         caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k);}));}).catch(function(){}).then(function(){setTimeout(_done,80);});
@@ -30856,7 +30868,8 @@ body{margin:0;background:var(--bg,#fafafa);}
       var b=this,st=$("cloud-pull-sub");b.disabled=true;if(st)st.textContent="正在读取云端…";
       try{
         var r=window.__E11CloudPull?await window.__E11CloudPull(true):false;
-        if(r===1){if(st)st.textContent="已恢复";toast("已从云端恢复");}
+        if(r===1){try{localStorage.removeItem("e11.resetLocalOnly.v1");}catch(_){}
+          if(st)st.textContent="已恢复";toast("已从云端恢复");}
         else{if(st)st.textContent="云端没有可恢复的存档";toast("云端没有可恢复的存档");}
       }catch(e){if(st)st.textContent="恢复失败";toast("云端恢复失败："+String(e&&e.message||e).slice(0,100));}
       b.disabled=false;
