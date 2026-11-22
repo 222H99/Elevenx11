@@ -191,7 +191,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-22v43-92";
+window.__E11_BUILD="2026-11-22v43-93";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2488,7 +2488,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-22v43-92">
+<meta name="app-build" content="2026-11-22v43-93">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4211,7 +4211,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-92</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-93</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -6282,10 +6282,16 @@ setTimeout(function(){
             var k=pair[0],minN=pair[1];
             var ld=localState.deletedIds&&localState.deletedIds[k];
             var ln=ld&&typeof ld==="object"?Object.keys(ld).length:0;
+            var sd=st.deletedIds&&st.deletedIds[k];
+            var sn=sd&&typeof sd==="object"?Object.keys(sd).length:0;
             var localN=Array.isArray(localState[k])?localState[k].length:0;
             var cloudN=Array.isArray(st[k])?st[k].length:0;
-            if(ln>=6&&cloudN>=minN&&localN<cloudN*0.6){try{delete st.deletedIds[k];}catch(_){}
-              try{st.socialRestored=1;}catch(_){}}
+            /* 云端墓碑也可能被旧客户端写成“每个内容一条”：内容 172、墓碑 172，
+               新设备本机没有墓碑时以前会原样保留，结果一拉就全被过滤成 0。 */
+            if(cloudN>=minN&&((ln>=6&&localN<cloudN*0.6)||(sn>=6&&sn>=cloudN*0.6))){
+              try{delete st.deletedIds[k];}catch(_){}
+              try{st.socialRestored=1;}catch(_){}
+            }
           });
         }
       }catch(_eMass){}
@@ -7827,7 +7833,11 @@ function __e11DbGetTimed(k,ms){
 }
 function dbSet(k,v){return new Promise((res,rej)=>{
   if(!db){rej(new Error("no-db"));return;}
-  try{const tx=db.transaction(STORE,"readwrite");tx.objectStore(STORE).put(v,k);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error);}catch(e){rej(e);}
+  var done=false,timer=null;
+  function fin(ok,e){if(done)return;done=true;if(timer)clearTimeout(timer);ok?res():rej(e||new Error("idb-write"));}
+  /* 写事务同样可能被系统回收，不能只等 oncomplete，否则备份/存档会一直“保存中”。 */
+  timer=setTimeout(function(){fin(false,new Error("idb-write-timeout"));},8000);
+  try{const tx=db.transaction(STORE,"readwrite");tx.objectStore(STORE).put(v,k);tx.oncomplete=function(){fin(true);};tx.onerror=function(){fin(false,tx.error);};tx.onabort=function(){fin(false,tx.error||new Error("idb-abort"));};}catch(e){fin(false,e);}
 });}
 /* 导入/恢复必须等数据库真正打开：页面刚开就选文件时 db 可能还没 ready，
    直接写会静默跳过 IndexedDB，备份里的 bigimg/emojiimg 原图就整批丢了。 */
@@ -7992,7 +8002,7 @@ function __bkPaint(){
       b.addEventListener("click",async function(){
         var slot=b.getAttribute("data-bk");
         if(!(await __iosConfirm("用这份备份覆盖现在的全部数据？当前未备份的改动会丢失。")))return;
-        dbGet("bk_slot_"+slot).then(function(v){
+        __e11DbGetTimed("bk_slot_"+slot,3000).then(function(v){
           if(!v||!v.state){toast("这份备份读不出来");return;}
           var st=v.state;
           /* v43-79：备份是文字核心档，先把当前本机图片/表情补回去，避免恢复后图全空 */
@@ -8371,9 +8381,11 @@ function __e11ExitSave(st){
     if(window.__restoring)return false;
     var src=st||(typeof state!=="undefined"?state:null);
     if(!src)return false;
-    try{src.__savedAt=Date.now();}catch(_){}
+    /* 不再每 10 秒把 state.__savedAt 改成当前时间：那会让“没改过数据”也看起来是新的，
+       云端时间戳一直漂移，还会反复序列化整份文字档。离站快照用自己的 ts。 */
+    var _exitTs=Date.now();
     var core=__e11TextCore(src);
-    try{core.__savedAt=src.__savedAt||Date.now();core.__exit=1;}catch(_){}
+    try{core.__savedAt=_exitTs;core.__exit=1;}catch(_){}
     var txt=JSON.stringify({app:"privateChat",exit:1,ts:core.__savedAt,state:core,globals:__e11ExitGlobals()});
     try{localStorage.setItem(__E11_EXIT_KEY,txt);return true;}
     catch(_e1){
@@ -8395,7 +8407,20 @@ window.__e11ExitSave=__e11ExitSave;
 window.__e11ExitRead=__e11ExitRead;
 /* v43-85：iOS 强制关闭有时不触发 pagehide，这里每 10 秒在后台补写一次离站快照，
    保证下次进入最多只差最后几秒的改动，而不是回到原始状态。 */
-try{setInterval(function(){try{if(window.__e11StateGet&&!window.__restoring&&!document.hidden){__e11ExitSave(state);try{if(window.__e11BeautySave)window.__e11BeautySave(state,false);}catch(_){}}}catch(_){}},10000);}catch(_){}
+/* 只在数据真的变过时补写离站快照：空闲时每 10 秒序列化 1MB 文字档太费电。
+   美化数据由 save()/退出 flushAll 负责，不再在这个定时器里每 10 秒扫一遍大图。 */
+try{
+  var __e11ExitLastRev=-1;
+  setInterval(function(){
+    try{
+      if(!window.__e11StateGet||window.__restoring||document.hidden)return;
+      var _rv=Number(window.__chatRev)||0;
+      if(_rv===__e11ExitLastRev)return;
+      __e11ExitLastRev=_rv;
+      __e11ExitSave(state);
+    }catch(_){}
+  },10000);
+}catch(_){}
 function __e11CoreRead(){
   try{
     var raw=localStorage.getItem(__E11_CORE_KEY);if(!raw)return null;
@@ -26189,10 +26214,10 @@ function renderCouple(){
   if($("cp-av-me"))$("cp-av-me").src=state.me.avatar||avatarSvg("#A5A5B0");
   if($("cp-av-partner"))$("cp-av-partner").src=state.partner.avatar||avatarSvg("#5AC8FA");
   if($("cp-names"))$("cp-names").textContent=mn+" ♡ "+pn;
-  if($("cp-msg-count"))$("cp-msg-count").textContent=(state.msgs||[]).length;
+  if($("cp-msg-count"))$("cp-msg-count").textContent=(state.messages||[]).length;
   if($("cp-song-count"))$("cp-song-count").textContent=(state.musicPlaylist||[]).length;
   if($("cp-letter-count"))$("cp-letter-count").textContent=(state.letters||[]).length;
-  if($("cp-note-count"))$("cp-note-count").textContent=(state.notes||[]).length;
+  if($("cp-note-count"))$("cp-note-count").textContent=(state.guestbook||[]).length;
 if(window.__cp2Reapply)window.__cp2Reapply();
   try{__cpPhotoBakSync();}catch(e){}
   try{setTimeout(function(){try{window.__keepPhotoAboveDock();}catch(e){}},80);}catch(e){}
