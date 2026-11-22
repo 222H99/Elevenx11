@@ -191,7 +191,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-22v43-100";
+window.__E11_BUILD="2026-11-22v43-101";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2490,7 +2490,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-22v43-100">
+<meta name="app-build" content="2026-11-22v43-101">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4213,7 +4213,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-100</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-101</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -8206,7 +8206,7 @@ function __e11CoreWrite(st,force){
     /* 一键重置/恢复期间绝不能再把旧状态写回核心档 */
     if(window.__restoring&&!force)return false;
     var now=Date.now();
-    if(!force&&window.__e11CoreLast&&now-Number(window.__e11CoreLast)<1500)return false;
+    if(!force&&window.__e11CoreLast&&now-Number(window.__e11CoreLast)<2400)return false;
     var core=__e11CorePack(st);
     var txt=JSON.stringify({app:"privateChat",core:1,ts:core.__savedAt,state:core});
     try{localStorage.setItem(__E11_CORE_KEY,txt);window.__e11CoreLast=now;return true;}
@@ -8327,6 +8327,22 @@ function __flushSave(immediate){
   /* 按钮里常见的 save();__flushSave(); 不再同步整库序列化。
      能看见页面时合并到 save() 的 320ms 空闲写盘；只有切后台/关页面才立即写。 */
   if(!immediate&&!document.hidden){try{save();}catch(e){}return;}
+  /* v43-100：整库写盘（要复制/序列化所有聊天和图片）在页面上最多 3 秒一次。
+     以前每次点按钮、每敲一个字后的空闲任务都会整库走一遍，图片多时就是连续卡顿。
+     到点会补一次，不会漏写；退出/切后台不节流。 */
+  try{
+    var _fnow=Date.now();
+    if(!window.__e11FullWriteForce&&!document.hidden&&_fnow-(window.__e11FullWriteAt||0)<3000){
+      clearTimeout(window.__e11FullWake);
+      window.__e11FullWake=setTimeout(function(){
+        window.__e11FullWriteForce=1;
+        try{__flushSave(true);}catch(_){}
+        window.__e11FullWriteForce=0;
+      },Math.max(300,3000-(_fnow-(window.__e11FullWriteAt||0))));
+      return;
+    }
+    window.__e11FullWriteAt=_fnow;
+  }catch(_){}
   try{state.__savedAt=Date.now();}catch(e){}  /* 给这份存档打时间戳，启动时用来判断哪份更新 */
   trimSocial();try{_emojiBackup();}catch(e){}
   var _pack=null,_slim=null,_sig=null;
