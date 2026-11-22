@@ -187,7 +187,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-22v43-69";
+window.__E11_BUILD="2026-11-22v43-70";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2484,7 +2484,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-22v43-69">
+<meta name="app-build" content="2026-11-22v43-70">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4169,7 +4169,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-69</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-70</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -6076,7 +6076,9 @@ setTimeout(function(){
     try{
       for(var i=0;i<localStorage.length;i++){
         var k=localStorage.key(i);
-        if(!k||k.indexOf("e11.")===0||k==="privateChat")continue;
+        /* 设置/一起听这两个 e11 小键也进云端全局备份；auth 和云端元数据不传。 */
+        if(!k||k==="privateChat"||k==="e11.auth.v1"||k==="e11.cloudMeta")continue;
+        if(k.indexOf("e11.")===0&&k!=="e11.settings.v1"&&k!=="e11.musicRoom")continue;
         var v=localStorage.getItem(k);if(v!==null)extras[k]=v;
       }
     }catch(e){}
@@ -6206,7 +6208,8 @@ setTimeout(function(){
     }catch(_){}
     var extras=snap.extras&&typeof snap.extras==="object"?snap.extras:{};
     Object.keys(extras).forEach(function(k){
-      if(k.indexOf("e11.")===0||k==="privateChat"||k==="__theme.v1")return;
+      if(k==="privateChat"||k==="__theme.v1"||k==="e11.auth.v1"||k==="e11.cloudMeta")return;
+      if(k.indexOf("e11.")===0&&k!=="e11.settings.v1"&&k!=="e11.musicRoom")return;
       try{localStorage.setItem(k,extras[k]);}catch(e){}
     });
     var __lsOk=false;
@@ -7590,6 +7593,45 @@ let _emojiSig="";
 const BK_META="bk_snap_meta";
 function __bkSlots(){return ["bk_slot_0","bk_slot_1","bk_slot_2"];}
 function __bkMeta(){return dbGet(BK_META).then(function(m){return Array.isArray(m)?m:[];}).catch(function(){return [];});}
+/* 全局备份：聊天/动态/信件/字卡/日记这些都在 state 里；设置、一起听、偏好、
+   头像副本等只存在 localStorage，单独收进来，恢复时才不会再被本机旧键盖回去。 */
+function __bkGlobalKeys(){
+  return ["e11.settings.v1","e11.musicRoom","uiPrefs.v1","avatarBak2","lockFree","__theme.v1","e11.lastView.v1","ltRead.v1","me1Sizes","me1OrigIcons","cp2PhotoSize","cp2PhotoUserSize","cp2Opt.v1","callSave","cpPhotoBak","cp2Layout"];
+}
+function __bkCollectGlobals(){
+  var out={},total=0;
+  try{
+    __bkGlobalKeys().forEach(function(k){
+      var v=null;try{v=localStorage.getItem(k);}catch(_){v=null;}
+      if(v===null||v===undefined)return;
+      if(v.length>1500000)return;
+      if(total+v.length>3500000)return;
+      out[k]=v;total+=v.length;
+    });
+  }catch(_){}
+  return out;
+}
+function __bkApplyGlobals(g,ts){
+  try{
+    Object.keys(g||{}).forEach(function(k){
+      if(__bkGlobalKeys().indexOf(k)<0)return;
+      var v=g[k];if(typeof v!=="string")return;
+      try{
+        if(k==="e11.settings.v1"){
+          var o=JSON.parse(v);o.ts=ts;o.settings=o.settings||{};o.settings.__ts=ts;v=JSON.stringify(o);
+        }else if(k==="uiPrefs.v1"){
+          var u=JSON.parse(v);u.ts=ts;v=JSON.stringify(u);
+        }else if(k==="e11.musicRoom"){
+          var m=JSON.parse(v);m.ts=ts;v=JSON.stringify(m);
+        }else if(k==="avatarBak2"){
+          var b=JSON.parse(v);["me","partner"].forEach(function(w){if(b[w]&&typeof b[w]==="object")b[w].ts=ts;});v=JSON.stringify(b);
+        }
+      }catch(_eJson){}
+      try{localStorage.setItem(k,v);}catch(_eSet){}
+      try{if(k==="uiPrefs.v1"&&typeof dbSet==="function")dbSet("uiPrefs.v1",JSON.parse(v)).catch(function(){});}catch(_eDb){}
+    });
+  }catch(_){}
+}
 function __bkSave(force){
   if(!db)return Promise.reject(new Error("no-db"));
   return __bkMeta().then(function(meta){
@@ -7597,9 +7639,10 @@ function __bkSave(force){
     if(!force&&newest&&Date.now()-Number(newest.ts||0)<20*3600*1000)return "skip";
     var used={};meta.forEach(function(x){used[x.slot]=1;});
     var slot=0;for(var i=0;i<3;i++){if(!used[i]){slot=i;break;}}
-    var snap={ts:Date.now(),state:state};
+    var globals=__bkCollectGlobals();
+    var snap={ts:Date.now(),state:state,globals:globals};
     return dbSet("bk_slot_"+slot,snap).then(function(){
-      var m={slot:slot,ts:snap.ts,msgs:(state.messages||[]).length,letters:(state.letters||[]).length,moments:(state.moments||[]).length};
+      var m={slot:slot,ts:snap.ts,msgs:(state.messages||[]).length,cards:(state.cards||[]).length,letters:(state.letters||[]).length,moments:(state.moments||[]).length,globals:Object.keys(globals).length};
       var list=meta.filter(function(x){return x.slot!==slot;});
       list.unshift(m);list=list.slice(0,3);
       return dbSet(BK_META,list).then(function(){return "ok";});
@@ -7629,7 +7672,7 @@ function __bkPaint(){
     box.innerHTML=meta.map(function(m){
       var d=new Date(Number(m.ts)||0),p=function(n){return ("0"+n).slice(-2);};
       var t=(d.getMonth()+1)+"-"+p(d.getDate())+" "+p(d.getHours())+":"+p(d.getMinutes());
-      return '<div class="set-row" style="justify-content:space-between;gap:10px;"><span class="set-label">'+t+'<div class="set-sub">'+(m.msgs||0)+' 条消息 · '+(m.letters||0)+' 封信 · '+(m.moments||0)+' 条动态</div></span><span style="display:flex;gap:6px;flex:none;"><button class="small-btn" data-bk="'+m.slot+'">恢复</button><button class="small-btn ghost" data-bkdel="'+m.slot+'">删除</button></span></div>';
+      return '<div class="set-row" style="justify-content:space-between;gap:10px;"><span class="set-label">'+t+'<div class="set-sub">全局备份 · '+(m.msgs||0)+' 条消息 · '+(m.cards||0)+' 张字卡 · '+(m.letters||0)+' 封信 · '+(m.moments||0)+' 条动态</div></span><span style="display:flex;gap:6px;flex:none;"><button class="small-btn" data-bk="'+m.slot+'">恢复</button><button class="small-btn ghost" data-bkdel="'+m.slot+'">删除</button></span></div>';
     }).join("");
     box.querySelectorAll("[data-bk]").forEach(function(b){
       b.addEventListener("click",async function(){
@@ -7640,7 +7683,10 @@ function __bkPaint(){
           var st=v.state;
           /* 关键：给恢复的这份打上「现在」的时间戳，并同步写回 localStorage。
              否则刷新前页面还会把当前（旧）数据再存一次，时间戳更新，启动时反而用回旧数据 */
-          try{st.__savedAt=Date.now();}catch(_){}
+          var _rstTs=Date.now();
+          try{st.__savedAt=_rstTs;if(st.settings)st.settings.__ts=_rstTs;st.musicRoomTs=_rstTs;}catch(_){}
+          /* 设置/一起听/偏好/头像副本也一起恢复，否则启动时这些旧小键会把备份里的值盖回去 */
+          try{__bkApplyGlobals(v.globals||v.global||{},_rstTs);}catch(_){}
           try{window.__restoring=1;}catch(_){}
           return dbSet("state",st).then(function(){
             try{localStorage.setItem("privateChat",JSON.stringify(st));}catch(_){try{localStorage.removeItem("privateChat");}catch(__){}}
@@ -8686,12 +8732,18 @@ async function init(){
     db=await openDB();
     /* 全量导入如果是先写在 anon 库、刷新后账号库生效：先把旧库整库搬到当前库，再读 state */
     try{await __copyPendingImportDb();}catch(_eCopyDb){}
-    /* 表情库单独备份在 IndexedDB：主存档压缩/写满时，表情图还能从这里整组恢复 */
-    try{var _emojiDbBk=await dbGet("emojiLib");if(_emojiDbBk)window.__emojiLibDb=_emojiDbBk;}catch(_eEmojiDb){}
+    /* 表情库单独备份在 IndexedDB：主存档压缩/写满时，表情图还能从这里整组恢复。
+       但不要在启动时 await 它——表情库可能有几十张图，会拖慢聊天记录读取；放后台读。 */
+    try{dbGet("emojiLib").then(function(b){if(b)window.__emojiLibDb=b;}).catch(function(){});}catch(_eEmojiDb){}
     aboutLoadStatus("正在同步聊天记录…");
     var s=await dbGet("state");
-    /* P0：把写盘时替换出去的大图引用换回真图，之后的 migrate/render 看到的仍是完整 state */
-    try{s=await __hydrateBig(s);}catch(_eH){}
+    /* P0：把写盘时替换出去的大图引用换回真图，之后的 migrate/render 看到的仍是完整 state。
+       本机 localStorage 已经有一份更新的完整档时，先不 hydrate IndexedDB 那份，省掉一次全库换图。 */
+    try{
+      var _ltPre=Number(state&&state.__savedAt)||0,_idbPre=Number(s&&s.__savedAt)||0;
+      var _localHasMsgs=!!(state&&state.messages&&state.messages.length);
+      if(s&&(!_localHasMsgs||_idbPre>=_ltPre))s=await __hydrateBig(s);
+    }catch(_eH){}
     /* P0.5：主存档整个不见了（localStorage 和 IndexedDB 都没有可用记录）时，
        先从自动备份槽救回最近一份，别让「刷新后全部数据消失」直接落成初始示例内容 */
     var _lsSnapNow=null;try{_lsSnapNow=localStorage.getItem("privateChat");}catch(_lsE){_lsSnapNow=null;}
@@ -8782,9 +8834,10 @@ async function init(){
       try{__restoreEmojiLibFromBackup();}catch(_eEmojiLib){}
       try{__backfillEmojiMessageIds();}catch(_eBf){}
       try{__mergeMediaSnapshots(state,s);}catch(_eMergeMedia2){}
-      /* 主库大图被配额清掉时，在第一次完整渲染前先把同 id 的本机副本补回来；
-         补不回来的会在聊天里显示「图片已失效」，不会出现整条空白。 */
-      try{await __recoverBrokenImages();}catch(_eBrokenBig){}
+      /* 主库大图被配额清掉时，先渲染首屏，再在后台按 id 从本机副本补图；
+         不再让整页等全库图片扫描完才出来。 */
+      var _brokenRecoverP=null;
+      try{_brokenRecoverP=__recoverBrokenImages();}catch(_eBrokenBig){}
       try{setTimeout(function(){try{__restoreMePhotoFromBackup();}catch(_){}},0);}catch(_){}
       /* 恢复后写回必须用「引用版」：直接把带 dataURL 的整库写进 IndexedDB/localStorage，
          会把所有图片再复制一份（存储翻倍、还容易配额爆），这里沿用正常保存的 slim 逻辑 */
@@ -8801,6 +8854,14 @@ async function init(){
       }
       try{__backfillEmojiMessageIds();}catch(_eBf2){}
       if(!_sameSnap){renderAll();try{if(typeof renderMe==="function")renderMe();}catch(e){}}
+      try{
+        if(_brokenRecoverP&&_brokenRecoverP.then)_brokenRecoverP.then(function(ch){
+          if(!ch)return;
+          try{if(typeof renderAll==="function")renderAll();}catch(_){}
+          try{if(typeof renderMe==="function")renderMe();}catch(_){}
+          try{if(typeof renderChat==="function"&&document.getElementById("view-chat").classList.contains("open"))renderChat(true);}catch(_){}
+        });
+      }catch(_eBrokenThen){}
       try{updateNewBadge();}catch(e){}
       /* 主库里可能是旧的设置（存盘被跳过/写失败），偏好键里才是用户最后调的值 → 以偏好键为准 */
       try{
@@ -16029,6 +16090,28 @@ $("set-diary-cards").addEventListener("change",e=>{state.settings.diaryCards=Mat
       try{ae.dispatchEvent(new Event("change",{bubbles:true}));}catch(e){}
     }
   };
+})();
+/* 设置一改就落盘：不等退出、不等整页刷新。开关/下拉/输入/滑杆的 change 都走这里，
+   350ms 合并一次，写 state、设置小键和 IndexedDB，再刷新页面也不会回到默认。 */
+(function(){
+  var root=document.getElementById("view-settings");if(!root||root._setPersist)return;root._setPersist=1;
+  var tm=null;
+  function persist(){
+    if(tm)clearTimeout(tm);
+    tm=setTimeout(function(){
+      tm=null;
+      if(window.__restoring||window.__e11CloudPause)return;
+      try{if(typeof save==="function")save();}catch(_){}
+      try{if(window.__settingsBackup)window.__settingsBackup(true);}catch(_){}
+      try{if(typeof __prefSave==="function")__prefSave();}catch(_){}
+      try{if(typeof __flushSave==="function")__flushSave(true);}catch(_){}
+    },350);
+  }
+  root.addEventListener("change",persist,true);
+  root.addEventListener("click",function(e){
+    var t=e.target;if(!t||!t.closest)return;
+    if(t.closest(".switch")||t.closest("#btn-settings-back")||t.closest(".set-tab"))persist();
+  },true);
 })();
 /* 设置页定位：点哪一项就让它留在原位；用户一开始滚动就完全放手，绝不抢滚动 */
 (function(){
