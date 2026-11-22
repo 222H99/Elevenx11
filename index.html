@@ -99,6 +99,8 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
   try{document.documentElement.appendChild(d);}catch(e){}
   window.__bootDark=dark;
   window.__bootDone=function(){
+    var sp=document.getElementById("e11-static-splash");
+    if(sp){try{sp.style.opacity="0";setTimeout(function(){try{sp.remove();}catch(e){}},140);}catch(e){}}
     var v=document.getElementById("boot-veil");if(!v)return;
     v.style.opacity="0";
     setTimeout(function(){try{v.remove();}catch(e){}},140);
@@ -208,7 +210,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-120";
+window.__E11_BUILD="2026-11-23v43-121";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2514,7 +2516,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-120">
+<meta name="app-build" content="2026-11-23v43-121">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3452,6 +3454,11 @@ html.kb-typing #rotate-guard,html.kb-typing body #rotate-guard{display:none!impo
 </style>
 </head>
 <body>
+<!-- v43-121：静态首屏。HTML 一解析到这里就先显示品牌，不再等 2MB 脚本执行完才出画面。 -->
+<div id="e11-static-splash" style="position:fixed;inset:0;z-index:99990;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;transition:opacity .12s ease;"><div style="font:700 20px -apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;color:#111;letter-spacing:.6px;">Eleven×11</div><div id="e11-static-splash-sub" style="font:500 12px -apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;color:#8e8e93;">正在打开…</div></div>
+<script>
+(function(){try{var d=localStorage.getItem("__theme.v1")==="dark";if(!d){try{var ps=JSON.parse(localStorage.getItem("privateChat")||"null");d=!!(ps&&ps.skin&&ps.skin.dark);}catch(_){}}var a=document.getElementById("e11-static-splash"),b=document.getElementById("e11-static-splash-sub");if(a){a.style.background=d?"#000":"#fff";}if(b){b.style.color=d?"rgba(255,255,255,.55)":"#8e8e93";}var t=document.querySelector("#e11-static-splash div");if(t)t.style.color=d?"#fff":"#111";}catch(_){}})();
+</script>
 <script>
 /* v43-72：编辑完卡片/主页后 600ms 内屏蔽主页应用图标，避免收尾那一下误点进音乐、设置等应用 */
 (function(){
@@ -4247,7 +4254,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-120</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-121</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -9109,8 +9116,26 @@ function __e11ExitSave(st,force){
       if(src.skin&&src.skin.themeMode&&src.skin.themeMode!=="manual"&&window.matchMedia)_ed=!!window.matchMedia("(prefers-color-scheme: dark)").matches;
       localStorage.setItem("__theme.v1",_ed?"dark":"light");
     }catch(_eThemeExit){}
-    var core=__e11TextCore(src);
-    try{core.__savedAt=_exitTs;core.__exit=1;}catch(_){}
+    /* v43-121：退出快照只带最近 500 条聊天。
+       旧逻辑会把几百上千条整份深拷贝 + JSON.stringify，退出瞬间主线程被占住，
+       手机端看起来就是“一退出就黑屏”。完整历史仍在 IndexedDB，快照只兜底最后改动。 */
+    var _srcExit=src;
+    try{
+      if(Array.isArray(src.messages)&&src.messages.length>500){
+        _srcExit=Object.assign({},src);
+        _srcExit.messages=src.messages.slice(-500);
+      }
+    }catch(_eSlice){}
+    var core=__e11TextCore(_srcExit);
+    try{
+      core.__savedAt=_exitTs;core.__exit=1;
+      /* v43-121：这份快照就是“退出这一刻”的最终状态，
+         设置/皮肤/资料的更新时间必须一起推到退出时间。
+         否则旧逻辑里主库的 profile.__ts 更大，合并时会把刚改的昵称/签名判成旧数据丢掉。 */
+      ["settings","skin","profile"].forEach(function(k){
+        if(core[k]&&typeof core[k]==="object")core[k].__ts=_exitTs;
+      });
+    }catch(_){}
     var payload={app:"privateChat",exit:1,ts:_exitTs,state:core,globals:__e11ExitGlobals()};
     var txt=JSON.stringify(payload);
     /* 超过 3.2MB 先保留最近 500 条聊天，设置/皮肤/资料/字卡等一个不丢 */
@@ -9632,8 +9657,26 @@ function __emergencySnapshot(){
 window.__emergencySnapshot=__emergencySnapshot;
 /* v43-73：编辑完立刻落盘。卡片/资料/一起听名字这类“改一下就该记住”的数据，
    不再等 350ms 防抖、也不等退出/刷新，避免更新或退出时被旧档盖回默认。 */
+/* v43-121：资料卡/字卡改完立刻同步写一份小配置快照。
+   IndexedDB 和 pagehide 都可能被系统直接掐掉；localStorage 是同步的，
+   只要用户点了“保存”，关页后下次一定还能把刚改的昵称/签名/字卡拿回来。 */
+window.__e11SyncCfgSnapshot=function(){
+  try{
+    if(window.__restoring)return;
+    var cfg={ts:Date.now()};
+    if(state.profile)cfg.profile=state.profile;
+    if(state.settings)cfg.settings=state.settings;
+    if(state.skin)cfg.skin=state.skin;
+    if(Array.isArray(state.cards)){
+      /* 字卡只存最近 400 张，避免一编辑就同步写几 MB 卡主线程 */
+      cfg.cards=state.cards.slice(-400);
+    }
+    localStorage.setItem("e11.cfgBak.v1",JSON.stringify(cfg));
+  }catch(_eCfgSnap){}
+};
 window.__e11PersistNow=function(){
   if(window.__restoring||window.__e11CloudPause)return;
+  try{if(window.__e11SyncCfgSnapshot)window.__e11SyncCfgSnapshot();}catch(_eCfg0){}
   try{if(typeof save==="function")save();}catch(_){}
   try{if(window.__settingsBackup)window.__settingsBackup(true);}catch(_){}
   try{if(typeof __prefSave==="function")__prefSave();}catch(_){}
@@ -10284,6 +10327,44 @@ async function init(){
         try{window.__e11ExitUsed=1;window.__e11ExitMergeCount=(window.__e11ExitMergeCount||0)+1;}catch(_eExFlag){}
       }
     }catch(_eExitMerge){}
+    /* v43-121：把“点保存时同步写下的配置快照”补回主档。
+       注意此时真正会被采用的是变量 s（IndexedDB 档），所以要同时落到 s 和 state；
+       只改 state 会在后面 state=migrate(s) 时又被旧资料盖回去。
+       只按各自时间戳更新，旧快照不能盖掉更新的云端/主库资料。 */
+    try{
+      var _cfgBak=JSON.parse(localStorage.getItem("e11.cfgBak.v1")||"null");
+      if(_cfgBak&&_cfgBak.ts){
+        var __applyCfgBak=function(root){
+          if(!root||typeof root!=="object")return;
+          var ch=false;
+          ["profile","settings","skin"].forEach(function(k){
+            var b=_cfgBak[k],c=root[k];
+            if(!b||typeof b!=="object")return;
+            var bt=Number(b.__ts)||Number(_cfgBak.ts)||0,ct=Number(c&&c.__ts)||0;
+            if(!c||bt>ct+300){root[k]=b;ch=true;}
+          });
+          if(Array.isArray(_cfgBak.cards)&&_cfgBak.cards.length){
+            var by={};(Array.isArray(root.cards)?root.cards:[]).forEach(function(x){if(x&&x.id)by[x.id]=x;});
+            _cfgBak.cards.forEach(function(x){
+              if(!x||!x.id)return;
+              var old=by[x.id];
+              if(!old){root.cards=root.cards||[];root.cards.push(x);by[x.id]=x;ch=true;return;}
+              var nt=Number(x.__ts)||Number(_cfgBak.ts)||0,ot=Number(old.__ts)||0;
+              if(nt>ot+300){
+                if(x.text!==undefined)old.text=x.text;
+                if(x.title!==undefined)old.title=x.title;
+                if(x.group!==undefined)old.group=x.group;
+                if(x.__ts!==undefined)old.__ts=x.__ts;
+                ch=true;
+              }
+            });
+          }
+          return ch;
+        };
+        var _ch1=__applyCfgBak(state),_ch2=(s&&s!==state)?__applyCfgBak(s):false;
+        if(_ch1||_ch2){try{window.__profileSaveSig=JSON.stringify((s&&s.profile)||state.profile||{});}catch(_eCfgSig){}}
+      }
+    }catch(_eCfgBakErr){}
     /* P0.5：主存档整个不见了（localStorage 和 IndexedDB 都没有可用记录）时，
        先从自动备份槽救回最近一份，别让「刷新后全部数据消失」直接落成初始示例内容 */
     var _lsSnapNow=null;try{_lsSnapNow=localStorage.getItem("privateChat");}catch(_lsE){_lsSnapNow=null;}
@@ -18309,6 +18390,7 @@ $("sw-dark").addEventListener("click",e=>{
      以前只等 save()+80ms 延后写库，切完马上退出/被系统杀进程时来不及落盘，
      下次进来又先亮一下。 */
   try{localStorage.setItem("__theme.v1",now?"dark":"light");localStorage.setItem("e11.theme.ts",String(Date.now()));}catch(_eDarkLs){}
+  try{window.__e11SyncCfgSnapshot&&window.__e11SyncCfgSnapshot();}catch(_eDarkCfg){}
   try{e.target.classList.toggle("on",now);}catch(_){}
   try{if($("sw-theme-auto"))$("sw-theme-auto").classList.remove("on");}catch(_){}
   try{applySkin();}catch(_){}
@@ -18325,6 +18407,7 @@ if($("sw-theme-auto"))$("sw-theme-auto").addEventListener("click",e=>{
   state.skin.__ts=Date.now();
   window.__bootDark=!!state.skin.dark;window.__themeReady=1;
   try{localStorage.setItem("__theme.v1",state.skin.dark?"dark":"light");localStorage.setItem("e11.theme.ts",String(Date.now()));}catch(_eAutoLs){}
+  try{window.__e11SyncCfgSnapshot&&window.__e11SyncCfgSnapshot();}catch(_eAutoCfg){}
   try{e.target.classList.toggle("on",state.skin.themeMode!=="manual");}catch(_){}
   try{applySkin();}catch(_){}
   save();try{requestAnimationFrame(function(){setTimeout(function(){try{__flushSave(true);}catch(_eAutoFlush){}},80);});}catch(_eAutoFlush0){}
