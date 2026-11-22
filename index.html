@@ -191,7 +191,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-22v43-75";
+window.__E11_BUILD="2026-11-22v43-76";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2488,7 +2488,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-22v43-75">
+<meta name="app-build" content="2026-11-22v43-76">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4210,7 +4210,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-75</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-76</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -6499,6 +6499,22 @@ setTimeout(function(){
       if(act.mode==="login"){
         var owner=null;try{owner=localStorage.getItem(LS_OWNER);}catch(e){}
         var acct=accountOf(session.user);
+        /* v43-76：同一账号在这台设备上已有本机存档时，登录后也先回到上次退出的数据，
+           不拿云端旧档自动覆盖。要恢复云端请点设置里的「从云端恢复」。 */
+        var _localNow=window.__e11StateGet?window.__e11StateGet():null;
+        var _localHasAny=!!(_localNow&&(
+          (Array.isArray(_localNow.messages)&&_localNow.messages.length)||
+          (Array.isArray(_localNow.cards)&&_localNow.cards.length)||
+          (Array.isArray(_localNow.moments)&&_localNow.moments.length)
+        ));
+        if(owner&&owner===session.user.id&&_localHasAny){
+          try{setAction(null);}catch(_eSameAct){}
+          window.__e11CloudHold=0;window.__e11CloudStatus="本机存档";
+          try{chipSync();}catch(_){}
+          try{__enterAfterAction();}catch(_eSameEnter){}
+          try{cloudSchedule();}catch(_eSameSched){}
+          return true;
+        }
         return cloudGet().then(function(cloud){
           var local=window.__e11StateGet?window.__e11StateGet():null;
           var localTs=Number(local&&local.__savedAt)||0;
@@ -6605,14 +6621,12 @@ setTimeout(function(){
       window.__e11CloudStatus="";
       try{chipSync();}catch(_){}
       _enterLocal();
-      pullCloudIfNewer().then(function(r){
-        window.__e11CloudHold=0;
-        if(r===1)return; /* 云端更完整：已经原地合并并渲染，不刷新 */
-        window.__e11CloudStatus=(window.__e11NoCloud?"本地模式":(r===0?"已同步":"本地模式 · 未同步"));
-        try{chipSync();}catch(_){}
-        if(r===0){try{cloudSchedule();}catch(_eSched){}}
-        if(r<0){try{toast("云端未连接，已使用本地记录");}catch(_eToast){}}
-      });
+      /* v43-76：和旧版 v43-11 一样，正常重新进入只读本机上次退出时写下的存档。
+         云端只在登录/切换账号，或用户主动点「从云端恢复」时才读取；不在启动时自动拉取覆盖。 */
+      window.__e11CloudHold=0;
+      window.__e11CloudStatus=window.__e11NoCloud?"本地模式":"本机存档";
+      try{chipSync();}catch(_){}
+      try{cloudSchedule();}catch(_eBootSched){}
     }).catch(function(e){
       try{
         if(e&&(e.status===401||e.status===403)){
