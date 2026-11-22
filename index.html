@@ -208,7 +208,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-22v43-115";
+window.__E11_BUILD="2026-11-22v43-116";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2196,6 +2196,7 @@ body.vrec-on .bottombar{opacity:0;pointer-events:none;}
 .voice-bubble.playing .vb-bar:nth-child(3n){animation-delay:.3s}
 @keyframes __vbWave{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.9)}}
 .vb-dur{font-size:12px;opacity:.62;}
+.voice-stt{margin-top:5px;max-width:238px;font-size:12px;line-height:1.45;opacity:.68;word-break:break-word;}
 
 /* ================= 日记本 ================= */
 #diary-view{position:fixed;inset:0;z-index:120;display:none;flex-direction:column;
@@ -2513,7 +2514,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-22v43-115">
+<meta name="app-build" content="2026-11-22v43-116">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4206,17 +4207,24 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">对方可以发语音<div class="set-sub">关闭后对方只发文字；语音点击时才走云端合成，不把音频塞进云存档</div></span><button class="switch on" id="sw-partner-voice"></button></div>
         <div class="set-row"><span class="set-label">发语音概率（%）</span><input class="set-input" id="set-voice-prob" type="number" min="0" max="100" value="12"></div>
         <div class="set-row"><span class="set-label">语音服务<div class="set-sub">OpenAI 兼容 /audio/speech，或 MiniMax t2a_v2；选 MiniMax 后填下面几项</div></span><select class="sel" id="set-tts-provider" style="max-width:150px;"><option value="openai">OpenAI 兼容</option><option value="minimax">MiniMax</option></select></div>
+        <div class="set-row"><span class="set-label">MiniMax 区域<div class="set-sub">海外版填 api.minimax.io；自动会先试国内，失败再试海外</div></span><select class="sel" id="set-mm-region" style="max-width:150px;"><option value="auto">自动</option><option value="overseas">海外版</option><option value="cn">国内版</option></select></div>
         <div class="set-row"><span class="set-label">MiniMax API Key<div class="set-sub">MiniMax 专用密钥，只存本机；不填就沿用上面的 API Key</div></span><input class="set-input" id="set-mm-key" type="password" placeholder="eyJhbGciOiJ..." autocomplete="off" spellcheck="false" style="width:52%;min-width:140px;font-size:13px;text-align:left;"></div>
-        <div class="set-row"><span class="set-label">Group ID<div class="set-sub">MiniMax 控制台里的 Group ID，选 MiniMax 时必填</div></span><input class="set-input" id="set-mm-group" type="text" placeholder="填入控制台的 Group ID" autocomplete="off" spellcheck="false" style="width:52%;min-width:140px;font-size:13px;text-align:left;"></div>
+        <div class="set-row"><span class="set-label">Group ID<div class="set-sub">MiniMax 控制台里的 Group ID；海外版也用国际站控制台的 Group ID</div></span><input class="set-input" id="set-mm-group" type="text" placeholder="填入控制台的 Group ID" autocomplete="off" spellcheck="false" style="width:52%;min-width:140px;font-size:13px;text-align:left;"></div>
         <div class="set-row"><span class="set-label">模型<div class="set-sub">MiniMax 用 speech-02-turbo；OpenAI 填 tts-1</div></span><input class="set-input" id="set-tts-model" type="text" placeholder="speech-02-turbo" autocomplete="off" style="width:52%;min-width:140px;font-size:13px;text-align:left;"></div>
-        <div class="set-row"><span class="set-label">Voice ID<div class="set-sub">留空按性别自动选；填 MiniMax 控制台里的 Voice ID</div></span><input class="set-input" id="set-tts-voice" type="text" placeholder="粘贴你的 Voice ID" autocomplete="off" style="width:52%;min-width:140px;font-size:13px;text-align:left;"></div>
+        <div class="set-row"><span class="set-label">Voice ID<div class="set-sub">留空按性别自动选；克隆音色直接粘贴 Voice ID（大小写、连字符原样保留）</div></span><input class="set-input" id="set-tts-voice" type="text" placeholder="粘贴你的 Voice ID" autocomplete="off" style="width:52%;min-width:140px;font-size:13px;text-align:left;"></div>
         <div class="set-row"><span class="set-label">语音语言<div class="set-sub">MiniMax 朗读语言；选择后会作为 MiniMax 朗读语言，中文字幕保持不变</div></span><select class="sel" id="set-voice-lang" style="max-width:130px;"><option value="原文">原文</option><option value="日语">日语</option><option value="英语">英语</option><option value="韩语">韩语</option><option value="德语">德语</option></select></div>
         <div class="set-row"><span class="set-label">语速<span class="set-sub" id="voice-speed-val" style="display:inline;margin-left:6px;">1.00×</span></span><div class="snd-vol"><input id="set-voice-speed" type="range" min="0.5" max="2" step="0.05" value="1"><span class="snd-vol-val" id="voice-speed-txt">1.00×</span></div></div>
         <div class="set-row"><span class="set-label">角色性别<div class="set-sub">Voice ID 留空时按这个选默认音色</div></span><select class="sel" id="set-voice-gender" style="max-width:100px;"><option value="男">男</option><option value="女">女</option></select></div>
-        <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;"><span class="set-label">说话风格<div class="set-sub">50 字以内，选填；不再提供预设音色</div></span><input class="set-input" id="set-voice-style" type="text" maxlength="50" placeholder="例如：温柔、语速稍慢" autocomplete="off" style="width:100%;font-size:13px;text-align:left;"></div>
+        <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;"><span class="set-label">说话风格<div class="set-sub">50 字以内，选填；开心/温柔/难过/生气等词会映射成情绪</div></span><input class="set-input" id="set-voice-style" type="text" maxlength="50" placeholder="例如：温柔、语速稍慢" autocomplete="off" style="width:100%;font-size:13px;text-align:left;"></div>
         <div class="set-row"><span class="set-label">云端语音合成 TTS<div class="set-sub">语音点播放时才合成，不把音频塞进云存档</div></span><button class="switch on" id="sw-cloud-voice"></button></div>
-        <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;"><span class="set-label">语音接口地址<div class="set-sub">OpenAI 兼容才用；MiniMax 留空自动走 api.minimax.chat</div></span><input class="set-input" id="set-tts-base" type="url" inputmode="url" placeholder="可选" autocomplete="off" spellcheck="false" style="width:100%;font-size:13px;text-align:left;"></div>
+        <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;"><span class="set-label">语音接口地址<div class="set-sub">OpenAI 兼容才用；MiniMax 留空按上面的区域自动选择，不要手动填 api.minimax.chat</div></span><input class="set-input" id="set-tts-base" type="url" inputmode="url" placeholder="可选" autocomplete="off" spellcheck="false" style="width:100%;font-size:13px;text-align:left;"></div>
         <div class="set-row"><button class="small-btn" id="btn-tts-test" style="font-size:12px;padding:6px 12px;">试听当前语音</button><span class="set-sub" id="tts-test-sub" style="margin-left:10px;flex:1;">未测试</span></div>
+      </div>
+      <div class="set-sec-title">语音转文字（听写）</div>
+      <div class="set-group">
+        <div class="set-row"><span class="set-label">听写语言<div class="set-sub">用手机/浏览器的系统语音识别，边说边转成文字；录音不会上传</div></span><select class="sel" id="set-stt-lang" style="max-width:130px;"><option value="zh-CN">中文</option><option value="zh-HK">粤语</option><option value="en-US">English</option><option value="ja-JP">日本語</option><option value="ko-KR">한국어</option></select></div>
+        <div class="set-row"><span class="set-label">录音时自动转文字<div class="set-sub">录语音时顺带识别，语音条下面显示文字；失败不影响录音</div></span><button class="switch on" id="sw-voice-stt"></button></div>
+        <div class="set-row"><span class="set-label">开始听写<div class="set-sub">也可以回聊天页点「+ → 语音转文字」</div></span><button class="small-btn ghost" id="btn-stt-start" style="font-size:12px;padding:6px 12px;">开始</button></div>
       </div>
       <!-- 免打扰 -->
       <div class="set-sec-title">免打扰</div>
@@ -4236,7 +4244,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-115</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-116</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -4866,6 +4874,7 @@ setTimeout(function(){
         <button class="plus-item" id="plus-poke"><span class="pi-ic"><svg class="icon"><use xlink:href="#i-tap"/></svg></span><span class="pi-lab">拍一拍</span></button>
         <button class="plus-item" id="plus-active"><span class="pi-ic"><svg class="icon"><use xlink:href="#i-dots"/></svg></span><span class="pi-lab">主动来消息</span></button>
         <button class="plus-item" id="plus-search"><span class="pi-ic"><svg class="icon"><use xlink:href="#i-search"/></svg></span><span class="pi-lab">搜索</span></button>
+        <button class="plus-item" id="plus-stt"><span class="pi-ic"><svg class="icon"><use xlink:href="#i-mic"/></svg></span><span class="pi-lab">语音转文字</span></button>
         <button class="plus-item" id="plus-image"><span class="pi-ic"><svg class="icon"><use xlink:href="#i-image"/></svg></span><span class="pi-lab">发图片</span></button>
         <button class="plus-item" id="plus-survey"><span class="pi-ic"><svg class="icon"><use xlink:href="#i-survey"/></svg></span><span class="pi-lab">问卷</span></button>
         <button class="plus-item" id="plus-redpacket"><span class="pi-ic"><svg class="icon"><use xlink:href="#i-redpacket"/></svg><span class="ndot hidden"></span></span><span class="pi-lab">红包</span></button>
@@ -7499,8 +7508,13 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-22",
   noticeKey:null,
-  lead:"v43-110：恢复备份后消息必显示；坏字段/坏CSS自动修；退出云端不再像丢数据；进出黑屏兜底。",
+  lead:"v43-116：MiniMax 海外版和克隆 Voice ID 可用；语音转文字；夜间模式即时保存；全量导入导出验证通过。",
   items:[
+    "MiniMax 语音新增「海外版 / 国内版 / 自动」区域；默认走海外 api.minimax.io，克隆 Voice ID 原样传给 voice_id，不再被当成默认音色。",
+    "语音转文字：聊天「+ → 语音转文字」边说边转，录语音时也会自动在语音条下面显示转录；支持中文/粤语/English/日本語/한국어。",
+    "夜间/浅色切换当场写盘并打新时间戳，切完马上退出再打开仍然是上次的配色。",
+    "全量导入导出验证：备份包会带上聊天、设置、字卡、表情、图片库和全部本机键；导入后不再被旧离站快照顶回旧数据。",
+    "所有聊天、设置、语音配置、听写语言都会自动保存，下次打开保持离开前的数据。",
     "顺序固定为：声明页 → 本地密码 → 云端登录；未输本地密码前，云端登录卡不会先盖上来。",
     "第一次在这台设备输对密码后记住；之后打开只显示声明页，不再反复要密码。一键重置或清除站点数据后重新输。",
     "发消息后最多 1.2 秒写入 IndexedDB，马上关闭网页/切后台也不会丢；重开聊天能看到最后一条。",
@@ -7883,7 +7897,7 @@ function defaultState(){
     version:2,
     me:{name:"我",avatar:avatarSvg("#A5A5B0"),photos:[]},
     partner:{name:"对方",avatar:avatarSvg("#5AC8FA")},
-    settings:{showChatAvatar:true,dndOn:false,dndStart:"23:00",dndEnd:"07:00",autoReply:true,partnerQuote:true,readReceipt:true,replyProb:100,emojiProb:20,replyTimes:1,maxDelaySec:12,minDelaySec:2,socialMinSec:60,socialMaxSec:300,replyGroupId:null,socialProbLetter:15,socialProbNote:15,socialProbMoments:15,socialProbCall:5,socialProbPat:5,socialProbRedpacket:10,socialProbSurvey:15,callMissProb:5,surveyMinSec:2,surveyMaxSec:60,replyLetterProb:60,replyLetterMinSec:60,replyLetterMaxSec:3600,letterMinSec:60,letterMaxSec:300,drawDeclineProb:40,drawInviteProb:15,socialProbMusic:15,socialProbSongPush:3,musicDeclineProb:30,socialMsgMin:1,socialMsgMax:5,momentsMinMin:1,momentsMinMax:5,noteMinMin:1,noteMaxMin:5,activeNoteCountMin:1,activeNoteCountMax:3,activeLetterCountMin:1,activeLetterCountMax:3,activeMomentsCountMin:1,activeMomentsCountMax:3,socialProbMomentComment:15,commentCardMin:1,commentCardMax:2,commentNMin:1,commentNMax:3,commentMinMin:1,commentMaxMin:5,socialProbReplyComment:80,replyCommentCardMin:1,replyCommentCardMax:2,replyCommentNMin:1,replyCommentNMax:1,replyCommentMinMin:1,replyCommentMaxMin:5,noteBurstMin:1,noteBurstMax:1,momentBurstMin:1,momentBurstMax:1,letterBurstMin:1,letterBurstMax:1,replyNoteCardMin:8,replyNoteCardMax:15,replyNoteNMin:1,replyNoteNMax:1,keepAlive:false,entryPwd:"p1:1jdgfyk-1312ccg",unlocked:false,gbPrompt:"你说 我在听",catchMomentsPerHour:3,catchCommentPerHour:3,catchNotePerHour:3,commentPickMin:2,commentPickMax:3,commentPerPostMax:3,letterCatchMax:5,emojiSteal:true,emojiStealProb:5,musicMode:"order",sealX:0},
+    settings:{showChatAvatar:true,dndOn:false,dndStart:"23:00",dndEnd:"07:00",autoReply:true,partnerQuote:true,readReceipt:true,replyProb:100,emojiProb:20,replyTimes:1,maxDelaySec:12,minDelaySec:2,socialMinSec:60,socialMaxSec:300,replyGroupId:null,socialProbLetter:15,socialProbNote:15,socialProbMoments:15,socialProbCall:5,socialProbPat:5,socialProbRedpacket:10,socialProbSurvey:15,callMissProb:5,surveyMinSec:2,surveyMaxSec:60,replyLetterProb:60,replyLetterMinSec:60,replyLetterMaxSec:3600,letterMinSec:60,letterMaxSec:300,drawDeclineProb:40,drawInviteProb:15,socialProbMusic:15,socialProbSongPush:3,musicDeclineProb:30,socialMsgMin:1,socialMsgMax:5,momentsMinMin:1,momentsMinMax:5,noteMinMin:1,noteMaxMin:5,activeNoteCountMin:1,activeNoteCountMax:3,activeLetterCountMin:1,activeLetterCountMax:3,activeMomentsCountMin:1,activeMomentsCountMax:3,socialProbMomentComment:15,commentCardMin:1,commentCardMax:2,commentNMin:1,commentNMax:3,commentMinMin:1,commentMaxMin:5,socialProbReplyComment:80,replyCommentCardMin:1,replyCommentCardMax:2,replyCommentNMin:1,replyCommentNMax:1,replyCommentMinMin:1,replyCommentMaxMin:5,noteBurstMin:1,noteBurstMax:1,momentBurstMin:1,momentBurstMax:1,letterBurstMin:1,letterBurstMax:1,replyNoteCardMin:8,replyNoteCardMax:15,replyNoteNMin:1,replyNoteNMax:1,keepAlive:false,entryPwd:"p1:1jdgfyk-1312ccg",unlocked:false,gbPrompt:"你说 我在听",catchMomentsPerHour:3,catchCommentPerHour:3,catchNotePerHour:3,commentPickMin:2,commentPickMax:3,commentPerPostMax:3,letterCatchMax:5,emojiSteal:true,emojiStealProb:5,musicMode:"order",sealX:0,sttLang:"zh-CN",voiceStt:true},
     profile:{bio:"",cover:"",handle:"kkcyunhy",followers:6329,following:17,mpName:"wxhggxhwm",partnerMpName:"jsndxhyyx",partnerHandle:"",partnerFollowers:0,partnerFollowing:0,partnerBio:"",partnerCover:"",mpDist:0,mpDur:"5小时20分钟",mpAv1:"",mpAv2:"",region:""},
     skin:{accent:"#3478F6",bg:"#ffffff",mybubble:"#3478F6",partbubble:"#E9E9EB",topbar:"#ffffff",bottombar:"#ffffff",themeMode:"manual",dark:false,bgImage:"",bubbleStyle:"classic",customBubbleCSS:"",myTextColor:"",partTextColor:"",mybubbleDark:"",partbubbleDark:"",gbBg:0,gbImage:"",ltBg:0,ltImage:"",momBg:0,momImage:"",gameBg:0,gameImage:"",meBg:0,meImage:"",meTopBg:0,meTopImage:""},
     groups:[g],
@@ -11675,7 +11689,9 @@ function __msgRowRaw(m){
     }    if(m.type==="voice"){
       const _d=Math.max(1,Math.round(Number(m.dur)||1));
       const _bars=Array.from({length:Math.min(24,Math.max(7,Math.round(_d*2.2)))}).map(function(_,i){return '<span class="vb-bar" style="height:'+(5+Math.round(Math.abs(Math.sin(i*1.7))*9))+'px"></span>';}).join("");
-      html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="async" src="'+__blobUrl(av)+'" alt=""><div class="msg-col"><div class="bubble voice-bubble" data-voice="'+m.id+'"><span class="vb-tri"></span><span class="vb-wave">'+_bars+'</span><span class="vb-dur">'+_d+'"</span></div>'+meta+'</div></div>';
+      var _vstt=String(m.sttText||m.ttsText||"").trim();
+      if(state.settings&&state.settings.voiceStt===false)_vstt="";
+      html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="async" src="'+__blobUrl(av)+'" alt=""><div class="msg-col"><div class="bubble voice-bubble" data-voice="'+m.id+'"><span class="vb-tri"></span><span class="vb-wave">'+_bars+'</span><span class="vb-dur">'+_d+'"</span></div>'+(_vstt?'<div class="voice-stt">'+esc(_vstt)+'</div>':'')+meta+'</div></div>';
       return html;
     }
     html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="async" src="'+__blobUrl(av)+'" alt=""><div class="msg-col"><div class="bubble">'+quoteBlock(m)+body+'</div>'+meta+'</div></div>';
@@ -13374,7 +13390,7 @@ function pushMsg(from,type,text,opts){
   /* 新消息必须排在所有已存在消息之后，否则恢复备份里有时钟超前的旧消息时，
      新发/新收的消息会被排到它前面，聊天页看起来就是“新消息怎么都看不到”。 */
   if(_msgTime<_maxPrevT)_msgTime=_maxPrevT;
-  const m={id:id,from:from,type:type,text:text,src:opts.src||"",w:Number(opts.w)||0,h:Number(opts.h)||0,dur:opts.dur||0,sched:!!opts.sched,time:_msgTime,quoteId:opts.quoteId||null,kind:opts.kind||"",active:!!opts.active,catchup:!!opts.catchup,read:from!=="me",recalled:false,momentId:opts.momentId||"",commentId:opts.commentId||"",ttsText:opts.ttsText||"",voice:opts.voice||""};
+  const m={id:id,from:from,type:type,text:text,src:opts.src||"",w:Number(opts.w)||0,h:Number(opts.h)||0,dur:opts.dur||0,sched:!!opts.sched,time:_msgTime,quoteId:opts.quoteId||null,kind:opts.kind||"",active:!!opts.active,catchup:!!opts.catchup,read:from!=="me",recalled:false,momentId:opts.momentId||"",commentId:opts.commentId||"",ttsText:opts.ttsText||"",sttText:opts.sttText||"",voice:opts.voice||""};
   state.messages.push(m);
   try{
     if(from==="me"&&(type==="text"||type==="image")&&!opts.catchup&&!opts.quiet&&!opts.sched){
@@ -17899,7 +17915,7 @@ $("sw-active-tag").addEventListener("click",e=>{state.settings.showActiveTag=(st
 })();
 $("sw-dark").addEventListener("click",e=>{
   var now=!__effectiveDark();
-  state.skin.themeMode="manual";state.skin.dark=now;
+  state.skin.themeMode="manual";state.skin.dark=now;state.skin.__ts=Date.now();
   /* v43-99：先把最终主题标记和首帧底色一起定死，再 applySkin。
      否则 __themeReady 为空时 __effectiveDark 会退回首帧 __bootDark，
      开关变成“点亮了但页面不变黑”。 */
@@ -17907,18 +17923,20 @@ $("sw-dark").addEventListener("click",e=>{
   try{e.target.classList.toggle("on",now);}catch(_){}
   try{if($("sw-theme-auto"))$("sw-theme-auto").classList.remove("on");}catch(_){}
   try{applySkin();}catch(_){}
-  save(); /* 设置开关只走合并写盘；不再每次同步整库落盘，避免点一下卡半秒 */
-  toast(now?"已切到夜间配色":"已切到浅色配色");
+  save();
+  try{__flushSave(true);}catch(_eDarkFlush){}
+  toast(now?"已切到夜间配色，已自动保存":"已切到浅色配色，已自动保存");
 });
 if($("sw-theme-auto"))$("sw-theme-auto").addEventListener("click",e=>{
   state.skin.themeMode=(state.skin.themeMode==="manual")?"auto":"manual";
   if(state.skin.themeMode==="manual")state.skin.dark=__effectiveDark();
   else{try{state.skin.dark=!!(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches);}catch(_eAuto2){}}
+  state.skin.__ts=Date.now();
   window.__bootDark=!!state.skin.dark;window.__themeReady=1;
   try{e.target.classList.toggle("on",state.skin.themeMode!=="manual");}catch(_){}
   try{applySkin();}catch(_){}
-  save();
-  toast(state.skin.themeMode==="auto"?"配色已跟随系统":"配色改为手动控制");
+  save();try{__flushSave(true);}catch(_eAutoFlush){}
+  toast(state.skin.themeMode==="auto"?"配色已跟随系统，已保存":"配色改为手动控制，已保存");
 });
 /* 系统深浅色切换时，跟随模式下立刻重算一遍配色 */
 (function(){
@@ -17927,8 +17945,9 @@ if($("sw-theme-auto"))$("sw-theme-auto").addEventListener("click",e=>{
     var h=function(){
       try{
         if((state.skin.themeMode||"manual")!=="manual"){
-          state.skin.dark=!!mq.matches;
+          state.skin.dark=!!mq.matches;state.skin.__ts=Date.now();
           applySkin();
+          if(window.__themeReady){try{save();}catch(_eMqS){}}
           if($("sw-dark"))$("sw-dark").classList.toggle("on",__effectiveDark());
         }
       }catch(e){}
@@ -19895,6 +19914,7 @@ $("plus-music").addEventListener("click",()=>{closePlus();__plusMark();if($("vie
   }
   musicInviteShown=false;pendingMusicInvId=null;musicInviteShown=true;musicInviteOpen("me","music");
 });
+$("plus-stt")&&$("plus-stt").addEventListener("click",()=>{closePlus();setTimeout(function(){try{window.__e11StartDictation&&window.__e11StartDictation();}catch(_){}},90);});
 $("plus-image").addEventListener("click",()=>{closePlus();window.__nativePick("file-chat-img");});
 /* 加号里"主动来消息"：点击只主动发消息（不触发来信/留言/动态） */
 function manualActiveMsg(){
@@ -29392,6 +29412,39 @@ try{
   /* ---------- 语音条：长按录音（iMessage 录音态：松手发语音 / 左右两键） ---------- */
 (function(){
   var rec={rec:null,stream:null,chunks:[],t0:0,timer:0,active:false,mode:"send"};
+  /* 录语音时并行跑系统听写：转录文字挂在语音条下面，不上传音频。
+     识别失败/没权限只静默放弃，绝不影响录音本身。 */
+  var recStt={r:null,txt:"",want:false,gen:0};
+  function recSttLang(){try{return (state.settings&&state.settings.sttLang)||"zh-CN";}catch(_){return "zh-CN";}}
+  function recSttStart(){
+    try{
+      if(!state.settings||state.settings.voiceStt===false)return;
+      var SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return;
+      recSttStop();
+      var my=(recStt.gen||0)+1;recStt.gen=my;recStt.txt="";recStt.want=true;
+      var r=new SR();recStt.r=r;
+      r.lang=recSttLang();r.continuous=true;r.interimResults=true;r.maxAlternatives=1;
+      function collect(ev){
+        if(my!==recStt.gen)return;
+        try{
+          var all="";
+          for(var i=0;i<ev.results.length;i++){var rr=ev.results[i];all+=(rr[0]&&rr[0].transcript)||"";}
+          recStt.txt=all.replace(/\s+/g," ").trim();
+        }catch(_){}
+      }
+      r.onresult=collect;
+      r.onerror=function(){recStt.want=false;};
+      r.onend=function(){if(recStt.want&&rec.active&&recStt.r===r){try{r.start();}catch(_){}}};
+      try{r.start();}catch(_){recStt.want=false;}
+    }catch(_){}
+  }
+  function recSttStop(){
+    recStt.want=false;recStt.gen=(recStt.gen||0)+1;
+    try{if(recStt.r)recStt.r.stop();}catch(_){}
+    recStt.r=null;
+    var t=String(recStt.txt||"").replace(/\s+/g," ").trim();
+    recStt.txt="";return t;
+  }
 
   function els(){
     return {
@@ -29508,12 +29561,12 @@ try{
     }catch(e){}
     return "";
   }
-  function sendVoiceBlob(blob,ms){
+  function sendVoiceBlob(blob,ms,stt){
     if(!blob||blob.size<900){toast("太短了，按住多说一会儿");return;}
     var fr=new FileReader();
     fr.onerror=function(){toast("语音保存失败，再试一次");};
     fr.onload=function(){
-      var _vmid=pushMsg("me","voice","",{src:fr.result,dur:Math.max(1,Math.round(ms/1000))});
+      var _vmid=pushMsg("me","voice","",{src:fr.result,dur:Math.max(1,Math.round(ms/1000)),sttText:String(stt||"").trim()});
       save();
       var _vok=false;try{_vok=__appendChatMsg(_vmid);}catch(e){}
       if(!_vok){try{renderChat();}catch(e){}}
@@ -29561,6 +29614,8 @@ try{
       if(my!==rec.gen||!rec.active){try{stream.getTracks().forEach(function(t){t.stop();});}catch(e){}return;}
       rec.stream=stream;rec.streamReady=true;rec.audioStart=Date.now();
       try{var _vh2=document.getElementById("vrec-hint");if(_vh2)_vh2.textContent=rec.tapMode?"点一下结束并发送":"松手 发语音";}catch(_){}
+      /* 麦克风拿到后再起识别，避免两个权限弹窗同时抢焦点 */
+      try{setTimeout(function(){if(rec.active&&my===rec.gen)recSttStart();},160);}catch(_){}
       /* ① 原生编码 + 同时抓 PCM：MediaRecorder 负责可靠采集，PCM 负责兜底转 WAV */
       try{__startPcmCapture(stream,ctx);}catch(e){}
       var mime=pickRecMime();
@@ -29591,6 +29646,7 @@ try{
   function endRec(){
     try{clearInterval(rec.timer);}catch(e){}
     var wasActive=rec.active, ms=Date.now()-(rec.audioStart||rec.t0||Date.now()), mode=rec.mode;
+    var _recSttText=recSttStop();
     rec.active=false;rec.gen=(rec.gen||0)+1;
     try{rec.tapMode=false;}catch(_){}
     showRec(false);
@@ -29612,9 +29668,9 @@ try{
         /* v43-41：只有 PCM 真的收到声音才用它。部分机型同时开 WebAudio/MediaRecorder 时，
            PCM 可能全是零，这时必须退回 MediaRecorder 的原始包转码，不能拿静音 WAV 覆盖。 */
         if(_pcm.length&&_peak>0.0012){try{_wav=wavEncode(_pcm,rec.rate||44100,8000);}catch(e){_wav=null;}}
-        if(_wav){sendVoiceBlob(_wav,ms);return;}
+        if(_wav){sendVoiceBlob(_wav,ms,_recSttText);return;}
         if(!blob||blob.size<900){toast("没录到声音，检查麦克风权限或麦克风是否被挡住");return;}
-        __voiceToWav(blob,8000).then(function(w){sendVoiceBlob(w,ms);}).catch(function(){sendVoiceBlob(blob,ms);});
+        __voiceToWav(blob,8000).then(function(w){sendVoiceBlob(w,ms,_recSttText);}).catch(function(){sendVoiceBlob(blob,ms,_recSttText);});
       };
       try{mr.stop();}catch(e){try{mr.onstop();}catch(_e){}}
       return;
@@ -29845,6 +29901,83 @@ try{
     /* 长按开始录音时让输入框失焦，顺手把 iOS 长按文字出现的放大镜收掉；轻点/打字不受影响 */
     window.__dndBlurInput=function(){try{var i=document.getElementById("msg-input");if(i&&document.activeElement===i)i.blur();}catch(e){}};
   })();
+})();
+/* ---------- 语音转文字（系统听写，录音不上传） ---------- */
+(function(){
+  var rec=null,active=false,want=false,baseText="",pill=null;
+  function inp(){return document.getElementById("msg-input");}
+  function lang(){try{return (state&&state.settings&&state.settings.sttLang)||"zh-CN";}catch(_){return "zh-CN";}}
+  function supported(){return !!(window.SpeechRecognition||window.webkitSpeechRecognition);}
+  function setPill(on,text){
+    try{
+      if(!on){if(pill&&pill.parentNode)pill.parentNode.removeChild(pill);pill=null;return;}
+      if(!pill){
+        pill=document.createElement("div");
+        pill.id="stt-pill";
+        pill.style.cssText="position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 92px);transform:translateX(-50%);z-index:99998;display:flex;align-items:center;gap:10px;background:rgba(20,20,22,.92);color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:8px 12px;box-shadow:0 10px 28px rgba(0,0,0,.32);font-size:13px;max-width:86vw;";
+        var dot=document.createElement("span");
+        dot.style.cssText="width:8px;height:8px;border-radius:50%;background:#ff453a;box-shadow:0 0 0 4px rgba(255,69,58,.18);flex:none;";
+        var tx=document.createElement("span");tx.id="stt-pill-text";tx.style.cssText="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;";
+        var stop=document.createElement("button");
+        stop.type="button";stop.textContent="结束";stop.style.cssText="border:0;background:rgba(255,255,255,.14);color:#fff;border-radius:999px;padding:4px 10px;font-size:12px;flex:none;";
+        stop.addEventListener("click",function(e){e.stopPropagation();window.__e11StopDictation();});
+        pill.appendChild(dot);pill.appendChild(tx);pill.appendChild(stop);
+        document.body.appendChild(pill);
+      }
+      var t=document.getElementById("stt-pill-text");if(t)t.textContent=text||"正在听…";
+    }catch(_){}
+  }
+  function stop(){
+    want=false;active=false;
+    try{if(rec)rec.stop();}catch(_){}
+    rec=null;setPill(false);
+  }
+  function begin(){
+    var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR){toast("这个浏览器/WebView 不支持系统听写；请用 Chrome、Safari 或安装最新 APK");return false;}
+    if(active){stop();return true;}
+    var el=inp();if(!el){toast("先进聊天页再试");return false;}
+    try{window.__dndBlurInput&&window.__dndBlurInput();}catch(_){}
+    baseText=String(el.value||"");want=true;active=true;
+    var r=new SR();
+    rec=r;r.lang=lang();r.continuous=true;r.interimResults=true;r.maxAlternatives=1;
+    var finalText="";
+    r.onstart=function(){setPill(true,"正在听，点「结束」停止");};
+    r.onresult=function(ev){
+      var finalPart="",interim="";
+      try{
+        for(var i=ev.resultIndex;i<ev.results.length;i++){
+          var res=ev.results[i],txt=res[0]?res[0].transcript:"";
+          if(res.isFinal)finalPart+=txt;else interim+=txt;
+        }
+      }catch(_){}
+      if(finalPart)finalText+=finalPart;
+      var cur=String(baseText||"");
+      var all=(finalText+interim).replace(/\s+$/,"");
+      if(cur&&all&&!/\s$/.test(cur)&&!/^[，。！？、,.!?]/.test(all))cur+=" ";
+      el.value=cur+all;
+      try{el.dispatchEvent(new Event("input",{bubbles:true}));}catch(_){}
+      if(interim)setPill(true,"正在听："+interim.slice(-28));
+    };
+    r.onerror=function(ev){
+      var code=String(ev&&ev.error||"");
+      if(code==="aborted")return;
+      if(code==="no-speech"){toast("没听清，再说一次");return;}
+      if(code==="not-allowed"||code==="service-not-allowed"){want=false;active=false;toast("没有麦克风/语音识别权限，去系统设置里允许");return;}
+      if(code==="audio-capture"){want=false;active=false;toast("麦克风不可用，检查是否被别的 App 占用");return;}
+      if(code==="network"){want=false;active=false;toast("系统听写需要网络，检查网络后再试");return;}
+      toast("听写失败："+(code||"未知错误"));
+    };
+    r.onend=function(){
+      if(!want){active=false;setPill(false);rec=null;return;}
+      setTimeout(function(){if(!want||!rec)return;try{r.start();}catch(_){}},180);
+    };
+    try{r.start();}catch(e){active=false;want=false;setPill(false);toast("听写启动失败，再点一次");return false;}
+    return true;
+  }
+  window.__e11StartDictation=begin;
+  window.__e11StopDictation=stop;
+  window.__e11SttSupported=supported;
 })();
 /* ---------- 设置页开关绑定 ---------- */
   function bindDND(){
@@ -31816,7 +31949,7 @@ body{margin:0;background:var(--bg,#fafafa);}
    语音消息只存文本和 voice 名，点播放时才走 TTS，不把音频塞进 5MB 云档。 */
 (function(){
   var KEY="e11.apiCfg";
-  var DEF={chatOn:false,base:"",key:"",model:"gpt-4o-mini",prompt:"",temperature:0.8,maxTokens:0,timeout:22,extraHeaders:"",partnerVoiceOn:true,voiceProb:12,ttsOn:true,ttsVoice:"alloy",ttsModel:"",ttsBase:"",ttsProvider:"openai",mmGroup:"",mmKey:"",voiceLang:"原文",voiceSpeed:1,voiceGender:"男",voiceStyle:""};
+  var DEF={chatOn:false,base:"",key:"",model:"gpt-4o-mini",prompt:"",temperature:0.8,maxTokens:0,timeout:22,extraHeaders:"",partnerVoiceOn:true,voiceProb:12,ttsOn:true,ttsVoice:"alloy",ttsModel:"",ttsBase:"",ttsProvider:"openai",mmGroup:"",mmKey:"",mmRegion:"overseas",voiceLang:"原文",voiceSpeed:1,voiceGender:"男",voiceStyle:""};
   function cfg(){
     var o=Object.assign({},DEF);
     try{var x=JSON.parse(localStorage.getItem(KEY)||"null");if(x&&typeof x==="object")Object.assign(o,x);}catch(e){}
@@ -32012,21 +32145,35 @@ body{margin:0;background:var(--bg,#fafafa);}
     try{return "data:audio/"+(fmt||"mp3")+";base64,"+btoa(bin);}catch(e){return "";}
   }
   function __e11MiniMaxTts(c,text,voice,model){
-    var base=String(c.ttsBase||"https://api.minimax.chat").trim().replace(/\/+$/,"");
+    var explicit=String(c.ttsBase||"").trim().replace(/\/+$/,"");
+    var region=String(c.mmRegion||"overseas").toLowerCase();
+    /* 区域选择优先于以前保存的旧域名：避免用户把区域切到海外后，
+       ttsBase 里残留的 api.minimax.chat 又把请求拽回国内。 */
+    if(explicit&&/api\.minimax\.(chat|io)/i.test(explicit)){
+      if(region==="overseas")explicit=explicit.replace(/api\.minimax\.chat/gi,"api.minimax.io");
+      else if(region==="cn")explicit=explicit.replace(/api\.minimax\.io/gi,"api.minimax.chat");
+    }
+    var bases=[];
+    if(explicit){bases=[explicit];}
+    else if(region==="overseas"){bases=["https://api.minimax.io"];}
+    else if(region==="cn"){bases=["https://api.minimax.chat"];}
+    else{bases=["https://api.minimax.chat","https://api.minimax.io"];}
     var group=String(c.mmGroup||"").trim();
     if(!group)return Promise.reject(new Error("还没填 MiniMax Group ID"));
     var auth=String(c.mmKey||c.key||"").trim();
     if(!auth)return Promise.reject(new Error("还没填 MiniMax API Key"));
-    var url=/\/t2a_v2$/i.test(base)?base:(/\/v1$/i.test(base)?base+"/t2a_v2":base+"/v1/t2a_v2");
-    url+=(url.indexOf("?")>=0?"&":"?")+"GroupId="+encodeURIComponent(group);
     var defVoice=(String(c.voiceGender||"男")==="女")?"female-shaonv":"male-qn-qingse";
-    var vid=(function(v){v=String(v||c.ttsVoice||"");return (v&&v!=="alloy")?v:defVoice;})(voice);
+    var vid=(function(v){v=String(v||c.ttsVoice||"").trim();return (v&&v!=="alloy")?v:defVoice;})(voice);
     var speed=Number(c.voiceSpeed);if(!isFinite(speed)||speed<=0)speed=1;speed=Math.max(0.5,Math.min(2,speed));
     var langMap={"日语":"Japanese","英语":"English","韩语":"Korean","德语":"German"};
     var boost=langMap[String(c.voiceLang||"")]||"";
-    /* v43-73：不再把“傲娇冷漠/温柔体贴/活泼开朗/高冷霸道”映射成 emotion，
-       说话风格只作为自由文字保留，避免旧预设音色继续影响合成。 */
     var vs={voice_id:vid,speed:speed,vol:1,pitch:0};
+    /* 说话风格只做轻量情绪映射：匹配不到就不传，绝不让自由文字把接口打挂。 */
+    var style=String(c.voiceStyle||"").trim();
+    if(style){
+      var emoMap=[["开心","happy"],["高兴","happy"],["活泼","happy"],["温柔","neutral"],["平静","neutral"],["悲伤","sad"],["难过","sad"],["生气","angry"],["愤怒","angry"],["害怕","fearful"],["惊讶","surprised"],["厌恶","disgusted"]];
+      for(var _ei=0;_ei<emoMap.length;_ei++){if(style.indexOf(emoMap[_ei][0])>=0){vs.emotion=emoMap[_ei][1];break;}}
+    }
     var body={
       model:model||c.ttsModel||"speech-02-turbo",
       text:String(text||"").slice(0,600),
@@ -32035,21 +32182,41 @@ body{margin:0;background:var(--bg,#fafafa);}
       audio_setting:{sample_rate:32000,bitrate:128000,format:"mp3"}
     };
     if(boost)body.language_boost=boost;
-    return extFetch(url,{method:"POST",cache:"no-store",headers:{"Content-Type":"application/json","Authorization":"Bearer "+auth},body:JSON.stringify(body)}).then(function(r){
-      return r.text().then(function(t){
-        if(!r.ok)throw new Error("MiniMax HTTP "+r.status+(t?(" · "+t.slice(0,180)):""));
-        var j=null;try{j=JSON.parse(t);}catch(e){throw new Error("MiniMax 返回不是 JSON："+String(t||"").slice(0,140));}
-        var br=j&&j.base_resp;
-        if(br&&Number(br.status_code)!==0)throw new Error("MiniMax 错误 "+(br.status_code||"")+(br.status_msg?(" · "+br.status_msg):""));
-        var audio=j&&j.data&&j.data.audio;
-        if(!audio)throw new Error("MiniMax 没有返回音频，检查 GroupId / 音色 / 模型");
-        var d="";
-        if(/^[0-9a-f\s]+$/i.test(String(audio)))d=__e11HexAudio(audio,"mp3");
-        if(!d)d="data:audio/mp3;base64,"+String(audio);
-        return d;
+    function request(base){
+      base=String(base||"").trim().replace(/\/+$/,"");
+      var url=/\/t2a_v2$/i.test(base)?base:(/\/v1$/i.test(base)?base+"/t2a_v2":base+"/v1/t2a_v2");
+      url+=(url.indexOf("?")>=0?"&":"?")+"GroupId="+encodeURIComponent(group);
+      return extFetch(url,{method:"POST",cache:"no-store",headers:{"Content-Type":"application/json","Authorization":"Bearer "+auth},body:JSON.stringify(body)}).then(function(r){
+        return r.text().then(function(t){
+          if(!r.ok)throw new Error("MiniMax HTTP "+r.status+(t?(" · "+t.slice(0,180)):""));
+          var j=null;try{j=JSON.parse(t);}catch(e){throw new Error("MiniMax 返回不是 JSON："+String(t||"").slice(0,140));}
+          var br=j&&j.base_resp;
+          if(br&&Number(br.status_code)!==0){
+            var _e=new Error("MiniMax 错误 "+(br.status_code||"")+(br.status_msg?(" · "+br.status_msg):""));
+            _e.mmCode=Number(br.status_code)||0;_e.noRetry=true;throw _e;
+          }
+          var audio=j&&j.data&&j.data.audio;
+          if(!audio)throw new Error("MiniMax 没有返回音频，检查 GroupId / 音色 / 模型");
+          var d="";
+          if(/^[0-9a-f\s]+$/i.test(String(audio)))d=__e11HexAudio(audio,"mp3");
+          if(!d)d="data:audio/mp3;base64,"+String(audio);
+          return d;
+        });
       });
-    });
+    }
+    var lastErr=null;
+    function tryNext(i){
+      if(i>=bases.length)return Promise.reject(lastErr||new Error("MiniMax 语音接口不可用"));
+      return request(bases[i]).catch(function(e){
+        lastErr=e;
+        if(e&&e.noRetry)throw e;
+        try{console.warn("MiniMax TTS 切换区域",bases[i],String(e&&e.message||e));}catch(_){}
+        return tryNext(i+1);
+      });
+    }
+    return tryNext(0);
   }
+
   /* TTS：返回 dataURL；两种服务都缓存最近 4 条，播放过的不重复请求。 */
   window.__e11TtsFetch=function(text,voice,model){
     var c=cfg();
@@ -32057,7 +32224,7 @@ body{margin:0;background:var(--bg,#fafafa);}
     var auth=(provider==="minimax")?String(c.mmKey||c.key||""):String(c.key||"");
     if(!auth)return Promise.reject(new Error(provider==="minimax"?"还没填 MiniMax API Key":"还没填 API Key"));
     if(c.ttsOn===false)return Promise.reject(new Error("云端语音已关闭"));
-    var key=provider+"|"+String(c.voiceLang||"")+"|"+String(c.voiceSpeed||"")+"|"+String(c.voiceGender||"")+"|"+String(c.voiceStyle||"")+"|"+String(voice||"")+"|"+String(text||"")+"|"+String(model||"");
+    var key=provider+"|"+String(c.mmRegion||"")+"|"+String(c.mmGroup||"")+"|"+String(c.ttsBase||"")+"|"+String(c.ttsModel||"")+"|"+String(c.voiceLang||"")+"|"+String(c.voiceSpeed||"")+"|"+String(c.voiceGender||"")+"|"+String(c.voiceStyle||"")+"|"+String(voice||"")+"|"+String(text||"")+"|"+String(model||"");
     window.__e11TtsCache=window.__e11TtsCache||{};
     if(window.__e11TtsCache[key])return Promise.resolve(window.__e11TtsCache[key]);
     if(provider==="minimax")return __e11MiniMaxTts(c,text,voice,model).then(function(d){if(!d)throw new Error("MiniMax 音频解析失败");return __e11TtsCachePut(key,d);});
@@ -32110,7 +32277,7 @@ body{margin:0;background:var(--bg,#fafafa);}
   function status(id,txt){var e=$(id);if(e)e.textContent=txt;}
   function paint(){
     var c=cfg();
-    var vals=[["set-api-base",c.base],["set-api-key",c.key],["set-api-model",c.model],["set-api-prompt",c.prompt],["set-api-temp",c.temperature],["set-api-max-tokens",c.maxTokens],["set-api-timeout",c.timeout],["set-api-headers",c.extraHeaders],["set-mm-key",c.mmKey||""],["set-tts-voice",c.ttsVoice],["set-tts-model",c.ttsModel],["set-tts-base",c.ttsBase],["set-tts-provider",c.ttsProvider||"openai"],["set-mm-group",c.mmGroup||""],["set-voice-prob",c.voiceProb],["set-voice-lang",c.voiceLang||"原文"],["set-voice-gender",c.voiceGender||"男"],["set-voice-style",c.voiceStyle||""]];
+    var vals=[["set-api-base",c.base],["set-api-key",c.key],["set-api-model",c.model],["set-api-prompt",c.prompt],["set-api-temp",c.temperature],["set-api-max-tokens",c.maxTokens],["set-api-timeout",c.timeout],["set-api-headers",c.extraHeaders],["set-mm-key",c.mmKey||""],["set-tts-voice",c.ttsVoice],["set-tts-model",c.ttsModel],["set-tts-base",c.ttsBase],["set-tts-provider",c.ttsProvider||"openai"],["set-mm-group",c.mmGroup||""],["set-mm-region",c.mmRegion||"overseas"],["set-voice-prob",c.voiceProb],["set-voice-lang",c.voiceLang||"原文"],["set-voice-gender",c.voiceGender||"男"],["set-voice-style",c.voiceStyle||""],["set-stt-lang",(state.settings&&state.settings.sttLang)||"zh-CN"]];
     vals.forEach(function(p){
       var el=$(p[0]);if(!el)return;
       if(document.activeElement===el)return;
@@ -32122,6 +32289,7 @@ body{margin:0;background:var(--bg,#fafafa);}
     mark($("sw-api-on"),c.chatOn);
     mark($("sw-partner-voice"),c.partnerVoiceOn!==false);
     mark($("sw-cloud-voice"),c.ttsOn!==false);
+    mark($("sw-voice-stt"),state.settings.voiceStt!==false);
     if($("set-voice-prob")&&document.activeElement!==$("set-voice-prob"))$("set-voice-prob").value=Number(c.voiceProb)||0;
     var _sp=Number(c.voiceSpeed)||1;
     if($("set-voice-speed")&&document.activeElement!==$("set-voice-speed"))$("set-voice-speed").value=_sp;
@@ -32129,7 +32297,8 @@ body{margin:0;background:var(--bg,#fafafa);}
     if($("voice-speed-txt"))$("voice-speed-txt").textContent=_sp.toFixed(2)+"×";
     status("api-test-sub",c.chatOn?(ready()?"已启用 · 保存后生效":"已开，但地址/Key 没填完"):"未启用");
     var _mmAuth=String(c.mmKey||c.key||"").trim();
-    status("tts-test-sub",c.ttsOn===false?"已关闭":(c.ttsProvider==="minimax"?(c.mmGroup&&_mmAuth?"MiniMax 已配置，点试听验证":"填好 MiniMax Key 和 Group ID"):(c.base&&c.key?"点试听验证":"填好 API 后再试")));
+    var _mmRegionSel=c.mmRegion||"overseas";var _mmReg=_mmRegionSel==="overseas"?"海外 api.minimax.io":(_mmRegionSel==="cn"?"国内 api.minimax.chat":"自动（国内→海外）");
+    status("tts-test-sub",c.ttsOn===false?"已关闭":(c.ttsProvider==="minimax"?(c.mmGroup&&_mmAuth?("MiniMax 已配置 · "+_mmReg):"填好 MiniMax Key 和 Group ID"):(c.base&&c.key?"点试听验证":"填好 API 后再试")));
   }
   window.__e11ApiPaint=paint;
   function bind(id,evt,fn){var el=$(id);if(!el)return;var flag="__e11ApiB_"+evt;if(el[flag])return;el[flag]=1;el.addEventListener(evt,fn);}
@@ -32208,6 +32377,10 @@ body{margin:0;background:var(--bg,#fafafa);}
   bindInput("set-voice-prob","voiceProb",true);
   bind("sw-cloud-voice","click",function(){var c=cfg();setCfg({ttsOn:!(c.ttsOn!==false)});paint();toast(!c.ttsOn?"云端语音已关，对方只发文字/语音条会失败":"云端语音已开");});
   bindInput("set-tts-voice","ttsVoice");bindInput("set-tts-model","ttsModel");bindInput("set-tts-base","ttsBase");bindInput("set-mm-group","mmGroup");bindInput("set-mm-key","mmKey");bindInput("set-voice-style","voiceStyle");
+  bind("set-mm-region","change",function(){var v=["auto","overseas","cn"].indexOf(this.value)>=0?this.value:"auto";setCfg({mmRegion:v});paint();toast(v==="overseas"?"MiniMax 走海外 api.minimax.io":(v==="cn"?"MiniMax 走国内 api.minimax.chat":"MiniMax 区域自动"));});
+  bind("set-stt-lang","change",function(){try{state.settings.sttLang=this.value||"zh-CN";state.settings.__ts=Date.now();save();__flushSave(true);}catch(_eSttCfg){}toast("听写语言已切换");});
+  bind("sw-voice-stt","click",function(){try{state.settings.voiceStt=(state.settings.voiceStt===false);state.settings.__ts=Date.now();save();__flushSave(true);}catch(_eVS){}paint();try{renderChat(true);}catch(_){}toast(state.settings.voiceStt!==false?"录语音会自动转文字":"已关闭语音自动转文字");});
+  bind("btn-stt-start","click",function(){try{showView("view-chat");}catch(_){}setTimeout(function(){try{window.__e11StartDictation&&window.__e11StartDictation();}catch(_){}},260);});
   bind("set-voice-lang","change",function(){setCfg({voiceLang:this.value||"原文"});paint();});
   bind("set-voice-gender","change",function(){setCfg({voiceGender:this.value==="女"?"女":"男"});paint();});
   bind("set-voice-speed","input",function(){var v=Math.max(0.5,Math.min(2,Number(this.value)||1));setCfg({voiceSpeed:v});if($("voice-speed-val"))$("voice-speed-val").textContent=v.toFixed(2)+"×";if($("voice-speed-txt"))$("voice-speed-txt").textContent=v.toFixed(2)+"×";});
