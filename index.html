@@ -191,7 +191,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-22v43-95";
+window.__E11_BUILD="2026-11-22v43-96";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2488,7 +2488,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-22v43-95">
+<meta name="app-build" content="2026-11-22v43-96">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4024,7 +4024,7 @@ setTimeout(function(){
       <!-- 账号（只显示当前账号，不显示其他账号） -->
       <div class="set-sec-title">账号</div>
       <div class="set-group">
-        <div class="set-row"><span class="set-label">云端空间<div class="set-sub" id="set-account-sub">未登录</div></span><button id="btn-account-logout">退出登录</button></div>
+        <div class="set-row"><span class="set-label">云端空间<div class="set-sub" id="set-account-sub">未登录</div></span><button id="btn-account-logout">退出登录</button></div><div class="set-row"><span class="set-label">云端密码<div class="set-sub">默认 102611，登录后可自行修改</div></span><button class="small-btn ghost" id="btn-cloud-pwd" style="white-space:nowrap;">修改</button></div>
       </div>
       <!-- 双方资料 -->
       <div class="set-sec-title">个人信息</div>
@@ -4211,7 +4211,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-95</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-96</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5459,7 +5459,7 @@ setTimeout(function(){
     <input class="auth-input" id="auth-password" type="password" autocomplete="current-password" placeholder="输入密码">
     <button class="auth-btn" id="auth-login">登录</button>
     <div class="auth-msg" id="auth-msg"></div>
-    <div class="auth-note">账号由站主发放；忘记密码请让站主在后台重置。登录后数据会保存到你自己的私有空间。</div>
+    <div class="auth-note">默认密码 102611；登录后可在设置里自行修改，忘记密码才需要站主重置。</div>
     <button class="auth-force" id="auth-skip" type="button" style="margin-top:10px;">暂不登录，先用本机</button>
     <button class="auth-force" id="auth-force-update" type="button">打不开 / 一直白屏？强制更新</button>
     <div class="auth-note" style="margin-top:8px">同一账号可在网页 / APK / PWA 多设备同时登录；云端存档以最后一次保存为准。</div>
@@ -5467,8 +5467,8 @@ setTimeout(function(){
 
   <div class="auth-card auth-pwd" id="auth-pwd-card">
     <div class="auth-brand">Eleven×11</div>
-    <div class="auth-title">第一次登录</div>
-    <div class="auth-sub">这个账号还没有设置你自己的密码。设置后，站主就不知道你的新密码，也不会再用初始密码进入。</div>
+    <div class="auth-title" id="auth-pwd-title">第一次登录</div>
+    <div class="auth-sub" id="auth-pwd-sub">默认密码是 102611。设置自己的密码后，站主就不知道你的新密码，也不会再用初始密码进入。</div>
     <div class="auth-label">新密码</div>
     <input class="auth-input" id="auth-newpwd" type="password" autocomplete="new-password" placeholder="至少 6 位">
     <div class="auth-label">再输一次</div>
@@ -5591,13 +5591,19 @@ setTimeout(function(){
      否则默认浅色存档会先把夜间页面刷白，再跳回黑色。 */
   try{window.__themeReady=1;if(typeof applySkin==="function")applySkin();}catch(_eT){}
   try{window.__bootDone&&window.__bootDone();}catch(_){}}
-  function showPwdCard(){
+  function showPwdCard(mode){
+    window.__e11PwdMode=mode||"first";
+    var _ct=$("auth-pwd-title"),_cs=$("auth-pwd-sub"),_cb=$("auth-pwd-go");
+    if(_ct)_ct.textContent=(window.__e11PwdMode==="change"?"修改云端密码":"第一次登录");
+    if(_cs)_cs.textContent=(window.__e11PwdMode==="change"?"默认密码 102611。输入新密码后立即生效，下次用新密码登录。":"默认密码是 102611。设置自己的密码后，站主就不知道你的新密码，也不会再用初始密码进入。");
+    if(_cb)_cb.textContent=(window.__e11PwdMode==="change"?"保存新密码":"保存并进入");
     try{window.__veilDone&&window.__veilDone();}catch(_e){}
     try{var _ab=document.getElementById("about-screen");if(_ab)_ab.classList.remove("show");}catch(_eA){}
     if(card)card.style.display="none";
     if(waitCard)waitCard.style.display="none";
     if(pwdCard)pwdCard.classList.add("show");
     if(gate)gate.classList.add("show");bodyLock(true);
+    try{$("auth-newpwd").value="";$("auth-newpwd2").value="";setMsg("auth-pwd-msg","");}catch(_eI){}
     try{window.__bootDone&&window.__bootDone();}catch(_){}
   }
   function accountOf(user){
@@ -6851,6 +6857,13 @@ setTimeout(function(){
       busy=false;if(btn)btn.disabled=false;
       if(u&&u.id){session.user=u;saveSession(session);}
       try{session.user.user_metadata=session.user.user_metadata||{};session.user.user_metadata.must_change_password=false;}catch(e){}
+      if(window.__e11PwdMode==="change"){
+        window.__e11PwdMode="";
+        try{$("auth-newpwd").value="";$("auth-newpwd2").value="";}catch(_){}
+        try{hideGate();}catch(_){}
+        try{toast("云端密码已修改，下次用新密码登录");}catch(_){}
+        return;
+      }
       setAction({uid:session.user.id,mode:"login"});
       setWait("密码已保存","正在进入你的账号空间…");
       var _wd2=setTimeout(function(){try{__enterAfterAction();toast("密码已保存，云端存档正在后台恢复");}catch(_){}},10000);
@@ -6906,6 +6919,7 @@ setTimeout(function(){
     if(t.closest("#auth-login")){e.preventDefault();onLogin();}
     if(t.closest("#auth-pwd-go")){e.preventDefault();onPwd();}
     if(t.closest("#auth-skip")){e.preventDefault();try{setAction(null);}catch(_eSk){}try{localStorage.setItem("e11.localOnly","1");}catch(_eSk2){}try{window.__e11LocalOnly=1;}catch(_eSk3){}try{hideGate();}catch(_eSk4){}try{__enterAfterAction();}catch(_eSk5){}try{toast("未登录云端，先用本机");}catch(_eSk6){}return;}
+    if(t.closest("#btn-cloud-pwd")){e.preventDefault();if(!authOk()){showLoginCard();return;}try{showPwdCard("change");}catch(_ePwc){}return;}
     if(t.closest("#btn-account-logout")){e.preventDefault();if(!authOk()){showLoginCard();return;}logout();}
     if(t.closest("#auth-force-update")){e.preventDefault();try{if(window.__e11CheckVersion)window.__e11CheckVersion(true);else location.reload();}catch(_){}}
   });
@@ -7172,9 +7186,9 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-22",
   noticeKey:null,
-  lead:"v43-95：进站密码恢复为 1026；云端可以先不登录，先用本机。",
+  lead:"v43-96：默认密码恢复为 102611，登录后可以自己改；云端也可以先不登录。",
   items:[
-    "默认进站密码 1026，输对一次后这台设备记住，不再重复弹。",
+    "默认密码 102611，输对一次后这台设备记住；云端登录后可在设置里自行修改。",
     "更新公告改成按版本记录，每次换版都会重新弹一次；设置里也能随时看。",
     "登录页新增「暂不登录，先用本机」，不登录也能正常使用；云端入口仍在设置里。",
     "登录成功最多 10 秒进页面，云端上传 12 秒超时，不再卡在「正在登录」。",
@@ -25340,8 +25354,8 @@ function initAbout(){
 }
 
 /* ===== 进入密码锁屏 ===== */
-/* 默认密码：进站输 1026；输对一次后本机记住，不再重复弹。 */
-const LOCK_DEFAULT="1026";
+/* 默认密码：进站输 102611；输对一次后本机记住，不再重复弹。 */
+const LOCK_DEFAULT="102611";
 function lockPwd(){return (state&&state.settings&&state.settings.entryPwd)||LOCK_DEFAULT;}
 /* bp107 起：进站密码统一切到 102611。
    bp107 用 __pw102611m 标记，bp108 换成 __pwForce=102611，bp109 再换到 __pwForce=109，
@@ -25350,18 +25364,18 @@ function lockPwd(){return (state&&state.settings&&state.settings.entryPwd)||LOCK
    第一次打开都必须先输 102611，紧接着进入「想设置新密码吗」这一步。 */
 function __pw102611(){
   try{
-    /* v43-95 恢复进站密码，默认 1026。老设备 v43-68 留下的 lockFree/unlocked 会绕过密码页，
-       所以这里只校准一次：把密码拉回 1026、撤掉免密，下一次启动必须输对 1026。 */
-    if(localStorage.getItem("__pwForce")==="1026-95")return;
+    /* v43-96 恢复进站密码，默认 102611。老设备 v43-68 留下的 lockFree/unlocked 会绕过密码页，
+       所以这里只校准一次：把密码拉回 102611、撤掉免密，下一次启动必须输对 102611。 */
+    if(localStorage.getItem("__pwForce")==="102611-96")return;
     if(typeof state==="undefined"||!state||!state.settings)return;
-    state.settings.entryPwd="1026";
+    state.settings.entryPwd="102611";
     state.settings.unlocked=false;
     try{localStorage.removeItem("lockFree");}catch(_){}
-    try{localStorage.setItem("__pwForce","1026-95");}catch(_){}
+    try{localStorage.setItem("__pwForce","102611-96");}catch(_){}
     try{localStorage.setItem("__pwFixed","1");}catch(_){}
     try{localStorage.setItem("privateChat",JSON.stringify(state));}catch(_){}
     try{if(typeof dbSet==="function")dbSet("state",state).catch(function(){});}catch(_){}
-    try{if($("set-lockpwd"))$("set-lockpwd").value="1026";}catch(_){}
+    try{if($("set-lockpwd"))$("set-lockpwd").value="102611";}catch(_){}
     setTimeout(function(){
       try{
         var _ab=document.getElementById("about-screen");
@@ -25417,14 +25431,14 @@ function initLock(){
   /* v43-95：老版本默认 unlocked=true 会直接绕过密码页。这里在判断免密之前先校准一次，
      否则 initLock 比存档迁移先跑，密码页还是不会出现。 */
   try{
-    if(localStorage.getItem("__pwForce")!=="1026-95"){
-      state.settings.entryPwd="1026";
+    if(localStorage.getItem("__pwForce")!=="102611-96"){
+      state.settings.entryPwd="102611";
       state.settings.unlocked=false;
       try{localStorage.removeItem("lockFree");}catch(_){}
-      try{localStorage.setItem("__pwForce","1026-95");}catch(_){}
+      try{localStorage.setItem("__pwForce","102611-96");}catch(_){}
       try{localStorage.setItem("privateChat",JSON.stringify(state));}catch(_){}
       try{if(typeof dbSet==="function")dbSet("state",state).catch(function(){});}catch(_){}
-      try{if($("set-lockpwd"))$("set-lockpwd").value="1026";}catch(_){}
+      try{if($("set-lockpwd"))$("set-lockpwd").value="102611";}catch(_){}
     }
   }catch(_ePwMig){}
   const inp=$("lock-input");if(!inp)return;
