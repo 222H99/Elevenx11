@@ -210,7 +210,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-125";
+window.__E11_BUILD="2026-11-23v43-126";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -1263,9 +1263,11 @@ body:not(.app-ready) #view-chat{visibility:hidden !important;}
 #view-settings .set-group{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;}
 /* 设置页卡片现在始终不叠毛玻璃：原先滑动时还要临时改半透明底色，会让卡片颜色轻微跳一下，一并去掉 */
 .set-sec-title{font-size:13px;color:#8E8E93;margin:4px 4px 8px;font-weight:600;}
+.set-page-lead{font-size:12px;color:#8E8E93;line-height:1.55;margin:0 4px 12px;}
 /* 设置页三页分栏 */
-.set-tabs{flex:0 0 auto;display:flex;gap:8px;padding:10px 14px;background:var(--bg);border-bottom:1px solid var(--line);}
-.set-tab{flex:1;padding:8px 0;text-align:center;font-size:13px;font-weight:600;border:none;border-radius:9px;background:var(--panel);color:var(--sub);cursor:pointer;}
+.set-tabs{flex:0 0 auto;display:flex;gap:4px;padding:8px 8px;background:var(--bg);border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+.set-tabs::-webkit-scrollbar{display:none;}
+.set-tab{flex:1 0 auto;min-width:48px;padding:8px 6px;text-align:center;font-size:12px;font-weight:600;border:none;border-radius:9px;background:var(--panel);color:var(--sub);cursor:pointer;white-space:nowrap;}
 .set-tab.on{background:var(--accent);color:#fff;}
 .set-pages{flex:1;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;overscroll-behavior-x:contain;}
 .set-pages::-webkit-scrollbar{display:none;}
@@ -2516,7 +2518,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-125">
+<meta name="app-build" content="2026-11-23v43-126">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4052,9 +4054,13 @@ setTimeout(function(){
       <div class="v-title">设置</div>
     </div>
     <div class="set-tabs">
-      <button class="set-tab on" data-sp="0">聊天</button>
-      <button class="set-tab" data-sp="1">社交</button>
-      <button class="set-tab" data-sp="2">外观</button>
+      <button class="set-tab on" data-sp="0">基础</button>
+      <button class="set-tab" data-sp="1">聊天</button>
+      <button class="set-tab" data-sp="2">社交</button>
+      <button class="set-tab" data-sp="3">娱乐</button>
+      <button class="set-tab" data-sp="4">接口</button>
+      <button class="set-tab" data-sp="5">外观</button>
+      <button class="set-tab" data-sp="6">数据</button>
     </div>
     <div class="set-pages" id="set-pages">
       <div class="set-page">
@@ -4255,7 +4261,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-125</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-126</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -7657,16 +7663,16 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-23",
   noticeKey:null,
-  lead:"v43-125：修好进站密码无法再次修改——点「修改」后密码页不会再自动消失，可以连续换新密码。",
+  lead:"v43-126：设置页重新分成 7 个板块，基础、聊天、社交、娱乐、接口、外观、数据分开看，不用再滚一长页。",
   items:[
-    "修好「进站密码不可以重新设置」：已经进入 App 后点设置里的「修改」，密码页不会再闪一下就被自动关掉，可以正常输入并保存新密码。",
-    "改完密码后可以再次修改，次数不限；每次保存后旧的密码立即失效。",
-    "自定义密码后每次打开都要输入新密码，输错会提示「密码错误，请重新输入」；默认密码不能进。",
-    "自定义密码后「忘记密码」按钮隐藏，不能一键恢复默认密码绕过。",
-    "密码只保存校验指纹，文件里不出现明文；清除站点数据后需要重新设置。",
-    "声明页补充致谢：一起听梦角推歌借鉴于小红书 @Failure. 老师（ID：95941868426）。",
-    "保留 v43-123 的修复：退出/切后台不再用空数据覆盖离站快照，夜间模式、资料、字卡退出后仍保留。",
-    "聊天记录仍以 IndexedDB 为主库，历史聊天图片、表情包、一起听歌单不会因为换版丢失。",
+    "设置页重分为 7 个板块：基础 / 聊天 / 社交 / 娱乐 / 接口 / 外观 / 数据；点顶部标签或左右滑动切换。",
+    "每个板块顶部有一行说明；原来塞了二十多项的「社交」拆成「社交」和「娱乐」，找听歌、画画、电话、问卷更快。",
+    "「基础」放账号、个人信息、进站密码、系统、安装与版本；「聊天」放回复、提示音、撤回、通知与免打扰。",
+    "「接口」集中 AI 接口、云端存档、语音合成与语音转文字；「外观」放字体、头像、气泡、主题与透明度；「数据」放导入导出、自动备份和存储空间。",
+    "保留 v43-125 修复：已进入 App 后点「本机进站密码 → 修改」不会再闪退，可连续重设，旧密码立即失效。",
+    "自定义密码后每次打开都要输入新密码；输错提示「密码错误，请重新输入」，默认密码不能进，「忘记密码」隐藏。",
+    "声明页致谢：一起听梦角推歌借鉴于小红书 @Failure. 老师（ID：95941868426）。",
+    "保留 v43-123 的数据保存修复；聊天记录仍以 IndexedDB 为主库，历史图片、表情包、一起听歌单不丢。",
   ],
   foot:"有问题或建议：小红书 @Eleven_（ID：5609831119）。"
 };
@@ -18338,7 +18344,39 @@ $("set-letter-min-sec").addEventListener("change",e=>{state.settings.letterMinSe
 $("set-letter-max-sec").addEventListener("change",e=>{state.settings.letterMaxSec=Math.max(0,Math.round(Number(e.target.value)||0))*60;e.target.value=Math.round(state.settings.letterMaxSec/60);save();try{scheduleLetter();}catch(_){}});
 /* bug2：所有百分比概率输入实时保存，避免失焦前刷新丢失 */
 (function(){const M={"set-reply-prob":"replyProb","set-emoji-prob":"emojiProb","set-emoji-steal-prob":"emojiStealProb","set-reply-letter-prob":"replyLetterProb","set-prob-letter":"socialProbLetter","set-prob-note":"socialProbNote","set-prob-moments":"socialProbMoments","set-prob-moment-comment":"socialProbMomentComment","set-prob-repost":"momentRepostProb","set-prob-call":"socialProbCall","set-call-miss":"callMissProb","set-call-hang":"callHangProb","set-rp-reject":"rpRejectProb","set-music-invite":"socialProbMusic","set-prob-pat":"socialProbPat","set-prob-redpacket":"socialProbRedpacket","set-prob-survey":"socialProbSurvey","set-draw-decline":"drawDeclineProb","set-draw-invite":"drawInviteProb","set-music-decline":"musicDeclineProb"};for(const id in M){const el=$(id);if(!el)continue;el.addEventListener("input",()=>{const v=Math.min(100,Math.max(0,Number(el.value)||0));state.settings[M[id]]=v;el.value=v;save();});}})();
-/* 设置页三页分栏：点击标签切换 + 左右滑动同步高亮 */
+/* v43-126：设置页重新分板块。原来 3 页里“社交”塞了二十多项，
+   现在按 基础 / 聊天 / 社交 / 接口 / 外观 / 数据 六页拆分；只移动节点，不重建控件。 */
+(function(){
+  var pagesEl=document.getElementById("set-pages");if(!pagesEl)return;
+  var src=Array.prototype.slice.call(pagesEl.querySelectorAll(".set-page"));if(!src.length)return;
+  function pageFor(t){
+    t=String(t||"").replace(/\s+/g," ").trim();
+    if(t==="账号"||t==="个人信息"||t==="资料"||t==="系统"||t==="安装到桌面")return 0;
+    if(t==="聊天回复"||t==="撤回与已读不回"||t==="贴表情（Tapback）"||t==="通知与后台"||t==="免打扰"||t==="主动发消息")return 1;
+    if(t==="问卷"||t==="红包"||t==="听歌"||t==="画画"||t==="电话"||t==="拍一拍"||t==="网易云账号")return 3;
+    if(t==="自己的 AI 接口"||t.indexOf("自己的云端接口")===0||t.indexOf("语音配置")===0||t.indexOf("语音转文字")===0)return 4;
+    if(t==="外观")return 5;
+    if(t==="数据管理"||t==="存储空间")return 6;
+    return 2;
+  }
+  var leads=["账号、资料、进站密码、安装与版本","聊天回复、提示音、撤回、通知与免打扰","主页动态、评论、留言与信件","问卷、红包、听歌、画画与电话","AI 接口、云端存档、语音合成与转文字","字体、头像、气泡、主题与透明度","导入导出、自动备份与存储空间"];
+  var targets=[];
+  for(var i=0;i<7;i++){
+    var pg=document.createElement("div");pg.className="set-page";
+    var lead=document.createElement("div");lead.className="set-page-lead";lead.textContent=leads[i];pg.appendChild(lead);
+    targets.push(pg);
+  }
+  src.forEach(function(page){
+    var cur=0;
+    Array.prototype.slice.call(page.children).forEach(function(node){
+      if(node.classList&&node.classList.contains("set-sec-title"))cur=pageFor(node.textContent);
+      targets[cur].appendChild(node);
+    });
+  });
+  pagesEl.innerHTML="";
+  targets.forEach(function(pg){pagesEl.appendChild(pg);});
+})();
+/* 设置页六页分栏：点击标签切换 + 左右滑动同步高亮 */
 (function(){
   const tabs=document.querySelectorAll(".set-tab");
   const pages=$("set-pages");
@@ -20152,12 +20190,13 @@ function showView(id){
     try{var _cl0=document.getElementById("card-list");if(!_cl0||!_cl0.querySelector(".card-item"))renderCards();}catch(e){}
     try{renderLetterTpl();}catch(e){}}
   if(id==="view-settings"){
-    /* 只排版当前这一屏设置，另外两屏先藏着 */
+    /* 只排版当前这一屏设置，其余几屏先藏着 */
     try{
       var _sp=$("set-pages");
       if(_sp&&window.__setSettingsPage){
         var _sw=_sp.clientWidth||1;
-        window.__setSettingsPage(Math.min(2,Math.max(0,Math.round(_sp.scrollLeft/_sw))));
+        var _ti=document.querySelectorAll(".set-tab").length-1;
+        window.__setSettingsPage(Math.min(_ti,Math.max(0,Math.round(_sp.scrollLeft/_sw))));
       }
     }catch(e){}
     /* 先把页面切过去并让这一帧画出来，再补设置项的绑定与数值，点「设置」时不会先卡一下 */
@@ -33148,7 +33187,7 @@ body{margin:0;background:var(--bg,#fafafa);}
 })();
 </script>
 <script>/* v43-56: 设置页容错：把被错误闭合挤出 set-pages 的分组归位到第二页 */
-(function(){function fix(){try{var v=document.getElementById("view-settings");if(!v)return;var pages=v.querySelector(".set-pages");if(!pages||pages.children.length<2)return;var keep=[v.querySelector(".v-head"),v.querySelector(".set-tabs"),pages];Array.prototype.slice.call(v.children).forEach(function(c){if(keep.indexOf(c)<0&&(c.classList.contains("set-sec-title")||c.classList.contains("set-group"))){pages.children[1].appendChild(c);}});}catch(e){}}window.__e11FixSettings=fix;if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",fix);else fix();setTimeout(fix,300);})();
+(function(){function fix(){try{var v=document.getElementById("view-settings");if(!v)return;var pages=v.querySelector(".set-pages");if(!pages||pages.children.length<2)return;var keep=[v.querySelector(".v-head"),v.querySelector(".set-tabs"),pages];Array.prototype.slice.call(v.children).forEach(function(c){if(keep.indexOf(c)<0&&(c.classList.contains("set-sec-title")||c.classList.contains("set-group"))){pages.children[pages.children.length-1].appendChild(c);}});}catch(e){}}window.__e11FixSettings=fix;if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",fix);else fix();setTimeout(fix,300);})();
 </script>
 </body>
 </html>
