@@ -191,7 +191,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-22v43-81";
+window.__E11_BUILD="2026-11-22v43-82";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2488,7 +2488,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-22v43-81">
+<meta name="app-build" content="2026-11-22v43-82">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4210,7 +4210,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-81</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-82</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -8232,6 +8232,8 @@ function __e11CoreWrite(st,force){
       /* v43-79：空间满时先清掉旧的大主档/待写大图，给文字核心档腾位置。
          主档里的图在 IndexedDB，文字已经进核心档，不会因此丢聊天。 */
       try{localStorage.removeItem("privateChat");}catch(_eRmMain){}
+      /* 先清可再生的大缓存，再重试；不要动 settings/core/exit/auth。 */
+      ["bigPending","cpPhotoBak","callSave","me1OrigIcons","me1Sizes","cp2Layout","cpPhotoSize"].forEach(function(k){try{localStorage.removeItem(k);}catch(_){}});
       try{localStorage.removeItem("bigPending");}catch(_eRmBig){}
       try{sessionStorage.removeItem("privateChat__emergency");}catch(_eRmEm){}
       try{localStorage.removeItem(__E11_CORE_KEY);localStorage.setItem(__E11_CORE_KEY,txt);window.__e11CoreLast=now;return true;}
@@ -8292,22 +8294,16 @@ function __stateSig(){
   }catch(e){return "err:"+Date.now();}
 }
 function __writeLocalSnapshot(sig){
-  /* localStorage 只有约 5MB：旧快照常常是“曾经能写、现在写不下”的那一份。
-     先删旧快照再写新的；如果新快照也超限，就只留一个“请读本地库”的小标记。
-     完整状态已经先写进 IndexedDB，不会因为这里失败而丢表情/图片。 */
+  /* v43-82：localStorage 不再存“整库引用版”。整库可能有几 MB，既写不进又挤占配额，
+     这里是症状根源。只留一个很小的指针，真正数据放 IndexedDB；文字另有核心档兜底。 */
   try{
-    if(localStorage.getItem("privateChat")===sig)return true;
-    try{localStorage.setItem("privateChat",sig);return true;}catch(_e1){
+    var ptr=JSON.stringify({__idbOnly:1,__savedAt:Number(state&&state.__savedAt)||Date.now()});
+    try{localStorage.setItem("privateChat",ptr);return true;}
+    catch(_e1){
       try{localStorage.removeItem("privateChat");}catch(_eRm){}
-      try{localStorage.setItem("privateChat",sig);return true;}catch(_e2){
-        try{localStorage.setItem("privateChat",JSON.stringify({__idbOnly:1}));return true;}catch(_e3){}
-      }
+      try{localStorage.setItem("privateChat",ptr);return true;}catch(_e2){}
     }
   }catch(e){}
-  if(!window.__lsFullNotified){
-    window.__lsFullNotified=1;
-    try{toast("本地快照空间不足，已自动改存到本地库；聊天和图片不会被清空");}catch(_){}
-  }
   return false;
 }
 
@@ -8351,7 +8347,7 @@ function __flushSave(immediate){
           window.__lastSaveSlim=sig;
           try{toast("本地库空间不足（"+nm+"），文字和设置已先保存到本机");}catch(_){}
         }catch(_eLs2){
-          try{toast("浏览器存储空间不足（"+nm+"）：本次改动没写进主库，旧存档已保留");}catch(_){}
+          try{toast("图片没写进本地库；文字和设置已存进离站快照，下次进入会读这份");}catch(_){}
         }
       });
     };
@@ -8626,18 +8622,11 @@ function __emergencySnapshot(){
   if(window.__restoring)return;
   try{
     if(typeof state==="undefined"||!state)return;
-    try{__e11CoreWrite(state,true);}catch(_eCoreEm){}
     state.__savedAt=Date.now();
-    var pack=__slimState(state);
-    var _snapJson=JSON.stringify(pack.slim);
-    try{
-      localStorage.setItem("privateChat",_snapJson);
-      try{sessionStorage.removeItem("privateChat__emergency");}catch(_){}
-    }catch(_eLs){
-      /* localStorage 已满时，sessionStorage 仍能在本次浏览器标签刷新后续命 */
-      try{sessionStorage.setItem("privateChat__emergency",_snapJson);}catch(_){}
-    }
-    __backupPendingBig(pack.pending);
+    /* v43-82：退出时只写“核心档 + 小指针”，不再把整库塞进 localStorage。 */
+    try{__e11CoreWrite(state,true);}catch(_eCoreEm){}
+    try{window.__e11ExitSave&&window.__e11ExitSave(state);}catch(_eExitEm){}
+    try{localStorage.setItem("privateChat",JSON.stringify({__idbOnly:1,__savedAt:state.__savedAt}));}catch(_eLs){}
   }catch(e){}
 }
 window.__emergencySnapshot=__emergencySnapshot;
@@ -9151,6 +9140,8 @@ async function init(){
       try{setTimeout(function(){try{__restoreEmojiItemsFromDb(function(ch){if(ch){try{renderEmojis();}catch(_){}}});}catch(_){}},900);}catch(_){}
     }
     var _sameSnap=_useIdb&&_ltTs>0&&_idbTs===_ltTs;
+    /* v43-82：用的是核心/文字档时，也要把 IndexedDB 里的图片、表情补回来。 */
+    if(s&&!_useIdb){try{__mergeMediaSnapshots(state,s);}catch(_eCoreMediaDb){}}
     if(s&&s.messages&&!_useIdb){try{dbSet("state",state).catch(function(){});}catch(e){}}
     if(_useIdb){
       var _lp=(state&&state.profile)||{};var _sp=(s.profile)||{};
