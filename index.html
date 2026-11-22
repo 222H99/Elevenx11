@@ -191,7 +191,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-22v43-73";
+window.__E11_BUILD="2026-11-22v43-74";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2488,7 +2488,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-22v43-73">
+<meta name="app-build" content="2026-11-22v43-74">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4209,7 +4209,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-73</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-22v43-74</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -6150,7 +6150,7 @@ setTimeout(function(){
         var k=localStorage.key(i);
         /* 设置/一起听这两个 e11 小键也进云端全局备份；auth 和云端元数据不传。 */
         if(!k||k==="privateChat"||k==="e11.auth.v1"||k==="e11.cloudMeta")continue;
-        if(k.indexOf("e11.")===0&&k!=="e11.settings.v1"&&k!=="e11.musicRoom")continue;
+        if(k.indexOf("e11.")===0&&k!=="e11.settings.v1"&&k!=="e11.musicRoom"&&k!=="e11.fit.k.v2"&&k!=="e11.fit.screen.v1")continue;
         var v=localStorage.getItem(k);if(v!==null)extras[k]=v;
       }
     }catch(e){}
@@ -6183,7 +6183,20 @@ setTimeout(function(){
         var ca=st[k],la=localState&&localState[k];
         if(!Array.isArray(ca)||!Array.isArray(la)||!la.length)return;
         var ids={};ca.forEach(function(x){if(x&&x.id)ids[x.id]=1;});
-        la.forEach(function(x){if(x&&x.id&&!ids[x.id]){ca.push(x);ids[x.id]=1;}});
+        la.forEach(function(x){
+          if(!x||!x.id)return;
+          if(!ids[x.id]){ca.push(x);ids[x.id]=1;return;}
+          /* v43-74：同 id 时不能无条件让云端旧档赢。用户在字卡/分组里改过文字、换过分组，
+             会写入 __ts；本机这个 id 比云端新就保留本机版本，避免刷新后变回旧字卡。 */
+          if(Number(x.__ts||x.updatedAt||0)>0){
+            for(var i=0;i<ca.length;i++){
+              var y=ca[i];
+              if(y&&y.id===x.id&&Number(x.__ts||x.updatedAt||0)>Number(y.__ts||y.updatedAt||0)){
+                ca[i]=x;break;
+              }
+            }
+          }
+        });
         st[k]=ca;
       });
       /* 收藏夹是用户手动留下的内容，云端空数组绝不能把本机收藏冲掉。
@@ -6258,6 +6271,18 @@ setTimeout(function(){
     try{window.__settingsSaveSig=JSON.stringify((st&&st.settings)||{});}catch(_eSetSig){}
     try{window.__skinSaveSig=JSON.stringify((st&&st.skin)||{});}catch(_eSkinSig){}
     try{window.__musicRoomSig=__e11MusicRoomSig(st);}catch(_eMrSig2){}
+    /* v43-74：自适应比例跟着存档走；云端恢复后同一块屏幕直接套上次比例，不再重新缩一次。 */
+    try{
+      var _fit=st.fit;
+      if(_fit&&String(_fit.screen||"")===window.__fitKey()){
+        var _fk1=Number(_fit.k1),_fk2=Number(_fit.k2);
+        if(_fk1>=0.62&&_fk1<=1.3&&_fk2>=0.62&&_fk2<=1.3){
+          window.__fitK1=_fk1;window.__fitK2=_fk2;
+          __fitApply((Number(window.__mePage)||0)===1?_fk2:_fk1);
+          window.__fitFrozen=true;window.__fitLocked=true;window.__fitValid=true;
+        }
+      }
+    }catch(_eFitSnap){}
     try{
       if(_localSkin){
         st.skin=st.skin||{};
@@ -6281,7 +6306,7 @@ setTimeout(function(){
     var extras=snap.extras&&typeof snap.extras==="object"?snap.extras:{};
     Object.keys(extras).forEach(function(k){
       if(k==="privateChat"||k==="__theme.v1"||k==="e11.auth.v1"||k==="e11.cloudMeta")return;
-      if(k.indexOf("e11.")===0&&k!=="e11.settings.v1"&&k!=="e11.musicRoom")return;
+      if(k.indexOf("e11.")===0&&k!=="e11.settings.v1"&&k!=="e11.musicRoom"&&k!=="e11.fit.k.v2"&&k!=="e11.fit.screen.v1")return;
       try{localStorage.setItem(k,extras[k]);}catch(e){}
     });
     var __lsOk=false;
@@ -7668,7 +7693,7 @@ function __bkMeta(){return dbGet(BK_META).then(function(m){return Array.isArray(
 /* 全局备份：聊天/动态/信件/字卡/日记这些都在 state 里；设置、一起听、偏好、
    头像副本等只存在 localStorage，单独收进来，恢复时才不会再被本机旧键盖回去。 */
 function __bkGlobalKeys(){
-  return ["e11.settings.v1","e11.musicRoom","e11.apiCfg","uiPrefs.v1","avatarBak2","lockFree","__theme.v1","e11.lastView.v1","ltRead.v1","me1Sizes","me1OrigIcons","cp2PhotoSize","cp2PhotoUserSize","cp2Opt.v1","callSave","cpPhotoBak","cp2Layout"];
+  return ["e11.settings.v1","e11.musicRoom","e11.apiCfg","e11.fit.k.v2","e11.fit.screen.v1","uiPrefs.v1","avatarBak2","lockFree","__theme.v1","e11.lastView.v1","ltRead.v1","me1Sizes","me1OrigIcons","cp2PhotoSize","cp2PhotoUserSize","cp2Opt.v1","callSave","cpPhotoBak","cp2Layout"];
 }
 function __bkCollectGlobals(){
   var out={},total=0;
@@ -8397,6 +8422,14 @@ window.__e11PersistNow=function(){
   try{if(typeof __prefSave==="function")__prefSave();}catch(_){}
   try{if(typeof __flushSave==="function")__flushSave(true);}catch(_){}
   try{if(window.__bkSaveNow)window.__bkSaveNow();}catch(_){}
+  /* 编辑完立即把这份状态推一次云端：退出/更新马上重载时，云端旧档不能再用同 id
+     的旧卡片/旧资料把刚改的内容盖回去。失败不打扰，后面还会按常规同步重试。 */
+  try{
+    if(window.__E11Cloud&&window.__E11Cloud.uploadNow){
+      var _p=window.__E11Cloud.uploadNow();
+      if(_p&&_p.catch)_p.catch(function(){});
+    }
+  }catch(_ePushNow){}
 };
 (function(){
   function flushAll(){
@@ -8976,6 +9009,10 @@ try{window.__scheduleCp2Render&&window.__scheduleCp2Render();}catch(e){}
     aboutLoadStatus("正在渲染界面…");
     setTimeout(()=>{
       window._dbReady=true;aboutLoadStatus("加载完成");
+      /* v43-74：存档读完后用真正内容再确认一次比例并写进屏幕缓存；
+         之前 220ms 的首算发生在 dbReady 之前，不落盘，于是下次打开又重量一遍。 */
+      try{window.__fitLocked=false;window.__fitFrozen=false;}catch(_eFitReady){}
+      setTimeout(function(){try{window.__fitCompute(false);}catch(_eFitReady2){}},260);
       try{setTimeout(function(){try{__restoreMePhotoFromBackup();}catch(_){}},0);}catch(_){}
       try{setTimeout(function(){try{__restorePendingLetter();}catch(_){}},0);}catch(_){}
       try{if(window.__bigPendingUsed)setTimeout(function(){try{save();}catch(_){}},300);}catch(_){}
@@ -15457,8 +15494,8 @@ function addCard(){
     activeGroupId=_gs[0].id;__setCardActiveGid(cardKindView,activeGroupId);
   }
   if(state.cards.some(c=>c.groupId===activeGroupId&&c.text===t)){toast("该字卡已存在（自动查重）");return;}
-  state.cards.push({id:uid(),groupId:activeGroupId,text:t,kind:cardKindView});$("new-card-text").value="";
-  save();renderCards();
+  state.cards.push({id:uid(),groupId:activeGroupId,text:t,kind:cardKindView,__ts:Date.now()});$("new-card-text").value="";
+  save();try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_){}renderCards();
   try{ var _i=$("new-card-text"); if(_i&&!document.hidden)_i.focus(); }catch(e){}
 }
 let mibCb=null;
@@ -15677,10 +15714,10 @@ if($("crp-ok"))$("crp-ok").addEventListener("click",function(){
   var n=0;
   target.forEach(function(c){
     var t=String(c.text||"");
-    if(t.indexOf(find)>=0){c.text=t.split(find).join(repl);n++;}
+    if(t.indexOf(find)>=0){c.text=t.split(find).join(repl);c.__ts=Date.now();n++;}
   });
   if(!n){toast("没有找到「"+find+"」");return;}
-  save();renderCards();$("card-replace-sheet").classList.remove("show");
+  save();try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_){}renderCards();$("card-replace-sheet").classList.remove("show");
   toast("已替换 "+n+" 条字卡");
 });
 if($("cmg-ok"))$("cmg-ok").addEventListener("click",function(){
@@ -15691,7 +15728,7 @@ if($("cmg-ok"))$("cmg-ok").addEventListener("click",function(){
   if(window.__cmgMode==="copy"){
     ids.forEach(function(id){
       var src=state.cards.filter(function(c){return c.id===id;})[0];
-      if(src)state.cards.push({id:uid(),groupId:g.id,text:src.text});
+      if(src)state.cards.push({id:uid(),groupId:g.id,text:src.text,__ts:Date.now()});
     });
     window.__cmgMode="move";
     save();renderCards();
@@ -15700,10 +15737,10 @@ if($("cmg-ok"))$("cmg-ok").addEventListener("click",function(){
     try{var b2=$("btn-card-multiselect");if(b2){b2.classList.remove("active");b2.style.background="";b2.style.color="";}}catch(e){}
     closeCardMoveSheet();toast("已复制 "+ids.length+" 条到："+g.name);return;
   }
-  state.cards.forEach(function(c){if(ids.indexOf(c.id)>=0)c.groupId=g.id;});
+  state.cards.forEach(function(c){if(ids.indexOf(c.id)>=0){c.groupId=g.id;c.__ts=Date.now();}});
   cardSel.clear();cardSelMode=false;
   try{var b=$("btn-card-multiselect");if(b){b.classList.remove("active");b.style.background="";b.style.color="";}}catch(e){}
-  save();renderCards();closeCardMoveSheet();toast("已移入分组："+g.name);
+  save();try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_){}renderCards();closeCardMoveSheet();toast("已移入分组："+g.name);
 });
 
 }catch(_){}
@@ -15720,7 +15757,7 @@ function saveCardEdit(){
   const t=$("card-edit-text").value.trim();if(!t){toast("字卡不能为空");return;}
   const c=state.cards.find(x=>x.id===cardEditId);if(!c){closeCardEdit();return;}
   if(state.cards.some(x=>x.id!==cardEditId&&x.groupId===c.groupId&&x.text===t)){toast("该字卡已存在（自动查重）");return;}
-  c.text=t;save();try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_){}renderCards();toast("字卡已更新");closeCardEdit();
+  c.text=t;c.__ts=Date.now();save();try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_){}renderCards();toast("字卡已更新");closeCardEdit();
 }
 $("mib-ok").addEventListener("click",function(){
   var ok=mibCb?mibCb($("mib-input").value.trim()):true;
@@ -26408,29 +26445,45 @@ window.__fitMap=window.__fitMap||{};
 /* v43-73：自适应比例存本机。同一块屏幕 + 同一套内容高度，打开网站直接用上次算好的比例，
    不再每次刷新重量一遍、也不会刚调好又缩一次；屏幕尺寸或布局真的变了才重算一次。 */
 window.__fitStoreKey="e11.fit.k.v2";
+window.__fitScreenKey="e11.fit.screen.v1";
+function __fitPairOk(k1,k2){return (k1>=0.62&&k1<=1.3)&&(k2>=0.62&&k2<=1.3);}
 window.__fitSavedGet=function(sig){
   try{
     var o=JSON.parse(localStorage.getItem(window.__fitStoreKey)||"{}");
     var r=o&&o[sig];
-    if(!r)return null;
-    var k1=Number(r.k1),k2=Number(r.k2);
-    if(!(k1>=0.62&&k1<=1.3)||!(k2>=0.62&&k2<=1.3))return null;
-    return {k1:k1,k2:k2};
-  }catch(_){return null;}
+    var k1,k2;
+    if(r){k1=Number(r.k1);k2=Number(r.k2);if(__fitPairOk(k1,k2))return {k1:k1,k2:k2};}
+    /* v43-74：内容高度签名变了也不重缩。同一块屏幕永远用上一次确认的比例；
+       只有屏幕尺寸/浏览器缩放真的变了（屏幕 key 不同）才重新适配一次。 */
+    var s=JSON.parse(localStorage.getItem(window.__fitScreenKey)||"null");
+    if(s&&String(s.screen||"")===window.__fitKey()){
+      k1=Number(s.k1);k2=Number(s.k2);
+      if(__fitPairOk(k1,k2))return {k1:k1,k2:k2};
+    }
+  }catch(_){}
+  return null;
 };
 window.__fitSavedPut=function(sig,k1,k2){
+  k1=Number(k1)||1;k2=Number(k2)||1;
   try{
     var o=JSON.parse(localStorage.getItem(window.__fitStoreKey)||"{}");
-    o[sig]={k1:Number(k1)||1,k2:Number(k2)||1,ts:Date.now()};
+    o[sig]={k1:k1,k2:k2,ts:Date.now()};
     var keys=Object.keys(o).sort(function(a,b){return (Number(o[b].ts)||0)-(Number(o[a].ts)||0);}).slice(0,8);
     var n={};keys.forEach(function(k){n[k]=o[k];});
     localStorage.setItem(window.__fitStoreKey,JSON.stringify(n));
+  }catch(_){}
+  try{
+    /* 屏幕级比例单独存，不受“内容签名”缓存只有 8 条的限制，刷新/更新都先套它。 */
+    localStorage.setItem(window.__fitScreenKey,JSON.stringify({screen:window.__fitKey(),k1:k1,k2:k2,ts:Date.now()}));
   }catch(_){}
 };
 window.__fitSavedDrop=function(sig){
   try{
     var o=JSON.parse(localStorage.getItem(window.__fitStoreKey)||"{}");
     if(o&&o[sig]){delete o[sig];localStorage.setItem(window.__fitStoreKey,JSON.stringify(o));}
+    /* v43-74：用户真的改了布局/组件尺寸时，屏幕级比例也要作废，量一次新的再存；
+       仅窗口变化/软键盘走 dirty=false，不会动这里。 */
+    localStorage.removeItem(window.__fitScreenKey);
   }catch(_){}
 };
 window.__fitCompute=function(force){
@@ -26456,6 +26509,7 @@ window.__fitCompute=function(force){
           window.__fitK1=_sv.k1;window.__fitK2=_sv.k2;
           __fitApply((Number(window.__mePage)||0)===1?_sv.k2:_sv.k1);
           window.__fitValid=true;window.__fitSigCache=_rsig;
+          try{if(window.__fitSavedPut)window.__fitSavedPut(_rsig,_sv.k1,_sv.k2);}catch(_eFitRPut){}
           return window.__fitK||1;
           }
         }catch(_eRestoreFit){}
@@ -26480,6 +26534,7 @@ window.__fitCompute=function(force){
     __fitApply((Number(window.__mePage)||0)===1?saved.k2:saved.k1);
     window.__fitValid=true;window.__fitSigCache=sig;
     window.__fitFrozen=true;window.__fitLocked=true;
+    try{if(window.__fitSavedPut)window.__fitSavedPut(sig,saved.k1,saved.k2);}catch(_eFitSPut){}
     return window.__fitK||1;
   }
   var cached=force?0:window.__fitMap[sig];
@@ -26491,6 +26546,8 @@ window.__fitCompute=function(force){
     }
     __fitApply(window.__fitK);
     window.__fitValid=true;window.__fitSigCache=sig;
+    if(window._dbReady){try{window.__fitSavedPut(sig,window.__fitK1,window.__fitK2);}catch(_eFitCPut){}}
+    else {window.__fitPending={sig:sig,k1:window.__fitK1,k2:window.__fitK2};}
     return window.__fitK||1;
   }
   var k=__fitMeasure();
@@ -26499,7 +26556,7 @@ window.__fitCompute=function(force){
   window.__fitMap[sig]={k1:window.__fitK1,k2:window.__fitK2};
   if(window._dbReady)window.__fitSavedPut(sig,window.__fitK1,window.__fitK2);
   window.__fitValid=true;window.__fitSigCache=sig;
-  try{if(!state.fit||state.fit.k!==window.__fitK||state.fit.sig!==sig){state.fit={k:window.__fitK,k1:window.__fitK1,k2:window.__fitK2,sig:sig};save();}}catch(e){}
+  try{if(!state.fit||state.fit.k!==window.__fitK||state.fit.sig!==sig||state.fit.screen!==window.__fitKey()){state.fit={k:window.__fitK,k1:window.__fitK1,k2:window.__fitK2,sig:sig,screen:window.__fitKey(),ts:Date.now()};save();}}catch(e){}
   window.__fitAllowUntil=Date.now()+1200;
   /* 自适应算完就锁定：不再等 1.2 秒，也不因为后续内容变高/切页再缩一次。 */
   if(window._dbReady){window.__fitFrozen=true;window.__fitLocked=true;}
@@ -28266,7 +28323,12 @@ try{
         var cur=(document.querySelector('meta[name="app-build"]')||{}).content||"";
         if(cur&&d.ver===cur)return;
         window.__pendingBuild=d.ver;
-        if(document.hidden){window.__pendingBuild="";location.reload();return;}
+        if(document.hidden){
+          try{if(window.__commitSettingsActive)window.__commitSettingsActive();}catch(_){}
+          try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_){}
+          try{if(window.__emergencySnapshot)window.__emergencySnapshot();}catch(_){}
+          window.__pendingBuild="";location.reload();return;
+        }
         /* 页面正开着：在主页且没在输入时才自动换版，避免聊天/写字时被刷新。
            其它页面只记下新版本，等切到后台/下次打开再换。 */
         try{
@@ -28382,6 +28444,10 @@ try{
        否则点一次失败后 10 分钟内再点都只会弹提示，永远不会自动换页。 */
     if(!manual&&recentTry(nb))return;
     markForce();markTry(nb);pendingBuild="";
+    /* v43-74：换页前先把当前编辑/设置同步落盘，更新后打开就是刚才调整过的状态。 */
+    try{if(window.__commitSettingsActive)window.__commitSettingsActive();}catch(_){}
+    try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_){}
+    try{if(window.__emergencySnapshot)window.__emergencySnapshot();}catch(_){}
     try{localStorage.setItem("__aboutAck",build()||"1");}catch(_){}
     /* 给用户一个明确反馈；后面的 location.replace 会带着新时间戳绕开 HTTP 缓存。 */
     if(manual)try{toast("正在更新到 "+nb+"…");}catch(_){}
