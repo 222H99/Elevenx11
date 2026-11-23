@@ -218,7 +218,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-128";
+window.__E11_BUILD="2026-11-23v43-129";
 /* Android 壳系统通知：WebView 没有网页 Notification API。
    这里用原生桥接出同名的 Notification，网页里的权限判断、验证消息、
    来消息 notifySystem 都能照常走到系统通知栏；网页版没有 AndroidUI，不生效。 */
@@ -2526,7 +2526,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-128">
+<meta name="app-build" content="2026-11-23v43-129">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4269,7 +4269,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-128</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-129</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -6619,13 +6619,18 @@ setTimeout(function(){
     try{
       if(_localSkin){
         st.skin=st.skin||{};
-        /* v43-107：美化（颜色、气泡、字卡背景、头像框）以云端为准，
-           只把“这台设备自己的明暗开关”留在本机。以前整份本机皮肤会把云端美化顶掉。 */
+        /* v43-128：本机美化如果比云端新，整份本机皮肤优先；云端只补本机缺的字段。
+           以前固定“美化以云端为准”，更新后第一次拉云端旧档就会把刚换的配色/气泡冲回默认。 */
         var _lk={dark:_localSkin.dark,themeMode:_localSkin.themeMode};
-        st.skin=Object.assign({},st.skin,_lk);
-        Object.keys(_localSkin).forEach(function(k){
-          if(st.skin[k]===undefined||st.skin[k]===null||st.skin[k]==="")st.skin[k]=_localSkin[k];
-        });
+        var _lkt=Number(_localSkin.__ts)||0,_ckt=Number(st.skin.__ts)||0;
+        if(_lkt>_ckt+1000){
+          st.skin=Object.assign({},st.skin,_localSkin,_lk);
+        }else{
+          st.skin=Object.assign({},st.skin,_lk);
+          Object.keys(_localSkin).forEach(function(k){
+            if(st.skin[k]===undefined||st.skin[k]===null||st.skin[k]==="")st.skin[k]=_localSkin[k];
+          });
+        }
       }
     }catch(_eKeepSkin){}
     /* 云端快照可能只存了文字/旧版本，图在别的槽里；先用本机同账号的好图把空图补回来，
@@ -7689,9 +7694,10 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-23",
   noticeKey:null,
-  lead:"v43-128：设置改动即时落盘、整页缩放不再带动设置/聊天字号、新增「站内刷新」，并核对动态/评论/留言/信件的时间与概率补发。",
+  lead:"v43-129：设置与全部美化数据在更新后保持一致；设置改动即时落盘、整页缩放隔离、站内刷新，动态/评论/留言/信件补发已核对。",
   items:[
     "设置自动保存：改数字、开关、概率、主题后立刻写入 IndexedDB 和设置小备份；即使后台恢复或云端存档较旧，也不会把刚改的设置盖回去。",
+    "美化同步保护：换肤颜色、气泡、顶栏/底栏、聊天背景、头像框、字卡信纸配色也单独带时间戳备份；本机较新时更新和云端旧档都不能冲回默认。",
     "修掉自动缩放串页：设置页、聊天页、信件/留言/动态/字卡等整页不再被主页内容高度拖着二次缩放，只缩主页自己的内容。",
     "站内刷新：设置 → 基础 → 系统里新增「站内刷新」，只重新载入页面，不清聊天、字卡、设置、头像和图片。",
     "补发核对：动态、评论、留言、信件按每个到点时段单独掷概率，补发时间落在该发的时刻，基准推进到当下，不会同一段反复补。",
@@ -9493,7 +9499,17 @@ function __settingsBackup(force){
       if(typeof v==="string"&&/(Data|data)$/.test(k)&&v.length>4000)return;
       ss[k]=v;
     });
-    var obj={ts:_ts,settings:ss};
+    /* v43-128：美化（换肤、气泡、顶栏/底栏、背景、头像框、字卡信纸配色）和设置一起备份。
+       更新换页、后台恢复、云端旧档都不能把这些冲回默认；图片类大 dataURL 仍交给图片库，避免顶爆 localStorage。 */
+    var ks={},ksrc=state.skin||{};
+    var _kts=Number(ksrc.__ts)||0;
+    if(force||!_kts)_kts=Date.now();
+    Object.keys(ksrc).forEach(function(k){
+      var v=ksrc[k];
+      if(typeof v==="string"&&v.indexOf("data:")===0&&v.length>4000)return;
+      ks[k]=v;
+    });
+    var obj={ts:_ts,settings:ss,skin:ks,skinTs:_kts};
     localStorage.setItem("e11.settings.v1",JSON.stringify(obj));
   }catch(_){}
 }
@@ -9502,11 +9518,19 @@ function __settingsBackupRestore(){
     var p=JSON.parse(localStorage.getItem("e11.settings.v1")||"null");
     if(!p||!p.settings)return false;
     var cur=Number(state.settings&&state.settings.__ts)||0,ts=Number(p.ts)||0;
+    var changed=false;
     if(ts>cur+500){
       state.settings=Object.assign({},state.settings||{},p.settings);
       state.settings.__ts=ts;
-      return true;
+      changed=true;
     }
+    var kts=Number(p.skinTs)||0,curK=Number(state.skin&&state.skin.__ts)||0;
+    if(p.skin&&kts>curK+500){
+      state.skin=Object.assign({},state.skin||{},p.skin);
+      state.skin.__ts=kts;
+      changed=true;
+    }
+    return changed;
   }catch(_){}
   return false;
 }
