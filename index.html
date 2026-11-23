@@ -218,7 +218,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-133";
+window.__E11_BUILD="2026-11-23v43-134";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -666,7 +666,13 @@ body.ui-dark #lock-forgot{color:rgba(255,255,255,.6) !important;}
 #lt-write-modal .ltw-title,#lt-write-modal .lt-write-to,#lt-write-modal .lt-write-to span,
 #lt-write-modal .lt-write-body,#lt-write-modal .lt-write-count{color:var(--write-fg,#111111) !important;}
 #lt-write-modal .lt-write-body{caret-color:var(--write-fg,#111111);}
-#lt-write-modal .lt-write-body::placeholder{color:var(--write-fg,#111111);opacity:.45;}
+#lt-write-modal .lt-write-subject{color:var(--write-fg,#111111) !important;-webkit-text-fill-color:var(--write-fg,#111111) !important;caret-color:var(--write-fg,#111111);}
+#lt-write-modal .lt-write-body{-webkit-text-fill-color:var(--write-fg,#111111);}
+#lt-write-modal .lt-write-body::placeholder,#lt-write-modal .lt-write-subject::placeholder{color:var(--write-fg,#111111) !important;opacity:.45;}
+/* 批量导入信开头/结尾的输入框：旧版内联 white 底 + 夜间白字，直接白底白字。
+   统一改成跟随主题的浅/深底，并显式设置文字填充色。 */
+#lt-tpl-batch-text{background:var(--field,#fff) !important;color:var(--ttext,#111) !important;border-color:var(--line,rgba(0,0,0,.12)) !important;-webkit-text-fill-color:var(--ttext,#111);caret-color:var(--ttext,#111);}
+#lt-tpl-batch-text::placeholder{color:var(--sub,#8E8E93) !important;-webkit-text-fill-color:var(--sub,#8E8E93) !important;}
 /* 音乐板块 */
 /* 一起听那页的 mu-name/mu-title/ml-bgbtn 由「.music-night」按真实底色决定（见文末夜玻璃块） */
 body.ui-dark .mp-name,body.ui-dark .mv-name{color:#fff !important;}
@@ -2538,7 +2544,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-133">
+<meta name="app-build" content="2026-11-23v43-134">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4029,7 +4035,10 @@ setTimeout(function(){
     <div class="sheet">
       <div class="sheet-grip"></div>
       <div style="padding:4px 16px 18px;">
-        <div style="font-size:15px;font-weight:600;margin-bottom:6px;" id="lt-tpl-batch-title">批量导入</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px;">
+          <div style="font-size:15px;font-weight:600;" id="lt-tpl-batch-title">批量导入</div>
+          <button class="small-btn" id="lt-tpl-batch-ok-top" style="font-size:12px;padding:6px 14px;flex:none;">导入</button>
+        </div>
         <div style="font-size:12px;color:#8E8E93;margin-bottom:10px;">一行一条，空行自动跳过；已存在的不会重复添加</div>
         <textarea id="lt-tpl-batch-text" placeholder="展信佳&#10;见字如面&#10;见字如晤" style="width:100%;box-sizing:border-box;height:160px;border:1px solid #E5E5EA;border-radius:12px;padding:10px;font-size:14px;line-height:1.6;background:#fff;"></textarea>
         <div class="edit-actions" style="margin-top:12px;">
@@ -4045,7 +4054,10 @@ setTimeout(function(){
     <div class="sheet">
       <div class="sheet-grip"></div>
       <div style="padding:4px 16px 18px;">
-        <div class="edit-sheet-title">批量导入字卡（导入到当前分组）</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+          <div class="edit-sheet-title">批量导入字卡（导入到当前分组）</div>
+          <button class="small-btn" id="btn-batch-import-top" style="font-size:12px;padding:6px 14px;flex:none;">导入</button>
+        </div>
         <textarea class="batch-area" id="batch-cards" placeholder="每行一条字卡，例如：&#10;早安，今天过得好吗&#10;想你了&#10;在忙什么呢？"></textarea>
         <div class="edit-actions">
           <button class="small-btn ghost" id="batch-cancel">取消</button>
@@ -4281,7 +4293,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-133</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-134</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -17965,6 +17977,7 @@ $("new-group-name").addEventListener("keydown",e=>{if(e.key==="Enter")addGroup()
 $("btn-add-card").addEventListener("click",addCard);
 $("new-card-text").addEventListener("keydown",e=>{if(e.key==="Enter")addCard();});
 $("btn-batch-import").addEventListener("click",batchImport);
+if($("btn-batch-import-top"))$("btn-batch-import-top").addEventListener("click",batchImport);
 if($("btn-batch-open"))$("btn-batch-open").addEventListener("click",function(){$("batch-overlay").classList.add("show");});
 if($("batch-cancel"))$("batch-cancel").addEventListener("click",function(){$("batch-overlay").classList.remove("show");});
 if($("batch-overlay"))$("batch-overlay").addEventListener("click",function(e){if(e.target.id==="batch-overlay")this.classList.remove("show");});
@@ -18185,6 +18198,7 @@ try{
     if(inp)inp.addEventListener("keydown",function(e){if(e.key==="Enter"){e.preventDefault();addOne();}});
   });
   var _bok=document.getElementById("lt-tpl-batch-ok");if(_bok)_bok.addEventListener("click",commitTplBatch);
+  var _bokTop=document.getElementById("lt-tpl-batch-ok-top");if(_bokTop)_bokTop.addEventListener("click",commitTplBatch);
   var _bca=document.getElementById("lt-tpl-batch-cancel");if(_bca)_bca.addEventListener("click",function(){$("lt-tpl-batch-overlay").classList.remove("show");});
   var _bov=document.getElementById("lt-tpl-batch-overlay");if(_bov)_bov.addEventListener("click",function(e){if(e.target===this)this.classList.remove("show");});
 }catch(e){}
