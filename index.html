@@ -252,7 +252,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-183";
+window.__E11_BUILD="2026-11-24v43-183i";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -1442,6 +1442,20 @@ input[type=file][hidden]{display:block !important;position:fixed !important;left
 .sheet-item.danger{color:var(--danger);}
 .sheet-item+ .sheet-item{border-top:1px solid var(--line);}
 .sheet-item:active{background:var(--panel);}
+/* 消息操作仿 iMessage：贴着被长按的那条，小圆角浮层，不再整块底部菜单 */
+#overlay{background:rgba(0,0,0,.12);align-items:flex-start;justify-content:flex-start;}
+/* v43-183g：仿 IG 长按菜单，一行图标胶囊；文字只留给读屏，不再堆两列大块 */
+#overlay #sheet{position:absolute;width:auto;max-width:calc(100% - 20px);padding:5px 6px;display:flex;flex-wrap:nowrap;align-items:stretch;gap:2px;border-radius:18px;background:rgba(250,250,252,.94);-webkit-backdrop-filter:blur(22px) saturate(180%);backdrop-filter:blur(22px) saturate(180%);box-shadow:0 12px 34px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.9);overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+#overlay #sheet::-webkit-scrollbar{display:none;}
+body.ui-dark #overlay #sheet{background:rgba(38,38,42,.95);box-shadow:0 12px 34px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.12);}
+#overlay #sheet .sheet-grip{display:none;}
+#overlay #sheet .sheet-item{padding:4px 1px 3px;min-height:0;width:48px;height:52px;flex:0 0 48px;font-size:10px;line-height:1;border:0;border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--ttext);}
+#overlay #sheet .sheet-item .icon{width:19px!important;height:19px!important;margin:0!important;vertical-align:0!important;flex:0 0 19px;}
+#overlay #sheet .sheet-item .si-txt{display:block;font-size:10px;line-height:1;font-weight:500;letter-spacing:0;white-space:nowrap;max-width:46px;overflow:hidden;}
+#overlay #sheet .sheet-item.danger{color:#ff3b30;}
+#overlay #sheet .sheet-item.danger:active{background:rgba(255,59,48,.16);}
+#overlay #sheet #act-cancel{display:none!important;}
+#overlay #sheet .sheet-item:active{background:rgba(120,120,128,.16);}
 .edit-sheet-title{font-size:15px;font-weight:600;color:var(--ttext);margin:2px 2px 10px;}
 .edit-actions{display:flex;gap:10px;margin-top:12px;}
 .edit-actions .small-btn{flex:1;}
@@ -1909,7 +1923,7 @@ o{opacity:1;transform:translateY(0);}}
 .me-title{font-size:clamp(15px,4.2vw,17px);font-weight:700;color:var(--ttext);letter-spacing:.5px;}
 .me-bgdot{position:fixed;right:18px;top:calc(16px + var(--safe-top,0px));width:36px;height:36px;border-radius:50%;border:none;background:none;color:var(--ttext);font-size:clamp(11px,3.2vw,13px);letter-spacing:2px;line-height:1;cursor:pointer;z-index:999;touch-action:manipulation;}
 .me-scroll{position:relative;z-index:1;flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:center;padding:4px 0 calc(132px + env(safe-area-inset-bottom));}
-/* v43-183：主页内容超出时优先滚动，不再把整页缩成小号；给底部 Dock 留出滚动余量 */
+/* v43-183g：主页内容超出时优先滚动，不再把整页缩成小号；给底部 Dock 留出滚动余量 */
 #view-me .me-scroll.fit-scroll{padding-bottom:calc(132px + env(safe-area-inset-bottom));}
 #view-me .me-scroll.fit-scroll .me-pager{flex:0 0 auto;}
 .me-bg-sec{font-size:clamp(11px,3.2vw,13px);font-weight:700;color:var(--sub,#7c7f95);margin-bottom:2px;}
@@ -2629,7 +2643,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-183">
+<meta name="app-build" content="2026-11-24v43-183i">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4376,7 +4390,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-183</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-24v43-183i</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -4911,13 +4925,13 @@ setTimeout(function(){
   <div class="overlay" id="overlay">
     <div class="sheet" id="sheet">
       <div class="sheet-grip"></div>
-      <div class="sheet-item" id="act-multi"><svg class="icon" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px"><use xlink:href="#i-trash"/></svg>多选消息（批量删除 / 生成长图）</div>
-      <div class="sheet-item" id="act-fav"><svg class="icon" viewBox="0 0 24 24" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round"><path d="M12 3.2l2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span id="act-fav-txt">收藏这条消息</span></div>
-      <div class="sheet-item" id="act-reply"><svg class="icon" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px"><use xlink:href="#i-reply"/></svg>引用这条消息</div>
-      <div class="sheet-item hidden" id="act-recall"><svg class="icon" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px"><use xlink:href="#i-undo"/></svg>撤回这条消息</div>
-      <div class="sheet-item hidden" id="act-edit"><svg class="icon" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px"><use xlink:href="#i-edit"/></svg>修改这条消息</div>
-      <div class="sheet-item hidden" id="act-stt"><svg class="icon" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px"><use xlink:href="#i-note"/></svg><span id="act-stt-txt">转成文字</span></div>
-      <div class="sheet-item danger" id="act-del"><svg class="icon" style="width:18px;height:18px;vertical-align:-3px;margin-right:6px"><use xlink:href="#i-trash"/></svg>删除这条消息</div>
+      <div class="sheet-item" id="act-multi" aria-label="多选消息"><svg class="icon" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:1.8"><use xlink:href="#i-dots"/></svg><span class="si-txt">多选</span></div>
+      <div class="sheet-item" id="act-fav" aria-label="收藏这条消息"><svg class="icon" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round"><path d="M12 3.2l2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span class="si-txt" id="act-fav-txt">收藏</span></div>
+      <div class="sheet-item" id="act-reply" aria-label="引用这条消息"><svg class="icon"><use xlink:href="#i-reply"/></svg><span class="si-txt">引用</span></div>
+      <div class="sheet-item hidden" id="act-recall" aria-label="撤回这条消息"><svg class="icon"><use xlink:href="#i-undo"/></svg><span class="si-txt">撤回</span></div>
+      <div class="sheet-item hidden" id="act-edit" aria-label="修改这条消息"><svg class="icon"><use xlink:href="#i-edit"/></svg><span class="si-txt">修改</span></div>
+      <div class="sheet-item hidden" id="act-stt" aria-label="转成文字"><svg class="icon"><use xlink:href="#i-note"/></svg><span class="si-txt" id="act-stt-txt">转文字</span></div>
+      <div class="sheet-item danger" id="act-del" aria-label="删除这条消息"><svg class="icon"><use xlink:href="#i-trash"/></svg><span class="si-txt">删除</span></div>
       <div class="sheet-item" id="act-cancel" style="color:#8E8E93;">取消</div>
     </div>
   </div>
@@ -7633,7 +7647,7 @@ setTimeout(function(){
       try{window.__e11ShowPwdCard?window.__e11ShowPwdCard("change"):showPwdCard("change");}catch(_ePwc){}
       return;
     }
-    if(t.closest("#btn-account-logout")){e.preventDefault();if(!(window.__e11AuthCheck?!!window.__e11AuthCheck():!!authOk())){window.__cloudLoginExplicit=1;try{window.__e11ShowLoginCard?window.__e11ShowLoginCard():showLoginCard();}catch(_eLg){}return;}logout();}
+    if(t.closest("#btn-account-logout")){e.preventDefault();if(!(window.__e11AuthCheck?!!window.__e11AuthCheck():!!authOk())){window.__cloudLoginExplicit=1;try{window.__e11ShowLoginCard?window.__e11ShowLoginCard():showLoginCard();}catch(_eLg){}return;}try{var _lo=logout();if(_lo&&_lo.catch)_lo.catch(function(x){try{toast("退出失败："+String(x&&x.message||x).slice(0,80));}catch(_){}});}catch(x){try{toast("退出失败："+String(x&&x.message||x).slice(0,80));}catch(_){}}}
     if(t.closest("#auth-force-update")){e.preventDefault();try{if(window.__e11CheckVersion)window.__e11CheckVersion(true);else location.reload();}catch(_){}}
   });
   document.addEventListener("keydown",function(e){
@@ -7899,10 +7913,10 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-23",
   noticeKey:null,
-  lead:"v43-183：桌面“先大一下再缩小”的真正原因是揭幕太早。启动层在存档读完前就撤了，主页先按默认内容显示 1.0，数据渲染完才测量并缩到 0.7~0.9。现在启动层一直盖到存档加载、按真实内容量完最终比例后再撤；主页内容超出时改为纵向滚动，不再把整个桌面缩小。",
+  lead:"v43-183g：桌面“先大一下再缩小”的真正原因是揭幕太早。启动层在存档读完前就撤了，主页先按默认内容显示 1.0，数据渲染完才测量并缩到 0.7~0.9。现在启动层一直盖到存档加载、按真实内容量完最终比例后再撤；主页内容超出时改为纵向滚动，不再把整个桌面缩小。",
   items:[
-    "桌面缩放修复（v43-183）：启动揭幕延后到存档读完和最终测量之后，第一眼就是最终尺寸；旧版本留下的 0.7/0.8 缩放缓存不再直接套用，按当前内容重新量一次。",
-    "桌面不再整体缩小（v43-183）：内容超出屏幕时改成主页纵向滚动，并为底部 Dock 留出空间，不再把第一页/第二页缩成小号；只有轻微溢出才做不超过 6% 的等比微调。",
+    "桌面缩放修复（v43-183g）：启动揭幕延后到存档读完和最终测量之后，第一眼就是最终尺寸；旧版本留下的 0.7/0.8 缩放缓存不再直接套用，按当前内容重新量一次。",
+    "桌面不再整体缩小（v43-183g）：内容超出屏幕时改成主页纵向滚动，并为底部 Dock 留出空间，不再把第一页/第二页缩成小号；只有轻微溢出才做不超过 6% 的等比微调。",
     "PWA 电量栏透明：manifest 与 theme-color 全程 #00000000；顶部安全区背景透明，不再按明暗写白/黑兜底。",
     "iOS 主屏幕：状态栏固定为 black-translucent，时间/电量图标直接压在壁纸上，背景图从最顶端铺下来；没有壁纸时顶部用黑底兜底，保证白色图标看得清。",
     "PWA 刷新：已安装的 PWA 如果还是旧界面，先完全关闭再打开；仍不生效就删除主屏幕图标，重新从主站添加一次。",
@@ -10763,7 +10777,7 @@ async function init(){
   try{
     window.__holdBootReveal=1;
     try{if(typeof showView==="function")showView(_e11BootView);}catch(e){}
-    /* v43-183：真正让“桌面先大后小”消失的关键不是算得更早，而是等存档读完再揭幕。
+    /* v43-183g：真正让“桌面先大后小”消失的关键不是算得更早，而是等存档读完再揭幕。
        以前这里立刻 __bootDone，此时 _dbReady 还没置位，主页还是默认内容（k=1）；
        260ms 后存档渲染完、真正测量缩到 0.7~0.9，用户就看到桌面被缩了一下。
        现在启动层一直盖到 _dbReady 后重新测完，才一次性显出来；4 秒兜底防止卡死。 */
@@ -10781,7 +10795,7 @@ async function init(){
       }catch(_eBootFallbackReveal){}
     },4000);
   }catch(_eBootFitReveal){try{window.__holdBootReveal=0;}catch(_x){}}
-  /* v43-183：启动层不再在这里撤，改为 _dbReady 后最终测量完成再撤。 */
+  /* v43-183g：启动层不再在这里撤，改为 _dbReady 后最终测量完成再撤。 */
   
   try{if(window.__cp2Reapply)window.__cp2Reapply();}catch(e){}
   /* v43-123：界面先出来时 stateReady 可以置 1（很多控件等它），
@@ -11152,7 +11166,7 @@ try{window.__scheduleCp2Render&&window.__scheduleCp2Render();}catch(e){}
     aboutLoadStatus("正在渲染界面…");
     setTimeout(()=>{
       window._dbReady=true;aboutLoadStatus("加载完成");
-      /* v43-183：存档真正读完，才允许最终测量。先作废旧比例，按这次的真实内容量一次；
+      /* v43-183g：存档真正读完，才允许最终测量。先作废旧比例，按这次的真实内容量一次；
          量完再撤启动层，所以用户第一眼看到的就是最终尺寸，不会“先大后小”。 */
       try{if(window.__bootPendingReveal&&window.__fitInvalidate)window.__fitInvalidate(true);}catch(_eBootFitReset){}
       try{__bkCompactOld();}catch(_eCompact){}
@@ -11584,6 +11598,21 @@ function setSkinImg(key,raw,after){
     });
   }catch(e){}
 }
+/* v43-183g：背景类设置（卡片/主页/一起听/歌词/通话/聊天）统一“选中即强制落盘”。
+   以前只调 save()，靠 260ms 的防抖定时器写库；选完背景马上切后台/滑掉 App，
+   定时器没机会跑，重开就回到旧背景。这里立即 flush 主档 + 美化图库 + 云端。 */
+function __bgPersistNow(){
+  try{
+    if(window.__e11PersistNow){window.__e11PersistNow();return;}
+    save();try{__flushSave(true);}catch(_e){}
+    try{window.__e11BeautySave&&window.__e11BeautySave(state,true);}catch(_e){}
+    try{window.__E11Cloud&&window.__E11Cloud.uploadNow&&window.__E11Cloud.uploadNow();}catch(_e){}
+  }catch(_e){
+    try{save();}catch(__e){}
+    try{__flushSave(true);}catch(__e){}
+  }
+}
+window.__bgPersistNow=__bgPersistNow;
 function __sysPrefDark(){try{return !!(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches);}catch(e){return false;}}
 
 /* v43-169：APK 状态栏透明后，网页顶部要按原生返回的电量栏高度留出安全区；
@@ -15640,11 +15669,15 @@ function catchUpSocial(){
     var mt=[];
     /* 先按时间轴把到点的次数全部取出来；每一次在下面单独掷一次概率。
        旧写法先整段掷一次、再在循环里为每次重掷一次，15% 实际变成 2.25%，所以会出现“几天都不发”。 */
-    var _mCap=capFor(state.settings.lastMomentsTime,state.settings.catchMomentsPerHour);
-    if(Number(state.settings.socialProbMoments)>0&&_mCap>0){mt=dueList(state.settings.lastMomentsTime,state.settings.momentsMinMin,state.settings.momentsMinMax,_mCap);}
-    else if(Number(state.settings.socialProbMoments)<=0||_mCap<=0){try{state.settings.lastMomentsTime=now;}catch(e){}}
+    var _mLimit=capFor(state.settings.lastMomentsTime,state.settings.catchMomentsPerHour);
+    /* 尝试次数和最终发出条数分开：以前把「每小时上限」直接当尝试次数，
+       再叠加 15% 概率，实际只剩 15%；现在按发出条数封顶，尝试给足。 */
+    var _mTries=Math.min(1500,Math.max(80,Math.round(_mLimit*30)));
+    if(Number(state.settings.socialProbMoments)>0&&_mLimit>0){mt=dueList(state.settings.lastMomentsTime,state.settings.momentsMinMin,state.settings.momentsMinMax,_mTries);}
+    else if(Number(state.settings.socialProbMoments)<=0||_mLimit<=0){try{state.settings.lastMomentsTime=now;}catch(e){}}
     for(var i=0;i<mt.length;i++){
       /* 补发也要按每一次动态的概率来掷骰子；只在进入时掷一次会把 15% 的间隔全补成动态，像刷屏。 */
+      if(momAdd>=_mLimit)break;
       if(!probPct("socialProbMoments"))continue;
       var n=Math.max(1,Math.round(rand(Number(state.settings.activeMomentsCountMin)||1,Number(state.settings.activeMomentsCountMax)||3)));
       var cards=null;try{cards=pickCardsN(n,"moment");}catch(e){}
@@ -15660,14 +15693,16 @@ function catchUpSocial(){
     if(mt.length){try{state.settings.lastMomentsTime=now;}catch(e){}}else if(!Number(state.settings.lastMomentsTime)){try{state.settings.lastMomentsTime=now;}catch(e){}}
     /* 评论：分散补在我最新 3 条动态上，遵守每条动态上限；概率 0 时不补 */
     var ct=[];
-    var _cCap=capFor(state.settings.lastCommentTime,state.settings.catchCommentPerHour);
-    if(Number(state.settings.socialProbMomentComment)>0&&_cCap>0){ct=dueList(state.settings.lastCommentTime,state.settings.commentMinMin,state.settings.commentMaxMin,_cCap);}
-    else if(Number(state.settings.socialProbMomentComment)<=0||_cCap<=0){try{state.settings.lastCommentTime=now;}catch(e){}}
+    var _cLimit=capFor(state.settings.lastCommentTime,state.settings.catchCommentPerHour);
+    var _cTries=Math.min(1500,Math.max(80,Math.round(_cLimit*30)));
+    if(Number(state.settings.socialProbMomentComment)>0&&_cLimit>0){ct=dueList(state.settings.lastCommentTime,state.settings.commentMinMin,state.settings.commentMaxMin,_cTries);}
+    else if(Number(state.settings.socialProbMomentComment)<=0||_cLimit<=0){try{state.settings.lastCommentTime=now;}catch(e){}}
     var mine=(state.moments||[]).filter(function(x){return x.from==="me";}).sort(function(a,b){return b.time-a.time;});
     var top3=mine.slice(0,3);
     var perCap=Math.max(1,Math.round(Number(state.settings.commentPerPostMax)||3));
     for(var j=0;j<ct.length&&top3.length;j++){
       /* 每一条评论也按一次概率，不能把整段离开时间里的评论全倒出来 */
+      if(comAdd>=_cLimit)break;
       if(!probPct("socialProbMomentComment"))continue;
       var tgt=top3.filter(function(m){return (m.comments||[]).filter(function(c){return c.from==="partner";}).length<perCap;});
       if(!tgt.length)break;
@@ -15683,11 +15718,13 @@ function catchUpSocial(){
     if(ct.length){try{state.settings.lastCommentTime=now;}catch(e){}}else if(!Number(state.settings.lastCommentTime)){try{state.settings.lastCommentTime=now;}catch(e){}}
     /* 留言：概率 0 时不补 */
     var nt=[];
-    var _nCap=capFor(state.settings.lastNoteTime,state.settings.catchNotePerHour);
-    if(Number(state.settings.socialProbNote)>0&&_nCap>0){nt=dueList(state.settings.lastNoteTime,state.settings.noteMinMin,state.settings.noteMaxMin,_nCap);}
-    else if(Number(state.settings.socialProbNote)<=0||_nCap<=0){try{state.settings.lastNoteTime=now;}catch(e){}}
+    var _nLimit=capFor(state.settings.lastNoteTime,state.settings.catchNotePerHour);
+    var _nTries=Math.min(1500,Math.max(80,Math.round(_nLimit*30)));
+    if(Number(state.settings.socialProbNote)>0&&_nLimit>0){nt=dueList(state.settings.lastNoteTime,state.settings.noteMinMin,state.settings.noteMaxMin,_nTries);}
+    else if(Number(state.settings.socialProbNote)<=0||_nLimit<=0){try{state.settings.lastNoteTime=now;}catch(e){}}
     for(var k2=0;k2<nt.length;k2++){
       /* 每条留言单独掷骰子，避免补发时绕过“主动留言概率”一次刷一堆 */
+      if(noteAdd>=_nLimit)break;
       if(!probPct("socialProbNote"))continue;
       var nn=Math.max(1,Math.round(rand(Number(state.settings.activeNoteCountMin)||1,Number(state.settings.activeNoteCountMax)||3)));
       var nc=null;try{nc=pickCardsN(nn);}catch(e){}
@@ -15750,10 +15787,13 @@ function catchUpMissed(){
     var _rawCap=state.settings.letterCatchMax;
     var _cap=Math.min(200,Math.max(0,Math.round(_rawCap===undefined||_rawCap===null||_rawCap===""?5:Number(_rawCap))));
     if(_cap<=0){state.settings.lastLetterTime=now;return;}
+    /* letterCatchMax 的语义是「最多补几封」，不是「最多尝试几次」；
+       15% 概率下只试 5 次，期望不到 1 封，所以信件几乎不来。这里给足够尝试次数，按发出封数封顶。 */
+    var _maxTries=Math.min(1500,Math.max(80,Math.round(_cap*30)));
     /* 每封到点的信单独掷概率；只要这一轮真的尝试过，就把基准推进到“现在”。
        只推进到最后一次旧时间的话，下次切后台回来还会从同一个旧基准继续补，
        用户会看到同一段离开时间反复冒出信件。 */
-    while(due<=now&&tries<_cap){
+    while(due<=now&&tries<_maxTries&&sent<_cap){
       tries++;
       if(!probPct("socialProbLetter")){due+=gap();continue;}
       var n=Math.max(1,Math.round(rand(Number(state.settings.activeLetterCountMin)||1,Number(state.settings.activeLetterCountMax)||1)));
@@ -16361,7 +16401,7 @@ function openActions(id,kind){
       else{
         _fi.classList.remove("hidden");
         var _has=(state.favorites||[]).some(function(x){return x.id===id;});
-        if(_ft)_ft.textContent=_has?"取消收藏":"收藏这条消息";
+        if(_ft)_ft.textContent=_has?"取消收藏":"收藏";
       }
     }
   }catch(e){}
@@ -16385,11 +16425,38 @@ function openActions(id,kind){
     try{
       var _isV=!!(m&&m.type==="voice");
       var _si=$("act-stt");
-      if(_si){_si.classList.toggle("hidden",!_isV);var _st=$("act-stt-txt");if(_st)_st.textContent=_isV?((m.sttText||m.ttsText)?"查看文字":"转成文字"):"转成文字";}
+      if(_si){_si.classList.toggle("hidden",!_isV);var _st=$("act-stt-txt");if(_st)_st.textContent=_isV?((m.sttText||m.ttsText)?"看文字":"转文字"):"转文字";}
     }catch(_eSttMenu){}
     $("act-del").classList.remove("hidden");
   }
   $("overlay").classList.add("show");
+  /* 仿 iMessage：菜单贴着长按的那条消息，长按上方空间不够就放到下方 */
+  try{
+    var _ov=$("overlay"),_sh=$("sheet");
+    var _anc=null;
+    if(kind==="rp")_anc=document.querySelector('#msglist [data-rp="'+id+'"]');
+    else if(kind==="sq")_anc=document.querySelector('#msglist [data-sq="'+id+'"]');
+    else _anc=document.querySelector('#msglist [data-id="'+id+'"]');
+    var _or=_ov.getBoundingClientRect();
+    /* 一行图标：按可见项实时算宽，语音多一个「转文字」也不会掉行 */
+    var _vis=0;
+    Array.prototype.forEach.call(_sh.querySelectorAll(".sheet-item"),function(el){if(el.id!=="act-cancel"&&!el.classList.contains("hidden"))_vis++;});
+    var _mw=Math.min(Math.max(70,_vis*48+14),Math.round(window.innerWidth-20));
+    _sh.style.width=_mw+"px";_sh.style.maxWidth=_mw+"px";
+    _sh.style.left="10px";_sh.style.top="50%";
+    var _mh=_sh.offsetHeight||220;
+    if(_anc){
+      var _ar=_anc.getBoundingClientRect();
+      var _left=Math.max(10,Math.min((window.innerWidth-_mw)/2,(((actKind==="msg")&&(msgById(id)&&msgById(id).from==="me"))?_ar.right-_mw:_ar.left)));
+      var _top=_ar.top-_mh-10;
+      if(_top<10)_top=Math.min(window.innerHeight-_mh-10,_ar.bottom+10);
+      _sh.style.left=Math.round(_left)+"px";
+      _sh.style.top=Math.round(Math.max(10,_top))+"px";
+    }else{
+      _sh.style.left=Math.round((window.innerWidth-_mw)/2)+"px";
+      _sh.style.top=Math.round(Math.max(10,(window.innerHeight-_mh)/2))+"px";
+    }
+  }catch(_eActPos){}
 }
 function closeActions(){$("overlay").classList.remove("show");actMsgId=null;}
 $("act-cancel").addEventListener("click",closeActions);
@@ -19031,8 +19098,12 @@ function openCardView(id){
 function closeCardView(){
   cardViewId=null;
   var ov=document.getElementById("card-view-overlay");
+  /* v43-183h：只有真的关着字卡查看层时才屏蔽主页图标。
+     showView 每次都会调到这里，以前即使没打开字卡也加 600ms 屏蔽，
+     结果从任何页面回主页，聊天/信箱/设置图标都会短暂点不动。 */
+  var _wasOpen=!!(ov&&ov.classList.contains("show"));
   if(ov)ov.classList.remove("show");
-  try{if(window.__e11ShieldApps)window.__e11ShieldApps(600);}catch(_){}
+  if(_wasOpen){try{if(window.__e11ShieldApps)window.__e11ShieldApps(600);}catch(_){}}
 }
 function openCardEdit(id){
   const c=state.cards.find(x=>x.id===id);if(!c)return;
@@ -19306,13 +19377,13 @@ function renderGbBgSwatches(){
   }).join("");
   w.querySelectorAll("[data-gbi]").forEach(b=>b.addEventListener("click",()=>{
     const i=parseInt(b.dataset.gbi,10);
-    state.skin.gbBg=i;state.skin.gbImage="";applySkin();save();renderGbBgSwatches();
+    state.skin.gbBg=i;state.skin.gbImage="";applySkin();renderGbBgSwatches();__bgPersistNow();
   }));
 }
 $("btn-gb-bg").addEventListener("click",()=>{renderGbBgSwatches();$("gb-bgsheet").classList.add("show");});
 $("gb-bg-cancel").addEventListener("click",()=>$("gb-bgsheet").classList.remove("show"));
 $("gb-bgsheet").addEventListener("click",e=>{if(e.target.id==="gb-bgsheet")$("gb-bgsheet").classList.remove("show");});
-$("gb-sheet-clear").addEventListener("click",()=>{state.skin.gbImage="";state.skin.gbBg=0;applySkin();save();renderGbBgSwatches();toast("已恢复默认背景");});
+$("gb-sheet-clear").addEventListener("click",()=>{state.skin.gbImage="";state.skin.gbBg=0;applySkin();renderGbBgSwatches();__bgPersistNow();toast("已恢复默认背景");});
 $("gb-sheet-import").addEventListener("click",function(){
   window.__pickLocalFile("image/*",function(files){var f=files&&files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){setSkinImg("gbImage",String(rd.result),renderGbBgSwatches);toast("留言板背景已更换");};rd.readAsDataURL(f);});
 });
@@ -19326,7 +19397,7 @@ function renderLtBgSwatches(){
   }).join("");
   w.querySelectorAll("[data-lti]").forEach(b=>b.addEventListener("click",()=>{
     const i=parseInt(b.dataset.lti,10);
-    state.skin.ltBg=i;state.skin.ltImage="";applySkin();save();try{__flushSave()}catch(e){};applyLetterPageBackdrop();renderLtBgSwatches();
+    state.skin.ltBg=i;state.skin.ltImage="";applySkin();applyLetterPageBackdrop();renderLtBgSwatches();__bgPersistNow();
   }));
 }
 var __tplBatchTarget="open";
@@ -19395,7 +19466,7 @@ document.addEventListener("click",function(e){
   try{renderLtBgSwatches();}catch(_){}
   var sh=$("lt-bgsheet");if(sh)sh.classList.add("show");
 },true);
-$("lt-sheet-clear").addEventListener("click",()=>{state.skin.ltImage="";state.skin.ltBg=0;applySkin();save();renderLtBgSwatches();toast("信件背景已恢复默认");});
+$("lt-sheet-clear").addEventListener("click",()=>{state.skin.ltImage="";state.skin.ltBg=0;applySkin();renderLtBgSwatches();__bgPersistNow();toast("信件背景已恢复默认");});
 $("lt-sheet-import").addEventListener("click",function(){
   window.__pickLocalFile("image/*",function(files){var f=files&&files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){setSkinImg("ltImage",String(rd.result),function(){renderLtBgSwatches();applyLetterPageBackdrop();});toast("信件背景已更换");};rd.readAsDataURL(f);});
 });
@@ -19409,13 +19480,13 @@ function renderGameBgSwatches(){
   }).join("");
   w.querySelectorAll("[data-gami]").forEach(b=>b.addEventListener("click",()=>{
     const i=parseInt(b.dataset.gami,10);
-    state.skin.gameBg=i;state.skin.gameImage="";applySkin();save();renderGameBgSwatches();
+    state.skin.gameBg=i;state.skin.gameImage="";applySkin();renderGameBgSwatches();__bgPersistNow();
   }));
 }
 $("btn-game-bg").addEventListener("click",()=>{renderGameBgSwatches();$("game-bgsheet").classList.add("show");});
 $("game-bg-cancel").addEventListener("click",()=>$("game-bgsheet").classList.remove("show"));
 $("game-bgsheet").addEventListener("click",e=>{if(e.target.id==="game-bgsheet")$("game-bgsheet").classList.remove("show");});
-$("game-sheet-clear").addEventListener("click",()=>{state.skin.gameImage="";state.skin.gameBg=0;applySkin();save();renderGameBgSwatches();toast("画画背景已恢复主题");});
+$("game-sheet-clear").addEventListener("click",()=>{state.skin.gameImage="";state.skin.gameBg=0;applySkin();renderGameBgSwatches();__bgPersistNow();toast("画画背景已恢复主题");});
 $("game-sheet-import").addEventListener("click",function(){
   window.__pickLocalFile("image/*",function(files){var f=files&&files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){setSkinImg("gameImage",String(rd.result),renderGameBgSwatches);toast("画画背景已更换");};rd.readAsDataURL(f);});
 });
@@ -20216,7 +20287,10 @@ try{
 }catch(_){}
 
 ["accent","bg","mybubble","partbubble","topbar","bottombar"].forEach(k=>{
-  $("skin-"+k).addEventListener("input",e=>{state.skin[k]=e.target.value;applySkin();save();});
+  var _el=$("skin-"+k);if(!_el)return;
+  _el.addEventListener("input",e=>{state.skin[k]=e.target.value;applySkin();save();});
+  /* 颜色选择器松手/确认时强制落盘，避免选完立刻切后台没写进库 */
+  _el.addEventListener("change",e=>{state.skin[k]=e.target.value;applySkin();__bgPersistNow();});
 });
 $("skin-mytext").addEventListener("input",e=>{state.skin.myTextColor=e.target.value;applySkin();save();});
 $("skin-parttext").addEventListener("input",e=>{state.skin.partTextColor=e.target.value;applySkin();save();});
@@ -20275,7 +20349,7 @@ $("file-bgimg").addEventListener("change",e=>{
   r.onload=()=>{setSkinImg("bgImage",String(r.result));toast("背景图已更新");};
   r.readAsDataURL(f);e.target.value="";
 });
-$("btn-bgimg-clear").addEventListener("click",()=>{state.skin.bgImage="";applySkin();save();toast("已移除背景图");});
+$("btn-bgimg-clear").addEventListener("click",()=>{state.skin.bgImage="";applySkin();__bgPersistNow();toast("已移除背景图");});
 
 /* ===== 头像形状（圆形/方形）===== */
 function applyAvatarShape(){
@@ -21419,6 +21493,23 @@ __fastTapBtn("btn-send",sendMyText);
   });
 })();
 $("qi-close").addEventListener("click",clearQuote);
+/* v43-183g：引用条上的叉只取消引用，绝不穿透到导航。
+   iOS 上按钮被快速重渲染/手指抬起时，click 可能落到下面的导航项（之前会跳到信件页），
+   这里在 document 捕获阶段先截住，早于所有 showView 委托。 */
+(function(){
+  var _qx=$("qi-close");if(!_qx)return;
+  function _qCancel(e){
+    var t=e.target&&e.target.closest?e.target.closest("#qi-close"):null;
+    if(!t)return;
+    try{e.preventDefault();e.stopPropagation();}catch(_){}
+    if(e.type!=="pointerdown")clearQuote();
+    /* 不让后续 click 再命中底下的页面导航 */
+    try{e.stopImmediatePropagation&&e.stopImmediatePropagation();}catch(_){}
+  }
+  document.addEventListener("pointerdown",_qCancel,true);
+  document.addEventListener("pointerup",_qCancel,true);
+  document.addEventListener("click",_qCancel,true);
+})();
 
 /* ===== 视图切换 ===== */
 /* 新留言/信件/主页角标计数（已取消红点，统一改为聊天记录居中提示） */
@@ -22051,16 +22142,16 @@ $("call-bg").addEventListener("click",()=>{$("call-bg-sheet").classList.add("sho
 $("cb-import").addEventListener("click",()=>window.__nativePick("cb-file"));
 $("cb-save").addEventListener("click",()=>{
   var u=$("cb-url").value.trim();if(!u)return;
-  state.callBgImg=u;save();applyCallMode();toast("通话背景已更新");$("call-bg-sheet").classList.remove("show");
+  state.callBgImg=u;applyCallMode();__bgPersistNow();toast("通话背景已更新");$("call-bg-sheet").classList.remove("show");
 });
 $("cb-reset").addEventListener("click",()=>{
-  state.callBgImg="";save();applyCallMode();toast("已恢复默认背景");$("call-bg-sheet").classList.remove("show");
+  state.callBgImg="";applyCallMode();__bgPersistNow();toast("已恢复默认背景");$("call-bg-sheet").classList.remove("show");
 });
 $("cb-file").addEventListener("change",function(e){
   var f=this.files&&this.files[0];if(!f)return;
   var rd=new FileReader();
   rd.onload=function(){var raw=String(rd.result);
-    gCompress(raw).then(function(u){state.callBgImg=u;save();applyCallMode();toast("通话背景已更新");$("call-bg-sheet").classList.remove("show");});
+    gCompress(raw).then(function(u){state.callBgImg=u;applyCallMode();__bgPersistNow();toast("通话背景已更新");$("call-bg-sheet").classList.remove("show");});
   };
   rd.readAsDataURL(f);e.target.value="";
 });
@@ -22322,7 +22413,7 @@ function renderMusicBg(){
   const grid=$("music-bg-grid");grid.innerHTML="";
   MUSIC_BG.forEach((p,i)=>{
     const c=document.createElement("div");c.className="mb-cell"+(i===state.musicBg?" on":"");c.style.background=p.g||"linear-gradient(135deg,#f6f7f9,#eef1f5)";
-    c.onclick=()=>{state.musicBg=i;state.musicBgImg="";save();renderMusicBg();};
+    c.onclick=()=>{state.musicBg=i;state.musicBgImg="";renderMusicBg();__bgPersistNow();};
     grid.appendChild(c);
   });
 }
@@ -24718,21 +24809,21 @@ function stxt(t){var e=document.getElementById('ny-st'); if(e)e.textContent=t;}
   $("lyric-bg-sheet").addEventListener("click",function(e){if(e.target===e.currentTarget)$("lyric-bg-sheet").classList.remove("show");});
   $("lbg-close").addEventListener("click",()=>$("lyric-bg-sheet").classList.remove("show"));
   $("lbg-use-music").addEventListener("click",()=>{
-    state.musicLyricBgImg="";save();renderLyricBg();
+    state.musicLyricBgImg="";renderLyricBg();__bgPersistNow();
     toast("歌词页已跟随一起听背景");$("lyric-bg-sheet").classList.remove("show");
   });
-  $("lbg-reset").addEventListener("click",()=>{state.musicLyricBgImg="";save();renderLyricBg();toast("已恢复默认");$("lyric-bg-sheet").classList.remove("show");});
+  $("lbg-reset").addEventListener("click",()=>{state.musicLyricBgImg="";renderLyricBg();__bgPersistNow();toast("已恢复默认");$("lyric-bg-sheet").classList.remove("show");});
   $("lbg-import").addEventListener("click",()=>window.__nativePick("lbg-file"));
   $("lbg-url").addEventListener("focus",function(){try{this.scrollIntoView({block:"center"});}catch(e){}});
   $("lbg-save-url").addEventListener("click",()=>{
     var u=$("lbg-url").value.trim();if(!u){toast("请输入图片链接");return;}
-    state.musicLyricBgImg=u;save();renderLyricBg();toast("已设置歌词背景");$("lyric-bg-sheet").classList.remove("show");
+    state.musicLyricBgImg=u;renderLyricBg();__bgPersistNow();toast("已设置歌词背景");$("lyric-bg-sheet").classList.remove("show");
   });
   $("lbg-file").addEventListener("change",function(){
     var f=this.files&&this.files[0];if(!f)return;
     var rd=new FileReader();
     rd.onload=function(){var raw=rd.result;
-      var apply=function(u){state.musicLyricBgImg=u;save();renderLyricBg();toast("已导入歌词背景");$("lyric-bg-sheet").classList.remove("show");};
+      var apply=function(u){state.musicLyricBgImg=u;renderLyricBg();__bgPersistNow();toast("已导入歌词背景");$("lyric-bg-sheet").classList.remove("show");};
       try{gCompress(raw).then(apply).catch(function(){apply(raw);});}catch(e){apply(raw);}
     };
     rd.readAsDataURL(f);this.value="";
@@ -24961,27 +25052,27 @@ $("btn-music-back").addEventListener("click",function(){
   });
   $("music-bg-sheet").addEventListener("click",e=>{if(e.target===e.currentTarget)$("music-bg-sheet").classList.remove("show");});
 $("mb-confirm").addEventListener("click",()=>{$("music-bg-sheet").classList.remove("show");});
-  $("mb-save").addEventListener("click",()=>{const u=$("mb-url").value.trim();if(!u)return;state.musicBgImg=u;save();renderMusicBg();toast("已设置背景");$("music-bg-sheet").classList.remove("show");});
+  $("mb-save").addEventListener("click",()=>{const u=$("mb-url").value.trim();if(!u)return;state.musicBgImg=u;renderMusicBg();__bgPersistNow();toast("已设置背景");$("music-bg-sheet").classList.remove("show");});
   $("mb-import").addEventListener("click",()=>window.__nativePick("mb-file"));
   $("mdc-import")&&$("mdc-import").addEventListener("click",()=>window.__nativePick("mdc-img"));
   $("mdc-save")&&$("mdc-save").addEventListener("click",function(){
     var u=$("mdc-url").value.trim();if(!u){toast("请输入图片链接");return;}
-    state.musicDiscInnerImg=u;save();renderMusicBg();toast("已设置唱片中心背景");$("music-bg-sheet").classList.remove("show");
+    state.musicDiscInnerImg=u;renderMusicBg();__bgPersistNow();toast("已设置唱片中心背景");$("music-bg-sheet").classList.remove("show");
   });
   $("mdc-reset")&&$("mdc-reset").addEventListener("click",function(){
-    state.musicDiscInnerImg="";save();renderMusicBg();toast("中心背景已恢复默认");$("music-bg-sheet").classList.remove("show");
+    state.musicDiscInnerImg="";renderMusicBg();__bgPersistNow();toast("中心背景已恢复默认");$("music-bg-sheet").classList.remove("show");
   });
   $("mdc-img")&&$("mdc-img").addEventListener("change",function(e){
     var f=e.target.files&&e.target.files[0];if(!f)return;
     var rd=new FileReader();
-    rd.onload=function(){var raw=rd.result;var apply=function(u){state.musicDiscInnerImg=u;save();renderMusicBg();toast("已导入唱片中心背景");$("music-bg-sheet").classList.remove("show");};
+    rd.onload=function(){var raw=rd.result;var apply=function(u){state.musicDiscInnerImg=u;renderMusicBg();__bgPersistNow();toast("已导入唱片中心背景");$("music-bg-sheet").classList.remove("show");};
       try{gCompress(raw).then(apply).catch(function(){apply(raw);});}catch(_){apply(raw);}};
     rd.readAsDataURL(f);this.value="";
   });
   $("mb-file").addEventListener("change",e=>{
     const f=e.target.files&&e.target.files[0];if(!f)return;
     const rd=new FileReader();
-    rd.onload=()=>{var raw=rd.result;var apply=function(u){state.musicBgImg=u;state.musicBg=0;save();renderMusicBg();toast("已导入背景");$("music-bg-sheet").classList.remove("show");
+    rd.onload=()=>{var raw=rd.result;var apply=function(u){state.musicBgImg=u;state.musicBg=0;renderMusicBg();__bgPersistNow();toast("已导入背景");$("music-bg-sheet").classList.remove("show");
       setTimeout(function(){if(!db)return;dbGet("state").then(function(v){return __hydrateBig(v);}).then(function(v){if(!v||String(v.musicBgImg||"").slice(0,10)!==String(u).slice(0,10)){toast("背景没能保存，请换一张更小的图片");}}).catch(function(){});},600);
     };try{gCompress(raw).then(apply);}catch(_){apply(raw);}};
     rd.readAsDataURL(f);
@@ -26483,10 +26574,10 @@ function _importImageTo(cb){
   ["pt-paper-import","pt-env-import","pt-paper-reset","pt-env-reset"].forEach(function(id){
     var b=document.getElementById(id);if(!b||b._b)return;b._b=1;
     b.addEventListener("click",function(){
-      if(id==="pt-paper-import"){_importImageTo(function(url){state.settings.paperBg={img:url};save();try{__flushSave();}catch(e){}renderPartnerStyleUI();toast("对方来信信纸已换成这张图");});return;}
-      if(id==="pt-env-import"){_importImageTo(function(url){state.settings.envBg={img:url};save();try{__flushSave();}catch(e){}renderPartnerStyleUI();toast("对方来信信封已换成这张图");});return;}
-      if(id==="pt-paper-reset"){state.settings.paperBg={k:"lined"};save();try{__flushSave();}catch(e){}renderPartnerStyleUI();toast("对方来信信纸已恢复白横线");return;}
-      if(id==="pt-env-reset"){state.settings.envBg={k:"glass"};save();try{__flushSave();}catch(e){}renderPartnerStyleUI();toast("对方来信信封已恢复默认");return;}
+      if(id==="pt-paper-import"){_importImageTo(function(url){state.settings.paperBg={img:url};renderPartnerStyleUI();__bgPersistNow();toast("对方来信信纸已换成这张图");});return;}
+      if(id==="pt-env-import"){_importImageTo(function(url){state.settings.envBg={img:url};renderPartnerStyleUI();__bgPersistNow();toast("对方来信信封已换成这张图");});return;}
+      if(id==="pt-paper-reset"){state.settings.paperBg={k:"lined"};renderPartnerStyleUI();__bgPersistNow();toast("对方来信信纸已恢复白横线");return;}
+      if(id==="pt-env-reset"){state.settings.envBg={k:"glass"};renderPartnerStyleUI();__bgPersistNow();toast("对方来信信封已恢复默认");return;}
     });
   });
   renderPartnerStyleUI();
@@ -26709,7 +26800,7 @@ function openEnvBgSheet(){
     bg.addEventListener("click",function(e){if(e.target===bg)bg.classList.remove("show");});
     var cl=document.getElementById("env-bg-close");cl&&cl.addEventListener("click",function(){bg.classList.remove("show");});
     var rs=document.getElementById("env-bg-reset");
-    rs&&rs.addEventListener("click",function(){setEnvSetting({k:"glass"});save();try{__flushSave();}catch(e){}openEnvBgSheet();applyEnvBg();toast("信封背景已恢复默认");});
+    rs&&rs.addEventListener("click",function(){setEnvSetting({k:"glass"});openEnvBgSheet();applyEnvBg();__bgPersistNow();toast("信封背景已恢复默认");});
     var im=document.getElementById("env-bg-import");
     im&&im.addEventListener("click",function(){
       window.__pickLocalFile("image/*",function(files){
@@ -28364,7 +28455,7 @@ function renderMomBgSwatches(){
   }).join("");
   w.querySelectorAll("[data-mbi]").forEach(b=>b.addEventListener("click",()=>{
     const i=parseInt(b.dataset.mbi,10);
-    state.skin.momBg=i;state.skin.momImage="";applySkin();save();renderMomBgSwatches();
+    state.skin.momBg=i;state.skin.momImage="";applySkin();renderMomBgSwatches();__bgPersistNow();
   }));
 }
 $("mom-sheet-import").addEventListener("click",function(){
@@ -28373,7 +28464,7 @@ $("mom-sheet-import").addEventListener("click",function(){
     var rd=new FileReader();rd.onload=function(){setSkinImg("momImage",String(rd.result),renderMomBgSwatches);toast("主页全局背景已更换");};rd.readAsDataURL(f);
   });
 });
-$("mom-sheet-clear").addEventListener("click",()=>{state.skin.momImage="";state.skin.momBg=0;applySkin();save();renderMomBgSwatches();toast("主页全局背景已恢复主题");});
+$("mom-sheet-clear").addEventListener("click",()=>{state.skin.momImage="";state.skin.momBg=0;applySkin();renderMomBgSwatches();__bgPersistNow();toast("主页全局背景已恢复主题");});
 let bioSeg="me";
 function fillBioForm(){
   const p=state.profile||{};
@@ -29200,7 +29291,9 @@ window.__keepPhotoAboveDock=function(){
        否则会拿旧布局的位置把照片框拉回去，看起来就是上下乱跳 */
     var layKey=(((state&&state.cp2Layout&&state.cp2Layout.layout)||"")+"|"+JSON.stringify(((state&&state.cp2Layout&&state.cp2Layout.widgets||{}).photo||null)));
     if(!ph._kOrig||ph._kOrig.key!==layKey){ph._kOrig={top:ph.offsetTop,h:ph.offsetHeight,key:layKey};}
-    ph.style.top=ph._kOrig.top+"px";ph.style.height=ph._kOrig.h+"px";
+    ph.style.top=ph._kOrig.top+"px";
+    /* v43-183h：尺寸只由布局记录决定，这里绝不再写 height。
+       否则缓存里的旧高度会在每次校正时把用户刚调好的照片框改回去。 */
     /* v43-151：先找出照片框上方最近的组件下沿（唱片/倒数日/对话）。
        以前为了躲固定栏会一直把照片框往上推，推过头就盖住唱片和倒数日。
        现在只在「照片框原本就在它们下方」时把这条线当地板，绝不再越过。 */
@@ -29224,9 +29317,10 @@ window.__keepPhotoAboveDock=function(){
     var minTopScreen=floor?floor+8:pr0.top;
     var minTopCss=ph.offsetTop+Math.max(0,(minTopScreen-pr0.top)/k);
     if(ph.offsetTop<minTopCss-0.5)ph.style.top=Math.ceil(minTopCss)+"px";
-    /* 用屏幕坐标反复校正，缩放换算误差在迭代里自动收敛。
-       能上移时优先上移；已经到组件地板就只压高度，绝不压到唱片/倒数日。 */
-    for(var i=0;i<8;i++){
+    /* v43-183h：照片框尺寸必须固定，不再为了躲固定栏把高度压小。
+       能整体上移就上移；上方已被唱片/倒数日挡住时，交给整页等比缩放，
+       这样照片框的宽高记录不变，所有小组件也一起留在固定栏上面。 */
+    for(var i=0;i<4;i++){
       var pr=ph.getBoundingClientRect(),dr=dock.getBoundingClientRect();
       var over=pr.bottom-(dr.top-6);
       if(over<=1)break;
@@ -29237,16 +29331,52 @@ window.__keepPhotoAboveDock=function(){
         ph.style.top=Math.floor(target)+"px";
         continue;
       }
-      var h=ph.offsetHeight;
-      if(h>48)ph.style.height=Math.max(48,h-Math.ceil(step))+"px";
-      else break;
+      break;
     }
+    try{
+      var _prF=ph.getBoundingClientRect(),_drF=dock.getBoundingClientRect();
+      if(_prF.bottom>_drF.top-6)window.__scheduleDockFit&&window.__scheduleDockFit();
+    }catch(_eFitDockFix){}
   }catch(e){}
 };
 
+/* v43-183h：固定栏上方不只照片框，所有可见小组件都要在 Dock 上面。
+   先靠整页等比缩放解决；比例已到下限仍压住时不再死循环重算。 */
+window.__scheduleDockFit=function(){
+  if(window.__dockFitTimer)return;
+  window.__dockFitTimer=setTimeout(function(){
+    window.__dockFitTimer=null;
+    try{
+      var k=Number(window.__fitK)||1;
+      if(k<=0.621)return;
+      if(window.__fitInvalidate)window.__fitInvalidate(true);
+      if(window.__fitCompute)window.__fitCompute(true);
+    }catch(_eDockFit){}
+  },180);
+};
+window.__keepWidgetsAboveDock=function(){
+  try{
+    if(!window.__fitLocked&&!window.__fitK)return;
+    var dock=window.__dockTopPx?window.__dockTopPx():0;if(!dock)return;
+    var maxB=0,pages=["#me-page-1 .me-page-inner","#me-page-2 .me-page-inner"];
+    for(var pi=0;pi<pages.length;pi++){
+      var root=document.querySelector(pages[pi]);if(!root)continue;
+      var ns=root.querySelectorAll('[data-cp2],.me-app,.me-showcase');
+      for(var i=0;i<ns.length;i++){
+        var el=ns[i];if(!el||el.offsetParent===null||getComputedStyle(el).display==="none")continue;
+        var r=el.getBoundingClientRect();if(r.width<=1||r.height<=1)continue;
+        if(r.bottom>maxB)maxB=r.bottom;
+      }
+    }
+    if(maxB>dock-6){
+      var k=Number(window.__fitK)||1;
+      if(k>0.621)window.__scheduleDockFit();
+    }
+  }catch(_eKeepAll){}
+};
 function scheduleCp2Clamp(delay){
   clearTimeout(_cp2ClampT);
-  _cp2ClampT=setTimeout(function(){try{window.__pinPhotoUnderChat();}catch(e){}try{window.__clampCp2AboveDock();}catch(e){}try{window.__keepPhotoAboveDock();}catch(e){}},delay||0);
+  _cp2ClampT=setTimeout(function(){try{window.__pinPhotoUnderChat();}catch(e){}try{window.__clampCp2AboveDock();}catch(e){}try{window.__keepPhotoAboveDock();}catch(e){}try{window.__keepWidgetsAboveDock();}catch(e){}},delay||0);
 }
 window.addEventListener("resize",function(){scheduleCp2Clamp(80);});
 try{if(window.visualViewport)window.visualViewport.addEventListener("resize",function(){scheduleCp2Clamp(120);});}catch(e){}
@@ -29460,7 +29590,7 @@ function renderMeCardSwatches(){
   GB_PRESETS.forEach((p,i)=>{
     const c=document.createElement("div");c.className="mb-cell"+(i===0&&!state.skin.meTopImage&&!state.skin.meTopBg?" on":"")+(i>0&&state.skin.meTopBg===i&&!state.skin.meTopImage?" on":"");
     c.style.background=p.g||"linear-gradient(135deg,#f6f7f9,#eef1f5)";
-    c.onclick=()=>{state.skin.meTopBg=i;state.skin.meTopImage="";renderMe();save();};
+    c.onclick=()=>{state.skin.meTopBg=i;state.skin.meTopImage="";renderMe();renderMeCardSwatches();__bgPersistNow();};
     w.appendChild(c);
   });
 }
@@ -29470,16 +29600,16 @@ function renderMeGlobalSwatches(){
   GB_PRESETS.forEach((p,i)=>{
     const c=document.createElement("div");c.className="mb-cell"+(i===state.skin.meBg&&!state.skin.meImage?" on":"");
     c.style.background=p.g||"linear-gradient(135deg,#f6f7f9,#eef1f5)";
-    c.onclick=()=>{state.skin.meBg=i;state.skin.meImage="";applySkin();renderMe();save();renderMeGlobalSwatches();};
+    c.onclick=()=>{state.skin.meBg=i;state.skin.meImage="";applySkin();renderMe();renderMeGlobalSwatches();__bgPersistNow();};
     w.appendChild(c);
   });
 }
 $("me-bg-cancel").addEventListener("click",()=>$("me-bgsheet").classList.remove("show"));
 $("me-bgsheet").addEventListener("click",e=>{if(e.target===e.currentTarget)$("me-bgsheet").classList.remove("show");});
 $("btn-me-bg").addEventListener("click",()=>{renderMeGlobalSwatches();renderMeCardSwatches();$("me-bgsheet").classList.add("show");});
-$("me-gb-clear").addEventListener("click",()=>{state.skin.meImage="";state.skin.meBg=0;applySkin();renderMe();save();renderMeGlobalSwatches();toast("全局背景已恢复");});
+$("me-gb-clear").addEventListener("click",()=>{state.skin.meImage="";state.skin.meBg=0;applySkin();renderMe();renderMeGlobalSwatches();__bgPersistNow();toast("全局背景已恢复");});
 $("me-gb-import").addEventListener("click",function(){window.__pickLocalFile("image/*",function(files){var f=files&&files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){state.skin.meBg=0;setSkinImg("meImage",String(rd.result),renderMeGlobalSwatches);renderMe();toast("全局背景已更换");};rd.readAsDataURL(f);});});
-$("me-card-clear").addEventListener("click",()=>{state.skin.meTopImage="";state.skin.meTopBg=0;renderMe();save();toast("卡片背景已恢复");});
+$("me-card-clear").addEventListener("click",()=>{state.skin.meTopImage="";state.skin.meTopBg=0;renderMe();renderMeCardSwatches();__bgPersistNow();toast("卡片背景已恢复");});
 $("me-card-import").addEventListener("click",function(){window.__pickLocalFile("image/*",function(files){var f=files&&files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){setSkinImg("meTopImage",String(rd.result),renderMe);toast("卡片背景已更换");};rd.readAsDataURL(f);});});
 $("me-nav-chat").addEventListener("click",()=>showView("view-chat"));
 $("me-nav-moments").addEventListener("click",()=>{mpSide="me";window.__momWantPartner=0;showView("view-moments");});
@@ -30021,13 +30151,14 @@ window.__dockTopPx=function(){
   if(document.getElementById("cp2-recover"))document.getElementById("cp2-recover").addEventListener("click",function(){renderRecover();if(overlay)overlay.style.display="flex";});
   if(document.getElementById("cp2-reset-layout"))document.getElementById("cp2-reset-layout").addEventListener("click",function(){
     state.cp2Layout=state.cp2Layout||{};state.cp2Layout.layout="classic";state.cp2Layout.widgets={};state.cp2Layout.deleted=[];
-    /* 恢复默认布局 = 恢复原始大小：清掉手动调过的尺寸记录，否则刷新还会套用旧大小 */
-    try{localStorage.removeItem("cp2PhotoUserSize");localStorage.removeItem("cp2PhotoSize");}catch(_e0){}
+    /* v43-183h：恢复默认只复位位置，照片框始终保留用户调好的宽高。 */
+    var _keepPhSize=null;
+    try{var _kp=JSON.parse(localStorage.getItem("cp2PhotoUserSize")||"null");if(_kp&&_kp.w>80&&_kp.h>60)_keepPhSize={w:Math.round(_kp.w),h:Math.round(_kp.h)};}catch(_e0){}
     if(trash){var _tr=[].slice.call(trash.children);for(var _i2=0;_i2<_tr.length;_i2++){var _el=_tr[_i2];if(_el.parentNode===trash)trash.removeChild(_el);var _id2=keyOf(_el);if(_id2){var _dp=defPos(_id2);_el.style.position="absolute";_el.style.left=_dp.x+"px";_el.style.top=_dp.y+"px";_el.style.width=_dp.w+"px";_el.style.height=_dp.h+"px";_el.style.margin="0";_el.style.transform="";page.appendChild(_el);}}}
     // 恢复所有组件显示（清掉横向布局残留的隐藏），确保唱片等组件恢复默认后都出现
     var _rc=page.querySelectorAll('[data-cp2]');
     for(var _ri=0;_ri<_rc.length;_ri++){var _rid=_rc[_ri].getAttribute("data-cp2");_rc[_ri].style.display=(_rid==="photo"||_rid==="av")?"flex":"";}
-    try{localStorage.removeItem("cp2PhotoUserSize");localStorage.removeItem("cp2PhotoSize");}catch(_e1){}
+
     /* 清掉「上次写入值」缓存：手动拖拽缩放过的组件标签记的是旧尺寸，
        不清就会被当成没变化而跳过，尺寸永远回不到默认 */
     var _rcC=page.querySelectorAll('[data-cp2]');
@@ -30039,10 +30170,12 @@ window.__dockTopPx=function(){
       var _did=_rcD[_di].getAttribute("data-cp2");var _dd=defPos(_did);if(!_dd)continue;
       var _el3=_rcD[_di];
       _el3.style.position="absolute";_el3.style.left=_dd.x+"px";_el3.style.top=_dd.y+"px";
-      _el3.style.width=_dd.w+"px";_el3.style.height=_dd.h+"px";_el3.style.margin="0";
+      if(_keepPhSize&&_did==="photo"){_el3.style.width=_keepPhSize.w+"px";_el3.style.height=_keepPhSize.h+"px";}
+      else{_el3.style.width=_dd.w+"px";_el3.style.height=_dd.h+"px";}
+      _el3.style.margin="0";
       _el3.removeAttribute("data-cp2pos");
     }
-    try{localStorage.removeItem("cp2PhotoUserSize");localStorage.removeItem("cp2PhotoSize");}catch(_e2){}
+    try{if(_keepPhSize)localStorage.setItem("cp2PhotoUserSize",JSON.stringify(_keepPhSize));}catch(_e2){}
     saveLayout();
     try{save();__flushSave();}catch(e){try{save();}catch(_){}}
     toast("已恢复默认布局");
@@ -30354,12 +30487,21 @@ function __fitMeasure(){
     if(bottom>lim1&&bottom>top){k1=(lim1-top)/(bottom-top);measured=true;}
   }
   var in2=document.querySelector("#me-page-2 .me-page-inner");
-  var ph=document.getElementById("cp2-block-photo");
-  if(in2&&ph&&ph.offsetParent!==null&&getComputedStyle(ph).display!=="none"){
-    var lim2=dock-24;var r=ph.getBoundingClientRect();
-    var av=document.getElementById("cp2-block-av");
-    var top0=(av&&av.offsetParent!==null)?av.getBoundingClientRect().top:r.top;
-    if(r.bottom>lim2&&r.bottom>top0){k2=(lim2-top0)/(r.bottom-top0);measured=true;}
+  if(in2){
+    /* v43-183h：第二页不再只量照片框。所有可见小组件（头像/对话/唱片/倒数日/照片框）
+       取最大下沿一起缩放，保证整组都在固定栏上面，而不是照片框躲开了、别的组件还在下面。 */
+    var lim2=dock-24,minTop2=Infinity,maxBottom2=0,vis2=0;
+    var nodes2=in2.querySelectorAll('[data-cp2]');
+    for(var _i2=0;_i2<nodes2.length;_i2++){
+      var _e2=nodes2[_i2];
+      if(!_e2||_e2.offsetParent===null||getComputedStyle(_e2).display==="none")continue;
+      var _r2=_e2.getBoundingClientRect();
+      if(_r2.width<=1||_r2.height<=1)continue;
+      vis2++;if(_r2.top<minTop2)minTop2=_r2.top;if(_r2.bottom>maxBottom2)maxBottom2=_r2.bottom;
+    }
+    if(vis2&&maxBottom2>lim2&&maxBottom2>minTop2){
+      k2=(lim2-minTop2)/(maxBottom2-minTop2);measured=true;
+    }
   }
   if(!measured)return 0;
   /* 两页各自按自己的内容高度算比例：第一页图标太大时，不能把第二页一起缩成小号。
@@ -30370,18 +30512,15 @@ function __fitMeasure(){
 }
 function __fitApply(k){
   var kk=Number(k)||1;if(kk>0.995)kk=1;if(kk<0.62)kk=0.62;
-  /* v43-183：轻微到中度的内容溢出不再把整个桌面缩小。
-     低于 0.94 就直接保持 1.0，让 .me-scroll 纵向滚动，Dock 仍然固定。
-     这样用户加组件、换照片后，桌面不会突然整体变小一圈。 */
+  /* v43-183h：默认/经典布局也按屏幕真实高度等比适配。
+     不再把 0.94 以下的溢出强行改成 1.0 交给滚动；照片框/小组件一起缩放，
+     照片框自身记录的宽高不变，换屏幕只换整页比例。 */
   var k1=Number(window.__fitK1),k2=Number(window.__fitK2);
   if(!(k1>=0.62&&k1<=1.3))k1=kk;
   if(!(k2>=0.62&&k2<=1.3))k2=kk;
   if(k1>0.995)k1=1;if(k1<0.62)k1=0.62;
   if(k2>0.995)k2=1;if(k2<0.62)k2=0.62;
   k1=Math.round(k1*1000)/1000;k2=Math.round(k2*1000)/1000;
-  var __scrollFit=false;
-  if(k1<0.94){k1=1;__scrollFit=true;}
-  if(k2<0.94){k2=1;__scrollFit=true;}
   window.__fitK=(Number(window.__mePage)||0)===1?k2:k1;
   __fitInners().forEach(function(el,i){
     if(!el)return;
@@ -30391,7 +30530,7 @@ function __fitApply(k){
   });
   try{
     var _ms=document.querySelector("#view-me .me-scroll");
-    if(_ms)_ms.classList.toggle("fit-scroll",__scrollFit);
+    if(_ms)_ms.classList.remove("fit-scroll");
   }catch(_eFitScrollCls){}
   window.__fitK1=k1;window.__fitK2=k2;
   try{__applyAppFit(window.__fitK);}catch(e){}
@@ -30419,12 +30558,20 @@ window.__applyAppFit=__applyAppFit;
 window.__fitMap=window.__fitMap||{};
 /* v43-73：自适应比例存本机。同一块屏幕 + 同一套内容高度，打开网站直接用上次算好的比例，
    不再每次刷新重量一遍、也不会刚调好又缩一次；屏幕尺寸或布局真的变了才重算一次。 */
-window.__fitStoreKey="e11.fit.k.v2";
+window.__fitStoreKey="e11.fit.k.v3";
+/* v43-183h：旧版把 0.94 以下的溢出强制记成 1.0 并缓存，升级后默认/经典布局
+   会继续套用旧的 k=1，看起来还是「不缩放」。换缓存代次，旧缓存一次性作废。 */
+try{
+  if(!localStorage.getItem("e11.fit.migrated.v183h")){
+    ["e11.fit.fixed.v2","e11.fit.k.v2","e11.fit.screen.v1"].forEach(function(k){try{localStorage.removeItem(k);}catch(_){}});
+    localStorage.setItem("e11.fit.migrated.v183h","1");
+  }
+}catch(_eFitMig){}
 window.__fitScreenKey="e11.fit.screen.v1";
 /* v43-148：按「屏幕尺寸 + 桌面布局」分别记住自适应比例。
    同一块屏幕、同一套布局只量一次并保存；旋转屏幕、换窗口大小、改桌面布局时
    会视为新场景重新自适应一次，量好后继续固定，不再随内容/切页反复变。 */
-window.__fitFixedKey="e11.fit.fixed.v2";
+window.__fitFixedKey="e11.fit.fixed.v3";
 window.__fitLayoutSig=function(){
   try{
     var l=(state&&state.cp2Layout)||{};
@@ -30513,7 +30660,7 @@ window.__fitCompute=function(force){
   /* v43-28：电脑固定窗口下不再按内容高度二次缩放。 */
   if(window.__deskFixed){window.__fitK=1;window.__fitK1=1;window.__fitK2=1;try{__fitApply(1);}catch(_eDeskFit){}return 1;}
   var ctx=window.__fitCtx();
-  /* v43-183：启动揭幕前的最终测量必须按这次真实内容重算，
+  /* v43-183g：启动揭幕前的最终测量必须按这次真实内容重算，
      不能直接拿旧缓存（旧缓存可能正是把桌面压小的 0.7）。 */
   var fx=(force&&window.__bootPendingReveal)?null:window.__fitFixedGet(ctx);
   /* 这个屏幕尺寸+这套桌面布局已经量过：直接套保存好的比例，后续切页/刷新/内容变化都不重算。 */
@@ -30629,8 +30776,10 @@ document.addEventListener("pointerdown",function(e){
     var t=e.target;
     /* 返回键、顶栏、底栏永远放行：以前整页 420ms 防误触把「返回」也拦住，
        从加号进字卡后立刻点返回会以为按钮坏了。 */
-    if(t&&t.closest&&t.closest(".back-btn,.topbar,.top-btn,.bottombar,.send-btn,.bb-btn"))return;
-    if(t&&t.closest&&(t.closest("#view-me")||t.closest("#card-list"))){
+    if(t&&t.closest&&t.closest(".back-btn,.topbar,.top-btn,.bottombar,.send-btn,.bb-btn,button,input,textarea,select,#cp2-editbar,#cp2-recover-overlay,#me-dock-wrap,.me-dock-wrap,.me-app,.me-showcase"))return;
+    /* v43-183h：只拦主页背景卡片，不再整页拦截。以前返回主页后的 420ms 内，
+       桌面图标、编辑条、固定栏按钮全被吃掉，表现就是「按键失效」。 */
+    if(t&&t.closest&&(t.closest("#cp2-block-av,#cp2-block-chat,#cp2-block-photo,#cp2-record,#cp2-count-card")||t.closest("#card-list"))){
       e.preventDefault();e.stopPropagation();
     }
   }catch(_){}
@@ -30641,8 +30790,8 @@ document.addEventListener("click",function(e){
     var t=e.target;
     /* 返回键、顶栏、底栏永远放行：以前整页 420ms 防误触把「返回」也拦住，
        从加号进字卡后立刻点返回会以为按钮坏了。 */
-    if(t&&t.closest&&t.closest(".back-btn,.topbar,.top-btn,.bottombar,.send-btn,.bb-btn"))return;
-    if(t&&t.closest&&(t.closest("#view-me")||t.closest("#card-list"))){
+    if(t&&t.closest&&t.closest(".back-btn,.topbar,.top-btn,.bottombar,.send-btn,.bb-btn,button,input,textarea,select,#cp2-editbar,#cp2-recover-overlay,#me-dock-wrap,.me-dock-wrap,.me-app,.me-showcase"))return;
+    if(t&&t.closest&&(t.closest("#cp2-block-av,#cp2-block-chat,#cp2-block-photo,#cp2-record,#cp2-count-card")||t.closest("#card-list"))){
       e.preventDefault();e.stopPropagation();
     }
   }catch(_){}
@@ -30711,6 +30860,13 @@ setInterval(function(){try{
       var nw=Math.max(56,orig.w+(e.clientX-startX));
       var nh=Math.max(56,Math.min(orig.h+(e.clientY-startY),rYMax));
       cur.style.width=nw+"px";cur.style.height=nh+"px";
+      /* 缩放过程中就落一次尺寸，别等手指抬起：iOS 手指滑出舞台/被系统手势打断时收不到 pointerup，尺寸就丢了 */
+      if(cur.getAttribute("data-cp2")==="photo"){
+        try{
+          localStorage.setItem("cp2PhotoUserSize",JSON.stringify({w:Math.round(nw),h:Math.round(nh)}));
+          if(state.cp2Layout){state.cp2Layout.widgets=state.cp2Layout.widgets||{};state.cp2Layout.widgets.photo=Object.assign({},state.cp2Layout.widgets.photo||{},{x:Math.round(cur.offsetLeft),y:Math.round(cur.offsetTop),w:Math.round(nw),h:Math.round(nh)});}
+        }catch(_ePhotoSize){}
+      }
     }
   },{passive:true});
   window.addEventListener("pointerup",function(){if(active&&cur)drop();clearTimer();});
@@ -31506,7 +31662,7 @@ try{
           p2.style.width=w+'px';p2.style.height=h+'px';
           p2.style.left=left+'px';p2.style.top=newTop+'px';
           /* 有别人（重排/动效）把尺寸改回默认时，再压一次，保证用户调的大小不被吃掉 */
-          (function(_el,_w,_h){setTimeout(function(){try{if(Math.abs(_el.offsetWidth-_w)>2||Math.abs(_el.offsetHeight-_h)>2){_el.style.width=_w+"px";_el.style.height=_h+"px";}}catch(e){}try{window.__keepPhotoAboveDock&&window.__keepPhotoAboveDock();}catch(e){}try{window.__homeDockCheck&&window.__homeDockCheck();}catch(e){}},130);})(p2,w,h);
+          (function(_el,_w,_h){setTimeout(function(){try{if(Math.abs(_el.offsetWidth-_w)>2||Math.abs(_el.offsetHeight-_h)>2){_el.style.width=_w+"px";_el.style.height=_h+"px";}}catch(e){}try{window.__keepPhotoAboveDock&&window.__keepPhotoAboveDock();}catch(e){}try{window.__keepWidgetsAboveDock&&window.__keepWidgetsAboveDock();}catch(e){}try{window.__homeDockCheck&&window.__homeDockCheck();}catch(e){}},130);})(p2,w,h);
           try{
             if(state.cp2Layout){state.cp2Layout.widgets=state.cp2Layout.widgets||{};}
             if(state.cp2Layout){state.cp2Layout.widgets.photo={x:left,y:newTop,w:w,h:h};}
@@ -32721,7 +32877,8 @@ try{
       go.style.cssText="flex:none;border:0;border-radius:11px;padding:8px 12px;background:#fff;color:#111;font:700 12px -apple-system,sans-serif";
       go.onclick=function(){
         try{
-          if(window.AndroidUI&&typeof AndroidUI.openUrl==="function")AndroidUI.openUrl(apkUrl);
+          if(window.AndroidUI&&typeof AndroidUI.downloadApk==="function")AndroidUI.downloadApk(apkUrl);
+          else if(window.AndroidUI&&typeof AndroidUI.openUrl==="function")AndroidUI.openUrl(apkUrl);
           else location.href=apkUrl;
         }catch(e){try{location.href=apkUrl;}catch(_){}}
       };
@@ -34275,9 +34432,10 @@ body{margin:0;background:var(--bg,#fafafa);}
         if(_dw){
           /* 用真实可见高度比较，不用上面算出来的 h：
              h 可能就是被拉高的稳定屏高，rh==h 会让补偿永远为 0。 */
-          var _visH=_vvH||_innerH||_clientH||rh;
-          var _gap=Math.max(0,Math.round(rh-_visH));
-          _dw.style.bottom="calc("+(14+_gap)+"px + env(safe-area-inset-bottom))";
+          /* 固定栏是 position:fixed；手机端 #ui-root 没有 transform，
+             包含块就是真实视口，不需要按舞台高度差动态加减 bottom。
+             部分 WebView 的 visualViewport 会给键盘/工具栏残值，动态补偿会让固定栏上下乱跑。 */
+          _dw.style.bottom="calc(14px + env(safe-area-inset-bottom))";
         }
       }catch(_eDockBottom){}
       window.__uiScale=k;
@@ -35127,15 +35285,22 @@ body{margin:0;background:var(--bg,#fafafa);}
       b.disabled=false;
     });
     if($("btn-cloud-save"))$("btn-cloud-save").addEventListener("click",function(){
-      var v=cv(),on=$("sw-cloud-custom")&&$("sw-cloud-custom").classList.contains("on");
-      try{C.apply({on:on,url:v.url,key:v.key,bucket:v.bucket});draftClear();}catch(e){toast(String(e&&e.message||e));return;}
-      toast(on?"已保存自定义云端，正在重启…":"已保存官方云端，正在重启…");
-      setTimeout(function(){location.reload();},600);
+      try{
+        if(!C||!C.apply){toast("云端配置还没准备好，稍后再试");return;}
+        var v=cv(),on=$("sw-cloud-custom")&&$("sw-cloud-custom").classList.contains("on");
+        C.apply({on:on,url:v.url,key:v.key,bucket:v.bucket});
+        try{draftClear();}catch(_){}
+        toast(on?"已保存自定义云端，正在重启…":"已保存官方云端，正在重启…");
+        setTimeout(function(){try{location.reload();}catch(_){}},600);
+      }catch(e){toast("保存失败："+String(e&&e.message||e).slice(0,100));}
     });
     if($("btn-cloud-reset"))$("btn-cloud-reset").addEventListener("click",function(){
-      try{C.reset();draftClear();}catch(e){}
-      toast("已恢复官方云端，正在重启…");
-      setTimeout(function(){location.reload();},600);
+      try{
+        if(!C||!C.reset){toast("云端配置还没准备好，稍后再试");return;}
+        C.reset();try{draftClear();}catch(_){}
+        toast("已恢复官方云端，正在重启…");
+        setTimeout(function(){try{location.reload();}catch(_){}},600);
+      }catch(e){toast("恢复失败："+String(e&&e.message||e).slice(0,100));}
     });
   })();
   bind("sw-partner-voice","click",function(){var c=cfg();setCfg({partnerVoiceOn:!(c.partnerVoiceOn!==false)});paint();});
