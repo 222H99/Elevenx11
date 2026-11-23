@@ -252,7 +252,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-182";
+window.__E11_BUILD="2026-11-23v43-183";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -1908,7 +1908,10 @@ o{opacity:1;transform:translateY(0);}}
 .me-topbar{position:relative;z-index:5;display:flex;align-items:center;justify-content:center;padding:calc(16px + var(--safe-top,0px)) 18px 8px;}
 .me-title{font-size:clamp(15px,4.2vw,17px);font-weight:700;color:var(--ttext);letter-spacing:.5px;}
 .me-bgdot{position:fixed;right:18px;top:calc(16px + var(--safe-top,0px));width:36px;height:36px;border-radius:50%;border:none;background:none;color:var(--ttext);font-size:clamp(11px,3.2vw,13px);letter-spacing:2px;line-height:1;cursor:pointer;z-index:999;touch-action:manipulation;}
-.me-scroll{position:relative;z-index:1;flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:center;padding:4px 0 calc(56px + env(safe-area-inset-bottom));}
+.me-scroll{position:relative;z-index:1;flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:center;padding:4px 0 calc(132px + env(safe-area-inset-bottom));}
+/* v43-183：主页内容超出时优先滚动，不再把整页缩成小号；给底部 Dock 留出滚动余量 */
+#view-me .me-scroll.fit-scroll{padding-bottom:calc(132px + env(safe-area-inset-bottom));}
+#view-me .me-scroll.fit-scroll .me-pager{flex:0 0 auto;}
 .me-bg-sec{font-size:clamp(11px,3.2vw,13px);font-weight:700;color:var(--sub,#7c7f95);margin-bottom:2px;}
 .me-widget{position:relative;width:100%;max-width:88vw;margin:clamp(14px,4vw,18px) auto clamp(8px,2.5vw,12px);border-radius:clamp(22px,6vw,28px);overflow:hidden;display:flex;flex-direction:column;align-items:center;border:1px solid var(--glassborder,rgba(255,255,255,.6));box-shadow:none;cursor:pointer;color:var(--ttext);}
 .me-w-top{position:relative;width:100%;height:clamp(130px,38vw,170px);background:var(--me-bg,#e8ecf2);background-size:cover;background-position:center;}
@@ -1922,7 +1925,7 @@ o{opacity:1;transform:translateY(0);}}
 .me-region{font-size:clamp(12px,3.6vw,14px);color:var(--ttext);opacity:.58;margin-top:3px;text-shadow:0 1px 3px rgba(255,255,255,.7);}
 .me-edit{position:absolute;top:12px;right:12px;border:none;background:var(--glassinner,rgba(255,255,255,.55));-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:#3478F6;font-size:clamp(12px,3.4vw,13px);padding:6px 12px;border-radius:16px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.8);}
 .me-showcase{position:relative;z-index:2;width:100%;max-width:calc(100vw - 44px);margin:22px auto 0;display:flex;gap:10px;align-items:stretch;}
-.me-pager{display:flex;width:100%;margin:0 auto;overflow-x:scroll;overflow-y:hidden;z-index:2;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;}
+.me-pager{display:flex;width:100%;margin:0 auto;overflow-x:scroll;overflow-y:hidden;z-index:2;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;flex:0 0 auto;}
 .me-pager::-webkit-scrollbar{display:none;width:0;height:0;}
 .me-page{flex:0 0 100%;min-width:100%;width:100%;scroll-snap-align:center;scroll-snap-stop:always;}
 .me-page-inner{max-width:calc(100vw - 24px);margin:0 auto;padding:0 12px;}
@@ -2626,7 +2629,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-182">
+<meta name="app-build" content="2026-11-23v43-183">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4373,7 +4376,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-182</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-183</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -7896,8 +7899,10 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-23",
   noticeKey:null,
-  lead:"v43-182：终于抓到语音播放的真错。playSrc 调用了没跨脚本导出的 __voiceSession，第一行就抛 ReferenceError，被 catch 成“云端语音播放失败”，所以合成成功也没声。现在会话、令牌、解码和播放全部显式走 window，先复用已解锁的 audio 直出，WebAudio 只兜底。",
+  lead:"v43-183：桌面“先大一下再缩小”的真正原因是揭幕太早。启动层在存档读完前就撤了，主页先按默认内容显示 1.0，数据渲染完才测量并缩到 0.7~0.9。现在启动层一直盖到存档加载、按真实内容量完最终比例后再撤；主页内容超出时改为纵向滚动，不再把整个桌面缩小。",
   items:[
+    "桌面缩放修复（v43-183）：启动揭幕延后到存档读完和最终测量之后，第一眼就是最终尺寸；旧版本留下的 0.7/0.8 缩放缓存不再直接套用，按当前内容重新量一次。",
+    "桌面不再整体缩小（v43-183）：内容超出屏幕时改成主页纵向滚动，并为底部 Dock 留出空间，不再把第一页/第二页缩成小号；只有轻微溢出才做不超过 6% 的等比微调。",
     "PWA 电量栏透明：manifest 与 theme-color 全程 #00000000；顶部安全区背景透明，不再按明暗写白/黑兜底。",
     "iOS 主屏幕：状态栏固定为 black-translucent，时间/电量图标直接压在壁纸上，背景图从最顶端铺下来；没有壁纸时顶部用黑底兜底，保证白色图标看得清。",
     "PWA 刷新：已安装的 PWA 如果还是旧界面，先完全关闭再打开；仍不生效就删除主屏幕图标，重新从主站添加一次。",
@@ -10758,14 +10763,25 @@ async function init(){
   try{
     window.__holdBootReveal=1;
     try{if(typeof showView==="function")showView(_e11BootView);}catch(e){}
-    window.__holdBootReveal=0;
-    /* 没有存过比例时，也必须先把当前内容量完、把最终比例套上，再撤启动层。 */
+    /* v43-183：真正让“桌面先大后小”消失的关键不是算得更早，而是等存档读完再揭幕。
+       以前这里立刻 __bootDone，此时 _dbReady 还没置位，主页还是默认内容（k=1）；
+       260ms 后存档渲染完、真正测量缩到 0.7~0.9，用户就看到桌面被缩了一下。
+       现在启动层一直盖到 _dbReady 后重新测完，才一次性显出来；4 秒兜底防止卡死。 */
+    window.__bootPendingReveal=1;
     if(!_ffNow&&window.__fitCompute){
-      var _fkBoot=window.__fitCompute(false);
-      if(_fkBoot&&window.__fitApply)window.__fitApply(_fkBoot);
+      try{window.__fitCompute(false);}catch(_eBootFit0){}
     }
+    setTimeout(function(){
+      try{
+        if(!window.__bootPendingReveal)return;
+        window.__bootPendingReveal=0;
+        window.__holdBootReveal=0;
+        try{window.__fitInvalidate&&window.__fitInvalidate(true);window.__fitCompute&&window.__fitCompute(true);}catch(_eBootFallbackFit){}
+        window.__bootDone&&window.__bootDone();
+      }catch(_eBootFallbackReveal){}
+    },4000);
   }catch(_eBootFitReveal){try{window.__holdBootReveal=0;}catch(_x){}}
-  try{window.__bootDone&&window.__bootDone();}catch(_e){}
+  /* v43-183：启动层不再在这里撤，改为 _dbReady 后最终测量完成再撤。 */
   
   try{if(window.__cp2Reapply)window.__cp2Reapply();}catch(e){}
   /* v43-123：界面先出来时 stateReady 可以置 1（很多控件等它），
@@ -11136,13 +11152,27 @@ try{window.__scheduleCp2Render&&window.__scheduleCp2Render();}catch(e){}
     aboutLoadStatus("正在渲染界面…");
     setTimeout(()=>{
       window._dbReady=true;aboutLoadStatus("加载完成");
+      /* v43-183：存档真正读完，才允许最终测量。先作废旧比例，按这次的真实内容量一次；
+         量完再撤启动层，所以用户第一眼看到的就是最终尺寸，不会“先大后小”。 */
+      try{if(window.__bootPendingReveal&&window.__fitInvalidate)window.__fitInvalidate(true);}catch(_eBootFitReset){}
       try{__bkCompactOld();}catch(_eCompact){}
       try{if(window.__e11BeautyLoad)window.__e11BeautyLoad().then(function(ch){if(ch){try{applySkin();}catch(_){}try{renderMe();}catch(_){}try{renderChat(true);}catch(_){}try{renderCouple();}catch(_){}try{save();}catch(_){}}});}catch(_eBeautyLoad){}
       /* v43-74：存档读完后用真正内容再确认一次比例并写进屏幕缓存；
          之前 220ms 的首算发生在 dbReady 之前，不落盘，于是下次打开又重量一遍。 */
       /* v43-149：不再强制解锁重算；同一屏幕+同一布局已有比例就只套用，
          没有才量这一次，页面不会出现第二次缩放。 */
-      setTimeout(function(){try{window.__fitCompute(false);}catch(_eFitReady2){}},260);
+      setTimeout(function(){
+        try{
+          if(window.__bootPendingReveal){
+            window.__fitCompute&&window.__fitCompute(true);
+            window.__bootPendingReveal=0;
+            window.__holdBootReveal=0;
+            window.__bootDone&&window.__bootDone();
+          }else{
+            window.__fitCompute&&window.__fitCompute(false);
+          }
+        }catch(_eFitReady2){}
+      },260);
       try{setTimeout(function(){try{__restoreMePhotoFromBackup();}catch(_){}},0);}catch(_){}
       try{setTimeout(function(){try{__restorePendingLetter();}catch(_){}},0);}catch(_){}
       try{if(window.__bigPendingUsed)setTimeout(function(){try{save();}catch(_){}},300);}catch(_){}
@@ -30340,12 +30370,18 @@ function __fitMeasure(){
 }
 function __fitApply(k){
   var kk=Number(k)||1;if(kk>0.995)kk=1;if(kk<0.62)kk=0.62;
+  /* v43-183：轻微到中度的内容溢出不再把整个桌面缩小。
+     低于 0.94 就直接保持 1.0，让 .me-scroll 纵向滚动，Dock 仍然固定。
+     这样用户加组件、换照片后，桌面不会突然整体变小一圈。 */
   var k1=Number(window.__fitK1),k2=Number(window.__fitK2);
   if(!(k1>=0.62&&k1<=1.3))k1=kk;
   if(!(k2>=0.62&&k2<=1.3))k2=kk;
   if(k1>0.995)k1=1;if(k1<0.62)k1=0.62;
   if(k2>0.995)k2=1;if(k2<0.62)k2=0.62;
   k1=Math.round(k1*1000)/1000;k2=Math.round(k2*1000)/1000;
+  var __scrollFit=false;
+  if(k1<0.94){k1=1;__scrollFit=true;}
+  if(k2<0.94){k2=1;__scrollFit=true;}
   window.__fitK=(Number(window.__mePage)||0)===1?k2:k1;
   __fitInners().forEach(function(el,i){
     if(!el)return;
@@ -30353,6 +30389,11 @@ function __fitApply(k){
     if(use>=1){el.style.transform="";el.style.transformOrigin="";}
     else{el.style.transformOrigin="top center";el.style.transform="scale("+use+")";}
   });
+  try{
+    var _ms=document.querySelector("#view-me .me-scroll");
+    if(_ms)_ms.classList.toggle("fit-scroll",__scrollFit);
+  }catch(_eFitScrollCls){}
+  window.__fitK1=k1;window.__fitK2=k2;
   try{__applyAppFit(window.__fitK);}catch(e){}
   return window.__fitK;
 }
@@ -30472,8 +30513,10 @@ window.__fitCompute=function(force){
   /* v43-28：电脑固定窗口下不再按内容高度二次缩放。 */
   if(window.__deskFixed){window.__fitK=1;window.__fitK1=1;window.__fitK2=1;try{__fitApply(1);}catch(_eDeskFit){}return 1;}
   var ctx=window.__fitCtx();
+  /* v43-183：启动揭幕前的最终测量必须按这次真实内容重算，
+     不能直接拿旧缓存（旧缓存可能正是把桌面压小的 0.7）。 */
+  var fx=(force&&window.__bootPendingReveal)?null:window.__fitFixedGet(ctx);
   /* 这个屏幕尺寸+这套桌面布局已经量过：直接套保存好的比例，后续切页/刷新/内容变化都不重算。 */
-  var fx=window.__fitFixedGet(ctx);
   if(fx){
     window.__fitK1=fx.k1;window.__fitK2=fx.k2;
     try{__fitApply((Number(window.__mePage)||0)===1?fx.k2:fx.k1);}catch(_eFxApply){}
