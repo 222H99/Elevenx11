@@ -226,7 +226,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-152";
+window.__E11_BUILD="2026-11-23v43-153";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2581,7 +2581,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-152">
+<meta name="app-build" content="2026-11-23v43-153">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4328,7 +4328,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-152</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-153</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -4900,6 +4900,21 @@ setTimeout(function(){
         <div class="edit-actions">
           <button class="small-btn ghost" id="card-edit-cancel">取消</button>
           <button class="small-btn" id="card-edit-save">保存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- v43-153：查看单条字卡（分组里的字卡点一下能看全文，不再点了没反应） -->
+  <div class="overlay" id="card-view-overlay">
+    <div class="sheet" id="card-view-sheet">
+      <div class="sheet-grip"></div>
+      <div style="padding:4px 16px 16px;">
+        <div class="edit-sheet-title" style="margin-bottom:12px;">查看字卡</div>
+        <div id="card-view-text" style="font-size:17px;line-height:1.65;color:var(--ttext);white-space:pre-wrap;word-break:break-word;max-height:48vh;overflow:auto;padding:14px 16px;border-radius:14px;background:var(--field,#f2f2f7);"></div>
+        <div class="edit-actions" style="margin-top:16px;">
+          <button class="small-btn ghost" id="card-view-close">关闭</button>
+          <button class="small-btn" id="card-view-edit">编辑</button>
         </div>
       </div>
     </div>
@@ -7824,7 +7839,7 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-23",
   noticeKey:null,
-  lead:"v43-152：固定栏不再随浏览器工具栏/页面高度上下跑；平板宽屏不再贴左；第二页照片先按真实空间算比例，不再被压成一条；启动减少重复布局和每帧写盘。",
+  lead:"v43-153：分组里的字卡点一下就能查看全文，可一键转编辑；多选模式下仍是勾选，不会误弹窗。",
   items:[
     "第二页秒开：存档读完后立刻画第二页，不再等 5.2 秒；滑过去看到的就是上次保存的组件位置、照片框大小和内容。",
     "不做二次缩放：同一屏幕、同一套布局只用已经保存的比例；进入网站不会先按默认缩一遍、数据到了再缩第二遍。",
@@ -17716,7 +17731,7 @@ $("file-emoji").addEventListener("change",e=>{
 let activeGroupId=null;
 let cardSelMode=false,cardSel=new Set();
 /* 离开字卡页时退出多选，避免返回桌面后点字卡还在“选中”状态 */
-window.__cardExitEdit=function(){try{cardSelMode=false;cardSel.clear();var _b=document.getElementById('card-sel-bar');if(_b)_b.classList.remove('show');}catch(_){}};
+window.__cardExitEdit=function(){try{cardSelMode=false;cardSel.clear();var _b=document.getElementById('card-sel-bar');if(_b)_b.classList.remove('show');}catch(_){}try{if(typeof closeCardView==='function')closeCardView();}catch(_){}};
 /* 字卡分三类：聊天 / 信件 / 动态，各自独立的分组与字卡，互不影响 */
 let cardKindView="chat";
 const CARD_KIND_LABEL={chat:"聊天字卡",letter:"信件字卡",moment:"动态字卡"};
@@ -17902,9 +17917,10 @@ function renderCards(){
     if((b=e.target.closest("[data-cdel]"))&&b.dataset.cdel){state.cards=state.cards.filter(c=>c.id!==b.dataset.cdel);save();renderCards();toast("字卡已删除");return;}
     if((b=e.target.closest("[data-cedit]"))&&b.dataset.cedit){openCardEdit(b.dataset.cedit);return;}
     if((b=e.target.closest("[data-coff]"))&&b.dataset.coff){toggleCardDisabled(b.dataset.coff);return;}
-    if(!cardSelMode)return;
     var row=e.target.closest(".card-item");if(!row||!row.dataset.id)return;
     var id=row.dataset.id;
+    /* v43-153：不在多选时，点字卡本身打开查看全文；点右侧编辑/删除/屏蔽按钮仍走各自逻辑 */
+    if(!cardSelMode){openCardView(id);return;}
     if(cardSel.has(id))cardSel.delete(id);else cardSel.add(id);
     row.classList.toggle("sel",cardSel.has(id));
     $("csb-info").textContent="已选 "+cardSel.size+" 条";
@@ -18239,6 +18255,25 @@ if($("cmg-ok"))$("cmg-ok").addEventListener("click",function(){
 }catch(_){}
 /* ===== 编辑单条字卡 ===== */
 let cardEditId=null;
+/* v43-153：字卡点一下先看全文。以前普通点击直接 return，分组里的字卡点上去没反应。 */
+let cardViewId=null;
+function openCardView(id){
+  var c=(state.cards||[]).find(function(x){return x.id===id;});
+  if(!c)return;
+  cardViewId=id;
+  try{__blurSoftKeyboard();}catch(_){}
+  var tx=document.getElementById("card-view-text");
+  if(tx)tx.textContent=String(c.text||"");
+  var ov=document.getElementById("card-view-overlay");
+  if(ov)ov.classList.add("show");
+  try{var sh=document.getElementById("card-view-sheet");if(sh)sh.scrollTop=0;}catch(_){}
+}
+function closeCardView(){
+  cardViewId=null;
+  var ov=document.getElementById("card-view-overlay");
+  if(ov)ov.classList.remove("show");
+  try{if(window.__e11ShieldApps)window.__e11ShieldApps(600);}catch(_){}
+}
 function openCardEdit(id){
   const c=state.cards.find(x=>x.id===id);if(!c)return;
   cardEditId=id;$("card-edit-text").value=c.text;$("card-edit-overlay").classList.add("show");
@@ -18262,6 +18297,9 @@ $("mib-input").addEventListener("keydown",function(e){if(e.key==="Enter"){e.prev
 $("card-edit-cancel").addEventListener("click",closeCardEdit);
 $("card-edit-save").addEventListener("click",saveCardEdit);
 $("card-edit-overlay").addEventListener("click",e=>{if(e.target.id==="card-edit-overlay")closeCardEdit();});
+$("card-view-close").addEventListener("click",closeCardView);
+$("card-view-edit").addEventListener("click",function(){var _id=cardViewId;closeCardView();if(_id)openCardEdit(_id);});
+$("card-view-overlay").addEventListener("click",function(e){if(e.target.id==="card-view-overlay")closeCardView();});
 var __cardSearchT=null;
 $("card-search").addEventListener("input",function(){clearTimeout(__cardSearchT);__cardSearchT=setTimeout(renderCards,140);});
 /* ===== 多选删除 ===== */
