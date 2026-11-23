@@ -226,7 +226,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-158";
+window.__E11_BUILD="2026-11-23v43-159";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -516,7 +516,7 @@ body.fs-1 .msg-sys.msg-recall,body.fs-2 .msg-sys.msg-recall,body.fs-3 .msg-sys.m
 .msg-row.partner .msg-avatar{margin-right:8px;}
 .msg-row.me .msg-avatar{margin-left:8px;order:2;}
 /* 只隐藏聊天区的头像：用透明度隐藏而不是 display:none —— 头像位置仍占位且可点，
-   点它依然是「拍一拍」；顶栏的对方头像始终显示（点它直接进对方主页） */
+   单击换头像、双击拍一拍；顶栏的对方头像始终显示（点它直接进对方主页） */
 body.hide-chat-av .msg-avatar{opacity:0 !important;pointer-events:auto !important;}
 body.hide-chat-av #top-avatar-partner{display:block !important;}
 body{--fs:1;}
@@ -2586,7 +2586,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-158">
+<meta name="app-build" content="2026-11-23v43-159">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4333,7 +4333,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-158</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-159</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -7845,8 +7845,9 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-23",
   noticeKey:null,
-  lead:"v43-158：字卡跨分组自动去重；删除/清空聊天后的问卷题不再从「我问过的题目」复活。语音配置修正继续保留。",
+  lead:"v43-159：对方头像单击换头像、双击拍一拍；字卡跨分组自动去重；删除/清空聊天后的问卷题不再从「我问过的题目」复活。语音配置修正继续保留。",
   items:[
+    "对方头像单击/双击：聊天区对方头像单击打开换头像，300ms 内点第二下改成拍一拍；自己的头像双击仍然换头像，不会点两下没反应。",
     "跨分组去重：同一句字卡不再按分组各留一份，整份字卡只保留一条；添加、编辑、导入、复制、移入、替换和加载旧存档时都会自动清掉跨组重复。",
     "问卷删除不复活：删除题库题目、撤回/删除问卷消息、批量删除、清空全部聊天时都会记下题干并同步摘掉「我问过的问卷」存档；题干带题号、多余空格或零宽字符也能拦住。",
     "第二页秒开：存档读完后立刻画第二页，不再等 5.2 秒；滑过去看到的就是上次保存的组件位置、照片框大小和内容。",
@@ -14997,7 +14998,9 @@ function pokeMyPartner(){
     },800+Math.random()*1500);
   }
 }
-/* 聊天区头像：点一下直接换头像（我的 / 对方的都支持），不再误触拍一拍或消息面板 */
+/* 聊天区头像：单击换头像（我的 / 对方的都支持），对方头像双击才拍一拍。
+   单击必须等一个双击判定窗口（300ms）再打开相册，否则第一下就把选择器弹出来，
+   第二下根本进不到页面里，双击永远触发不了。 */
 function __chatAvatarPick(who){
   try{
     var inp=$("file-avatar");if(!inp)return;
@@ -15007,13 +15010,30 @@ function __chatAvatarPick(who){
 }
 (function(){
   var _l=document.getElementById("msglist");if(!_l||_l.__avTapGuard)return;_l.__avTapGuard=1;
+  var _tapTimer=null,_tapWho=null,_lastTapAt=0;
+  function _pick(who){_tapTimer=null;_tapWho=null;_lastTapAt=0;__chatAvatarPick(who);}
   _l.addEventListener("click",function(e){
     var t=e.target;var av=t&&t.closest?t.closest(".msg-avatar"):null;if(!av)return;
     var row=av.closest?av.closest(".msg-row"):null;
     if(!row)return;
     e.stopPropagation();e.preventDefault();
     var who=row.classList.contains("partner")?"partner":"me";
-    __chatAvatarPick(who);
+    var now=Date.now();
+    /* 同一个头像 300ms 内第二下：取消换头像，改成拍一拍 */
+    if(_tapTimer&&_tapWho===who&&now-_lastTapAt<=320){
+      clearTimeout(_tapTimer);_tapTimer=null;_tapWho=null;_lastTapAt=0;
+      if(who==="partner"){
+        /* 给一下很轻的触感，双击成功与否不用盯着聊天记录确认 */
+        try{if(navigator.vibrate)navigator.vibrate(12);}catch(_e){}
+        pokeMyPartner();
+        return;
+      }
+      /* 自己的头像没有“拍自己”，双击仍然按换头像处理，别让两下变成没反应 */
+      __chatAvatarPick(who);return;
+    }
+    if(_tapTimer)clearTimeout(_tapTimer);
+    _tapTimer=null;_tapWho=who;_lastTapAt=now;
+    _tapTimer=setTimeout(function(){_pick(who);},300);
   },true);
 })();
 // 顶栏对方头像：单击直接进入对方主页（拍一拍只在聊天区的对方头像上触发）
