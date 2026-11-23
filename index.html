@@ -226,7 +226,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-160";
+window.__E11_BUILD="2026-11-23v43-161";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2586,7 +2586,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-160">
+<meta name="app-build" content="2026-11-23v43-161">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4333,7 +4333,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-160</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-161</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -7845,8 +7845,9 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-23",
   noticeKey:null,
-  lead:"v43-160：回复库导入兼容旧版空分组——分组 items 为空时自动用 customReplies 补回全部字卡；导出分组改按字符串 id 匹配，避免再导出空分组。头像单击/双击、跨组去重、问卷防复活继续保留。",
+  lead:"v43-161：修自定义接口「模型名看着一样却报 400」——发送前清掉模型名/Key 的首尾空格、换行、NBSP 和零宽字符，输入框失焦也会自动清理。回复库导入、头像单击/双击、跨组去重、问卷防复活继续保留。",
   items:[
+    "自定义接口模型名清洗：复制来的模型名/Key 容易带尾随空格、换行、NBSP 或零宽字符，DeepSeek 会把它当成另一个模型并报 400；现在发送前统一清理，输入框失焦也会把值清干净。",
     "回复库导入修复：以前导出的 JSON 里 customReplyGroups 的 items 可能全是空数组，导入时又只认分组，结果一条都进不来；现在会跳过已导入的文本，把 customReplies 里剩下的全部补进默认分组。导出也改成按字符串 id 匹配分组，不会再导出空分组。",
     "对方头像单击/双击：聊天区对方头像单击打开换头像，300ms 内点第二下改成拍一拍；自己的头像双击仍然换头像，不会点两下没反应。",
     "跨分组去重：同一句字卡不再按分组各留一份，整份字卡只保留一条；添加、编辑、导入、复制、移入、替换和加载旧存档时都会自动清掉跨组重复。",
@@ -33922,9 +33923,15 @@ body{margin:0;background:var(--bg,#fafafa);}
     if(!c.base||!c.key)return Promise.reject(new Error("还没填接口地址或 API Key"));
     var temp=Number(c.temperature);if(!isFinite(temp)||temp<0||temp>2)temp=0.8;
     var mt=Number(c.maxTokens);if(!isFinite(mt)||mt<0)mt=0;
-    var body={model:c.model||"gpt-4o-mini",messages:messages,temperature:temp};
+    /* v43-161：手机复制模型名/Key 很容易带尾随空格、换行、NBSP 或零宽字符。
+       DeepSeek 会把 "deepseek-flash " 当成另一个模型，报 400 且提示里的名字
+       看起来和填的一模一样。发送前统一清掉不可见字符。 */
+    var _model=String(c.model||"").trim().replace(/[\u200B-\u200F\uFEFF\u00A0]/g,"").trim();
+    var _key=String(c.key||"").trim().replace(/[\r\n\t]/g,"").trim();
+    if(!_key)return Promise.reject(new Error("API Key 为空"));
+    var body={model:_model||"gpt-4o-mini",messages:messages,temperature:temp};
     if(mt>0)body.max_tokens=Math.min(8192,Math.round(mt));
-    var headers={"Content-Type":"application/json","Authorization":"Bearer "+c.key};
+    var headers={"Content-Type":"application/json","Authorization":"Bearer "+_key};
     try{
       var eh=c.extraHeaders;
       if(typeof eh==="string"&&eh.trim())eh=JSON.parse(eh);
@@ -33937,7 +33944,11 @@ body{margin:0;background:var(--bg,#fafafa);}
     var timer=setTimeout(function(){try{ac&&ac.abort();}catch(_){}},timeout||sec*1000);
     return extFetch(url,{method:"POST",cache:"no-store",headers:headers,body:JSON.stringify(body),signal:ac?ac.signal:undefined}).then(function(r){
       clearTimeout(timer);
-      if(!r.ok)return r.text().then(function(t){var e=new Error("HTTP "+r.status+(t?(" · "+t.slice(0,180)):""));e.status=r.status;throw e;});
+      if(!r.ok)return r.text().then(function(t){
+        var _m="HTTP "+r.status+(t?(" · "+t.slice(0,180)):"");
+        if(r.status===400&&/model/i.test(t))_m+=" · 检查模型名前后是否多了空格或不可见字符";
+        var e=new Error(_m);e.status=r.status;throw e;
+      });
       return r.json();
     }).then(function(j){
       var out="";
@@ -34317,6 +34328,14 @@ body{margin:0;background:var(--bg,#fafafa);}
   }
   bind("sw-api-on","click",function(){var c=cfg();setCfg({chatOn:!c.chatOn});paint();toast(!c.chatOn?"已开启自定义接口（聊天会走你的 API）":"已关闭自定义接口，恢复字卡回复");});
   bindInput("set-api-base","base");bindInput("set-api-key","key");bindInput("set-api-model","model");bindInput("set-api-prompt","prompt");bindInput("set-api-max-tokens","maxTokens");bindInput("set-api-timeout","timeout");bindInput("set-api-headers","extraHeaders");
+  /* v43-161：失焦时把地址/模型/Key 里的首尾空格和零宽字符直接清掉，输入框里也能看出干净的值 */
+  [["set-api-base","base"],["set-api-key","key"],["set-api-model","model"]].forEach(function(pair){
+    var el=$(pair[0]);if(!el)return;
+    el.addEventListener("change",function(){
+      var v=String(this.value||"").trim().replace(/[\u200B-\u200F\uFEFF\u00A0]/g,"").trim();
+      if(v!==this.value){this.value=v;setCfg({[pair[1]]:v});}
+    });
+  });
   bind("set-api-temp","input",function(){var v=Number(this.value);if(!isFinite(v))v=0.8;setCfg({temperature:v});if($("api-temp-val"))$("api-temp-val").textContent=v.toFixed(2);if($("api-temp-txt"))$("api-temp-txt").textContent=v.toFixed(2);});
   /* 自己的云端接口：测试 / 保存切换 / 恢复官方 */
   (function(){
