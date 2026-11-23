@@ -51,14 +51,22 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 /* 第一帧就把底色定对：不然深色用户在重新打开时会先闪一下白屏（浅色用户会被系统深色闪一下黑屏） */
 (function(){try{
   var t=null;try{t=localStorage.getItem("__theme.v1");}catch(e){}
-  /* 只有 App 自己明确保存过夜间才用黑底。系统深色不再决定首帧：
-     这就是“莫名开夜间模式 / 退出再进黑屏”的来源。 */
-  var dark=(t==="dark");
-  if(!t){
-    try{
-      var _st=JSON.parse(localStorage.getItem("privateChat")||"null");
-      dark=!!(_st&&_st.skin&&_st.skin.dark===true);
-    }catch(_eT){}
+  /* v43-139：默认跟随系统。只有用户明确选过“手动”才用保存的明暗，
+     否则首帧直接读系统深浅色，避免夜间/白天第一屏颜色不对再跳。 */
+  var mode=null;try{mode=localStorage.getItem("e11.themeMode.v1");}catch(_eMode){}
+  var sysDark=false;
+  try{sysDark=!!(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches);}catch(_eSys){}
+  var dark;
+  if(mode==="manual"){
+    dark=(t==="dark");
+    if(!t){
+      try{
+        var _st=JSON.parse(localStorage.getItem("privateChat")||"null");
+        dark=!!(_st&&_st.skin&&_st.skin.dark===true);
+      }catch(_eT){}
+    }
+  }else{
+    dark=sysDark;
   }
   var bg=dark?"#141416":"#ffffff",fg=dark?"#f2f2f7":"#111";
   /* v43-30：上次真正生效的页面底色（不是只有黑/白）优先用于启动层和根背景，
@@ -218,7 +226,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-138";
+window.__E11_BUILD="2026-11-23v43-139";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2570,7 +2578,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-138">
+<meta name="app-build" content="2026-11-23v43-139">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4317,7 +4325,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-138</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-139</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -8179,7 +8187,7 @@ function defaultState(){
     partner:{name:"对方",avatar:avatarSvg("#5AC8FA")},
     settings:{showChatAvatar:true,dndOn:false,dndStart:"23:00",dndEnd:"07:00",autoReply:true,partnerQuote:true,readReceipt:true,replyProb:100,emojiProb:20,replyTimes:1,maxDelaySec:12,minDelaySec:2,socialMinSec:60,socialMaxSec:300,replyGroupId:null,socialProbLetter:15,socialProbNote:15,socialProbMoments:15,socialProbCall:5,socialProbPat:5,socialProbRedpacket:10,socialProbSurvey:15,callMissProb:5,surveyMinSec:2,surveyMaxSec:60,replyLetterProb:60,replyLetterMinSec:60,replyLetterMaxSec:3600,letterMinSec:60,letterMaxSec:300,drawDeclineProb:40,drawInviteProb:15,socialProbMusic:15,socialProbSongPush:3,musicDeclineProb:30,socialMsgMin:1,socialMsgMax:5,momentsMinMin:1,momentsMinMax:5,noteMinMin:1,noteMaxMin:5,activeNoteCountMin:1,activeNoteCountMax:3,activeLetterCountMin:1,activeLetterCountMax:3,activeMomentsCountMin:1,activeMomentsCountMax:3,socialProbMomentComment:15,commentCardMin:1,commentCardMax:2,commentNMin:1,commentNMax:3,commentMinMin:1,commentMaxMin:5,socialProbReplyComment:80,replyCommentCardMin:1,replyCommentCardMax:2,replyCommentNMin:1,replyCommentNMax:1,replyCommentMinMin:1,replyCommentMaxMin:5,noteBurstMin:1,noteBurstMax:1,momentBurstMin:1,momentBurstMax:1,letterBurstMin:1,letterBurstMax:1,replyNoteCardMin:8,replyNoteCardMax:15,replyNoteNMin:1,replyNoteNMax:1,keepAlive:false,entryPwd:"p1:1jdgfyk-1312ccg",unlocked:false,gbPrompt:"你说 我在听",catchMomentsPerHour:3,catchCommentPerHour:3,catchNotePerHour:3,commentPickMin:2,commentPickMax:3,commentPerPostMax:3,letterCatchMax:5,emojiSteal:true,emojiStealProb:5,musicMode:"order",sealX:0,sttLang:"zh-CN",voiceStt:true},
     profile:{bio:"",cover:"",handle:"kkcyunhy",followers:6329,following:17,mpName:"wxhggxhwm",partnerMpName:"jsndxhyyx",partnerHandle:"",partnerFollowers:0,partnerFollowing:0,partnerBio:"",partnerCover:"",mpDist:0,mpDur:"5小时20分钟",mpAv1:"",mpAv2:"",region:""},
-    skin:{accent:"#3478F6",bg:"#ffffff",mybubble:"#3478F6",partbubble:"#E9E9EB",topbar:"#ffffff",bottombar:"#ffffff",themeMode:"manual",dark:false,bgImage:"",bubbleStyle:"classic",customBubbleCSS:"",myTextColor:"",partTextColor:"",mybubbleDark:"",partbubbleDark:"",gbBg:0,gbImage:"",ltBg:0,ltImage:"",momBg:0,momImage:"",gameBg:0,gameImage:"",meBg:0,meImage:"",meTopBg:0,meTopImage:""},
+    skin:{accent:"#3478F6",bg:"#ffffff",mybubble:"#3478F6",partbubble:"#E9E9EB",topbar:"#ffffff",bottombar:"#ffffff",themeMode:"auto",dark:false,bgImage:"",bubbleStyle:"classic",customBubbleCSS:"",myTextColor:"",partTextColor:"",mybubbleDark:"",partbubbleDark:"",gbBg:0,gbImage:"",ltBg:0,ltImage:"",momBg:0,momImage:"",gameBg:0,gameImage:"",meBg:0,meImage:"",meTopBg:0,meTopImage:""},
     groups:[g],
     cards:[],
     emojis:[],
@@ -10144,13 +10152,18 @@ function migrate(s){
       s.messages=s.messages.filter(function(m){return !(m&&m.from==="partner"&&m.type==="text"&&String(m.text||"").trim()==="嗨，这是我们的私密聊天空间，只有你能看到。");});
     }
   }catch(_eNoWelcome){}
-  /* 夜间就是夜间、白天就是白天：不再跟随手机系统，老存档里的 auto 一律拉回手动。
-     已经保存过明确明暗的沿用保存值，避免升级时把夜间用户刷成白屏。 */
+  /* v43-139：默认跟随手机系统明暗。老存档如果还没迁移过，一次性改成 auto；
+     迁移后用户仍可在「外观」里手动切换，手动选择会被记住不再被强制改回。 */
   try{
     if(s&&s.skin){
-      if(s.skin.themeMode==="auto"||s.skin.themeMode===undefined||s.skin.themeMode===null||s.skin.themeMode===""){
-        s.skin.themeMode="manual";
-        if(typeof s.skin.dark!=="boolean")s.skin.dark=!!window.__bootDark;
+      var _sysDark=false;
+      try{_sysDark=!!(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches);}catch(_eMqMig){}
+      if(!s.skin.__sysThemeMigrated){
+        s.skin.themeMode="auto";
+        s.skin.dark=_sysDark;
+        s.skin.__sysThemeMigrated=true;
+      }else if((s.skin.themeMode||"auto")==="auto"){
+        s.skin.dark=_sysDark;
       }
     }
   }catch(e){}
@@ -10344,8 +10357,8 @@ function migrate(s){
   s.version=2;
   if(!s.skin)s.skin=defaultState().skin;
   if(s.skin.dark===undefined)s.skin.dark=false;
-  /* 配色跟随系统（默认开）：系统是深色就自动用夜间配色，避免深色系统下白底/看不清 */
-  if(s.skin.themeMode===undefined||s.skin.themeMode===null||s.skin.themeMode==="")s.skin.themeMode="manual";
+  /* v43-139：配色默认跟随系统，不再默认手动浅色。 */
+  if(s.skin.themeMode===undefined||s.skin.themeMode===null||s.skin.themeMode==="")s.skin.themeMode="auto";
   if(s.skin.bgImage===undefined)s.skin.bgImage="";
   if(s.skin.bubbleStyle===undefined)s.skin.bubbleStyle="classic";
   if(s.skin.customBubbleCSS===undefined)s.skin.customBubbleCSS="";
@@ -11406,7 +11419,7 @@ function __effectiveDark(){
   if(!window.__themeReady&&typeof window.__bootDark==="boolean")return !!window.__bootDark;
   var s=(state&&state.skin)||{};
   /* 只有用户明确选「外观跟随系统」时才读系统深浅色；手动模式永远以 skin.dark 为准。 */
-  if((s.themeMode||"manual")==="auto"){
+  if((s.themeMode||"auto")==="auto"){
     try{return !!(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches);}catch(_eAuto){}
   }
   return !!s.dark;
@@ -11430,6 +11443,7 @@ function applySkin(){
   /* 记下当前真正生效的明暗，下次冷启动第一帧就能直接用这个底色，不再闪。
      只有最终存档已确定（__themeReady）才允许写；否则默认浅色会把夜间键覆盖成 light。 */
   try{if(window.__themeReady)localStorage.setItem("__theme.v1",dark?"dark":"light");}catch(_e){}
+  try{if(window.__themeReady)localStorage.setItem("e11.themeMode.v1",(s.themeMode==="manual")?"manual":"auto");}catch(_eMode){}
   try{
     var _prevDark=window.__lastAppliedDark;
     window.__lastAppliedDark=dark;
@@ -11590,12 +11604,13 @@ function applySkin(){
     r.setProperty("--mytext",__safeTextColor(s.myTextColor||autoText(s.mybubble),s.mybubble));
     r.setProperty("--parttext",__safeTextColor(s.partTextColor||"#111111",s.partbubble));
   }
-  /* v43-138：聊天/读信默认背景纯黑。用户设了聊天壁纸或自定义底色时不动，保留个性设置。 */
+  /* v43-139：聊天默认背景跟随系统——夜间纯黑，白天纯白。
+     用户设了聊天壁纸或自定义底色时不动，保留个性设置。 */
   try{
-    var _defBlack=(!s.bgImage&&String(s.bg||"#ffffff").toLowerCase()==="#ffffff");
+    var _defDark=!!dark&&!s.bgImage&&String(s.bg||"#ffffff").toLowerCase()==="#ffffff";
     var _chatV=document.getElementById("view-chat");
-    if(_chatV)_chatV.classList.toggle("e11-chat-black",_defBlack);
-    document.body.classList.toggle("e11-default-black",_defBlack);
+    if(_chatV)_chatV.classList.toggle("e11-chat-black",_defDark);
+    document.body.classList.toggle("e11-default-black",_defDark);
   }catch(_eDefBlack){}
   /* 给整站一个统一的暗色开关：CSS 里按 body.ui-dark 兜底文字对比度 */
   try{
@@ -11626,6 +11641,13 @@ function applySkin(){
     }catch(_){}
     document.documentElement.setAttribute("data-theme",dark?"dark":"light");
   }catch(e){}
+  /* v43-139：读信弹层正开着时，系统深浅色一换就原地重绘，不用关掉再重开 */
+  try{
+    var _lvNow=document.getElementById("letter-view");
+    if(_lvNow&&_lvNow.style.display==="flex"&&window.__openLetterId){
+      openLetterView(window.__openLetterId);
+    }
+  }catch(_eLiveLetter){}
 }
 
 /* ===== 聊天渲染 ===== */
@@ -18773,7 +18795,7 @@ $("sw-active-tag").addEventListener("click",e=>{state.settings.showActiveTag=(st
 })();
 $("sw-dark").addEventListener("click",e=>{
   var now=!__effectiveDark();
-  state.skin.themeMode="manual";state.skin.dark=now;state.skin.__ts=Date.now();
+  state.skin.themeMode="manual";state.skin.dark=now;state.skin.__ts=Date.now();state.skin.__sysThemeMigrated=true;
   /* v43-99：先把最终主题标记和首帧底色一起定死，再 applySkin。
      否则 __themeReady 为空时 __effectiveDark 会退回首帧 __bootDark，
      开关变成“点亮了但页面不变黑”。 */
@@ -18781,7 +18803,7 @@ $("sw-dark").addEventListener("click",e=>{
   /* v43-120：先把首帧主题同步写进 localStorage。
      以前只等 save()+80ms 延后写库，切完马上退出/被系统杀进程时来不及落盘，
      下次进来又先亮一下。 */
-  try{localStorage.setItem("__theme.v1",now?"dark":"light");localStorage.setItem("e11.theme.ts",String(Date.now()));}catch(_eDarkLs){}
+  try{localStorage.setItem("__theme.v1",now?"dark":"light");localStorage.setItem("e11.themeMode.v1","manual");localStorage.setItem("e11.theme.ts",String(Date.now()));}catch(_eDarkLs){}
   try{window.__e11SyncCfgSnapshot&&window.__e11SyncCfgSnapshot();}catch(_eDarkCfg){}
   try{e.target.classList.toggle("on",now);}catch(_){}
   try{if($("sw-theme-auto"))$("sw-theme-auto").classList.remove("on");}catch(_){}
@@ -18796,9 +18818,9 @@ if($("sw-theme-auto"))$("sw-theme-auto").addEventListener("click",e=>{
   state.skin.themeMode=(state.skin.themeMode==="manual")?"auto":"manual";
   if(state.skin.themeMode==="manual")state.skin.dark=__effectiveDark();
   else{try{state.skin.dark=!!(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches);}catch(_eAuto2){}}
-  state.skin.__ts=Date.now();
+  state.skin.__ts=Date.now();state.skin.__sysThemeMigrated=true;
   window.__bootDark=!!state.skin.dark;window.__themeReady=1;
-  try{localStorage.setItem("__theme.v1",state.skin.dark?"dark":"light");localStorage.setItem("e11.theme.ts",String(Date.now()));}catch(_eAutoLs){}
+  try{localStorage.setItem("__theme.v1",state.skin.dark?"dark":"light");localStorage.setItem("e11.themeMode.v1",state.skin.themeMode==="manual"?"manual":"auto");localStorage.setItem("e11.theme.ts",String(Date.now()));}catch(_eAutoLs){}
   try{window.__e11SyncCfgSnapshot&&window.__e11SyncCfgSnapshot();}catch(_eAutoCfg){}
   try{e.target.classList.toggle("on",state.skin.themeMode!=="manual");}catch(_){}
   try{applySkin();}catch(_){}
@@ -18811,7 +18833,7 @@ if($("sw-theme-auto"))$("sw-theme-auto").addEventListener("click",e=>{
     var mq=window.matchMedia?window.matchMedia("(prefers-color-scheme: dark)"):null;if(!mq)return;
     var h=function(){
       try{
-        if((state.skin.themeMode||"manual")!=="manual"){
+        if((state.skin.themeMode||"auto")==="auto"){
           state.skin.dark=!!mq.matches;state.skin.__ts=Date.now();
           applySkin();
           if(window.__themeReady){try{save();}catch(_eMqS){}}
@@ -24922,11 +24944,13 @@ function __ltNewbar(){
 window.__ltNewbar=__ltNewbar;
 function __closeLetterView(ov){
   try{if(ov)ov.style.display="none";}catch(_){}
+  try{window.__openLetterId=null;}catch(_){}
   /* 只关闭信件详情，保持原来的信箱/聊天页面，不间接跳返回 */
 }
 function openLetterView(id){
   let l=(state.letters||[]).filter(x=>x.id===id)[0];
   if(!l)return;
+  try{window.__openLetterId=id;}catch(_eOpenId){}
   /* 点回信 → 以它所属的那封主信为线程根，弹层里来信+全部回信一起看 */
   let root=l;
   if(l.replyTo){root=(state.letters||[]).filter(x=>x.id===l.replyTo)[0]||l;}
@@ -24954,12 +24978,11 @@ function openLetterView(id){
     var _cv=ov.querySelector("#letter-view-card");
     var _pv=paperFor(root);
     var _dk=document.body.classList.contains("ui-dark");
-    /* 夜间读信：遮罩也一起压成纯黑，不再透出下面的彩色背景 */
+    /* v43-139：读信遮罩跟随系统——夜间纯黑，白天恢复半透明模糊 */
     try{
-      /* v43-138：读信遮罩默认也纯黑，不再露下面的白色页面 */
-      ov.style.background="rgba(0,0,0,.94)";
-      ov.style.webkitBackdropFilter="none";
-      ov.style.backdropFilter="none";
+      ov.style.background=_dk?"rgba(0,0,0,.94)":"rgba(0,0,0,.42)";
+      ov.style.webkitBackdropFilter=_dk?"none":"blur(6px)";
+      ov.style.backdropFilter=_dk?"none":"blur(6px)";
     }catch(_eOvBg){}
     var _bg="#FFFFFF",_fg="#1C1C1E",_img="none";
     if(_pv&&_pv.img){_bg="#111111";_fg="#FFFFFF";_img='url("'+_pv.img+'")';}
@@ -24972,8 +24995,9 @@ function openLetterView(id){
       var _lum=(0.299*_r+0.587*__g+0.114*_b)/255;
       _fg=_lum>0.6?"#1C1C1E":"#FFFFFF";
     }else{
-      /* v43-138：没有自定义信纸时，读信弹层默认黑纸白字 */
-      _bg="#000000";_fg="#FFFFFF";
+      /* v43-139：没有自定义信纸时，夜间黑纸白字，白天白纸深色字 */
+      if(_dk){_bg="#000000";_fg="#FFFFFF";}
+      else{_bg="#FFFFFF";_fg="#1C1C1E";}
     }
     _cv.style.setProperty("--lv-bg",_bg);
     _cv.style.setProperty("--lv-fg",_fg);
