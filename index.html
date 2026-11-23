@@ -218,7 +218,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-130";
+window.__E11_BUILD="2026-11-23v43-131";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2538,7 +2538,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-130">
+<meta name="app-build" content="2026-11-23v43-131">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4281,7 +4281,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-130</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-131</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -30971,6 +30971,26 @@ try{
   function markForce(){try{sessionStorage.setItem(FORCE_KEY,String(Date.now()));}catch(e){}}
   function recentTry(b){try{var x=JSON.parse(sessionStorage.getItem(TRY_KEY)||"null");return !!(x&&x.build===b&&Date.now()-x.t<600000);}catch(e){return false;}}
   function markTry(b){try{sessionStorage.setItem(TRY_KEY,JSON.stringify({build:b,t:Date.now()}));}catch(e){}}
+  /* v43-131：发现新版本不再立刻刷新，统一给 60 秒缓冲；同一版本只排一次，
+     到时自动换页。页面在后台时先挂起，回到前台立刻更新。 */
+  var autoTimer=null,autoBuild="",autoAt=0;
+  function clearAutoUpdate(){
+    if(autoTimer){try{clearTimeout(autoTimer);}catch(_eAutoClr){}}
+    autoTimer=null;autoBuild="";autoAt=0;
+  }
+  function scheduleAutoUpdate(nb){
+    if(autoTimer&&autoBuild===nb)return;
+    clearAutoUpdate();
+    autoBuild=nb;autoAt=Date.now()+60000;
+    try{toast("发现新版本，60 秒后自动更新");}catch(_eAutoToast){}
+    autoTimer=setTimeout(function(){
+      autoTimer=null;var b=autoBuild;autoBuild="";autoAt=0;
+      if(!b)return;
+      if(document.hidden){pendingBuild=b;return;}
+      try{forceUpdate(b,true);}catch(_eAutoGo){}
+    },60000);
+  }
+  window.__e11AutoUpdateState=function(){return {build:autoBuild,active:!!autoTimer,due:autoAt};};
   function autoSafe(){
     try{
       if(document.visibilityState==="hidden")return false;
@@ -31023,6 +31043,7 @@ try{
     }catch(_){}
   }
   function forceUpdate(nb,manual){
+    clearAutoUpdate();
     if(!manual&&!canForce())return;
     /* 自动更新沿用 10 分钟防抖；用户主动点「检查更新」时一律重试，
        否则点一次失败后 10 分钟内再点都只会弹提示，永远不会自动换页。 */
@@ -31120,12 +31141,16 @@ try{
           if(!apkUrl){var vm=/v(\d+)-(\d+)/.exec(info.build||"");if(vm)apkUrl="https://github.com/222H99/Elevenx11/releases/tag/v"+vm[1]+"-"+vm[2];}
           if(apkUrl)showApkUpdate(info.build,apkUrl);
           if(manual)try{toast(apkUrl?"发现新版本 "+info.build+"，请下载安装包":"发现新版本 "+info.build+"，请到发布页下载安装包");}catch(_){}
+        }else if(manual){
+          clearAutoUpdate();
+          try{toast("发现新版本 "+info.build+"，正在更新…");}catch(_){}
+          forceUpdate(info.build,true);
         }else{
-          if(manual)try{toast("发现新版本 "+info.build+"，正在更新…");}catch(_){}
-          if(manual||autoSafe())forceUpdate(info.build,manual);
-          else{pendingBuild=info.build;try{toast("有新版本，切到后台后会自动更新");}catch(_){}}
+          pendingBuild="";
+          scheduleAutoUpdate(info.build);
         }
       }else{
+        clearAutoUpdate();
         if(manual)try{toast("已是最新版本（"+local+"）");}catch(_){}
       }
     }catch(e){
@@ -31143,7 +31168,8 @@ try{
     if(document.hidden){
       if(pendingBuild){var b=pendingBuild;pendingBuild="";if(!apkMode())forceUpdate(b,true);}
     }else{
-      setTimeout(function(){check(false);},150);
+      if(pendingBuild){var _pb=pendingBuild;pendingBuild="";try{forceUpdate(_pb,true);}catch(_eAutoResume){}}
+      else setTimeout(function(){check(false);},150);
     }
   });
 })();</script>
