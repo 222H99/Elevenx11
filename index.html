@@ -226,7 +226,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-141";
+window.__E11_BUILD="2026-11-23v43-142";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2581,7 +2581,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-141">
+<meta name="app-build" content="2026-11-23v43-142">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4328,7 +4328,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-141</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-142</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -19459,19 +19459,67 @@ window.__e11RestoreIDB=function(all,opts){return __restoreIDB(all,opts);};
    1) target=_blank：手机浏览器不认 download 时会去打开 blob，当前 App 页不会被替成一段 JSON；
    2) 锚点保留 5 秒再撤销，避免部分系统在下载还没接管时就把 blob 地址回收；
    3) 阻止合成 click 冒泡到页面其它按钮，导出只读，不触发任何清空/重置。 */
-function __e11DownloadBlob(blob,fname){
+function __e11IsLikelyWebView(){
+  try{
+    var ua=String(navigator.userAgent||"");
+    if(/MicroMessenger|QQ\/|DingTalk|Weibo|aweme|Bytedance|Lark|Feishu|Doubao|baiduboxapp|AlipayClient/i.test(ua))return true;
+    if(/; wv\)/i.test(ua))return true;
+    if(/iPhone|iPad|iPod/i.test(ua)&&/AppleWebKit/i.test(ua)&&!/Safari/i.test(ua))return true;
+  }catch(_){}
+  return false;
+}
+function __e11AnchorDownload(blob,fname){
   try{
     var a=document.createElement("a");
     a.href=URL.createObjectURL(blob);
     a.download=fname||"Eleven11_backup.json";
-    a.target="_blank";a.rel="noopener";
+    a.rel="noopener";
     a.style.cssText="position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;";
     a.addEventListener("click",function(e){try{e.stopPropagation();}catch(_){}});
     document.body.appendChild(a);
     try{a.click();}catch(_){}
     setTimeout(function(){try{a.remove();}catch(_){}try{URL.revokeObjectURL(a.href);}catch(_){}},5000);
-    return true;
-  }catch(_){return false;}
+    return "download";
+  }catch(_){return "fail";}
+}
+/* v43-142：按设备能力分三条路径导出。
+   1) 安卓原生壳有 AndroidUI.saveFile，直接写系统「下载/Eleven11」，不依赖 WebView 下载器；
+   2) 微信/QQ/飞书等内置 WebView、iOS 内置浏览器：用系统分享面板保存文件（这类壳经常忽略 a[download]）；
+   3) 普通浏览器：标准 a[download]，不再 target=_blank，避免部分设备弹空白页而不是保存。 */
+function __e11DownloadBlob(blob,fname){
+  try{
+    var mime=blob&&blob.type?blob.type:"application/json";
+    if(window.AndroidUI&&typeof window.AndroidUI.saveFile==="function"){
+      try{
+        var fr=new FileReader();
+        fr.onload=function(){
+          try{
+            var s=String(fr.result||"");var i=s.indexOf(",");
+            if(i<0){__e11AnchorDownload(blob,fname);return;}
+            window.AndroidUI.saveFile(fname||"Eleven11_backup.json",s.slice(i+1),mime);
+          }catch(_){__e11AnchorDownload(blob,fname);}
+        };
+        fr.onerror=function(){__e11AnchorDownload(blob,fname);};
+        fr.readAsDataURL(blob);
+        return "native";
+      }catch(_){}
+    }
+    var file=null;
+    try{file=new File([blob],fname||"Eleven11_backup.json",{type:mime});}catch(_){}
+    var canShare=false;
+    try{canShare=!!(file&&navigator.canShare&&navigator.canShare({files:[file]}));}catch(_){canShare=false;}
+    var noDownload=!("download" in document.createElement("a"));
+    if(canShare&&(__e11IsLikelyWebView()||noDownload)){
+      try{
+        navigator.share({files:[file],title:fname||"Eleven11 备份"}).catch(function(err){
+          try{if(err&&err.name==="AbortError")return;}catch(_){}
+          __e11AnchorDownload(blob,fname);
+        });
+        return "share";
+      }catch(_){}
+    }
+    return __e11AnchorDownload(blob,fname);
+  }catch(_){return "fail";}
 }
 function __e11DataCounts(){
   try{
@@ -19498,7 +19546,8 @@ window.__e11ExportGuardCheck=function(){
 function __downloadJsonFile(obj,fname){
   try{
     var blob=new Blob([JSON.stringify(obj)],{type:"application/json"});
-    return __e11DownloadBlob(blob,fname);
+    var _mode=__e11DownloadBlob(blob,fname);
+    return _mode!=="fail";
   }catch(_){return false;}
 }
 function __emojiValidSrc(v){return typeof v==="string"&&v.indexOf("\u0000bigref:")!==0&&(/^data:image\//i.test(v)||/^https?:\/\//i.test(v));}
@@ -19678,7 +19727,8 @@ $("btn-export").addEventListener("click",function(){
     const d=new Date();
     const fname="私密聊天备份_"+d.getFullYear()+("0"+(d.getMonth()+1)).slice(-2)+("0"+d.getDate()).slice(-2)+"_"+("0"+d.getHours()).slice(-2)+("0"+d.getMinutes()).slice(-2)+".json";
     var okDownload=__e11DownloadBlob(blob,fname);
-    if(!okDownload){try{toast("导出失败，请重试");}catch(_){}}
+    if(okDownload==="fail"){try{toast("导出失败：当前设备没有可用的保存通道，请更新到最新 APK 或换浏览器");}catch(_){}}
+    else if(okDownload==="share"){try{toast("已打开系统保存面板：请选择「存储到文件/下载」保存备份");}catch(_){}}
     else{try{toast("全量导出完成：聊天"+_counts.messages+" / 信件"+_counts.letters+" / 动态"+_counts.moments+" / 留言"+_counts.guestbook+" / 字卡"+_counts.cards+" / 图片库"+Object.keys(idbAll||{}).length+" 项");}catch(_){}}
     _verify();
     _release();
