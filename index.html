@@ -226,7 +226,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-149";
+window.__E11_BUILD="2026-11-23v43-150";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2581,7 +2581,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-149">
+<meta name="app-build" content="2026-11-23v43-150">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4244,10 +4244,10 @@ setTimeout(function(){
       </div>
       <!-- 听歌 -->
       <div class="set-sec-title">听歌</div>
-      <div class="set-group"><div class="set-row"><span class="set-label">他推歌给我概率（%）<div class="set-sub">在聊天里发一张「推歌卡片」，点开就能听</div></span><input class="set-input" id="set-song-push" type="number" min="0" max="100" value="3"></div><div class="set-row"><span class="set-label">他邀请我一起听歌概率（%）</span><input class="set-input" id="set-music-invite" type="number" min="0" max="100" value="15"></div><div class="set-row"><span class="set-label">他拒绝听歌邀请概率（%）</span><input class="set-input" id="set-music-decline" type="number" min="0" max="100" value="30"></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">他推歌给我概率（%）<div class="set-sub">在聊天里发一张「推歌卡片」，点开就能听</div></span><input class="set-input" id="set-song-push" type="number" min="0" max="100" value="3"></div><div class="set-row"><span class="set-label">他邀请我一起听歌概率（%）<div class="set-sub">每 15 分钟最多抽一次；设 0 就不再邀请</div></span><input class="set-input" id="set-music-invite" type="number" min="0" max="100" value="15"></div><div class="set-row"><span class="set-label">他拒绝听歌邀请概率（%）</span><input class="set-input" id="set-music-decline" type="number" min="0" max="100" value="30"></div></div>
       <!-- 画画 -->
       <div class="set-sec-title">画画</div>
-      <div class="set-group"><div class="set-row"><span class="set-label">他邀请我一起画画概率（%）</span><input class="set-input" id="set-draw-invite" type="number" min="0" max="100" value="15"></div><div class="set-row"><span class="set-label">他拒绝画画邀请概率（%）</span><input class="set-input" id="set-draw-decline" type="number" min="0" max="100" value="40"></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">他邀请我一起画画概率（%）<div class="set-sub">每 15 分钟最多抽一次；设 0 就不再邀请</div></span><input class="set-input" id="set-draw-invite" type="number" min="0" max="100" value="15"></div><div class="set-row"><span class="set-label">他拒绝画画邀请概率（%）</span><input class="set-input" id="set-draw-decline" type="number" min="0" max="100" value="40"></div>
       </div>
       <!-- 电话 -->
       <div class="set-sec-title">电话</div>
@@ -4328,7 +4328,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-149</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-150</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -7824,7 +7824,7 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-23",
   noticeKey:null,
-  lead:"v43-149：第二页进入就是上次保存的布局，不再等 5 秒、不再二次缩放；挂断的电话重进不会继续计时。",
+  lead:"v43-150：邀请听歌/画画的概率按 15 分钟一次真正生效，不再每分钟叠加；日记要等我写完并翻看 TA 那一页，TA 的回应才出现。",
   items:[
     "第二页秒开：存档读完后立刻画第二页，不再等 5.2 秒；滑过去看到的就是上次保存的组件位置、照片框大小和内容。",
     "不做二次缩放：同一屏幕、同一套布局只用已经保存的比例；进入网站不会先按默认缩一遍、数据到了再缩第二遍。",
@@ -21366,22 +21366,19 @@ function musicInviteClose(){
 }
 var __musicInviteLastAt=0;
 function maybePartnerMusicInvite(){
-  /* 人已经不在音乐页时，延迟到点的邀请不再把页面强行拉回音乐页。 */
-  if(window.__curView!=="view-music")return;
-  /* 一起听同样是大事件：15 分钟内最多自动发起一次 */
-  if(Date.now()-(__musicInviteLastAt||0)<15*60000)return;
-  const busy=$("view-music").classList.contains("open")||state.musicCur>=0;
+  /* v43-150：只在聊天页/音乐页弹，别的页面不把用户拽走。 */
+  if(window.__curView!=="view-chat"&&window.__curView!=="view-music")return;
   if(musicInviteShown||$("music-invite").classList.contains("show"))return;
+  /* 一起听是大事件：一次抽签后 15 分钟内不再抽。
+     以前只在“邀请成功”时记时间，失败后每分钟都会重抽，15% 被叠成很高的实际概率。 */
+  if(Date.now()-(__musicInviteLastAt||0)<15*60000)return;
+  __musicInviteLastAt=Date.now();
+  /* 已经在“一起听”里就说明双方已经达成，不再重复邀请。
+     只是选中了一首歌不算一起听，不能再借这个直接跳回音乐页。 */
+  if(state.musicSession===true)return;
   const p=Math.min(100,Math.max(0,Number(state.settings.socialProbMusic)));
-  if(Math.random()*100<p){
-    if(busy){
-      // 已在一起听歌：对方再发起 → 直接进入一起听，不再弹邀请确认
-      showView("view-music");
-      const au=musicAudio();if(au.paused&&state.musicCur>=0)au.play().catch(()=>{});
-    }else{
-      musicInviteShown=true;__musicInviteLastAt=Date.now();musicInviteOpen("partner","music");
-    }
-  }
+  if(Math.random()*100>=p)return;
+  musicInviteShown=true;musicInviteOpen("partner","music");
 }
 $("mvi-yes").addEventListener("click",()=>{
   const fromMe=$("music-invite").dataset.dir==="me";
@@ -24730,20 +24727,16 @@ function sendDrawInvite(){
 }
 var __drawInviteLastAt=0;
 function maybePartnerDrawInvite(){
-  /* 画画属于「大事件」，概率再高也不该一分钟弹一次：15 分钟内最多自动发起一次 */
+  /* v43-150：只从聊天页发起邀请；正在画画时不重开画布，避免把当前画作冲掉。 */
+  if(window.__curView!=="view-chat")return;
+  if(drawInviteShown||$("draw-invite").classList.contains("show"))return;
+  /* 画画属于「大事件」：一次抽签后 15 分钟内不再抽。
+     以前只在弹窗成功时记时间，没抽中会每分钟继续抽，实际频率远高于设置值。 */
   if(Date.now()-(__drawInviteLastAt||0)<15*60000)return;
-  const busy=$("view-game").classList.contains("open");
+  __drawInviteLastAt=Date.now();
   const pv=Number(state.settings.drawInviteProb);const p=Math.min(100,Math.max(0,isNaN(pv)?15:pv));
   if(Math.random()*100>=p)return;
-  if(drawInviteShown||$("draw-invite").classList.contains("show"))return;
-  if(busy){
-    // 正在接力画画：对方再发起 → 直接进入画画，不再弹邀请确认
-    var _invitid=pushMsg("partner","sys","来一起画画呀");
-    __appendChatMsg(_invitid);
-    window.__gameReturn="view-chat";showView("view-game");initGameCanvas();
-  }else{
-    drawInviteShown=true;__drawInviteLastAt=Date.now();drawInviteOpen("partner");
-  }
+  drawInviteShown=true;drawInviteOpen("partner");
 }
 /* 画画邀请弹窗：先跳出邀请消息，接受才进入画面，拒绝停留聊天 */
 let drawInviteShown=false,pendingDrawInvId=null,drawAutoAccept=null;
@@ -32185,6 +32178,14 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
     /* TA 提前写好的未来页：不用等到那一天，也不用等 6 小时，直接可读 */
     var _isFuturePage=keyDate(baseKey(curKey))>keyDate(todayKey());
     var lockedP=isP&&!_isFuturePage&&Number(pg.unlockAt||0)>Date.now();
+    /* v43-150：TA 的回应不在我保存时提前生成。
+       只有我已经写完今天这一页、并且真的翻到 TA 那一页看过了，才在这里补回应。 */
+    if(isP&&!lockedP&&mineWritten(curKey)){
+      try{
+        if(!Number(pg.__viewedAt||0))pg.__viewedAt=Date.now();
+        _taReplyFor(baseKey(curKey),pg);
+      }catch(_eView){}
+    }
     var mood=moodOf(isP?(pg.partner&&pg.partner.mood)||"":(pg.mine.mood||""));
     var paper=el("diary-paper");
     var head='<div class="dp-tape"></div><div class="dp-inner"><div style="display:flex;justify-content:space-between;align-items:center;"><div class="dp-date">'+keyLabel(curKey)+(isP?' · TA 的页':'')+'</div><div class="dp-mood">'+(isP?mood.e+" "+esc(mood.n):(pg.mine.mood?mood.e+" "+esc(mood.n):"今天的心情"))+'</div></div><div class="dp-line"></div><div class="dp-brand">our diary</div>';
@@ -32228,13 +32229,14 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
       }
       var _both=exchangeReady(curKey);
       var _taR=String((pg.taReply&&pg.taReply.text)||"").trim();
-      /* TA 的回应必须等双方都写完、交换完成；旧数据里 taReply.unlockAt=0 时以 exchangeReady 为准 */
+      /* v43-150：回应必须在我写完并翻看过 TA 那一页之后才出现（seenAt 由那次查看写入） */
+      var _taSeen=Number((pg.taReply&&pg.taReply.seenAt)||0);
       var _taUnlock=Number((pg.taReply&&pg.taReply.unlockAt)||0);
-      var taReplyHtml=(_taR&&_both&&(_taUnlock<=Date.now()))?('<div class="dp-ta-reply"><div class="dtr-lab">TA 的回应</div><div class="dtr-t">'+esc(_taR)+'</div></div>'):"";
+      var taReplyHtml=(_taR&&_taSeen&&(_taUnlock<=Date.now()))?('<div class="dp-ta-reply"><div class="dtr-lab">TA 的回应</div><div class="dtr-t">'+esc(_taR)+'</div></div>'):"";
       /* 本页照片跟着「我的日记」走，放在正文块里，和 TA 的回应一样在流里，不压字 */
       var _myPhotos=photosHtml;
       var _tipTxt=String(pg.mine.text||"").trim()
-        ? (partnerWritten(curKey)?(partnerUnlocked(curKey)?"交换完成：TA 的日记和回应已出现":"TA 也写了一页 · 6 小时后交换完成才能一起看"):"已经保存好，TA 会在今天补写一页（写完 6 小时后解锁）")
+        ? (partnerWritten(curKey)?(partnerUnlocked(curKey)?"翻看过 TA 的日记后，TA 的回应才会出现":"TA 也写了一页 · 6 小时后交换完成才能一起看"):"已经保存好，TA 会在今天补写一页（写完 6 小时后解锁）")
         : "写完点「保存这一页」";
       bodyHtml='<div class="dp-diary-block"><div class="dp-mine"><textarea id="diary-mine" placeholder="今天想写点什么…">'+esc(pg.mine.text||"")+'</textarea>'+_myPhotos+'<div class="dp-tip">'+_tipTxt+'</div></div></div>'+(taReplyHtml?'<div class="dp-reply-block">'+taReplyHtml+'</div>':'')+partnerHtml;
     }
@@ -32423,8 +32425,9 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
     var tk=baseKey(key),pk=tk+"#p";
     var existing=D().pages[pk];
     if(existing){
-      /* TA 先写了：等我保存完我的这一页，双方才算都写完，这时才补 TA 的回应 */
-      try{_taReplyFor(tk,existing);}catch(e){}
+      /* TA 先写了：等我保存完我的这一页，双方才算都写完。
+         v43-150：回应不再在保存时提前生成；只有我已经翻看过 TA 那一页，才补这一句回应。 */
+      try{if(Number(existing.__viewedAt||0))_taReplyFor(tk,existing);}catch(e){}
       __diaryNotice(pk);
       return;
     }
@@ -32436,7 +32439,7 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
         var oldPg=D().pages[k2];delete D().pages[k2];
         oldPg.unlockAt=Date.now()+6*3600e3;oldPg.writtenAt=Date.now();
         D().pages[pk]=oldPg;
-        try{_taReplyFor(tk,oldPg);}catch(e){}
+        try{if(Number(oldPg.__viewedAt||0))_taReplyFor(tk,oldPg);}catch(e){}
         __diaryNotice(pk);
         return;
       }
@@ -32444,7 +32447,6 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
     var page=newPartnerPage(pageOf(tk).paperImg||D().paperImg||"");
     page.first=false;page.unlockAt=Date.now()+6*3600e3;page.writtenAt=Date.now();
     D().pages[pk]=page;
-    try{_taReplyFor(tk,page);}catch(e){}
     __diaryNotice(pk);
   }
   /* TA 写了日记：等这一页真的可以看（unlockAt 到了）才在聊天页提示 */
@@ -32502,9 +32504,18 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
     try{
       var mine=D().pages[tk];if(!mine)return;
       page=__fixDiaryUnlock(page);
-      if(mine.taReply&&String(mine.taReply.text||"").trim()){__fixDiaryReplyUnlock(mine);return;}
-      mine.taReply={text:_taReplyLine(),time:Date.now(),unlockAt:Number(page&&page.unlockAt)||0};
-      __fixDiaryReplyUnlock(mine);
+      var seen=Date.now();
+      if(mine.taReply&&String(mine.taReply.text||"").trim()){
+        /* 旧存档里的回应没有 seenAt：既然这一次真的翻到了 TA 那一页，就补上“已读”时间。 */
+        if(!Number(mine.taReply.seenAt||0)){
+          mine.taReply.seenAt=seen;
+          mine.taReply.unlockAt=seen;
+          __fixDiaryReplyUnlock(mine);
+          save();
+        }
+        return;
+      }
+      mine.taReply={text:_taReplyLine(),time:seen,seenAt:seen,unlockAt:seen};
       save();
     }catch(e){}
   }
