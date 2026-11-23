@@ -252,7 +252,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183i";
+window.__E11_BUILD="2026-11-24v43-183j";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2643,7 +2643,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183i">
+<meta name="app-build" content="2026-11-24v43-183j">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4390,7 +4390,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-24v43-183i</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-24v43-183j</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -9197,7 +9197,7 @@ function __slimState(root){
      这些图现在都已压到 320/720px，单张不大，内联比悬空引用可靠。 */
   /* v43-39：聊天背景和桌面背景也保持内联。以前它们被换成 bigref，
      启动时如果本机大图没读回来，历史图片修复就会把旧背景补回来，看起来就是“一打开又变回以前那张”。 */
-  var __KEEP_INLINE=function(k){return /^(avatar|meAvatar|cpMeAvatar|cpPartnerAvatar|cpPhotoAvatar|mpAv1|mpAv2|cpPhoto|cpPhotoCard|cpPhotoSub|cpRecord|cover|musicCoverImg|musicBgImg|bgImage|meImage)$/i.test(String(k||""));};
+  var __KEEP_INLINE=function(k){return /^(avatar|meAvatar|cpMeAvatar|cpPartnerAvatar|cpPhotoAvatar|mpAv1|mpAv2|cpPhoto|cpPhotoCard|cpPhotoSub|cpRecord|cover|bgImage|meImage|meTopImage|gbImage|ltImage|gameImage|momImage|coupleImage|musicBgImg|musicDiscBgImg|musicDiscInnerImg|musicCoverImg|musicLyricBgImg|callBgImg|img)$/i.test(String(k||""));};
   function walk(v,key){
     try{
       if(v&&typeof v==="object"&&Array.isArray(v)&&root&&root.me&&root.me.photos===v)return v.slice();
@@ -9611,7 +9611,8 @@ function __flushSave(immediate){
      1.2 秒兼顾“不要每敲一个字整库复制”和“发出去就落地”。 */
   try{
     var _fnow=Date.now();
-    if(!window.__e11FullWriteForce&&!document.hidden&&_fnow-(window.__e11FullWriteAt||0)<1200){
+    var _forceNow=!!window.__e11FullWriteForce||Date.now()<(window.__e11ForceUntil||0);
+    if(!_forceNow&&!document.hidden&&_fnow-(window.__e11FullWriteAt||0)<1200){
       clearTimeout(window.__e11FullWake);
       window.__e11FullWake=setTimeout(function(){
         window.__e11FullWriteForce=1;
@@ -11098,7 +11099,10 @@ async function init(){
       try{window.__e11RepairBulkTombs&&window.__e11RepairBulkTombs(state);}catch(_eTombFix){}try{__ltReadApply();}catch(e){}try{__prefApply();}catch(e){}try{window.__perfApply&&window.__perfApply();}catch(_){}window.__stateReady=1;window.__e11DataReady=1;try{window.__e11BootLoading=0;}catch(_eBootLoad1){}try{
   var _runHydrateRest=function(){try{window.__e11HydrateRest&&window.__e11HydrateRest();}catch(_eHR){}};
   if(window.requestIdleCallback)requestIdleCallback(_runHydrateRest,{timeout:6000});else setTimeout(_runHydrateRest,2600);
-}catch(_eHRs){}/* 主题先别在这里定：这份还可能是默认浅色快照，等两份存档合并完（下面 6820 行）再 __themeReady，否则夜间用户会先被刷白 */applySkin();
+}catch(_eHRs){}/* 主题先别在这里定：这份还可能是默认浅色快照，等两份存档合并完（下面 6820 行）再 __themeReady，否则夜间用户会先被刷白 */
+      try{if(window.__e11BgLocalRestore){window.__e11BgLocalRestore();}else{setTimeout(function(){try{window.__e11BgLocalRestore&&window.__e11BgLocalRestore();}catch(_){}},80);}}catch(_eBgBoot){}
+      applySkin();
+      try{setTimeout(function(){try{window.__e11BgLocalRestore&&window.__e11BgLocalRestore();}catch(_){}},1200);}catch(_eBgBoot2){}
       try{__restoreEmojiLibFromBackup();}catch(_eEmojiLib){}
       try{__backfillEmojiMessageIds();}catch(_eBf){}
       try{__mergeMediaSnapshots(state,s);}catch(_eMergeMedia2){}
@@ -11170,7 +11174,7 @@ try{window.__scheduleCp2Render&&window.__scheduleCp2Render();}catch(e){}
          量完再撤启动层，所以用户第一眼看到的就是最终尺寸，不会“先大后小”。 */
       try{if(window.__bootPendingReveal&&window.__fitInvalidate)window.__fitInvalidate(true);}catch(_eBootFitReset){}
       try{__bkCompactOld();}catch(_eCompact){}
-      try{if(window.__e11BeautyLoad)window.__e11BeautyLoad().then(function(ch){if(ch){try{applySkin();}catch(_){}try{renderMe();}catch(_){}try{renderChat(true);}catch(_){}try{renderCouple();}catch(_){}try{save();}catch(_){}}});}catch(_eBeautyLoad){}
+      try{if(window.__e11BeautyLoad)window.__e11BeautyLoad().then(function(ch){if(ch){try{window.__e11BgLocalRestore&&window.__e11BgLocalRestore();}catch(_){}try{applySkin();}catch(_){}try{renderMe();}catch(_){}try{renderChat(true);}catch(_){}try{renderCouple();}catch(_){}try{save();}catch(_){}}});}catch(_eBeautyLoad){}
       /* v43-74：存档读完后用真正内容再确认一次比例并写进屏幕缓存；
          之前 220ms 的首算发生在 dbReady 之前，不落盘，于是下次打开又重量一遍。 */
       /* v43-149：不再强制解锁重算；同一屏幕+同一布局已有比例就只套用，
@@ -11578,11 +11582,12 @@ function setSkinImg(key,raw,after){
         setTimeout(function(){
           __shrinkImg(raw,1600,0.82).then(function(c){
             if(!c||c===raw||state.skin[key]!==raw)return;
-            state.skin[key]=c;try{applySkin();}catch(e){}try{after&&after();}catch(e){}save();try{__flushSave(true);}catch(e){}
+            state.skin[key]=c;try{applySkin();}catch(e){}try{after&&after();}catch(e){}save();try{if(window.__e11BgLocalSync)window.__e11BgLocalSync();}catch(_eBgSync2){}try{__flushSave(true);}catch(e){}
           });
         },80);
       }
     }catch(e){}
+    try{if(window.__e11BgLocalSync)window.__e11BgLocalSync();}catch(_eBgSetSync){}
     try{__flushSave(true);}catch(e){} /* v43-39：导入背景后立即落盘，切后台/马上关掉也不会退回旧背景 */
     /* 云端也立刻推一次：只存本机时，重装/换端仍可能读回旧背景 */
     try{window.__E11Cloud&&window.__E11Cloud.flush&&window.__E11Cloud.flush();}catch(e){}
@@ -11601,7 +11606,99 @@ function setSkinImg(key,raw,after){
 /* v43-183g：背景类设置（卡片/主页/一起听/歌词/通话/聊天）统一“选中即强制落盘”。
    以前只调 save()，靠 260ms 的防抖定时器写库；选完背景马上切后台/滑掉 App，
    定时器没机会跑，重开就回到旧背景。这里立即 flush 主档 + 美化图库 + 云端。 */
+/* v43-183j：背景图单独做一份「同步 localStorage 小备份」。
+   IndexedDB 的整库/大图写入是异步的，换完背景马上刷新、切后台或更新网站，
+   写入还没完成就会只剩一个 bigref，重开自然回到旧背景。
+   这里按路径同步写一份 dataURL，启动时优先补回空值/断图，彻底避开异步竞态。 */
+window.__E11_BG_PATHS=[
+  ["skin","bgImage"],["skin","meImage"],["skin","meTopImage"],["skin","gbImage"],["skin","ltImage"],
+  ["skin","gameImage"],["skin","momImage"],["skin","coupleImage"],
+  ["musicBgImg"],["musicDiscBgImg"],["musicDiscInnerImg"],["musicCoverImg"],["musicLyricBgImg"],["callBgImg"],
+  ["settings","paperBg","img"],["settings","envBg","img"],["settings","myPaperBg","img"],["settings","myEnvBg","img"]
+];
+window.__E11_BG_KEY=function(path){return "e11.bg.v2."+path.join("_");};
+window.__E11_BG_TS=function(path){return "e11.bg.v2.ts."+path.join("_");};
+window.__e11BgPathGet=function(path){
+  var cur=(typeof state!=="undefined"&&state)||null;
+  for(var i=0;i<path.length;i++){if(!cur)return "";cur=cur[path[i]];}
+  return typeof cur==="string"?cur:"";
+};
+window.__e11BgLocalSync=function(){
+  try{
+    if(typeof state==="undefined"||!state)return;
+    window.__E11_BG_PATHS.forEach(function(path){
+      var v=window.__e11BgPathGet(path),k=window.__E11_BG_KEY(path);
+      try{
+        if(!v){
+          /* 空值不是“没有记录”，而是一个明确的“已清空”墓碑：
+             否则刷新时主库/美化库里的旧图又会把刚清掉的背景补回来。 */
+          try{localStorage.setItem(k,"__empty__");localStorage.setItem(window.__E11_BG_TS(path),String(Date.now()));}catch(_){ }
+          return;
+        }
+        if(v.indexOf("data:")!==0){
+          /* 外链背景（例如一起听里填的图片 URL）本身会随 state 持久化，
+             不能写成空墓碑，否则重开反而被清掉。 */
+          try{localStorage.removeItem(k);localStorage.removeItem(window.__E11_BG_TS(path));}catch(_){ }
+          return;
+        }
+        if(v.length>1200000)return;
+        try{localStorage.setItem(k,v);localStorage.setItem(window.__E11_BG_TS(path),String(Date.now()));}
+        catch(_eq){
+          /* 空间紧：先清掉同一批里最旧的背景备份，再试当前这张 */
+          try{
+            window.__E11_BG_PATHS.forEach(function(p2){
+              var k2=window.__E11_BG_KEY(p2);if(k2!==k){try{localStorage.removeItem(k2);localStorage.removeItem(window.__E11_BG_TS(p2));}catch(_){}}
+            });
+            localStorage.setItem(k,v);localStorage.setItem(window.__E11_BG_TS(path),String(Date.now()));
+          }catch(_e2){}
+        }
+      }catch(_ePath){}
+    });
+  }catch(_eBgSync){}
+};
+window.__e11BgLocalRestore=function(){
+  try{
+    if(typeof state==="undefined"||!state)return false;
+    var changed=false;
+    window.__E11_BG_PATHS.forEach(function(path){
+      var cur=window.__e11BgPathGet(path);
+      var bak=null;try{bak=localStorage.getItem(window.__E11_BG_KEY(path));}catch(_){bak=null;}
+      if(!bak||(bak.indexOf("data:")!==0&&bak!=="__empty__"))return;
+      var bakTs=0;try{bakTs=Number(localStorage.getItem(window.__E11_BG_TS(path)))||0;}catch(_){}
+      var st=path[0]==="skin"?(state.skin||{}):(state.settings||{});
+      var curTs=Number(st&&st.__ts)||0;
+      if(bak==="__empty__"){
+        /* 用户明确清空过：这个墓碑无条件生效。
+           主库/美化库/云端旧档的图片都可能是异步补回来的，只有这里能兜住。 */
+        if(cur){
+          var cObj=state;
+          for(var ci=0;ci<path.length-1;ci++){if(!cObj[path[ci]]||typeof cObj[path[ci]]!=="object")return;cObj=cObj[path[ci]];}
+          cObj[path[path.length-1]]="";changed=true;
+        }
+        return;
+      }
+      /* 当前已经是图：只有这份备份确实比当前状态新，才覆盖它（防止修好旧图后又回滚）。 */
+      if(cur&&cur.indexOf("data:")===0&&!(bakTs>curTs+200))return;
+      var curObj=state;
+      for(var i=0;i<path.length-1;i++){
+        if(!curObj[path[i]]||typeof curObj[path[i]]!=="object")curObj[path[i]]= /^\d+$/.test(path[i+1])?[]:{};
+        curObj=curObj[path[i]];
+      }
+      curObj[path[path.length-1]]=bak;changed=true;
+    });
+    if(changed){
+      /* 不再调用 __bgPersistNow（它会再触发云端），只重绘并异步保存 */
+      try{applySkin();}catch(_){ }
+      try{save();}catch(_){ }
+      try{window.__bgPersistNow&&setTimeout(function(){try{window.__bgPersistNow();}catch(_){}} ,60);}catch(_){}
+    }
+    return changed;
+  }catch(_eBgRestore){return false;}
+};
 function __bgPersistNow(){
+  /* 先同步小备份，再做异步主库/云端落盘：刷新/退出时至少这一份在 */
+  try{window.__e11ForceUntil=Date.now()+2600;}catch(_eForceSet){}
+  try{window.__e11BgLocalSync&&window.__e11BgLocalSync();}catch(_eBgPre){}
   try{
     if(window.__e11PersistNow){window.__e11PersistNow();return;}
     save();try{__flushSave(true);}catch(_e){}
@@ -12169,7 +12266,8 @@ var __E11_BEAUTY_PATHS=[
   ["skin","bgImage"],["skin","gbImage"],["skin","ltImage"],["skin","momImage"],["skin","gameImage"],["skin","meImage"],["skin","meTopImage"],
   ["profile","meAvatar"],["profile","cpMeAvatar"],["profile","cpPartnerAvatar"],["profile","cpPhotoAvatar"],["profile","cpPhoto"],["profile","cpPhotoCard"],["profile","cpPhotoSub"],["profile","cpRecord"],["profile","mpAv1"],["profile","mpAv2"],["profile","cover"],
   ["me","avatar"],["partner","avatar"],["me","photos.0"],["partner","photos.0"],
-  ["musicBgImg"],["musicCoverImg"],["musicDiscBgImg"],["musicDiscInnerImg"],["callBgImg"]
+  ["musicBgImg"],["musicCoverImg"],["musicDiscBgImg"],["musicDiscInnerImg"],["musicLyricBgImg"],["callBgImg"],
+  ["skin","coupleImage"],["settings","paperBg","img"],["settings","envBg","img"],["settings","myPaperBg","img"],["settings","myEnvBg","img"]
 ];
 function __e11BPGet(o,path){
   var cur=o;
@@ -30040,7 +30138,10 @@ window.__dockTopPx=function(){
       if(window.__fitInvalidate)window.__fitInvalidate();
       setTimeout(function(){try{if(window.__fitCompute)window.__fitCompute(true);}catch(_){}},70);
     }catch(_){}
+    /* 缩放/拖动结束后立即落盘：不等 320ms 防抖，刷新/退出后仍按用户调的比例和位置显示 */
+    try{window.__e11ForceUntil=Date.now()+2200;}catch(_eLayForce){}
     if(typeof save==="function")save();
+    try{if(typeof __flushSave==="function")__flushSave(true);}catch(_eLayFlush){}
   }
   /* 重叠消解：按容器内坐标把「压在一起」的下方组件往下推，保证任何尺寸组合都不叠 */
   function resolveOverlap(){
