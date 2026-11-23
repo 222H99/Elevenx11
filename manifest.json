@@ -6,13 +6,19 @@
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "display_override": ["standalone", "minimal-ui"],
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
   "orientation": "any",
-  "background_color": "#fafafa",
-  "theme_color": "#fafafa",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
   "lang": "zh-CN",
   "dir": "ltr",
-  "categories": ["social", "lifestyle"],
+  "categories": [
+    "social",
+    "lifestyle"
+  ],
   "prefer_related_applications": false,
   "launch_handler": {
     "client_mode": "navigate-existing"
@@ -48,13 +54,23 @@
       "name": "聊天",
       "short_name": "聊天",
       "url": "./index.html#chat",
-      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "信箱",
       "short_name": "信箱",
       "url": "./index.html#letter",
-      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ]
 }

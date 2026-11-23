@@ -226,7 +226,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-154";
+window.__E11_BUILD="2026-11-23v43-155";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -371,11 +371,10 @@ window.addEventListener("appinstalled",function(){window.__e11InstallPrompt=null
 html,body{background:#fafafa;}
 /* PWA 顶部安全区兜底：状态栏透明/页面延伸到顶部时，这块跟随 App 明暗，
    夜间不会再露出白条，白天也不会露出黑条。 */
-@media (display-mode:standalone){
-  /* 不再用一个纯色块盖住顶部：聊天页顶栏是透明的，盖色块会多出一条白/灰色横带。
-     安全区交给各页顶栏自己的背景或壁纸透上来。 */
-  body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top);background:var(--sysbar-bg,#ffffff);z-index:99999;pointer-events:none;}
-}
+/* v43-155：状态栏/电量栏这一条固定纯白（夜间纯黑），任何打开方式都盖住，
+   不再只在 standalone 生效。之前浏览器/内嵌 WebView 里会露出页面或壁纸底色，
+   iOS 再叠一层半透明材质，就成了截图里那条发灰的“电量栏”。 */
+body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top);background:var(--sysbar-bg,#ffffff);z-index:99999;pointer-events:none;}
 html,body{background:#fafafa;}
 /* 夜间：html/body 底层也转黑，iOS 状态栏与回弹区不再露出米白 */
 html.ui-dark,body.ui-dark{background:#000000 !important;}
@@ -2587,7 +2586,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-154">
+<meta name="app-build" content="2026-11-23v43-155">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4334,7 +4333,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-154</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-155</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -7846,7 +7845,7 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-23",
   noticeKey:null,
-  lead:"v43-154：全部字卡按分组分段显示，导入/复制不再跑到别组；删掉的问卷题点「从我问过的导入」不再复活。",
+  lead:"v43-155：每个分组显示自己的字卡条数，找不到归属的卡有「未分组」入口；重导同一份分组 JSON 会把旧卡归位；电量栏固定纯白，不再发灰。",
   items:[
     "第二页秒开：存档读完后立刻画第二页，不再等 5.2 秒；滑过去看到的就是上次保存的组件位置、照片框大小和内容。",
     "不做二次缩放：同一屏幕、同一套布局只用已经保存的比例；进入网站不会先按默认缩一遍、数据到了再缩第二遍。",
@@ -10495,12 +10494,27 @@ function migrate(s){
         g.kind=best;
       }
     });
-    var _gk={};s.groups.forEach(function(g){if(g&&g.id)_gk[g.id]=g.kind||"chat";});
+    var _gk={};s.groups.forEach(function(g){if(g&&g.id)_gk[String(g.id)]=g.kind||"chat";});
+    /* v43-155：有些卡片的 groupId 指向一个已经被重建/删除的分组，于是一直只出现在「全部」里。
+       如果卡片自己带了分组名（group/groupName/分组），按同类别同名分组把它接回去；
+       同名分组不存在就补建一个，保证卡片回到用户设置的分组下面。 */
     s.cards.forEach(function(c){
       if(!c)return;
-      var _k=_gk[c.groupId]||"chat";
-      /* 分组是唯一归属：卡片 kind 与所在组不一致时，以分组为准，卡片就不会跑到别的类别。 */
-      if(c.kind!==_k)c.kind=_k;
+      var _has=!!_gk[String(c.groupId||"")];
+      if(_has)return;
+      var _hint=String(c.group||c.groupName||c.category||c["分组"]||c["分组名"]||c["分类"]||"").trim();
+      if(!_hint)return;
+      var _ck=(c.kind==="letter"||c.kind==="moment")?c.kind:"chat";
+      var _hit=s.groups.filter(function(g){return String(g.name||"").trim()===_hint&&(g.kind||"chat")===_ck;})[0];
+      if(!_hit){_hit={id:uid(),name:_hint,kind:_ck};s.groups.push(_hit);_gk[String(_hit.id)]=_ck;}
+      c.groupId=_hit.id;
+    });
+    s.cards.forEach(function(c){
+      if(!c)return;
+      var _k=_gk[String(c.groupId||"")];
+      /* 分组是唯一归属：能找到分组时以分组为准；找不到就保留卡片自己的类别，不能把信件卡硬改成聊天卡。 */
+      if(_k&&c.kind!==_k)c.kind=_k;
+      else if(!_k&&c.kind!=="chat"&&c.kind!=="letter"&&c.kind!=="moment")c.kind="chat";
     });
   }catch(_eCardKindMig){}
   return s;
@@ -11741,7 +11755,9 @@ function applySkin(){
          旧代码这里用 skin.bg（白色）并以 !important 内联写死，把 body.ui-dark 的黑色覆盖掉，
          结果设置页/聊天页黑了，顶部安全区和根底色还是白的，看起来就像“夜间模式没生效”。 */
       var _hasWall=!!(s.bgImage||s.meImage);
-      var _bg=dark?((_hasWall&&_bootc)?_bootc:"#000000"):(_bootc||s.bg||"#fafafa");
+      /* v43-155：白天的页面/安全区底色只认当前皮肤，不再拿 --bootbg 缓存。
+         旧缓存可能是上一次壁纸的平均色（截屏里那条 #9A999C 灰带），会把状态栏下面染灰。 */
+      var _bg=dark?((_hasWall&&_bootc)?_bootc:"#000000"):(s.bg||"#ffffff");
       document.documentElement.style.setProperty("background-color",_bg,"important");
       document.body.style.setProperty("background-color",_bg,"important");
       /* 状态区那一条必须跟顶部导航栏同色，不能铺成页面/壁纸底色，否则会多出一条色带 */
@@ -17803,10 +17819,19 @@ let cardKindView="chat";
 const CARD_KIND_LABEL={chat:"聊天字卡",letter:"信件字卡",moment:"动态字卡"};
 const CARD_KIND_SEC={chat:'字卡分组（对方在聊天里回复"我"时用这套）',letter:"字卡分组（对方写信 / 回信时用这套）",moment:"字卡分组（发布动态时用这套）"};
 const _cardActiveGid={chat:null,letter:null,moment:null};
+const CARD_ORPHAN_GID="__orphan";
 function cardKindOf(c){return (c&&c.kind)||"chat";}
 function groupKind(g){return (g&&g.kind)||"chat";}
 function groupsOfKind(k){return (state.groups||[]).filter(function(g){return groupKind(g)===k;});}
 function cardsOfKind(k){return (state.cards||[]).filter(function(c){return cardKindOf(c)===k;});}
+/* v43-155：卡片有 groupId，但对应分组已经不在了（云端旧档/导入后分组被重建）。
+   这些卡以前只在「全部」里能看到，点任何分组都是 0 条，像“没放进我设置的分组”。 */
+function isOrphanCard(c,k){
+  if(cardKindOf(c)!==k)return false;
+  var gid=String((c&&c.groupId)||"");
+  return !(state.groups||[]).some(function(g){return String(g&&g.id)===gid;});
+}
+function orphanCardsOfKind(k){return (state.cards||[]).filter(function(c){return isOrphanCard(c,k);});}
 function activeGidOfKind(k){
   var gs=groupsOfKind(k);
   /* 默认「全部字卡」：没有明确点过某个分组就返回 null，不再自动落到第一个分组。
@@ -17817,7 +17842,8 @@ function activeGidOfKind(k){
        不能拿来当字卡页的默认筛选，否则新用户/旧存档一进聊天字卡就落在某一组。 */
     _saved=(state.settings&&state.settings.cardActiveGid&&state.settings.cardActiveGid[k])||null;
   }catch(_eS){}
-  if(_saved&&gs.some(function(g){return g.id===_saved;}))_cardActiveGid[k]=_saved;
+  if(_saved===CARD_ORPHAN_GID&&orphanCardsOfKind(k).length){_cardActiveGid[k]=CARD_ORPHAN_GID;return CARD_ORPHAN_GID;}
+  if(_saved&&gs.some(function(g){return String(g.id)===String(_saved);}))_cardActiveGid[k]=_saved;
   else _cardActiveGid[k]=null;
   return _cardActiveGid[k];
 }
@@ -17840,8 +17866,8 @@ function setCardKind(k){
   try{renderLetterTpl();}catch(e){}
   try{renderCards();}catch(e){}
 }
-function groupById(id){return (state.groups||[]).find(g=>g.id===id);}
-function cardsCountInGroup(gid){return (state.cards||[]).filter(function(c){return c.groupId===gid;}).length;}
+function groupById(id){return (state.groups||[]).find(function(g){return String(g&&g.id)===String(id);});}
+function cardsCountInGroup(gid){return (state.cards||[]).filter(function(c){return String(c.groupId)===String(gid);}).length;}
 function bindCardKindTabs(){
   var box=document.getElementById("card-kind-tabs");
   if(box&&!box._b){
@@ -17905,7 +17931,9 @@ function renderCards(){
   // 分组标签
   const tabs=$("group-tabs");
   let html='<button class="group-tab all-tab'+(!activeGroupId?" active":"")+'" data-gid="__all">全部字卡<span class="gt-all-n">'+cardsOfKind(K).length+'</span></button>';
-  html+=groups.map(g=>'<div class="group-tab'+(g.id===activeGroupId?" active":"")+(g.disabled?" off":"")+'" data-gid="'+g.id+'" role="button" tabindex="0" title="'+esc(g.name)+'"><span class="gt-name">'+esc(g.name)+'</span><span class="gt-acts"><button type="button" class="gt-off" data-gdis="'+g.id+'" title="屏蔽/恢复该分组">'+(g.disabled?"恢复":"屏蔽")+'</button><button type="button" class="gt-edit" data-gedit="'+g.id+'" title="改名">改名</button>'+(state.groups.length>1?'<button type="button" class="gt-del" data-gdel="'+g.id+'" title="删除分组">删除</button>':"")+'</span></div>').join("");
+  html+=groups.map(g=>'<div class="group-tab'+(String(g.id)===String(activeGroupId)?" active":"")+(g.disabled?" off":"")+'" data-gid="'+g.id+'" role="button" tabindex="0" title="'+esc(g.name)+'"><span class="gt-name">'+esc(g.name)+'</span><span class="gt-all-n">'+cardsCountInGroup(g.id)+'</span><span class="gt-acts"><button type="button" class="gt-off" data-gdis="'+g.id+'" title="屏蔽/恢复该分组">'+(g.disabled?"恢复":"屏蔽")+'</button><button type="button" class="gt-edit" data-gedit="'+g.id+'" title="改名">改名</button>'+(groupsOfKind(K).length>1?'<button type="button" class="gt-del" data-gdel="'+g.id+'" title="删除分组">删除</button>':"")+'</span></div>').join("");
+  var _orphN=orphanCardsOfKind(K).length;
+  if(_orphN)html+='<div class="group-tab orphan-tab'+(activeGroupId===CARD_ORPHAN_GID?" active":"")+'" data-gid="__orphan" role="button" tabindex="0" title="这些字卡的所属分组已经不在了"><span class="gt-name">未分组</span><span class="gt-all-n">'+_orphN+'</span></div>';
   html+='<button class="group-tab new-group-btn" id="grp-new" style="min-width:40px;">+ 分组</button>';
   tabs.innerHTML=html;
   tabs.querySelectorAll(".group-tab[data-gid]").forEach(b=>{
@@ -17932,12 +17960,14 @@ function renderCards(){
   });
   $("grp-new").addEventListener("click",()=>{$("new-group-name").focus();});
   // 全部 / 本组字卡
-  const list=$("card-list");const gname=groupById(activeGroupId)?groupById(activeGroupId).name:"";
+  const list=$("card-list");
+  const _isOrphan=activeGroupId===CARD_ORPHAN_GID;
+  const gname=_isOrphan?"未分组":(groupById(activeGroupId)?groupById(activeGroupId).name:"");
   const q=$("card-search").value.trim().toLowerCase();
-  const _grpN=activeGroupId?cardsCountInGroup(activeGroupId):cardsOfKind(K).length;
+  const _grpN=activeGroupId?(_isOrphan?orphanCardsOfKind(K).length:cardsCountInGroup(activeGroupId)):cardsOfKind(K).length;
   $("cards-sec-label").textContent=(activeGroupId?("本组字卡（"+gname+"）· 共 "+_grpN+" 条"):("全部字卡 · 共 "+_grpN+" 条"))+(q?" · 搜索：“"+$("card-search").value.trim()+"”":"");
-  // 全部视图搜索整个类别；分组视图只搜当前分组
-  const cards=state.cards.filter(c=>cardKindOf(c)===K&&(!activeGroupId||c.groupId===activeGroupId)&&(!q||c.text.toLowerCase().includes(q)));
+  // 全部视图搜索整个类别；分组视图只搜当前分组；未分组只显示找不到归属的卡
+  const cards=state.cards.filter(c=>cardKindOf(c)===K&&(!activeGroupId||(_isOrphan?isOrphanCard(c,K):String(c.groupId)===String(activeGroupId)))&&(!q||c.text.toLowerCase().includes(q)));
   /* 同一种类/分组/搜索/多选状态没变时不再清空重建：进字卡页不会闪，也省掉一次 2000 条重排 */
   try{
     var _cs="cards|"+K+"|"+(activeGroupId||"")+"|"+q+"|"+(cardSelMode?1:0)+"|"+__sigOfList(cards)+"|"+__sigOfList(groupsOfKind(K));
@@ -17959,13 +17989,13 @@ function renderCards(){
   var _sections=[];
   if(cards.length){
     if(activeGroupId){
-      _sections=[{g:groupById(activeGroupId)||{id:"",name:"未分组"},cards:cards}];
+      _sections=[{g:(_isOrphan?{id:CARD_ORPHAN_GID,name:"未分组"}:groupById(activeGroupId)||{id:"",name:"未分组"}),cards:cards}];
     }else{
       groups.forEach(function(g){
-        var cs=cards.filter(function(c){return c.groupId===g.id;});
+        var cs=cards.filter(function(c){return String(c.groupId)===String(g.id);});
         if(!q||cs.length)_sections.push({g:g,cards:cs});
       });
-      var _orph=cards.filter(function(c){return !groups.some(function(g){return g.id===c.groupId;});});
+      var _orph=cards.filter(function(c){return !groups.some(function(g){return String(g.id)===String(c.groupId);});});
       if(_orph.length)_sections.push({g:{id:"",name:"未分组",disabled:false},cards:_orph});
     }
   }
@@ -18081,20 +18111,20 @@ async function delGroup(id){
   var K=cardKindView, _gs=groupsOfKind(K);
   if(_gs.length<=1){toast("至少保留一个分组");return;}
   if(!(await __iosConfirm("删除该分组及其全部字卡？")))return;
-  state.groups=state.groups.filter(g=>g.id!==id);
-  state.cards=state.cards.filter(c=>c.groupId!==id);
-  if(state.settings.replyGroupId===id){state.settings.replyGroupId=null;state.settings.replyGroupPinned=false;}
-  if(activeGroupId===id){activeGroupId=null;__setCardActiveGid(K,null);}
+  state.groups=state.groups.filter(g=>String(g.id)!==String(id));
+  state.cards=state.cards.filter(c=>String(c.groupId)!==String(id));
+  if(String(state.settings.replyGroupId)===String(id)){state.settings.replyGroupId=null;state.settings.replyGroupPinned=false;}
+  if(String(activeGroupId)===String(id)){activeGroupId=null;__setCardActiveGid(K,null);}
   save();renderCards();
 }
 function addCard(){
   const t=$("new-card-text").value.trim();if(!t)return;
-  if(!activeGroupId){
+  if(!activeGroupId||activeGroupId===CARD_ORPHAN_GID){
     var _gs=groupsOfKind(cardKindView);
     if(!_gs.length){var _g={id:uid(),name:"默认分组",kind:cardKindView};state.groups.push(_g);_gs=[_g];}
     activeGroupId=_gs[0].id;__setCardActiveGid(cardKindView,activeGroupId);
   }
-  if(state.cards.some(c=>c.groupId===activeGroupId&&c.text===t)){toast("该字卡已存在（自动查重）");return;}
+  if(state.cards.some(c=>String(c.groupId)===String(activeGroupId)&&c.text===t)){toast("该字卡已存在（自动查重）");return;}
   state.cards.push({id:uid(),groupId:activeGroupId,text:t,kind:cardKindView,__ts:Date.now()});$("new-card-text").value="";
   save();try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_){}renderCards();
   try{ var _i=$("new-card-text"); if(_i&&!document.hidden)_i.focus(); }catch(e){}
@@ -18160,7 +18190,7 @@ function exportCardJSON(){
 }
 function importCardJSON(data,kindArg){
   var K=kindArg||cardKindView;
-  var added=0;var beforeGroups=state.groups.length;
+  var added=0,moved=0;var beforeGroups=state.groups.length;
   function normKind(k){k=String(k||'').trim();return (k==='chat'||k==='letter'||k==='moment')?k:null;}
   var META=/^(version|ver|app|exportedAt|exportTime|exportDate|state|meta|info|desc|description|author|created|updated|id|type|modules|_groupExport|_groupExportType|kind)$/i;
   var TEXT_KEYS=["text","内容","字卡","content","value","card","sentence","reply","msg","message","question","answer"];
@@ -18182,7 +18212,14 @@ function importCardJSON(data,kindArg){
     /* v43-154：只在目标分组内查重。同一句字卡可以是用户有意放在多个分组里的，
        以前按整个类别去重，第二组就永远收不到这张卡。 */
     var g=ensureGroup(gname,kind);
-    if(state.cards.some(function(c){return c.groupId===g.id&&c.text===text;}))return;
+    if(state.cards.some(function(c){return String(c.groupId)===String(g.id)&&c.text===text;}))return;
+    /* v43-155：旧数据里全堆在「默认/未分组」的卡，重新导入同一份分组 JSON 时直接归位，
+       不再新增一份重复卡。用户之前导入失败、卡全在默认组，用原文件再导入一次就能修好。 */
+    var _mov=state.cards.filter(function(c){return c.text===text&&cardKindOf(c)===kind;}).filter(function(c){
+      if(isOrphanCard(c,kind))return true;
+      var cg=groupById(c.groupId);return !cg||["默认","默认分组","导入分组"].indexOf(String(cg.name||"").trim())>=0;
+    })[0];
+    if(_mov){_mov.groupId=g.id;_mov.kind=groupKind(g)||kind;_mov.__ts=Date.now();moved++;return;}
     state.cards.push({id:uid(),groupId:g.id,text:text,kind:groupKind(g)||kind});added++;
   }
   function textOf(o){
@@ -18229,7 +18266,7 @@ function importCardJSON(data,kindArg){
   }catch(e){}
   save();renderCards();
   var newG=groupsOfKind(K).length-beforeGroups;
-  if(added>0)toast("导入完成："+CARD_KIND_LABEL[K]+" 新增 "+added+" 条"+(newG>0?"，新建 "+newG+" 个分组":""));
+  if(added>0||moved>0)toast("导入完成："+CARD_KIND_LABEL[K]+(added?(" 新增 "+added+" 条"):"")+(moved?(" · 归位 "+moved+" 条"):"")+(newG>0?"，新建 "+newG+" 个分组":""));
   else toast("没有新增字卡（内容为空或已存在）");
 }
 let _cmgPick=null;
@@ -18274,13 +18311,15 @@ try{
   if($("btn-card-move"))$("btn-card-move").addEventListener("click",function(){window.__cmgMode="move";});
   if($("btn-card-invert"))$("btn-card-invert").addEventListener("click",function(){
     var q=($("card-search").value||"").trim().toLowerCase();
-    var list=state.cards.filter(function(c){return c.groupId===activeGroupId&&(!q||String(c.text||"").toLowerCase().indexOf(q)>=0);});
+    var _isO=activeGroupId===CARD_ORPHAN_GID;
+    var list=state.cards.filter(function(c){return cardKindOf(c)===cardKindView&&(!activeGroupId||(_isO?isOrphanCard(c,cardKindView):String(c.groupId)===String(activeGroupId)))&&(!q||String(c.text||"").toLowerCase().indexOf(q)>=0);});
     list.forEach(function(c){ if(cardSel.has(c.id))cardSel.delete(c.id); else cardSel.add(c.id); });
     updateSelUI();
   });
   if($("btn-card-export-sel"))$("btn-card-export-sel").addEventListener("click",function(){
     var ids=Array.from(cardSel);
-    var pick=ids.length?state.cards.filter(function(c){return ids.indexOf(c.id)>=0;}):state.cards.filter(function(c){return c.groupId===activeGroupId;});
+    var _isO=activeGroupId===CARD_ORPHAN_GID;
+    var pick=ids.length?state.cards.filter(function(c){return ids.indexOf(c.id)>=0;}):state.cards.filter(function(c){return cardKindOf(c)===cardKindView&&(!activeGroupId||(_isO?isOrphanCard(c,cardKindView):String(c.groupId)===String(activeGroupId)));});
     if(!pick.length){toast("没有可导出的字卡");return;}
     var byG={};(state.groups||[]).forEach(function(g){byG[g.id]=g.name;});
     var d={exportDate:new Date().toISOString(),count:pick.length,cards:pick.map(function(c){return {group:byG[c.groupId]||"",kind:cardKindOf(c),text:c.text};})};
@@ -18310,8 +18349,9 @@ if($("card-replace-sheet"))$("card-replace-sheet").addEventListener("click",func
 if($("crp-ok"))$("crp-ok").addEventListener("click",function(){
   var find=$("crp-find").value,repl=$("crp-repl").value;
   var ids=Array.from(cardSel);
+  var _isO=activeGroupId===CARD_ORPHAN_GID;
   var target=ids.length?state.cards.filter(function(c){return ids.indexOf(c.id)>=0;})
-                       :state.cards.filter(function(c){return c.groupId===activeGroupId;});
+                       :state.cards.filter(function(c){return cardKindOf(c)===cardKindView&&(!activeGroupId||(_isO?isOrphanCard(c,cardKindView):String(c.groupId)===String(activeGroupId)));});
   if(!target.length){toast("没有可替换的字卡");return;}
   if(!find){toast("查找内容不能为空");return;}
   var n=0;
@@ -18413,7 +18453,8 @@ $("btn-card-multiselect").addEventListener("click",()=>{
 });
 $("btn-card-select-all").addEventListener("click",()=>{
   const q=$("card-search").value.trim().toLowerCase();
-  const cards=state.cards.filter(c=>c.groupId===activeGroupId&&(!q||c.text.toLowerCase().includes(q)));
+  var _isO=activeGroupId===CARD_ORPHAN_GID;
+  const cards=state.cards.filter(c=>cardKindOf(c)===cardKindView&&(!activeGroupId||(_isO?isOrphanCard(c,cardKindView):String(c.groupId)===String(activeGroupId)))&&(!q||c.text.toLowerCase().includes(q)));
   if(cardSel.size===cards.length&&cards.length)cardSel.clear();
   else cards.forEach(c=>cardSel.add(c.id));
   updateSelUI();
