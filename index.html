@@ -226,7 +226,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-162";
+window.__E11_BUILD="2026-11-23v43-163";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2586,7 +2586,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-162">
+<meta name="app-build" content="2026-11-23v43-163">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4333,7 +4333,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-162</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-163</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -6096,6 +6096,8 @@ setTimeout(function(){
     var out={};[a,b].forEach(function(src){try{Object.keys(src||{}).forEach(function(k){var ids=src[k]||{};out[k]=out[k]||{};Object.keys(ids).forEach(function(id){out[k][id]=Math.max(Number(out[k][id])||0,Number(ids[id])||Date.now());});});}catch(_){}});
     return out;
   }
+  /* v43-163：加载/跨作用域合并发生在另一个作用域，必须把墓碑工具挂到 window 才能调用。 */
+  try{window.__e11MergeDeleted=__e11MergeDeleted;}catch(_eMergeExp){}
   function __e11TombstoneScan(init){
     try{
       if(window.__e11TombstoneMute)return;
@@ -6142,6 +6144,7 @@ setTimeout(function(){
     }catch(_){return false;}
   }
   window.__e11RepairBulkTombs=__e11RepairBulkTombs;
+  try{window.__e11DeleteKinds=__e11DeleteKinds;}catch(_eKindsExp){}
   function __e11ApplyDeleted(st){
     try{
       var d=st&&st.deletedIds;if(!d)return st;
@@ -6153,6 +6156,7 @@ setTimeout(function(){
     }catch(_eApplyDel){}
     return st;
   }
+  try{window.__e11ApplyDeleted=__e11ApplyDeleted;}catch(_eApplyExp){}
   function __e11MergeCloudFull(full,latest){
     if(!full||!full.state)return latest;
     if(!latest||!latest.state)return full;
@@ -7845,7 +7849,7 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-23",
   noticeKey:null,
-  lead:"v43-162：字卡和分组删除写墓碑——备份、云端、跨浏览器作用域和离站快照恢复时，删过的字卡/分组不会再补回来。接口模型名清洗、回复库导入、头像单击/双击、跨组去重、问卷防复活继续保留。",
+  lead:"v43-163：字卡和分组删除写墓碑——备份、云端、跨浏览器作用域和离站快照恢复时，删过的字卡/分组不会再补回来；清空全部时保留一个默认分组，不再刷新后冒出两个「默认」。接口模型名清洗、回复库导入、头像单击/双击、跨组去重、问卷防复活继续保留。",
   items:[
     "字卡删除防复活：单张删除、删除选中、删除分组、清空全部字卡都会把字卡/分组 id 写进 deletedIds；自动备份、云端快照、跨作用域合并、离站快照只补不删，按墓碑跳过已删除内容。",
     "自定义接口模型名清洗：复制来的模型名/Key 容易带尾随空格、换行、NBSP 或零宽字符，DeepSeek 会把它当成另一个模型并报 400；现在发送前统一清理，输入框失焦也会把值清干净。",
@@ -8456,6 +8460,8 @@ window.__e11MergeDbScopes=async function(){
     var base=await dbGet("state");
     var live=window.__e11StateGet?window.__e11StateGet():null;
     if(!base&&live&&Array.isArray(live.messages)&&live.messages.length)base=live;
+    /* v43-163：本机内存里的墓碑必须先带进合并底档，否则别的登录作用域里的旧分组/字卡会被当成“新增”补回来。 */
+    try{if(base)base.deletedIds=__e11MergeDeleted(base.deletedIds,window.__e11StateGet?__e11StateGet().deletedIds:live&&live.deletedIds);}catch(_eDelBase){}
     var baseMeta=await __bkMeta();
     var keys=["messages","cards","letters","guestbook","moments","redpackets","musicPlaylist","emojis","partnerEmojis","groups","favorites"];
     var changed=0,gotBackup=false;
@@ -8464,6 +8470,7 @@ window.__e11MergeDbScopes=async function(){
       if(!other||!other.state)continue;
       var st=other.state;
       try{__e11NormalizeMessages(st);}catch(_){}
+      try{if(base)base.deletedIds=__e11MergeDeleted(base.deletedIds,st.deletedIds);}catch(_eDelSt){}
       if(!base){base=st;changed++;}else{
         keys.forEach(function(k){
           var cur=Array.isArray(base[k])?base[k]:[],src=Array.isArray(st[k])?st[k]:[];
@@ -8496,6 +8503,7 @@ window.__e11MergeDbScopes=async function(){
       }
     }
     if(!base||!changed)return changed;
+    try{__e11ApplyDeleted(base);}catch(_eDelBase2){}
     if(Array.isArray(base.messages))base.messages.sort(__e11MsgOrder);
     try{var mx=Number(base.seq)||0;base.messages.forEach(function(m){var n=parseInt(String(m&&m.id||"").replace(/^m/,""),10);if(isFinite(n)&&n>mx)mx=n;});base.seq=mx+1;}catch(_){}
     base.__savedAt=Date.now();
@@ -8825,6 +8833,7 @@ window.__bkMergeNewest=function(){
       },Promise.resolve()).then(function(){
         if(!added)return 0;
         try{__e11NormalizeMessages(state);}catch(_eBkNorm3){}
+        try{__e11ApplyDeleted(state);}catch(_eBkDel){}
         state.__savedAt=Date.now();
         try{save();}catch(_eBkSv){}
         try{window.__e11RefreshAllViews?window.__e11RefreshAllViews():renderAll();}catch(_eBkR){}
@@ -10953,6 +10962,8 @@ async function init(){
         /* 头像、照片仍按下面的专门逻辑补；背景保持各自快照原样，不互相覆盖 */
       }catch(_eSkinPhoto){}
       state=migrate(s);
+      /* v43-163：合并/迁移后最后再按墓碑清一次，防止默认分组 g1 这类内置内容被旧档补回来。 */
+      try{__e11ApplyDeleted(state);}catch(_eLoadDel){}
       /* v43-135：本机外观档优先于 IndexedDB 旧状态。 */
       try{if(window.__userLookRestore)window.__userLookRestore();}catch(_eLookRestore2){}
       /* v43-128：设置小备份的 __ts 比 IndexedDB/云端更晚时，以备份为准。
@@ -18640,11 +18651,21 @@ $("btn-card-clear-all").addEventListener("click",async()=>{
   var _kc=cardsOfKind(K).length,_kg=groupsOfKind(K).length;
   if(!_kc&&_kg<=1){toast(CARD_KIND_LABEL[K]+"本来就是空的");return;}
   if(!(await __iosConfirm("删除全部 "+_kc+" 张"+CARD_KIND_LABEL[K]+"，并清空该类别的分组（只保留一个“默认”组）？此操作不可撤销。")))return;
+  /* v43-162：清空时保留一个已有的默认分组，不再“先全删再新建”。
+     否则聊天类的内置默认组 g1 会在下次启动被补回来，和新默认组并列，出现两个“默认”。 */
+  var _keep=(groupsOfKind(K).filter(function(g){
+    return !g.disabled&&/^(默认|默认分组)$/.test(String(g.name||"").trim());
+  })[0])||null;
   (state.cards||[]).forEach(function(c){if(cardKindOf(c)===K)markCardDeletedId(c.id);});
-  (state.groups||[]).forEach(function(g){if(groupKind(g)===K)markGroupDeletedId(g.id);});
+  (state.groups||[]).forEach(function(g){
+    if(groupKind(g)===K&&(!_keep||String(g.id)!==String(_keep.id)))markGroupDeletedId(g.id);
+  });
   state.cards=state.cards.filter(function(c){return cardKindOf(c)!==K;});
-  state.groups=state.groups.filter(function(g){return groupKind(g)!==K;});
-  var ng={id:uid(),name:"默认",kind:K};state.groups.push(ng);
+  state.groups=state.groups.filter(function(g){return groupKind(g)!==K||(_keep&&String(g.id)===String(_keep.id));});
+  var ng=_keep||{id:K==="chat"?"g1":uid(),name:"默认",kind:K};state.groups.push(ng);
+  ng.disabled=false;
+  try{if(state.deletedIds&&state.deletedIds.groups)delete state.deletedIds.groups[String(ng.id)];}catch(_eKeepTom){}
+
   cardSel.clear();
   activeGroupId=ng.id;__setCardActiveGid(K,ng.id);
   if(K==="chat"){state.settings.replyGroupId=null;state.settings.replyGroupPinned=false;}
