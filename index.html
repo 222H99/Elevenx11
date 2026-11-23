@@ -226,7 +226,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-147";
+window.__E11_BUILD="2026-11-23v43-148";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2581,7 +2581,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-147">
+<meta name="app-build" content="2026-11-23v43-148">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4328,7 +4328,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-147</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-148</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -6683,26 +6683,8 @@ setTimeout(function(){
     try{window.__settingsSaveSig=JSON.stringify((st&&st.settings)||{});}catch(_eSetSig){}
     try{window.__skinSaveSig=JSON.stringify((st&&st.skin)||{});}catch(_eSkinSig){}
     try{window.__musicRoomSig=__e11MusicRoomSig(st);}catch(_eMrSig2){}
-    /* v43-74：自适应比例跟着存档走；云端恢复后同一块屏幕直接套上次比例，不再重新缩一次。 */
-    try{
-      /* v43-147：本机已固定比例时，云端旧档里的 fit 不许再改大小。 */
-      var _fx=window.__fitFixedGet&&window.__fitFixedGet();
-      if(_fx){
-        window.__fitK1=_fx.k1;window.__fitK2=_fx.k2;
-        __fitApply((Number(window.__mePage)||0)===1?_fx.k2:_fx.k1);
-        window.__fitFrozen=true;window.__fitLocked=true;window.__fitValid=true;
-      }else{
-      var _fit=st.fit;
-      if(_fit&&String(_fit.screen||"")===window.__fitKey()){
-        var _fk1=Number(_fit.k1),_fk2=Number(_fit.k2);
-        if(_fk1>=0.62&&_fk1<=1.3&&_fk2>=0.62&&_fk2<=1.3){
-          window.__fitK1=_fk1;window.__fitK2=_fk2;
-          __fitApply((Number(window.__mePage)||0)===1?_fk2:_fk1);
-          window.__fitFrozen=true;window.__fitLocked=true;window.__fitValid=true;
-        }
-      }
-      }
-    }catch(_eFitSnap){}
+    /* v43-148：不再套云端/旧存档里的 fit 比例。
+       每次按当前屏幕尺寸 + 当前桌面布局现量一次并固定，旋转/换布局自动适配。 */
     try{
       if(_localSkin){
         st.skin=st.skin||{};
@@ -7842,9 +7824,9 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-23",
   noticeKey:null,
-  lead:"v43-147：更新前没看的聊天、信件、动态、留言会补回来；全站缩放第一次定好后固定保存，改桌面布局也不再变。",
+  lead:"v43-148：没看的聊天、信件、动态、留言会补回来；缩放按「屏幕尺寸 + 桌面布局」记住，旋转、改布局会重新适配一次再固定。",
   items:[
-    "缩放定住：第一次自动适配后把比例写进本机，之后切页、刷新、旋转、改桌面布局（简洁/倒数日/恢复默认/拖动组件）都只套这个比例，不再重新计算、不会再变小或变大。",
+    "缩放自适应：每个屏幕尺寸、每套桌面布局单独记住比例；切页/刷新/来消息不会重算。旋转手机、换窗口大小、切简洁/倒数日/恢复默认/拖动组件后，按新屏幕和新布局重新适配一次，量完继续固定，再切回来还是原来的大小。",
     "聊天对账：版本更新/云端旧档恢复后，启动会按消息指纹把缺失的聊天补回来，最近没看的几条不会再被旧档截掉。",
     "社交对账：同样按 id 补回缺失的信件、动态、留言；同一条内容如果本机未读、云端已读，保留本机未读。",
     "更新前强制备份：换页前先写一份完整自动备份，最后没看的信/动态/留言也一起落盘，不再只靠内存。",
@@ -28998,7 +28980,11 @@ window.__dockTopPx=function(){
     }
     state.cp2Layout=state.cp2Layout||{};state.cp2Layout.deleted=del;state.cp2Layout.widgets=wids;
     try{resolveOverlap();}catch(e){}
-    /* v43-147：改桌面布局只保存位置/尺寸，不再重算全站缩放比例。 */
+    /* v43-148：桌面布局改了，按新布局重新自适应一次，量完继续固定。 */
+    try{
+      if(window.__fitInvalidate)window.__fitInvalidate();
+      setTimeout(function(){try{if(window.__fitCompute)window.__fitCompute(true);}catch(_){}},70);
+    }catch(_){}
     if(typeof save==="function")save();
   }
   /* 重叠消解：按容器内坐标把「压在一起」的下方组件往下推，保证任何尺寸组合都不叠 */
@@ -29491,24 +29477,44 @@ window.__fitMap=window.__fitMap||{};
    不再每次刷新重量一遍、也不会刚调好又缩一次；屏幕尺寸或布局真的变了才重算一次。 */
 window.__fitStoreKey="e11.fit.k.v2";
 window.__fitScreenKey="e11.fit.screen.v1";
-/* v43-147：全站固定比例。第一次自适应确认后写入这里，之后切页、刷新、改桌面布局、
-   换窗口大小都只套这一份，不再重新量、不再变小。 */
-window.__fitFixedKey="e11.fit.fixed.v1";
-window.__fitFixedGet=function(){
+/* v43-148：按「屏幕尺寸 + 桌面布局」分别记住自适应比例。
+   同一块屏幕、同一套布局只量一次并保存；旋转屏幕、换窗口大小、改桌面布局时
+   会视为新场景重新自适应一次，量好后继续固定，不再随内容/切页反复变。 */
+window.__fitFixedKey="e11.fit.fixed.v2";
+window.__fitLayoutSig=function(){
   try{
-    var o=JSON.parse(localStorage.getItem(window.__fitFixedKey)||"null");
-    if(!o)return null;
-    var k1=Number(o.k1),k2=Number(o.k2);
+    var l=(state&&state.cp2Layout)||{};
+    var txt=JSON.stringify({l:l.layout||"classic",w:l.widgets||{},d:l.deleted||[]});
+    var h=0;
+    for(var i=0;i<txt.length;i++){h=((h<<5)-h+txt.charCodeAt(i))|0;}
+    return "L"+Math.abs(h).toString(36);
+  }catch(_){return "L0";}
+};
+window.__fitCtx=function(){return window.__fitKey()+"|"+window.__fitLayoutSig();};
+function __fitPairOk(k1,k2){return (k1>=0.62&&k1<=1.3)&&(k2>=0.62&&k2<=1.3);}
+window.__fitFixedGet=function(ctx){
+  ctx=ctx||window.__fitCtx();
+  try{
+    var o=JSON.parse(localStorage.getItem(window.__fitFixedKey)||"{}");
+    var r=o&&o[ctx];
+    if(!r)return null;
+    var k1=Number(r.k1),k2=Number(r.k2);
     if(__fitPairOk(k1,k2))return {k1:k1,k2:k2};
   }catch(_){}
   return null;
 };
-window.__fitFixedPut=function(k1,k2){
+window.__fitFixedPut=function(ctx,k1,k2){
   k1=Number(k1)||1;k2=Number(k2)||1;
   if(!__fitPairOk(k1,k2))return;
-  try{localStorage.setItem(window.__fitFixedKey,JSON.stringify({k1:k1,k2:k2,ts:Date.now()}))}catch(_){}
+  try{
+    var o=JSON.parse(localStorage.getItem(window.__fitFixedKey)||"{}");
+    o[ctx||window.__fitCtx()]={k1:k1,k2:k2,ts:Date.now()};
+    var keys=Object.keys(o).sort(function(a,b){return (Number(o[b].ts)||0)-(Number(o[a].ts)||0);}).slice(0,16);
+    var n={};keys.forEach(function(k){n[k]=o[k];});
+    localStorage.setItem(window.__fitFixedKey,JSON.stringify(n));
+  }catch(_){}
 };
-function __fitPairOk(k1,k2){return (k1>=0.62&&k1<=1.3)&&(k2>=0.62&&k2<=1.3);}
+window.__fitCtxApplied="";
 window.__fitSavedGet=function(sig){
   try{
     var o=JSON.parse(localStorage.getItem(window.__fitStoreKey)||"{}");
@@ -29547,103 +29553,41 @@ window.__fitSavedDrop=function(sig){
   }catch(_){}
 };
 window.__fitCompute=function(force){
-  /* v43-28：电脑固定窗口下不再按内容高度二次缩放。
-     之前照片框设成 300px，窗口一变，整页 fit 比例变成 0.62，实际只剩 186px，
-     看起来就是“桌面缩放后没固定大小”。固定窗口内保持 1:1，尺寸由用户自己定。 */
+  /* v43-28：电脑固定窗口下不再按内容高度二次缩放。 */
   if(window.__deskFixed){window.__fitK=1;window.__fitK1=1;window.__fitK2=1;try{__fitApply(1);}catch(_eDeskFit){}return 1;}
-  /* v43-147：只要本机确认过一次比例，后面所有调用都用它；force、切页、布局调整、
-     旋转、窗口变化都不再重量，真正“定住大小”。 */
-  var _fx=window.__fitFixedGet&&window.__fitFixedGet();
-  if(_fx){
-    window.__fitK1=_fx.k1;window.__fitK2=_fx.k2;
-    try{__fitApply((Number(window.__mePage)||0)===1?_fx.k2:_fx.k1);}catch(_eFxApply){}
-    window.__fitValid=true;window.__fitFrozen=true;window.__fitLocked=true;
+  var ctx=window.__fitCtx();
+  /* 这个屏幕尺寸+这套桌面布局已经量过：直接套保存好的比例，后续切页/刷新/内容变化都不重算。 */
+  var fx=window.__fitFixedGet(ctx);
+  if(fx){
+    window.__fitK1=fx.k1;window.__fitK2=fx.k2;
+    try{__fitApply((Number(window.__mePage)||0)===1?fx.k2:fx.k1);}catch(_eFxApply){}
+    window.__fitCtxApplied=ctx;window.__fitValid=true;window.__fitFrozen=true;window.__fitLocked=true;
     return window.__fitK||1;
   }
-  /* 还没固定时，优先继承本机上一次确认的比例（升级到本版也保持原大小）。 */
-  if(window._dbReady){
-    var _fsig=__fitContentSig();
-    if(_fsig&&_fsig.indexOf("|0|0")<0){
-      var _fsv=window.__fitSavedGet(_fsig);
-      if(_fsv){
-        window.__fitK1=_fsv.k1;window.__fitK2=_fsv.k2;
-        window.__fitFixedPut(_fsv.k1,_fsv.k2);
-        try{__fitApply((Number(window.__mePage)||0)===1?_fsv.k2:_fsv.k1);}catch(_eFsApply){}
-        window.__fitValid=true;window.__fitFrozen=true;window.__fitLocked=true;
-        return window.__fitK||1;
-      }
-    }
+  /* 新场景（刚旋转、改了桌面布局、换了窗口）没有存过比例：先解除本场景的冻结，量一次。 */
+  if(window.__fitCtxApplied!==ctx){
+    window.__fitLocked=false;window.__fitFrozen=false;window.__fitOneShot=false;window.__fitValid=false;
   }
-  /* 自适应一旦锁定就固定住：force 也不能再重算。
-     以前 resize / homeDockCheck / 布局重排都会传 force=true，桌面比例被反复改小，
-     用户就会看到“刚调好又突然变小”。锁定后只返回当前比例，不再动 transform。 */
-  if(window.__fitLocked&&!window.__fitOneShot){
-    /* v43-73：启动时可能先被 __fitFreezeSoon 锁在 k=1，导致本机存好的比例没机会套上。
-       锁定后只补一次“读本机比例”，读到就套上；没有就保持当前，不再重量。 */
-    if(!window.__fitRestoreChecked&&window._dbReady){
-      var _rsig=window.__fitContentSig();
-      /* 主页还没渲染/被别的页盖住时签名是 |0|0，这时不能把“只补一次”的机会用掉，
-         等用户真正打开主页、内容有高度时再读本机比例。 */
-      if(_rsig&&_rsig.indexOf("|0|0")<0){
-        window.__fitRestoreChecked=1;
-        try{
-          var _sv=window.__fitSavedGet(_rsig);
-          if(_sv){
-          window.__fitK1=_sv.k1;window.__fitK2=_sv.k2;
-          __fitApply((Number(window.__mePage)||0)===1?_sv.k2:_sv.k1);
-          window.__fitValid=true;window.__fitSigCache=_rsig;
-          try{window.__fitFixedPut&&window.__fitFixedPut(_sv.k1,_sv.k2);}catch(_eFitRFix){}
-          try{if(window.__fitSavedPut)window.__fitSavedPut(_rsig,_sv.k1,_sv.k2);}catch(_eFitRPut){}
-          return window.__fitK||1;
-          }
-        }catch(_eRestoreFit){}
-      }
-    }
-    return window.__fitK||1;
-  }
+  if(window.__fitLocked&&!window.__fitOneShot)return window.__fitK||1;
   if(window.__fitOneShot){
-    /* 用户改大照片框 / 切到第二页时确实压住了固定栏：只临时解除一次，
-       量完继续按原逻辑锁定；不会因为普通窗口变化反复缩小。 */
     window.__fitOneShot=false;window.__fitLocked=false;window.__fitFrozen=false;window.__fitAllowUntil=Date.now()+1500;
   }
   if(!force&&window.__fitFrozen&&Date.now()>window.__fitAllowUntil)return window.__fitK||1;
   if(force){window.__fitFrozen=false;window.__fitAllowUntil=Date.now()+1200;}
-  /* 缓存键 = 屏幕尺寸 + 内容高度签名。
-     同一个屏幕、内容高度没变 -> 直接用上次确认的比例，不重量（默认就用它）
-     内容/布局变了（加消息、拖组件、换布局）-> 签名变，才重新量一次 */
   var sig=__fitContentSig();
-  var saved=(force||!window._dbReady)?null:window.__fitSavedGet(sig);
-  if(saved){
-    window.__fitK1=saved.k1;window.__fitK2=saved.k2;
-    __fitApply((Number(window.__mePage)||0)===1?saved.k2:saved.k1);
-    window.__fitValid=true;window.__fitSigCache=sig;
-    window.__fitFrozen=true;window.__fitLocked=true;
-    try{if(window.__fitSavedPut)window.__fitSavedPut(sig,saved.k1,saved.k2);}catch(_eFitSPut){}
-    return window.__fitK||1;
-  }
-  var cached=force?0:window.__fitMap[sig];
-  if(cached){
-    if(typeof cached==="object"&&cached){
-      window.__fitK1=Number(cached.k1)||1;window.__fitK2=Number(cached.k2)||1;
-    }else{
-      window.__fitK1=Number(cached)||1;window.__fitK2=Number(cached)||1;
-    }
-    __fitApply(window.__fitK);
-    window.__fitValid=true;window.__fitSigCache=sig;
-    if(window._dbReady){try{window.__fitSavedPut(sig,window.__fitK1,window.__fitK2);}catch(_eFitCPut){}}
-    else {window.__fitPending={sig:sig,k1:window.__fitK1,k2:window.__fitK2};}
-    return window.__fitK||1;
-  }
+  /* 主页还没渲染出来（两个 inner 都是 0）时不能量，否则会把 k=1 存成这个场景的固定比例。 */
+  if(sig.indexOf("|0|0")>=0)return window.__fitK||1;
   var k=__fitMeasure();
   if(!k)k=1;
   __fitApply(k);
-  window.__fitMap[sig]={k1:window.__fitK1,k2:window.__fitK2};
-  if(window._dbReady)window.__fitSavedPut(sig,window.__fitK1,window.__fitK2);
   window.__fitValid=true;window.__fitSigCache=sig;
-  try{if(!state.fit||state.fit.k!==window.__fitK||state.fit.sig!==sig||state.fit.screen!==window.__fitKey()){state.fit={k:window.__fitK,k1:window.__fitK1,k2:window.__fitK2,sig:sig,screen:window.__fitKey(),ts:Date.now()};save();}}catch(e){}
   window.__fitAllowUntil=Date.now()+1200;
-  /* 自适应算完就锁定：不再等 1.2 秒，也不因为后续内容变高/切页再缩一次。 */
-  if(window._dbReady){window.__fitFrozen=true;window.__fitLocked=true;window.__fitFixedPut(window.__fitK1,window.__fitK2);}
+  if(window._dbReady){
+    window.__fitCtxApplied=ctx;
+    window.__fitFrozen=true;window.__fitLocked=true;
+    window.__fitFixedPut(ctx,window.__fitK1,window.__fitK2);
+    try{if(!state.fit||state.fit.k!==window.__fitK||state.fit.sig!==sig||state.fit.screen!==ctx){state.fit={k:window.__fitK,k1:window.__fitK1,k2:window.__fitK2,sig:sig,screen:ctx,ts:Date.now()};save();}}catch(e){}
+  }
   window.__fitFreezeSoon();
   return window.__fitK||k;
 };
@@ -29662,17 +29606,12 @@ function __fitContentSig(){
 window.__fitContentSig=__fitContentSig;
 /* 布局/组件尺寸变了才作废缓存，等下一轮重新测量一次 */
 window.__fitInvalidate=function(dirty){
-  window.__fitValid=false;
-  /* v43-147：比例已固定就直接锁死；改桌面布局只改组件位置，不许再动全站大小。 */
-  if(window.__fitFixedGet&&window.__fitFixedGet()){
-    window.__fitFrozen=true;window.__fitLocked=true;
-    try{window.__fitCompute&&window.__fitCompute(false);}catch(_){}
-    return;
-  }
-  window.__fitRestoreChecked=0;
-  /* 桌面二布局调整时只临时解除冻结，量完这一轮继续冻结 */
-  window.__fitFrozen=false;window.__fitAllowUntil=Date.now()+1500;
-  if(dirty!==false){window.__fitMap={};}   /* 只清内存缓存，保留屏幕级比例；布局改了也不重缩 */
+  /* v43-148：改了桌面布局/组件尺寸，或窗口真的变了：本场景重新量一次。
+     其他场景已存的比例保留，旋转回来还能直接套。 */
+  window.__fitValid=false;window.__fitRestoreChecked=0;window.__fitCtxApplied="";
+  window.__fitLocked=false;window.__fitFrozen=false;window.__fitOneShot=false;
+  window.__fitAllowUntil=Date.now()+1500;
+  window.__fitMap={};
 };
 /* 主页一/二照片框不许停在固定栏下面：
    开机时自适应往往先算完，之后才套用户保存的照片框大小；尺寸一大就压到固定栏，
