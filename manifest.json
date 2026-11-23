@@ -12,7 +12,7 @@
   ],
   "orientation": "any",
   "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "theme_color": "#00000000",
   "lang": "zh-CN",
   "dir": "ltr",
   "categories": [
