@@ -2,6 +2,13 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
+<!-- 必须放在所有脚本/样式之前：晚解析会让 iPhone 先用 980px 布局画一帧，
+     再切回设备宽度，表现就是“先缩小、再放大”。 -->
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimum-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<style id="e11-preflight">
+html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#fafafa;}
+@media (prefers-color-scheme:dark){html,body{background:#141416;}}
+</style>
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#00000000" id="theme-color-meta">
 <script>try{if(/iPad|iPhone|iPod/.test(navigator.userAgent)&&(navigator.standalone===true||matchMedia("(display-mode: standalone)").matches))document.documentElement.classList.add("ios-standalone");}catch(e){}</script>
@@ -115,6 +122,9 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
   try{document.documentElement.appendChild(d);}catch(e){}
   window.__bootDark=dark;
   window.__bootDone=function(){
+    /* 两个启动层以前各自等各自的调用：boot-veil 撤了、__veil 还盖着，
+       用户就会多看到一层“黑/白屏”。这里统一一起撤，谁先完成都一样。 */
+    try{window.__veilDone&&window.__veilDone();}catch(_eVeil){}
     var sp=document.getElementById("e11-static-splash");
     if(sp){try{sp.style.opacity="0";setTimeout(function(){try{sp.remove();}catch(e){}},140);}catch(e){}}
     var v=document.getElementById("boot-veil");if(!v)return;
@@ -226,7 +236,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-175";
+window.__E11_BUILD="2026-11-23v43-176";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -304,8 +314,6 @@ html[data-boot="dark"] .auth-gate{background:#000!important;color:#f5f5f7!import
 html[data-boot="dark"] .auth-card{background:#101012!important;border-color:rgba(255,255,255,.10)!important;}
 html[data-boot="dark"] .auth-input{background:#1c1c1f!important;border-color:rgba(255,255,255,.14)!important;color:#f5f5f7!important;}
 </style>
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimum-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
-<meta name="color-scheme" content="light dark">
 <meta name="screen-orientation" content="auto">
 <meta name="x5-orientation" content="auto">
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
@@ -2603,7 +2611,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-175">
+<meta name="app-build" content="2026-11-23v43-176">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4350,7 +4358,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-175</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-176</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -7873,7 +7881,7 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-23",
   noticeKey:null,
-  lead:"v43-175：修掉启动时重复的版本/后端请求，版本检查从 15 秒一次改为 5 分钟一次；MiniMax 自动区域会跨国内/海外重试，Voice ID 失效时改用默认音色，不再整条语音报错。",
+  lead:"v43-176：viewport 提前到 head 最前面，消除进入时先按 980px 排版再放大的跳动；主页保存比例在露面前就套好，手机不再因地址栏/键盘视口抖动重算缩放；去掉手机端多余合成层，回前台立即重绘并延后 4 秒再量比例，减少黑屏和回弹。",
   items:[
     "PWA 电量栏透明：manifest 与 theme-color 全程 #00000000；顶部安全区背景透明，不再按明暗写白/黑兜底。",
     "iOS 主屏幕：状态栏固定为 black-translucent，时间/电量图标直接压在壁纸上，背景图从最顶端铺下来；没有壁纸时顶部用黑底兜底，保证白色图标看得清。",
@@ -10706,6 +10714,19 @@ async function init(){
   try{if(typeof applyChatSizes==="function"||typeof window.__applyChatSizes==="function")window.__applyChatSizes();}catch(e){}
   /* 缩放比例：同屏同尺寸直接复用上次记住的结果，不重算 */
   try{if(window.__fitRestore)window.__fitRestore();}catch(e){}
+  /* 已存过比例时必须在 showView / 撤启动层之前就套上：
+     以前放在 220ms 定时器里，主页先以 1.0 露一帧、再突然缩到保存的 0.8/0.9，
+     看起来就是“进入网站先缩一下”。 */
+  try{
+    var _fcNow=window.__fitCtx&&window.__fitCtx();
+    var _ffNow=window.__fitFixedGet&&window.__fitFixedGet(_fcNow);
+    if(_ffNow){
+      window.__fitK1=Number(_ffNow.k1)||1;window.__fitK2=Number(_ffNow.k2)||1;
+      window.__fitK=(Number(window.__mePage)||0)===1?window.__fitK2:window.__fitK1;
+      if(window.__fitApply)window.__fitApply(window.__fitK);
+      window.__fitCtxApplied=_fcNow;window.__fitValid=true;window.__fitFrozen=true;window.__fitLocked=true;
+    }
+  }catch(_eFitEarly){}
   setTimeout(function(){
     try{
       /* v43-149：本场景已有保存比例就直接套上；没有则等数据读完再量一次，
@@ -30236,7 +30257,15 @@ window.__fitFreezeSoon=function(){
   };
   window.__fitFreezeTimer=setTimeout(__lockTry,1200);
 };
-window.__fitKey=function(){return Math.round(window.innerWidth)+"x"+Math.round(window.innerHeight);};
+window.__fitKey=function(){
+  var w=Math.round(window.innerWidth||0);
+  var h=Math.round(window.innerHeight||0);
+  /* 手机只用「屏幕高度」做 key：iOS 地址栏、回到前台时残留的键盘视口、
+     PWA 安全区都会让 innerHeight 抖几十像素。以前一抖就当成新屏幕重新量比例，
+     表现就是主页先缩一下再弹回去。桌面才按窗口真实高度区分。 */
+  try{if(!(window.matchMedia&&window.matchMedia("(pointer:fine)").matches))h=Math.round((window.screen&&window.screen.height)||h);}catch(_eFitKey){}
+  return w+"x"+h;
+};
 function __fitInners(){
   return [document.querySelector("#me-page-1 .me-page-inner"),document.querySelector("#me-page-2 .me-page-inner")];
 }
@@ -30337,6 +30366,19 @@ window.__fitFixedGet=function(ctx){
   try{
     var o=JSON.parse(localStorage.getItem(window.__fitFixedKey)||"{}");
     var r=o&&o[ctx];
+    /* v43-176：fit key 从 innerHeight 改为屏幕高度后，旧键（390x700）和新键（390x844）
+       对不上。同宽、同桌面布局时沿用最近一次保存的比例，避免升级后第一次进入
+       先按 1.0 露出来、再缩到用户原来的比例。 */
+    if(!r&&o){
+      try{
+        var _pre=String(ctx).split("|")[0].split("x")[0];
+        var _suf=String(ctx).split("|").slice(1).join("|");
+        var _cand=Object.keys(o).filter(function(k){
+          return k.split("|")[0].split("x")[0]===_pre&&k.split("|").slice(1).join("|")===_suf&&o[k]&&__fitPairOk(Number(o[k].k1),Number(o[k].k2));
+        }).sort(function(a,b){return (Number(o[b].ts)||0)-(Number(o[a].ts)||0);});
+        if(_cand.length)r=o[_cand[0]];
+      }catch(_eFitMigrate){}
+    }
     if(!r)return null;
     var k1=Number(r.k1),k2=Number(r.k2);
     if(__fitPairOk(k1,k2))return {k1:k1,k2:k2};
@@ -30571,6 +30613,9 @@ window.addEventListener("orientationchange",function(){
 window.addEventListener("load",function(){window.__fitCompute(false);});
 setInterval(function(){try{
   if(document.hidden)return;
+  /* 刚回前台 4 秒内不重算主页比例：iOS 的视口高度还在回弹，
+     这时量出来会缩一下，等稳定后再按同一套比例检查。 */
+  if(Date.now()-(window.__e11ResumeAt||0)<4000)return;
   var vm=document.getElementById("view-me");
   if(!vm||!vm.classList.contains("open"))return;
   /* 上面有弹层/加号面板时不重量主页：量了也看不见 */
@@ -34118,7 +34163,10 @@ body{margin:0;background:var(--bg,#fafafa);}
       root.style.top=top+"px";
       /* v43-152：手机端保留 scale(1) 作为包含块，让各页的 fixed 层继续限制在 440 宽的舞台内；
          底部固定栏已经移到 #ui-root 外面（见上方 dock 迁移），不再受这里高度变化影响。 */
-      root.style.transform="scale("+k+")";
+      /* 手机端 k=1 时不要再留 transform:scale(1)：
+         它会把整站固定成一个 GPU 合成层，iOS 从后台回来时这一层偶尔只恢复黑帧。
+         手机舞台本身就和屏幕同宽，去掉 transform 不影响 fixed 弹层；桌面端仍保留缩放。 */
+      root.style.transform=(k===1)?"none":("scale("+k+")");
       var app=document.getElementById("app");
       if(app){
         app.style.height=rh+"px";app.style.minHeight="0";
@@ -34167,9 +34215,31 @@ body{margin:0;background:var(--bg,#fafafa);}
       }
     }catch(_){}
   }
-  function resumeLater(){setTimeout(resumePaint,60);setTimeout(resumePaint,480);}
+  function resumeLater(){
+    /* 回到前台先给 4 秒稳定期：这时 iOS 的 visualViewport 可能还在从后台值回弹，
+       期间不要重算主页比例，否则会看到页面先缩再放。 */
+    try{window.__e11ResumeAt=Date.now();}catch(_eResumeAt){}
+    /* 回到前台的第一帧先同步重绘，别等 60ms：iOS 的旧合成帧有时就是一块黑，
+       等待期间用户会先看到黑屏再跳回页面。初始化没完成时仍走延时，避免提前扒开启动层。 */
+    try{if(window.__stateReady)resumePaint();}catch(_eImmediate){}
+    setTimeout(resumePaint,60);setTimeout(resumePaint,480);
+  }
   window.addEventListener("pageshow",resumeLater,{passive:true});
-  document.addEventListener("visibilitychange",function(){if(!document.hidden)resumeLater();},{passive:true});
+  document.addEventListener("visibilitychange",function(){
+    if(document.hidden){
+      /* iOS 独立 PWA 回前台后，visualViewport 有时仍停留在“键盘高度”，
+         整页会先缩成半屏再弹回去。进后台前先让输入框失焦，避免键盘高度被冻结。 */
+      try{
+        var ae=document.activeElement;
+        if(ae&&(ae.tagName==="INPUT"||ae.tagName==="TEXTAREA"||ae.isContentEditable))ae.blur();
+      }catch(_eBlur){}
+      return;
+    }
+    /* 回到前台先解除可能残留的键盘视口高度，再按真实屏幕重算；1px 滚动是
+       WebKit 已知的 re-clamp 兜底，不改页面位置。 */
+    try{window.__uiStableH=0;window.__uiSig="";window.scrollBy(0,1);window.scrollTo(0,0);}catch(_eVv){}
+    resumeLater();
+  },{passive:true});
   window.addEventListener("focus",function(){setTimeout(resumePaint,120);},{passive:true});
   var raf=0;
   function soon(){if(raf)return;raf=requestAnimationFrame(function(){raf=0;var _pw=document.documentElement.clientWidth||window.innerWidth||0;if(window.__uiPaintW!==_pw){window.__uiPaintW=_pw;try{if(typeof applySkin==="function")applySkin();}catch(_){ }try{if(typeof __syncSysBar==="function")__syncSysBar();}catch(_){ }}sync();});}
