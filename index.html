@@ -104,7 +104,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
   try{
     var _sb=document.createElement("meta");
     _sb.name="apple-mobile-web-app-status-bar-style";
-    _sb.content=dark?"black":"default";
+    _sb.content=dark?"black-translucent":"default";
     document.head.appendChild(_sb);
     window.__sbMeta=_sb;
   }catch(e){}
@@ -226,7 +226,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-169";
+window.__E11_BUILD="2026-11-23v43-170";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -377,6 +377,11 @@ html,body{background:#fafafa;}
 body::before{content:"";position:fixed;left:0;right:0;top:0;height:var(--safe-top, env(safe-area-inset-top));background:var(--sysbar-bg,#ffffff);z-index:99999;pointer-events:none;}
 /* APK 已经把网页铺到状态栏下面，电量栏这条不要再盖一层纯色 */
 html.native-edge body::before{display:none !important;}
+/* v43-170：PWA / 全面屏网页里，只要当前皮肤有背景，顶部安全区不再盖纯色，
+   让聊天/桌面/主页背景自己透上来；没有背景时仍然保留白/黑兜底。 */
+body.e11-has-chat-wall::before,
+body.e11-has-me-wall::before,
+body.e11-has-mom-wall::before{background:transparent !important;}
 html,body{background:#fafafa;}
 /* 夜间：html/body 底层也转黑，iOS 状态栏与回弹区不再露出米白 */
 html.ui-dark,body.ui-dark{background:#000000 !important;}
@@ -2595,7 +2600,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-169">
+<meta name="app-build" content="2026-11-23v43-170">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4342,7 +4347,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-169</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-170</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -7866,8 +7871,11 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-23",
   noticeKey:null,
-  lead:"v43-169：APK 的电量栏也一起覆盖。状态栏改成透明、网页铺到电量栏下面，聊天背景会从电量栏一直连到顶栏，不再被一条白条截断；电量/信号图标按壁纸顶部明暗自动切黑或白。网页/PWA 顶部安全区也会按原生高度留出，按钮不会顶到电量栏。",
+  lead:"v43-170：PWA 的电量栏也不再固定白条。聊天/桌面/主页设了背景后，网页顶部安全区会让背景自己透上来，并按壁纸顶部平均色同步状态栏颜色；安卓 PWA 的系统状态栏只能跟随颜色、不能透照片，APK 仍然是完整的图片覆盖。iOS 加到主屏幕、深色模式下会把内容延伸到电量栏下面。",
   items:[
+    "PWA 电量栏：聊天、桌面、主页有背景时，顶部安全区不再盖纯色；PWA 状态栏按壁纸顶部平均色自动匹配，不再是一条白条。安卓 WebAPK 的系统限制是不允许网页照片穿过状态栏，所以安卓 PWA 是“同色接上”，APK 才是“照片铺满”。",
+    "iOS 主屏幕：深色模式下状态栏改为 black-translucent，加到主屏幕后内容会延伸到电量栏下面，背景图可以直接透上去。",
+    "PWA 刷新：已安装的 PWA 如果还是旧界面，先完全关闭再打开；仍不生效就删除主屏幕图标，重新从主站添加一次。",
     "电量栏覆盖：APK 状态栏改成透明，网页延伸到电量栏下面；聊天背景、桌面背景、主页背景会一直铺到电量栏，不再留白条。原生返回电量栏高度，网页顶部按这个高度留安全区，顶栏图标和按钮不会被电量栏压住。",
     "电量栏图标：按当前壁纸顶部亮度自动切深色/白色状态栏图标，浅色壁纸用黑图标、深色壁纸用白图标；没有壁纸时继续跟随明暗主题。",
     "顶栏让背景：聊天页设了背景图/自定义底色时，聊天顶栏透明；桌面全局背景和主页全局背景也覆盖各自顶栏，背景图从上到下连续，不再被一条纯色顶栏截断。",
@@ -11513,10 +11521,10 @@ function __applyNativeSafeTop(){
   return false;
 }
 window.__applyNativeSafeTop=__applyNativeSafeTop;
-var __topLumCache={};
-function __topLumOf(src,cb){
+var __topToneCache={};
+function __topToneOf(src,cb){
   if(!src){cb(null);return;}
-  if(Object.prototype.hasOwnProperty.call(__topLumCache,src)){cb(__topLumCache[src]);return;}
+  if(Object.prototype.hasOwnProperty.call(__topToneCache,src)){cb(__topToneCache[src]);return;}
   if(src.indexOf("data:")!==0){cb(null);return;}
   try{
     var im=new Image(),done=false;
@@ -11530,41 +11538,59 @@ function __topLumOf(src,cb){
         x.drawImage(im,0,0,im.width,sh,0,0,8,8);
         var d=x.getImageData(0,0,8,8).data,r=0,g=0,b=0,n=0;
         for(var i=0;i<d.length;i+=4){r+=d[i];g+=d[i+1];b+=d[i+2];n++;}
-        var lum=n?((0.299*r+0.587*g+0.114*b)/n/255):null;
-        __topLumCache[src]=lum;cb(lum);
+        if(!n){cb(null);return;}
+        r=Math.round(r/n);g=Math.round(g/n);b=Math.round(b/n);
+        var hex="#"+[r,g,b].map(function(v){return ("0"+v.toString(16)).slice(-2);}).join("");
+        var tone={lum:(0.299*r+0.587*g+0.114*b)/255,hex:hex};
+        __topToneCache[src]=tone;cb(tone);
       }catch(e){cb(null);}
     };
     im.onerror=function(){if(!done){done=true;clearTimeout(to);cb(null);}};
     im.src=src;
   }catch(e){cb(null);}
 }
-/* 壁纸压到电量栏后面时，按壁纸顶部亮度决定电量/信号图标用黑还是白，避免看不清。 */
+function __setSysThemeColor(hex){
+  try{if(hex){var m=document.getElementById("theme-color-meta");if(m)m.setAttribute("content",hex);document.documentElement.style.setProperty("--sysbar-bg",hex);}}catch(e){}
+}
+function __sysThemeDefault(){
+  var hex=__effectiveDark()?"#000000":"#ffffff";
+  __setSysThemeColor(hex);
+}
+/* 壁纸压到电量栏后面时，按顶部亮度切图标、按顶部平均色给 PWA 状态栏兜底；
+   安卓 WebAPK 不允许网页图片穿过系统状态栏，这一层色值能让它和壁纸顶部尽量接上。 */
 function __refreshStatusIcons(){
   try{
-    if(!window.AndroidUI||typeof AndroidUI.setStatusBarIcons!=="function")return;
-    __applyNativeSafeTop();
     var s=(state&&state.skin)||{},v=window.__curView||"";
     var fallback=!__effectiveDark();
     var src=(v==="view-chat")?s.bgImage:((v==="view-me")?s.meImage:((v==="view-moments")?s.momImage:""));
+    function icons(lum){
+      try{
+        if(!window.AndroidUI||typeof AndroidUI.setStatusBarIcons!=="function")return;
+        AndroidUI.setStatusBarIcons((lum===null||lum===undefined)?!!fallback:(lum>0.58));
+      }catch(e){}
+    }
     if(!src){
       var col=(v==="view-chat")?String(s.bg||""):"";
       if(col&&col.toLowerCase()!=="#ffffff"){
         var lum=colorLum(col)/255;
-        AndroidUI.setStatusBarIcons(!!(lum>0.58));
+        __setSysThemeColor(col);icons(lum);
       }else{
-        AndroidUI.setStatusBarIcons(!!fallback);
+        __sysThemeDefault();icons(null);
       }
       return;
     }
-    __topLumOf(src,function(l){
+    __topToneOf(src,function(t){
       try{
         if((window.__curView||"")!==v)return;
-        AndroidUI.setStatusBarIcons((l===null||l===undefined)?!!fallback:(l>0.58));
+        if(t&&t.hex)__setSysThemeColor(t.hex);
+        icons(t?t.lum:null);
       }catch(e){}
     });
   }catch(e){}
 }
 window.__refreshStatusIcons=__refreshStatusIcons;
+
+/* 顶栏（时间/信号/电量、浏览器工具条）只跟随「手机系统」明暗，不跟 App 内主题走 */window.__refreshStatusIcons=__refreshStatusIcons;
 
 /* 顶栏（时间/信号/电量、浏览器工具条）只跟随「手机系统」明暗，不跟 App 内主题走 */
 function __syncSysBar(){
