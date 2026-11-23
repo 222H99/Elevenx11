@@ -2,7 +2,7 @@
    作用一：缓存主页面，第二次打开时不再重新下载 2MB HTML，直接出首屏（黑屏时间大幅缩短）。
    作用二：提供通知点击回到 App 的最小能力。
    策略：有缓存时“网络 1.2 秒内到就用新版，超时先显示缓存并后台更新”，既不牺牲更新速度，也不让用户干等。 */
-const E11_VERSION = "2026-11-23v43-140";
+const E11_VERSION = "2026-11-23v43-141";
 const E11_CACHE = "e11-shell-" + E11_VERSION;
 const E11_INDEX = "./index.html";
 const E11_TIMEOUT = 1200;
