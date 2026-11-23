@@ -252,7 +252,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-179";
+window.__E11_BUILD="2026-11-23v43-180";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2627,7 +2627,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-179">
+<meta name="app-build" content="2026-11-23v43-180">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4374,7 +4374,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-179</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-180</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -7897,7 +7897,7 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-23",
   noticeKey:null,
-  lead:"v43-179：MiniMax 语音修好配置问题。Group ID 改为选填，只填 API Key 也能合成；自动区域会把国内外站点都试一遍，国际站 Key 不再被国内域名 1004 直接挡住；默认模型更新到 speech-2.8-turbo，旧模型名报参数错误时自动回退；没切到 MiniMax 会直接提示。",
+  lead:"v43-180：语音修到播放这一层。iOS 以前等合成完再播，手势已过期，AudioContext 是 suspended，所以合成成功也提示播放失败。现在第一次触摸就解锁音频上下文，MP3 改用正确的 audio/mpeg；播放被拦时会明确提示而不是怪 Voice ID。",
   items:[
     "PWA 电量栏透明：manifest 与 theme-color 全程 #00000000；顶部安全区背景透明，不再按明暗写白/黑兜底。",
     "iOS 主屏幕：状态栏固定为 black-translucent，时间/电量图标直接压在壁纸上，背景图从最顶端铺下来；没有壁纸时顶部用黑底兜底，保证白色图标看得清。",
@@ -34616,7 +34616,8 @@ body{margin:0;background:var(--bg,#fafafa);}
     if(!hex||hex.length%2||/[^0-9a-f]/i.test(hex))return "";
     var bin="";
     for(var i=0;i<hex.length;i+=2)bin+=String.fromCharCode(parseInt(hex.substr(i,2),16));
-    try{return "data:audio/"+(fmt||"mp3")+";base64,"+btoa(bin);}catch(e){return "";}
+    var mime=(!fmt||fmt==="mp3")?"mpeg":String(fmt);
+    try{return "data:audio/"+mime+";base64,"+btoa(bin);}catch(e){return "";}
   }
   function __e11MiniMaxTts(c,text,voice,model){
     var region=String(c.mmRegion||"auto").toLowerCase();
@@ -34702,7 +34703,7 @@ body{margin:0;background:var(--bg,#fafafa);}
           if(!audio)throw new Error("MiniMax 没有返回音频，检查 Key / GroupId / 音色 / 模型");
           var d="";
           if(/^[0-9a-f\s]+$/i.test(String(audio)))d=__e11HexAudio(audio,"mp3");
-          if(!d)d="data:audio/mp3;base64,"+String(audio);
+          if(!d)d="data:audio/mpeg;base64,"+String(audio);
           return d;
         });
       });
@@ -34879,19 +34880,59 @@ body{margin:0;background:var(--bg,#fafafa);}
       });
     });
   };
+  /* v43-179：iOS 只允许在“用户手势”里启动音频。以前点试听先 await 合成，回来再 new Audio().play()，
+     手势已经过去，WebAudio 上下文也是 suspended，表现就是合成成功但提示“播放失败”。
+     进页面后的第一次触摸先把 AudioContext 和隐藏 audio 元素解锁，后面异步播放才放得出来。 */
+  var __e11UnlockEl=null,__e11AudioUnlocked=false;
+  var __E11_SILENT="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAABErAAABAAgAZGF0YQAAAAA=";
+  function __e11UnlockAudio(){
+    if(__e11AudioUnlocked)return;
+    __e11AudioUnlocked=true;
+    try{if(navigator.audioSession)navigator.audioSession.type="playback";}catch(e){}
+    try{
+      var AC=window.AudioContext||window.webkitAudioContext;
+      if(AC){
+        var ctx=window.__voiceCtx||(window.__voiceCtx=new AC());
+        try{if(ctx.state==="suspended"&&ctx.resume)ctx.resume();}catch(e){}
+        try{
+          var buf=ctx.createBuffer(1,1,22050);var src=ctx.createBufferSource();
+          src.buffer=buf;src.connect(ctx.destination);src.start(0);src.stop(0);
+        }catch(e){}
+      }
+    }catch(e){}
+    try{
+      __e11UnlockEl=new Audio();__e11UnlockEl.setAttribute("playsinline","true");
+      __e11UnlockEl.preload="auto";__e11UnlockEl.src=__E11_SILENT;__e11UnlockEl.volume=0.01;
+      var p=__e11UnlockEl.play();if(p&&p.catch)p.catch(function(){});
+    }catch(e){}
+  }
+  try{window.__e11UnlockAudio=__e11UnlockAudio;}catch(_e){}
+  try{
+    var _unlockEvents=["pointerdown","touchstart","touchend","click"];
+    for(var _ui=0;_ui<_unlockEvents.length;_ui++){
+      document.addEventListener(_unlockEvents[_ui],__e11UnlockAudio,{capture:true,passive:true});
+    }
+  }catch(e){}
+
   function playSrc(src,bubble){
     try{
       __voiceSession();__stopVoiceAudio();
       document.querySelectorAll(".voice-bubble.playing").forEach(function(b){b.classList.remove("playing");});
       var token=__voiceToken;
       if(bubble)bubble.classList.add("playing");
-      var fail=function(){if(token!==__voiceToken)return;if(bubble)bubble.classList.remove("playing");toast("云端语音播放失败，检查 TTS 接口和 Voice 名");};
+      var fail=function(){
+        if(token!==__voiceToken)return;
+        if(bubble)bubble.classList.remove("playing");
+        toast("音频已生成，但播放被系统拦截；点一下屏幕后再试");
+        try{var st=document.getElementById("tts-test-sub");if(st)status("tts-test-sub","失败：音频已生成，播放被系统拦截");}catch(_e){}
+      };
       var url=__voiceSrcURL(src);
       var el=function(){__voiceAudioFallback(url,bubble,token,fail);};
       if(!__voiceFallback(url,function(){if(token!==__voiceToken)return;if(bubble)bubble.classList.remove("playing");},el))el();
     }catch(e){toast("云端语音播放失败");}
   }
   window.__e11PlayTts=function(text,voice,bubble){
+    try{__e11UnlockAudio();}catch(_e){}
     if(bubble)bubble.classList.add("playing");
     toast("正在生成云端语音…");
     return __e11TtsFetch(text,voice).then(function(d){playSrc(d,bubble);return true;}).catch(function(e){if(bubble)bubble.classList.remove("playing");toast(String(e&&e.message||e));return false;});
@@ -35042,6 +35083,7 @@ body{margin:0;background:var(--bg,#fafafa);}
     __e11ApiChat([{role:"system",content:systemPrompt()},{role:"user",content:"你好，用一句话回复我。"}],18000).then(function(t){status("api-test-sub","连接成功："+t.slice(0,60));toast("API 连接成功");}).catch(function(e){status("api-test-sub","失败："+String(e&&e.message||e).slice(0,140));toast("API 连接失败");}).then(function(){b.disabled=false;});
   });
   bind("btn-tts-test","click",function(){
+    try{__e11UnlockAudio();}catch(_e){}
     var b=this;b.disabled=true;status("tts-test-sub","合成中…");
     var _c=cfg();var _v=String(_c.ttsVoice||"").trim();if(_c.ttsProvider==="minimax"&&(!_v||/^(alloy|echo|fable|onyx|nova|shimmer)$/i.test(_v)))_v="";__e11TtsFetch("这是一条云端语音测试。",_v).then(function(d){var _n=window.__e11TtsVoiceNote||"";status("tts-test-sub","音色："+(_v||(String(_c.voiceGender||"男")==="女"?"默认女声":"默认男声"))+(_n?(" · "+_n):"")+" · 播放");playSrc(d,null);}).catch(function(e){status("tts-test-sub","失败："+String(e&&e.message||e).slice(0,180));}).then(function(){b.disabled=false;});
   });
