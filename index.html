@@ -226,7 +226,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-145";
+window.__E11_BUILD="2026-11-23v43-146";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2581,7 +2581,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-145">
+<meta name="app-build" content="2026-11-23v43-146">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4328,7 +4328,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-145</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-146</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -7834,9 +7834,10 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-23",
   noticeKey:null,
-  lead:"v43-145：更新前没看的信件、动态、留言会从本机离站快照和自动备份补回来，未读标记不再被云端已读冲掉。",
+  lead:"v43-146：更新前没看的聊天、信件、动态、留言会从本机离站快照和自动备份补回来，未读标记不再被云端已读冲掉。",
   items:[
-    "未读对账：版本更新/云端旧档恢复后，启动会按 id 把缺失的信件、动态、留言补回来；同一条内容如果本机未读、云端已读，保留本机未读。",
+    "聊天对账：版本更新/云端旧档恢复后，启动会按消息指纹把缺失的聊天补回来，最近没看的几条不会再被旧档截掉。",
+    "社交对账：同样按 id 补回缺失的信件、动态、留言；同一条内容如果本机未读、云端已读，保留本机未读。",
     "更新前强制备份：换页前先写一份完整自动备份，最后没看的信/动态/留言也一起落盘，不再只靠内存。",
     "密码页不弹键盘：进站密码页打开时不再自动聚焦，系统键盘不会遮住页面；点一下密码框才会弹。",
     "导出数据更稳：网页端会依次尝试「原生保存 / 系统分享 / 标准下载」；导出完成后左下角还会出现一张卡片，里面有「保存文件」和「复制」两个按钮，你亲手点一下就能存，WebView 里也不容易被拦。",
@@ -12116,9 +12117,32 @@ window.__e11SocialAudit=function(){
     function idOf(x){try{return x&&(x.id!==undefined?String(x.id):(x.key!==undefined?String(x.key):""));}catch(_){return "";}}
     function deleted(k,id){try{var d=state.deletedIds&&state.deletedIds[k];return !!(d&&d[id]);}catch(_){return false;}}
     function emptyMoment(x){return x&&x.from==="partner"&&!String(x.text||"").trim()&&!x.img&&!x.repostOf&&!(x.comments&&x.comments.length);}
+    function mergeMessages(src){
+      if(!src||!Array.isArray(src.messages)||!src.messages.length)return;
+      var a=Array.isArray(state.messages)?state.messages:[];
+      if(!Array.isArray(state.messages))state.messages=a;
+      var by={};a.forEach(function(x){var kk=(window.__e11MsgKey?__e11MsgKey(x):"")||idOf(x);if(kk)by[kk]=x;});
+      src.messages.forEach(function(m){
+        if(!m||typeof m!=="object")return;
+        var id=idOf(m);
+        if(id&&deleted("messages",id))return;
+        var kk=(window.__e11MsgKey?__e11MsgKey(m):"")||id;
+        if(!kk)return;
+        var cur=by[kk];
+        if(!cur){a.push(m);by[kk]=m;added++;return;}
+        /* 同一条消息只补缺失的图/文字，不覆盖本机内容 */
+        if(!cur.src&&m.src)cur.src=m.src;
+        if(!cur.text&&m.text)cur.text=m.text;
+        if(!cur.ttsText&&m.ttsText)cur.ttsText=m.ttsText;
+        if(!cur.sttText&&m.sttText)cur.sttText=m.sttText;
+      });
+      try{if(window.__e11NormalizeMessages)__e11NormalizeMessages(state);}catch(_){}
+      try{state.messages.sort(window.__e11MsgOrder||function(x,y){return (Number(x.time)||0)-(Number(y.time)||0);});}catch(_){}
+    }
     function merge(src,revive){
       if(!src||typeof src!=="object")return;
       sources++;
+      mergeMessages(src);
       kinds.forEach(function(cfg){
         var b=Array.isArray(src[cfg.k])?src[cfg.k]:[];if(!b.length)return;
         var a=Array.isArray(state[cfg.k])?state[cfg.k]:[];state[cfg.k]=a;
@@ -12166,6 +12190,7 @@ window.__e11SocialAudit=function(){
         try{renderGuestbook(true);}catch(_){}
         try{updateNewBadge();}catch(_){}
         try{updateMomBell();}catch(_){}
+        try{var _vc=document.getElementById("view-chat");if(_vc&&_vc.classList.contains("open"))renderChat(true);}catch(_){}
       }
       if(allowRevive&&sources){try{localStorage.setItem(onceKey,"1");}catch(_){}}
       window.__socialAuditing=0;
