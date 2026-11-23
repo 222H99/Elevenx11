@@ -8013,7 +8013,7 @@ function paintNotifyDiag(){
 function __e11OpenNotice(view,mid){
   try{
     if(view==="view-moments"||view==="moments"){
-      var posts=(state&&state.moments?state.moments:[]).filter(function(x){return x&&x.from==="partner"&&!String(x.text||"").trim()?false:true;}).filter(function(x){return x&&x.from==="partner";});
+      var posts=(state&&state.moments?state.moments:[]).filter(function(x){return x&&x.from==="partner"&&(String(x.text||"").trim()||x.img||x.repostOf||(x.comments&&x.comments.length));});
       var target=null;
       if(mid)target=posts.filter(function(x){return x.id===mid;})[0]||null;
       if(!target&&posts.length)target=posts.slice().sort(function(a,b){return (Number(b.time)||0)-(Number(a.time)||0);})[0];
