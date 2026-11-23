@@ -21844,6 +21844,7 @@ window.__androidResume=function(){
           try{renderEmojis();}catch(_){}
         }
         if(window.__curView==="view-chat"){try{renderChat(true);}catch(_){}}
+        try{window.__refreshStatusIcons&&window.__refreshStatusIcons();}catch(_eIcoResume){}
       }catch(_){}
     },160);
   }catch(_){}
