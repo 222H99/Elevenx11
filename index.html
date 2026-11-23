@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#ffffff" id="theme-color-meta">
+<meta name="theme-color" content="#00000000" id="theme-color-meta">
 <script>try{if(/iPad|iPhone|iPod/.test(navigator.userAgent)&&(navigator.standalone===true||matchMedia("(display-mode: standalone)").matches))document.documentElement.classList.add("ios-standalone");}catch(e){}</script>
 <script>
 /* ================= iOS 风格确认弹窗（网页和 APK 共用） ================= */
@@ -94,9 +94,8 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
   }catch(_eClamp){}
   document.documentElement.style.background=bg;
   document.documentElement.setAttribute("data-boot",dark?"dark":"light");
-  /* v43-106：顶栏只允许纯白/纯黑，启动这一刻不能先写 #fafafa 或壁纸平均色，
-     否则 iOS/安卓会先显示一条灰色状态栏。 */
-  try{var _tc=document.getElementById("theme-color-meta");if(_tc)_tc.setAttribute("content",dark?"#000000":"#ffffff");}catch(e){}
+  /* v43-173：首屏就把 theme-color 写成全透明，不再先闪白条/黑条。 */
+  try{var _tc=document.getElementById("theme-color-meta");if(_tc)_tc.setAttribute("content","#00000000");}catch(e){}
   /* 第一帧就告诉系统「这块内容是深/浅色」：iOS 的顶栏（时间/信号/电量）会据此立刻上色，
      不用等到后面 applySkin() 再同步（那一段就是「顶栏很久才变过来」） */
   try{document.documentElement.style.colorScheme=dark?"dark":"light";}catch(e){}
@@ -227,7 +226,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-172";
+window.__E11_BUILD="2026-11-23v43-173";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2603,7 +2602,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-172">
+<meta name="app-build" content="2026-11-23v43-173">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4350,7 +4349,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-172</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-173</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -7874,9 +7873,9 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-23",
   noticeKey:null,
-  lead:"v43-172：电量栏按你截图那种效果做——壁纸一直铺到屏幕最顶端，时间、信号、电量图标直接浮在壁纸上，中间没有白条/色条。PWA 的 theme-color 设为全透明，iOS 主屏幕固定用 black-translucent；APK 的原生主题和运行状态栏也都是透明。",
+  lead:"v43-173：电量栏改成所有页面都透明，不再只在有壁纸时透明。首屏就把 theme-color 写为 #00000000，顶部安全区不再盖白条；聊天、主页、动态、设置页都从屏幕最顶端开始画。iOS 主屏幕固定 black-translucent；APK 原生主题和运行状态栏同样透明。",
   items:[
-    "PWA 电量栏透明：manifest 与 theme-color 都设为 #00000000；聊天/桌面/主页有背景时顶部安全区背景透明，壁纸从最顶端开始铺。没有背景时仍按明暗用白/黑兜底。",
+    "PWA 电量栏透明：manifest 与 theme-color 全程 #00000000；顶部安全区背景透明，不再按明暗写白/黑兜底。",
     "iOS 主屏幕：状态栏固定为 black-translucent，时间/电量图标直接压在壁纸上，背景图从最顶端铺下来；没有壁纸时顶部用黑底兜底，保证白色图标看得清。",
     "PWA 刷新：已安装的 PWA 如果还是旧界面，先完全关闭再打开；仍不生效就删除主屏幕图标，重新从主站添加一次。",
     "电量栏覆盖：APK 状态栏改成透明，网页延伸到电量栏下面；聊天背景、桌面背景、主页背景会一直铺到电量栏，不再留白条。原生返回电量栏高度，网页顶部按这个高度留安全区，顶栏图标和按钮不会被电量栏压住。",
@@ -11556,11 +11555,10 @@ function __setSysThemeColor(hex){
   try{if(hex){var m=document.getElementById("theme-color-meta");if(m)m.setAttribute("content",hex);document.documentElement.style.setProperty("--sysbar-bg",hex);}}catch(e){}
 }
 function __sysThemeDefault(){
-  var hex=__effectiveDark()?"#000000":"#ffffff";
-  __setSysThemeColor(hex);
+  __setSysThemeColor("#00000000");
 }
-/* 壁纸压到电量栏后面时，按顶部亮度切图标、按顶部平均色给 PWA 状态栏兜底；
-   安卓 WebAPK 不允许网页图片穿过系统状态栏，这一层色值能让它和壁纸顶部尽量接上。 */
+/* 电量栏始终透明：theme-color 写 #00000000，body::before 不再盖白/黑色；
+   图标仍按背景顶部亮度切黑/白。 */
 function __refreshStatusIcons(){
   try{
     var s=(state&&state.skin)||{},v=window.__curView||"";
@@ -11615,7 +11613,7 @@ function __syncSysBar(){
     /* 顶栏颜色真正跟 App 顶部导航栏一致：默认夜间纯黑、白天纯白；
        用户自定义顶栏背景时，状态栏/地址栏也跟着同一个颜色，避免上面多出一条色带。 */
     /* v43-103：按用户固定要求，顶栏/状态栏白天纯白、夜间纯黑，不再被自定义顶栏色带偏。 */
-    var _barColor=sysDark?"#000000":"#ffffff";
+    var _barColor="#00000000";
     for(var i=0;i<tcs.length;i++){
       /* iOS 只认当前这一条 theme-color；带 media 的两条会互相抢，
          手动切夜间后状态栏/地址栏就不跟着变。去掉 media，只写当前模式的颜色。 */
