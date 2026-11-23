@@ -226,7 +226,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-142";
+window.__E11_BUILD="2026-11-23v43-143";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2581,7 +2581,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-142">
+<meta name="app-build" content="2026-11-23v43-143">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4328,7 +4328,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-142</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-143</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -7821,15 +7821,14 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-23",
   noticeKey:null,
-  lead:"v43-129：设置与全部美化数据在更新后保持一致；设置改动即时落盘、整页缩放隔离、站内刷新，动态/评论/留言/信件补发已核对。",
+  lead:"v43-143：导出改成三条保存通道并加了手动保存卡，部分手机/内置浏览器也能把备份存下来；新动态提示可以直接点进对方主页看最新那条，空白动态和假提示已清理。",
   items:[
-    "设置自动保存：改数字、开关、概率、主题后立刻写入 IndexedDB 和设置小备份；即使后台恢复或云端存档较旧，也不会把刚改的设置盖回去。",
-    "美化同步保护：换肤颜色、气泡、顶栏/底栏、聊天背景、头像框、字卡信纸配色也单独带时间戳备份；本机较新时更新和云端旧档都不能冲回默认。",
-    "修掉自动缩放串页：设置页、聊天页、信件/留言/动态/字卡等整页不再被主页内容高度拖着二次缩放，只缩主页自己的内容。",
-    "站内刷新：设置 → 基础 → 系统里新增「站内刷新」，只重新载入页面，不清聊天、字卡、设置、头像和图片。",
-    "补发核对：动态、评论、留言、信件按每个到点时段单独掷概率，补发时间落在该发的时刻，基准推进到当下，不会同一段反复补。",
-    "更新前后数据一致：换页更新前再落一次设置小备份和核心档；更新只清运行时缓存，不动 IndexedDB。",
-    "聊天记录仍以 IndexedDB 为主库，历史图片、表情包、一起听歌单不丢。",
+    "导出数据更稳：网页端会依次尝试「原生保存 / 系统分享 / 标准下载」；导出完成后左下角还会出现一张卡片，里面有「保存文件」和「复制」两个按钮，你亲手点一下就能存，WebView 里也不容易被拦。",
+    "导出不会清数据：导出前先写一次完整自动备份，导出后自动核对聊天、信件、动态、留言、字卡数量；万一被浏览器清掉，会立刻从备份补回来。",
+    "新动态提示能点：聊天里的「📷 对方发了一条新动态」和系统通知都可以直接点，会跳到对方主页并定位最新一条，不再只显示你自己的主页。",
+    "系统通知落对页面：动态、评论、回复、信件、留言通知点开后进入对应页面，不会一律回到聊天。",
+    "清理假提示：对方没有动态时不再保留「发了一条新动态」的灰字；历史里只有提示、没有文字/图片/转发/评论的空白动态会自动清掉。",
+    "设置、美化、聊天记录仍保存在本机 IndexedDB；更新只清运行时缓存，不动聊天、字卡、头像和图片。",
   ],
   foot:"有问题或建议：小红书 @Eleven_（ID：5609831119）。"
 };
@@ -8009,6 +8008,35 @@ function paintNotifyDiag(){
     }).catch(function(){});
   }catch(e){}
 }
+/* v43-143：系统通知点开后要落到对应页面，不再一律进聊天。
+   动态通知直接切到对方主页并定位最新那条，避免“提示有新动态、点进去却没有”。 */
+function __e11OpenNotice(view,mid){
+  try{
+    if(view==="view-moments"||view==="moments"){
+      var posts=(state&&state.moments?state.moments:[]).filter(function(x){return x&&x.from==="partner"&&!String(x.text||"").trim()?false:true;}).filter(function(x){return x&&x.from==="partner";});
+      var target=null;
+      if(mid)target=posts.filter(function(x){return x.id===mid;})[0]||null;
+      if(!target&&posts.length)target=posts.slice().sort(function(a,b){return (Number(b.time)||0)-(Number(a.time)||0);})[0];
+      try{mpSide="partner";}catch(_){}
+      window.__momWantPartner=1;
+      if(target)window._momentFocusId=target.id;
+      if(typeof showView==="function")showView("view-moments");
+      return true;
+    }
+    if(view==="letters"||view==="view-letters"){if(typeof showView==="function")showView("view-letters");return true;}
+    if(view==="guestbook"||view==="view-guestbook"){if(typeof showView==="function")showView("view-guestbook");return true;}
+    if(typeof showView==="function")showView("view-chat");
+    return true;
+  }catch(_){return false;}
+}
+window.__e11OpenNotice=__e11OpenNotice;
+function __e11NotifyView(m){
+  var t=String((m&&m.text)||"");
+  if(/新动态|评论了你的动态|回复了你的评论/.test(t))return "view-moments";
+  if(/写了(?:一)?封信|回信|来信/.test(t))return "view-letters";
+  if(/留言/.test(t))return "view-guestbook";
+  return "view-chat";
+}
 function notifySystem(m,opts){
   if(!m||typeof m!=="object")return;
   if(state&&state.settings&&state.settings.notifyOn===false)return;
@@ -8027,7 +8055,8 @@ function notifySystem(m,opts){
     let body="";
     body=msgPreviewText(m)||"来消息了";
     __notifyIcon().then(function(ic){
-      var opt={body:body,icon:ic||undefined,silent:_sil,tag:"eleven-msg",data:{elevenChat:1}};
+      var _nview=__e11NotifyView(m);
+      var opt={body:body,icon:ic||undefined,silent:_sil,tag:"eleven-msg",data:{elevenChat:1,view:_nview,momentId:(m&&(m.momentId||m.id))||""}};
       try{
         /* 不能等 navigator.serviceWorker.ready：没有 sw.js（或 sw.js 404）时 ready 永远 pending，
            通知一条都发不出来，后台消息全静默。这里查现有注册，没有就直接 new Notification。 */
@@ -8036,13 +8065,13 @@ function notifySystem(m,opts){
             if(reg&&reg.showNotification){try{reg.showNotification(nm,opt);return;}catch(e){}}
             try{
               var _n=new Notification(nm,opt);
-              _n.onclick=function(){try{window.focus();}catch(e){};try{if(typeof showView==="function")showView("view-chat");}catch(e){};try{_n.close();}catch(e){}};
+              _n.onclick=function(){try{window.focus();}catch(e){};try{__e11OpenNotice(_nview);}catch(e){};try{_n.close();}catch(e){}};
             }catch(e){}
-          }).catch(function(){try{var _n2=new Notification(nm,opt);_n2.onclick=function(){try{window.focus();}catch(e){};try{if(typeof showView==="function")showView("view-chat");}catch(e){};try{_n2.close();}catch(e){}};}catch(e){}});
+          }).catch(function(){try{var _n2=new Notification(nm,opt);_n2.onclick=function(){try{window.focus();}catch(e){};try{__e11OpenNotice(_nview);}catch(e){};try{_n2.close();}catch(e){}};}catch(e){}});
           return;
         }
       }catch(e){}
-      try{var _n3=new Notification(nm,opt);_n3.onclick=function(){try{window.focus();}catch(e){};try{if(typeof showView==="function")showView("view-chat");}catch(e){};try{_n3.close();}catch(e){}};}catch(e){}
+      try{var _n3=new Notification(nm,opt);_n3.onclick=function(){try{window.focus();}catch(e){};try{__e11OpenNotice(_nview);}catch(e){};try{_n3.close();}catch(e){}};}catch(e){}
     });
     /* 系统通知提示音只在后台响：页面开着时听到的是「收到消息音」，不重复响这一声 */
     /* 系统通知提示音只在后台响，且受「后台也响提示音」开关控制；页面开着时只响收到消息音 */
@@ -8053,28 +8082,33 @@ function notifySystem(m,opts){
     }catch(e){}
   }catch(e){}
 }
-/* Service Worker 通知被点击：sw.js 会给页面 postMessage，这里收到就进聊天 */
+/* Service Worker 通知被点击：sw.js 会给页面 postMessage，这里收到就进对应页面。
+   动态通知必须进对方主页，否则点开只看到自己的主页，像“有提示没内容”。 */
 try{
   if(navigator.serviceWorker&&navigator.serviceWorker.addEventListener){
     navigator.serviceWorker.addEventListener("message",function(e){
-      var d=e&&e.data;if(!d||d.type!=="eleven-open-chat")return;
+      var d=e&&e.data;if(!d)return;
+      var _v=(d.type==="eleven-open-chat")?"view-chat":(d.e11Open||d.view||"");
+      if(!_v)return;
       try{window.focus();}catch(_){}
-      try{if(typeof showView==="function")showView("view-chat");}catch(_){}
+      try{__e11OpenNotice(_v,d.momentId||"");}catch(_){}
     });
   }
 }catch(e){}
-/* 从系统通知冷启动（openWindow 带 #chat）：必须等本地状态和页面初始化完成，
-   否则会先露出一个没有数据、按钮还没绑定的空白聊天页，表现为“点不动”。 */
+/* 从系统通知冷启动：
+   #chat / #moments / #letters / #guestbook 都要等本地状态和页面初始化完成再切，
+   不然会先露出一个没有数据、按钮还没绑定的空白页。 */
 try{
   window.addEventListener("load",function(){
-    if(String(location.hash||"").toLowerCase()==="#chat"){
-      window.__wantChatOnReady=1;
-      var __goChat=function(){
-        if(!window.__stateReady||!window.__viewInit){setTimeout(__goChat,200);return;}
-        try{if(typeof showView==="function")showView("view-chat");}catch(e){}
-      };
-      setTimeout(__goChat,600);
-    }
+    var _h=String(location.hash||"").toLowerCase();
+    var _target=_h==="#moments"?"view-moments":_h==="#letters"?"view-letters":_h==="#guestbook"?"view-guestbook":(_h==="#chat"?"view-chat":"");
+    if(!_target)return;
+    if(_target==="view-chat")window.__wantChatOnReady=1;
+    var __goNotice=function(){
+      if(!window.__stateReady||!window.__viewInit){setTimeout(__goNotice,200);return;}
+      try{__e11OpenNotice(_target,"");}catch(e){}
+    };
+    setTimeout(__goNotice,600);
   });
 }catch(e){}
 /* 通知权限：未开启时每次打开提醒，最多 6 次，直到用户允许 */
@@ -12633,6 +12667,25 @@ function __fillOlderRows(all,from){
     if(start>0)setTimeout(function(){__fillOlderRows(all,start);},16);
   }catch(e){}
 }
+/* v43-143：清掉“只有提示、没有内容”的空白动态（老版本可能写入过空文字动态）。
+   只删对方自动生成、且文字/图片/转发/评论全空的记录，不动用户自己发的。 */
+function __e11CleanEmptyMoments(){
+  try{
+    if(!state||!Array.isArray(state.moments))return 0;
+    var before=state.moments.length;
+    state.moments=state.moments.filter(function(m){
+      if(!m||m.from!=="partner")return true;
+      if(String(m.text||"").trim())return true;
+      if(m.img||m.repostOf)return true;
+      if(m.comments&&m.comments.length)return true;
+      return false;
+    });
+    var removed=before-state.moments.length;
+    if(removed>0){try{save();__flushSave();}catch(_){}}
+    return removed;
+  }catch(_){return 0;}
+}
+window.__e11CleanEmptyMoments=__e11CleanEmptyMoments;
 function __pruneSocialNotices(){
   try{
     if(!state)return false;
@@ -12660,7 +12713,11 @@ function __pruneSocialNotices(){
       /* 对应内容一条都不剩 → 提示全删；信件一封一条提示 → 多了就删超出的旧提示 */
       /* 用户明确要求「对方主动发消息的提示不要自己消失」：
          即使对应内容已经读完/删掉，也保留最后一条提示，只去掉重复的。 */
-      if(kind.pool===0){continue;}
+      if(kind.pool===0){
+        /* 动态一条都不剩时，提示也要一起删，避免“有提示没内容” */
+        if(/新动态/.test(String(kind.re.source||"")))drop=idx.slice();
+        else continue;
+      }
       else if(kind.exact&&idx.length>kind.pool){drop=idx.slice(0,idx.length-kind.pool);}
       for(var j=drop.length-1;j>=0;j--){ms.splice(drop[j],1);changed=true;}
     }
@@ -12674,6 +12731,7 @@ window.__pruneSocialNotices=__pruneSocialNotices;
 function __rebuildSocialNotices(){
   try{
     if(!state||!window._dbReady)return null;
+    try{__e11CleanEmptyMoments();}catch(_){}
     var ms=state.messages||[];
     var res=[/对方给你写了(?:一)?封信|对方给你回信了/,
              /对方给你留了\s*\d*\s*条?留言|对方给你留言了/,
@@ -12723,6 +12781,10 @@ function __rebuildSocialNotices(){
       if(kind<0)continue;
       if(flags[kind]){ms.splice(i,1);had=true;}
       else flags[kind]=true;
+    }
+    /* 对方一条动态都没有时，动态提示不能留下 */
+    if(!(state.moments||[]).some(function(m){return m&&m.from==="partner";})){
+      for(var _di=ms.length-1;_di>=0;_di--){if(ms[_di]&&ms[_di].type==="sys"&&res[2].test(String(ms[_di].text||""))){ms.splice(_di,1);had=true;}}
     }
     if(unreadL&&!flags[0])pushMsg("partner","sys","📮 对方给你写了封信",{quiet:true});
     if(unreadN&&!flags[1])pushMsg("partner","sys","💬 对方给你留言了",{quiet:true});
@@ -14887,6 +14949,7 @@ function catchUpSocial(){
       if(!cards||!cards.length)continue;
       var _rp=__partnerRepostPayload(cards);
       var _pp=_rp||{text:joinCards(cards)};
+      if(!String(_pp.text||"").trim()&&!_pp.img&&!_pp.repostOf)continue;
       state.moments.push({id:uid(),from:"partner",text:_pp.text,img:_pp.img||"",repostOf:_pp.repostOf,likes:[],comments:[],time:mt[i],unread:true,unreadKind:"post"});
       newM++;momAdd++;changed=true;
     }
@@ -16259,8 +16322,8 @@ try{window.__msgSelLongShot=__msgSelLongShot;}catch(e){}
 /* 逐张保存：优先走系统分享（iOS 能直接存进相册），不支持时用下载 */
 /* 多选模式下点消息只做勾选，不触发打开图片/语音等原来的动作 */
 (function(){
-  var ml=document.getElementById("msglist");if(!ml)return;
-  ml.addEventListener("click",function(e){
+  /* 用 document 代理，避免脚本先于 msglist 节点执行时绑定不到 */
+  document.addEventListener("click",function(e){
     if(!__msgSelOn)return;
     var row=e.target.closest?e.target.closest("#msglist .msg-row,#msglist .msg-sys"):null;
     if(!row)return;
@@ -16272,6 +16335,32 @@ try{window.__msgSelLongShot=__msgSelLongShot;}catch(e){}
 })();
 
 
+/* v43-143：聊天里的「对方发了新动态 / 评论 / 回复」系统提示可以直接点开，
+   动态提示落到对方主页并定位最新那条，不再只是聊天里一行灰字。 */
+(function(){
+  /* 用 document 代理，避免脚本先于 msglist 节点执行时绑定不到 */
+  document.addEventListener("click",function(e){
+    try{if(typeof __msgSelOn!=="undefined"&&__msgSelOn)return;}catch(_){}
+    var row=e.target&&e.target.closest?e.target.closest("#msglist .msg-sys[data-id],#msglist .msg-row[data-id]"):null;
+    if(!row||row.hasAttribute("data-rv"))return;
+    var id=row.getAttribute("data-id");
+    var m=(typeof msgById==="function")?msgById(id):null;
+    if(!m||m.type!=="sys")return;
+    var t=String(m.text||"");
+    if(!/新动态|评论了你的动态|回复了你的评论|留言|写了(?:一)?封信|回信|来信/.test(t))return;
+    e.preventDefault();e.stopPropagation();
+    if(/新动态|评论了你的动态|回复了你的评论/.test(t)){
+      try{mpSide="partner";}catch(_){}
+      window.__momWantPartner=1;
+      __e11OpenNotice("view-moments",m.momentId||"");
+      if(m.commentId)setTimeout(function(){try{__flashMomentComment(m.momentId,m.commentId);}catch(_){}},700);
+    }else if(/留言/.test(t)){
+      __e11OpenNotice("view-guestbook");
+    }else{
+      __e11OpenNotice("view-letters");
+    }
+  },true);
+})();
 /* ===== 编辑消息 ===== */
 let editMsgId=null;
 function openEdit(id){
@@ -19459,6 +19548,44 @@ window.__e11RestoreIDB=function(all,opts){return __restoreIDB(all,opts);};
    1) target=_blank：手机浏览器不认 download 时会去打开 blob，当前 App 页不会被替成一段 JSON；
    2) 锚点保留 5 秒再撤销，避免部分系统在下载还没接管时就把 blob 地址回收；
    3) 阻止合成 click 冒泡到页面其它按钮，导出只读，不触发任何清空/重置。 */
+/* v43-143：网页里自动下载可能被 WebView/iframe 拦掉，生成备份后再给一个
+   用户亲手点的保存入口；真的所有下载都被禁时，还能复制备份文本。 */
+function __e11ToastMini(msg){
+  try{var t=document.getElementById("e11-export-toast");if(t)t.remove();var d=document.createElement("div");d.id="e11-export-toast";d.textContent=msg;d.style.cssText="position:fixed;left:50%;bottom:132px;transform:translateX(-50%);z-index:12080;background:rgba(28,28,30,.94);color:#fff;font-size:12px;line-height:1.4;padding:8px 14px;border-radius:12px;max-width:86vw;text-align:center;";document.body.appendChild(d);setTimeout(function(){try{d.remove();}catch(_){}},2600);}catch(_){}
+}
+function __e11ShowExportSheet(blob,fname,mode,rawText){
+  try{
+    var old=document.getElementById("e11-export-sheet");if(old){try{old.remove();}catch(_){}}
+    var url=URL.createObjectURL(blob);
+    var wrap=document.createElement("div");wrap.id="e11-export-sheet";
+    wrap.style.cssText="position:fixed;left:12px;right:12px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:12060;display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:16px;background:var(--card,#fff);color:var(--text,#1c1c1e);border:1px solid var(--line,rgba(0,0,0,.10));box-shadow:0 12px 36px rgba(0,0,0,.22);font-size:13px;";
+    wrap.innerHTML='<div style="flex:1;min-width:0;line-height:1.35;"><div style="font-weight:600;">备份已生成</div><div style="font-size:11px;opacity:.62;margin-top:2px;">没自动保存？点右边按钮再存一次</div></div>'+
+      '<a id="e11-export-save" href="'+url+'" download="'+String(fname||"Eleven11_backup.json").replace(/"/g,"&quot;")+'" style="flex:none;display:inline-flex;align-items:center;justify-content:center;height:34px;padding:0 14px;border-radius:10px;background:#0A84FF;color:#fff;font-size:13px;font-weight:600;text-decoration:none;">保存文件</a>'+
+      '<button id="e11-export-copy" style="flex:none;height:34px;padding:0 10px;border-radius:10px;border:1px solid var(--line,rgba(0,0,0,.12));background:transparent;color:var(--text,#1c1c1e);font-size:12px;">复制</button>'+
+      '<button id="e11-export-x" aria-label="关闭" style="flex:none;width:26px;height:26px;border:0;background:transparent;color:var(--text,#1c1c1e);font-size:18px;opacity:.5;">×</button>';
+    document.body.appendChild(wrap);
+    var link=wrap.querySelector("#e11-export-save");
+    /* 用户亲手点链接：WebView/iframe 里比程序化 a.click() 更容易被系统放行 */
+    try{link.addEventListener("click",function(){__e11ToastMini("已开始保存，请到「下载」里查看");});}catch(_){}
+    var cp=wrap.querySelector("#e11-export-copy");
+    try{cp.addEventListener("click",function(){
+      var txt=String(rawText||"");
+      var done=function(){__e11ToastMini("备份内容已复制，可粘贴到 .json 文件");};
+      var fail=function(){__e11ToastMini("复制失败：请先点「保存文件」");};
+      try{
+        if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,fail);return;}
+      }catch(_){}
+      try{
+        var ta=document.createElement("textarea");ta.value=txt;ta.style.cssText="position:fixed;left:-9999px;top:-9999px;";document.body.appendChild(ta);ta.select();
+        var ok=document.execCommand&&document.execCommand("copy");ta.remove();if(ok)done();else fail();
+      }catch(_){fail();}
+    });}catch(_){}
+    var x=wrap.querySelector("#e11-export-x");
+    try{x.addEventListener("click",function(){try{wrap.remove();}catch(_){}try{URL.revokeObjectURL(url);}catch(_){}});}catch(_){}
+    /* 60 秒后自动收起；期间不撤 blob，保证「保存文件」可点 */
+    setTimeout(function(){try{if(wrap.parentNode)wrap.remove();URL.revokeObjectURL(url);}catch(_){}},60000);
+  }catch(_){}
+}
 function __e11IsLikelyWebView(){
   try{
     var ua=String(navigator.userAgent||"");
@@ -19482,7 +19609,7 @@ function __e11AnchorDownload(blob,fname){
     return "download";
   }catch(_){return "fail";}
 }
-/* v43-142：按设备能力分三条路径导出。
+/* v43-143：按设备能力分三条路径导出。
    1) 安卓原生壳有 AndroidUI.saveFile，直接写系统「下载/Eleven11」，不依赖 WebView 下载器；
    2) 微信/QQ/飞书等内置 WebView、iOS 内置浏览器：用系统分享面板保存文件（这类壳经常忽略 a[download]）；
    3) 普通浏览器：标准 a[download]，不再 target=_blank，避免部分设备弹空白页而不是保存。 */
@@ -19545,8 +19672,10 @@ window.__e11ExportGuardCheck=function(){
 };
 function __downloadJsonFile(obj,fname){
   try{
-    var blob=new Blob([JSON.stringify(obj)],{type:"application/json"});
+    var _raw=JSON.stringify(obj);
+    var blob=new Blob([_raw],{type:"application/json"});
     var _mode=__e11DownloadBlob(blob,fname);
+    if(_mode!=="native"&&_mode!=="fail")try{__e11ShowExportSheet(blob,fname,_mode,_raw);}catch(_){}
     return _mode!=="fail";
   }catch(_){return false;}
 }
@@ -19723,10 +19852,13 @@ $("btn-export").addEventListener("click",function(){
     try{for(var _i=0;_i<localStorage.length;_i++){var _k=localStorage.key(_i);_ls[_k]=localStorage.getItem(_k);}}catch(_){}
     const _counts={messages:(state.messages||[]).length,letters:(state.letters||[]).length,moments:(state.moments||[]).length,guestbook:(state.guestbook||[]).length,cards:(state.cards||[]).length,groups:(state.groups||[]).length,emojis:(state.emojis||[]).length,partnerEmojis:(state.partnerEmojis||[]).length};
     const data={app:"privateChat",version:4,partial:false,exportedAt:new Date().toISOString(),meta:{counts:_counts,idbKeys:Object.keys(idbAll||{}).length,lsKeys:Object.keys(_ls).length},state:state,extras:_ls,idb:idbAll||{}};
-    const blob=new Blob([JSON.stringify(data)],{type:"application/json"});
+    var _raw="";
+    var blob=null;
+    try{_raw=JSON.stringify(data);blob=new Blob([_raw],{type:"application/json"});}catch(_){blob=new Blob(["{}"],{type:"application/json"});}
     const d=new Date();
     const fname="私密聊天备份_"+d.getFullYear()+("0"+(d.getMonth()+1)).slice(-2)+("0"+d.getDate()).slice(-2)+"_"+("0"+d.getHours()).slice(-2)+("0"+d.getMinutes()).slice(-2)+".json";
     var okDownload=__e11DownloadBlob(blob,fname);
+    if(okDownload!=="native")try{__e11ShowExportSheet(blob,fname,okDownload,_raw);}catch(_){}
     if(okDownload==="fail"){try{toast("导出失败：当前设备没有可用的保存通道，请更新到最新 APK 或换浏览器");}catch(_){}}
     else if(okDownload==="share"){try{toast("已打开系统保存面板：请选择「存储到文件/下载」保存备份");}catch(_){}}
     else{try{toast("全量导出完成：聊天"+_counts.messages+" / 信件"+_counts.letters+" / 动态"+_counts.moments+" / 留言"+_counts.guestbook+" / 字卡"+_counts.cards+" / 图片库"+Object.keys(idbAll||{}).length+" 项");}catch(_){}}
@@ -20569,10 +20701,13 @@ function showView(id){
     if(id==="view-moments"){
       try{
         var _mup=momUnreadPost();
-        if(_mup.length){
-          var _mn=_mup.slice().sort(function(a,b){return b.time-a.time;})[0];
+        var _pall=(state.moments||[]).filter(function(x){return x&&x.from==="partner"&&(String(x.text||"").trim()||x.img||x.repostOf||(x.comments&&x.comments.length));});
+        if(_mup.length||(window.__momWantPartner&&_pall.length)){
+          var _src=_mup.length?_mup:_pall;
+          var _mn=_src.slice().sort(function(a,b){return (Number(b.time)||0)-(Number(a.time)||0);})[0];
           mpSide="partner";window._momentFocusId=_mn.id;
         }
+        window.__momWantPartner=0;
       }catch(_){}
       renderMoments();
     }
@@ -20709,11 +20844,15 @@ function showView(id){
   if(id==="view-moments"){
     newM=0;updateNewBadge();
     /* 红点点的是「对方发了新动态」，但默认这一页画的是我自己的主页，所以看着像“点进去没有”。
-       有未读的对方动态就直接切到对方主页并滚到最新那条。 */
+       有未读动态，或通知/聊天提示要求看对方主页时，直接切过去并滚到最新那条。 */
     var _ups=[];
     try{_ups=momUnreadPost();}catch(e){}
-    if(_ups.length){
-      var _np=_ups.slice().sort(function(a,b){return b.time-a.time;})[0];
+    var _pall=(state.moments||[]).filter(function(x){return x&&x.from==="partner"&&(String(x.text||"").trim()||x.img||x.repostOf||(x.comments&&x.comments.length));});
+    var _wantP=window.__momWantPartner||_ups.length;
+    window.__momWantPartner=0;
+    if(_ups.length||(_wantP&&_pall.length)){
+      var _src=_ups.length?_ups:_pall;
+      var _np=_src.slice().sort(function(a,b){return (Number(b.time)||0)-(Number(a.time)||0);})[0];
       mpSide="partner";_momentsFrom="view-moments";
       window._momentFocusId=_np.id;
       /* 未读先留着：顶部要能看到「🔔 你的特别关注发布了…」；点了提示条才清 */
@@ -26425,7 +26564,7 @@ function openPartnerProfile(){
 }
 function openMyProfile(){
   /* 从“对方主页”返回：回到我的主页（同一个动态视图），而不是直接退回桌面 */
-  mpSide="me";renderMoments();
+  mpSide="me";window.__momWantPartner=0;renderMoments();
   if(mpViewOpen()){
     var b0=document.querySelector("#view-moments .v-body");if(b0)b0.scrollTop=0;
     return;
@@ -27446,6 +27585,7 @@ function maybePartnerMomentPost(force){
        页面一关/被系统回收，内容就跟着定时器一起丢了，而 lastMomentsTime 已经推进，补发也不会再来。 */
     const _rp=__partnerRepostPayload(cards);
     const _pp=_rp||{text:joinCards(cards)};
+    if(!String(_pp.text||"").trim()&&!_pp.img&&!_pp.repostOf)continue;
     var _nid=uid();
     state.moments.push({id:_nid,from:"partner",text:_pp.text,img:_pp.img||"",repostOf:_pp.repostOf,likes:[],comments:[],time:Date.now(),unread:true,unreadKind:"post"});
     newM++;sent++;
@@ -28331,7 +28471,7 @@ $("me-gb-import").addEventListener("click",function(){window.__pickLocalFile("im
 $("me-card-clear").addEventListener("click",()=>{state.skin.meTopImage="";state.skin.meTopBg=0;renderMe();save();toast("卡片背景已恢复");});
 $("me-card-import").addEventListener("click",function(){window.__pickLocalFile("image/*",function(files){var f=files&&files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){setSkinImg("meTopImage",String(rd.result),renderMe);toast("卡片背景已更换");};rd.readAsDataURL(f);});});
 $("me-nav-chat").addEventListener("click",()=>showView("view-chat"));
-$("me-nav-moments").addEventListener("click",()=>{mpSide="me";showView("view-moments");});
+$("me-nav-moments").addEventListener("click",()=>{mpSide="me";window.__momWantPartner=0;showView("view-moments");});
 $("me-nav-letter").addEventListener("click",()=>showView("view-letters"));
 $("me-nav-note").addEventListener("click",()=>showView("view-guestbook"));
 $("me-nav-settings").addEventListener("click",()=>{window.__settingsEntryView="view-me";window.__settingsBackTo="view-me";_settingsFrom="view-me";showView("view-settings");});
@@ -33710,7 +33850,7 @@ body{margin:0;background:var(--bg,#fafafa);}
       try{showView("view-settings");return;}catch(_){}
     }
     if(id==="me-nav-chat")return showView("view-chat");
-    if(id==="me-nav-moments"){try{mpSide="me";}catch(_){}return showView("view-moments");}
+    if(id==="me-nav-moments"){try{mpSide="me";window.__momWantPartner=0;}catch(_){}return showView("view-moments");}
     if(id==="me-nav-letter")return showView("view-letters");
     if(id==="me-nav-note")return showView("view-guestbook");
     if(id==="me-nav-music"){try{musicInviteShown=true;}catch(_){}return showView("view-music");}

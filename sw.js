@@ -2,7 +2,7 @@
    作用一：缓存主页面，第二次打开时不再重新下载 2MB HTML，直接出首屏（黑屏时间大幅缩短）。
    作用二：提供通知点击回到 App 的最小能力。
    策略：有缓存时“网络 1.2 秒内到就用新版，超时先显示缓存并后台更新”，既不牺牲更新速度，也不让用户干等。 */
-const E11_VERSION = "2026-11-23v43-142";
+const E11_VERSION = "2026-11-23v43-143";
 const E11_CACHE = "e11-shell-" + E11_VERSION;
 const E11_INDEX = "./index.html";
 const E11_TIMEOUT = 1200;
@@ -83,13 +83,21 @@ self.addEventListener("message", (e) => {
 
 self.addEventListener("notificationclick", (e) => {
   try { e.notification.close(); } catch (_) {}
+  const data = (e.notification && e.notification.data) || {};
+  const view = data.view || "view-chat";
+  const momentId = data.momentId || "";
+  const hash = view === "view-moments" ? "#moments" : view === "view-letters" ? "#letters" : view === "view-guestbook" ? "#guestbook" : "#chat";
   e.waitUntil((async () => {
     try {
       const list = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
       for (const c of list) {
-        if (c.url && c.focus) { await c.focus(); return; }
+        if (c.url && c.focus) {
+          await c.focus();
+          try { c.postMessage({ e11Open: view, momentId: momentId }); } catch (_) {}
+          return;
+        }
       }
-      if (self.clients.openWindow) await self.clients.openWindow("./index.html");
+      if (self.clients.openWindow) await self.clients.openWindow("./index.html" + hash);
     } catch (_) {}
   })());
 });
