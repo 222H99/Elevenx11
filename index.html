@@ -218,7 +218,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-135";
+window.__E11_BUILD="2026-11-23v43-136";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2544,7 +2544,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-135">
+<meta name="app-build" content="2026-11-23v43-136">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4291,7 +4291,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-135</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-136</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -6419,7 +6419,11 @@ setTimeout(function(){
         var v=localStorage.getItem(k);if(v!==null)extras[k]=v;
       }
     }catch(e){}
-    return {app:"privateChat",version:4,exportedAt:new Date().toISOString(),savedAt:Number(st.__savedAt)||Date.now(),state:st,extras:extras};
+    var __snapOut={app:"privateChat",version:4,exportedAt:new Date().toISOString(),savedAt:Number(st.__savedAt)||Date.now(),state:st,extras:extras};
+    /* v43-136：自定义进站密码的校验指纹随云端走。iOS 的 Safari 和主屏幕 PWA 可能不是同一份
+       localStorage，密码只存本机会导致 PWA 里只认默认密码；这里只同步 p1 指纹，不是明文。 */
+    try{var _lh=window.__e11LockPwdHash?window.__e11LockPwdHash():"";if(_lh)__snapOut.lockPwdHash=_lh;}catch(_eSnapLock){}
+    return __snapOut;
   }
   /* 日记按「页面 key + 左右半页写入时间」合并：只补不删，旧档不会顶掉新写的页。
      exits/自动备份/深度恢复/云端完整档共用这一份，避免某个路径漏掉 diary。 */
@@ -6691,6 +6695,22 @@ setTimeout(function(){
     try{if(window.__userLookRestore)window.__userLookRestore();}catch(_eLookRestore){}
     try{if(window.__settingsBackupRestore)window.__settingsBackupRestore();}catch(_eCfgRestore){}
     try{if(window.__settingsBackup)window.__settingsBackup(false);}catch(_eCfgSnap){}
+    /* v43-136：自定义密码优先本机，本机没有（例如主屏幕 PWA 是独立存储）才用云端指纹。
+       默认密码不会覆盖本机自定义密码；这里放在所有设置恢复之后，避免又被旧小备份冲回默认。 */
+    try{
+      var _badLock="p1:1jdgfyk-1312ccg";
+      var _isCustomLock=function(x){return !!x&&String(x).indexOf("p1:")===0&&String(x)!==_badLock;};
+      var _lk= "";try{_lk=localStorage.getItem("e11.lockPwd.v1")||"";}catch(_eLk){}
+      var _lps=(localState&&localState.settings&&localState.settings.entryPwd)||"";
+      var _localLock=_isCustomLock(_lk)?_lk:(_isCustomLock(_lps)?_lps:"");
+      var _cloudLock=_isCustomLock(snap&&snap.lockPwdHash)?String(snap.lockPwdHash):(_isCustomLock(st.settings&&st.settings.entryPwd)?String(st.settings.entryPwd):"");
+      var _bestLock=_localLock||_cloudLock;
+      if(_bestLock){
+        st.settings=st.settings||{};st.settings.entryPwd=_bestLock;
+        try{localStorage.setItem("e11.lockPwd.v1",_bestLock);}catch(_eBest){}
+        try{if(!window.__lockPassed){var _lt=document.getElementById("lock-tip");if(_lt&&_isCustomLock(_bestLock))_lt.textContent="提示：输入你设置的 6 位密码";}}catch(_eTipLock){}
+      }
+    }catch(_eLockCloud){}
     var __lsOk=false;
     try{localStorage.setItem("privateChat",JSON.stringify({__idbOnly:1,__savedAt:Number(st&&st.__savedAt)||Date.now()}));__lsOk=true;}catch(e){}
     /* localStorage 满/被禁时，3MB 云端档写不进去，刷新又会读回空白，表现就是“恢复好几次还全没了”。
@@ -9563,6 +9583,8 @@ function __userLookWrite(){
   try{
     if(typeof state==="undefined"||!state)return;
     var ss=__e11SmallObj(state.settings,120000),sk=__e11SmallObj(state.skin,120000);
+    /* 进站密码不放进外观档：外观档每次启动无条件恢复，带旧密码会覆盖用户刚改的新密码。 */
+    try{delete ss.entryPwd;delete ss.unlocked;}catch(_eULPwd){}
     var up=null;try{up=JSON.parse(localStorage.getItem("uiPrefs.v1")||"null");}catch(_){up=null;}
     localStorage.setItem("e11.userLook.v1",JSON.stringify({ts:Date.now(),settings:ss,skin:sk,prefs:up}));
   }catch(_eULW){}
@@ -9571,7 +9593,9 @@ function __userLookRestore(){
   try{
     var p=JSON.parse(localStorage.getItem("e11.userLook.v1")||"null");
     if(!p||(!p.settings&&!p.skin))return false;
+    var _keepPwd=state&&state.settings?state.settings.entryPwd:undefined,_keepUnl=state&&state.settings?state.settings.unlocked:undefined;
     if(p.settings)state.settings=Object.assign({},state.settings||{},p.settings);
+    try{if(_keepPwd!==undefined)state.settings.entryPwd=_keepPwd;if(_keepUnl!==undefined)state.settings.unlocked=_keepUnl;}catch(_eULKeepPwd){}
     if(p.skin)state.skin=Object.assign({},state.skin||{},p.skin);
     if(p.prefs&&typeof p.prefs==="object"){
       ["fontSize","avatarSize","bubbleScale","avatarShape","showChatAvatar"].forEach(function(k){if(p.prefs[k]!==undefined&&p.prefs[k]!==null)state.settings[k]=p.prefs[k];});
@@ -27444,21 +27468,12 @@ const PW_PASS_KEY="e11.pwPass.v1";
    否则云端旧设置一合并、或换设备恢复存档，用户改过的密码会被默认密码顶掉。 */
 const LOCK_PWD_KEY="e11.lockPwd.v1";
 function __pwDevicePass(){
-  try{
-    if(localStorage.getItem("e11.forceLock.v1")==="1")return false;
-    /* v43-124：用户改过密码后，每次打开都必须重新输入新密码，不再用旧指纹免密。 */
-    try{if(lockPwd()!==LOCK_DEFAULT)return false;}catch(_eCustomPass){}
-    /* v43-106：本机指纹必须等于当前密码或固定密码才放行。
-       以前只判断“像指纹”就放行，旧账号/坏存档留下的错误指纹会跳过密码，
-       但云端又接着弹登录卡，看起来就是密码页/声明页乱跳。 */
-    var v=localStorage.getItem(PW_PASS_KEY);
-    try{
-      if(!v){var _cm=document.cookie.match(/(?:^|; )e11pw=([^;]+)/);if(_cm)v=decodeURIComponent(_cm[1]);}
-    }catch(_eCk){}
-    if(!v||String(v).indexOf("p1:")!==0)return false;
-    try{return v===lockPwd();}catch(_){return false;}
-  }catch(_){return false;}
+  /* v43-136：以前只要本机有默认密码指纹/cookie，就会自动进；「用过一次」不能当作验证过。
+     现在任何冷启动（包括主屏幕 PWA、APK、浏览器标签）都强制显示密码页，
+     必须当场输入当前密码。同一页面内已输入过则不会重复弹。 */
+  return false;
 }
+
 function __lockHash(s){
   s=String(s||"");
   var a=0x811c9dc5;
@@ -27473,11 +27488,11 @@ function __lockStored(){
      自定义密码没被云存档顶掉时，用指纹把固定键补回来。 */
   try{
     var q=localStorage.getItem(PW_PASS_KEY);
-    if(q&&q.indexOf("p1:")===0&&q!==LOCK_DEFAULT){try{localStorage.setItem(LOCK_PWD_KEY,q);}catch(_){ }return q;}
+    if(q&&q.indexOf("p1:")===0&&q!==LOCK_DEFAULT){try{localStorage.setItem(LOCK_PWD_KEY,q);localStorage.removeItem(PW_PASS_KEY);}catch(_){ }return q;}
   }catch(_){}
   try{
     var m=document.cookie.match(/(?:^|; )e11pw=([^;]+)/);
-    if(m){var c=decodeURIComponent(m[1]);if(c&&c.indexOf("p1:")===0&&c!==LOCK_DEFAULT){try{localStorage.setItem(LOCK_PWD_KEY,c);}catch(_){ }return c;}}
+    if(m){var c=decodeURIComponent(m[1]);if(c&&c.indexOf("p1:")===0&&c!==LOCK_DEFAULT){try{localStorage.setItem(LOCK_PWD_KEY,c);document.cookie="e11pw=; Max-Age=0; Path=/; SameSite=Lax";}catch(_){ }return c;}}
   }catch(_){}
   return "";
 }
@@ -27630,6 +27645,39 @@ function initLock(){
   setTimeout(()=>inp.focus(),120);
 }
 window.__e11InitLock=initLock;
+/* v43-136：云端只同步“自定义密码”的校验指纹；默认密码不写，避免另一台设备误判。 */
+window.__e11LockPwdHash=function(){
+  try{var p=lockPwd();return (p&&p.indexOf("p1:")===0&&p!==LOCK_DEFAULT)?p:"";}catch(_){return "";}
+};
+/* v43-136：主屏幕 PWA 从后台回到前台，也按“重新进入”处理。
+   离开超过 30 秒就重新上锁；选图片/文件时 __pickFileInput 还在，不会打断。
+   浏览器冷启动由 initLock 每次显示密码页，不再靠任何持久指纹自动进入。 */
+(function(){
+  var hiddenAt=0;
+  function markHidden(){try{hiddenAt=Date.now();}catch(_){}}			
+  document.addEventListener("visibilitychange",function(){
+    try{
+      if(document.hidden){markHidden();return;}
+      var away=hiddenAt?Date.now()-hiddenAt:0;hiddenAt=0;
+      if(away<30000)return;
+      if(typeof __pwaStandalone!=="function"||!__pwaStandalone())return;
+      if(window.__e11PwdOpen||window.__pickFileInput)return;
+      if(!window.__e11DataReady)return;
+      if(!window.__lockPassed)return;
+      window.__lockPassed=0;try{state.settings.unlocked=false;}catch(_e){}
+      try{initLock();}catch(_e2){}
+    }catch(_){}
+  });
+  try{window.addEventListener("pagehide",markHidden);}catch(_){}
+  window.addEventListener("pageshow",function(e){
+    try{
+      if(e&&e.persisted&&window.__lockPassed){
+        window.__lockPassed=0;try{state.settings.unlocked=false;}catch(_e){}
+        initLock();
+      }
+    }catch(_){}
+  });
+})();
 /* v43-107：兜底巡检。只要本机密码已经通过、App 页面已经打开，
    就绝不允许云端登录层/锁屏层继续盖在上面（会表现成消息看不见、设置返回点不动）。 */
 (function(){
@@ -27678,12 +27726,11 @@ function submitLock(){
       state.settings.unlocked=true;
       try{localStorage.removeItem("lockFree");}catch(_){}
       try{sessionStorage.removeItem("__webPwOk");}catch(_){}
-      /* 换了新密码，旧的免密指纹一律作废；这次通过后只记新指纹 */
+      /* v43-136：换新密码后旧免密指纹/cookie 一律作废，也不再写新的免密指纹；
+         之后每次冷启动都要当场输入这个新密码。只保留本机密码本身用于校验。 */
       try{localStorage.removeItem(PW_PASS_KEY);}catch(_){}
       try{document.cookie="e11pw=; Max-Age=0; Path=/; SameSite=Lax";}catch(_){}
-      try{localStorage.setItem(PW_PASS_KEY,state.settings.entryPwd);}catch(_){}
       try{localStorage.setItem(LOCK_PWD_KEY,state.settings.entryPwd);}catch(_){}
-      try{document.cookie="e11pw="+encodeURIComponent(state.settings.entryPwd)+"; Max-Age=31536000; Path=/; SameSite=Lax";}catch(_){}
       try{__writeLocalSnapshot();}catch(_){}
       save();try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_){}
       lockSetup=false;unlockGo();toast("密码已更新，原来的默认密码不再能进");
@@ -27692,6 +27739,8 @@ function submitLock(){
       state.settings.unlocked=true;
       try{localStorage.removeItem("lockFree");}catch(_){}
       try{localStorage.removeItem(LOCK_PWD_KEY);}catch(_){}
+      try{localStorage.removeItem(PW_PASS_KEY);}catch(_){}
+      try{document.cookie="e11pw=; Max-Age=0; Path=/; SameSite=Lax";}catch(_){}
       try{__writeLocalSnapshot();}catch(_){}
       save();unlockGo();toast("已恢复默认密码，下次打开需要输入默认密码");
     }
@@ -27705,9 +27754,10 @@ function submitLock(){
       try{localStorage.removeItem("lockFree");}catch(_){}
       try{sessionStorage.removeItem("__webPwOk");}catch(_){}
       try{localStorage.removeItem("e11.forceLock.v1");}catch(_){}
-      /* 记住的是“当前密码”的指纹，不是默认密码 */
-      try{localStorage.setItem(PW_PASS_KEY,lockPwd());}catch(_){}
-      try{document.cookie="e11pw="+encodeURIComponent(lockPwd())+"; Max-Age=31536000; Path=/; SameSite=Lax";}catch(_eCkSet){}
+      /* v43-136：验证通过只对当前页面有效，不写任何持久免密指纹。
+         下次打开（含 PWA 冷启动）仍然要再输一次当前密码。 */
+      try{localStorage.removeItem(PW_PASS_KEY);}catch(_){}
+      try{document.cookie="e11pw=; Max-Age=0; Path=/; SameSite=Lax";}catch(_eCkSet){}
       try{if(typeof save==="function")save();}catch(_){}
     }catch(_){}
     unlockGo();
@@ -27742,6 +27792,7 @@ $("lock-forgot").addEventListener("click",function(){
   state.settings.entryPwd=LOCK_DEFAULT;
   try{localStorage.removeItem(PW_PASS_KEY);}catch(_){}
   try{localStorage.removeItem(LOCK_PWD_KEY);}catch(_){}
+  try{document.cookie="e11pw=; Max-Age=0; Path=/; SameSite=Lax";}catch(_){}
   try{__writeLocalSnapshot();}catch(_){}
   save();
   $("lock-input").value="";
