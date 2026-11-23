@@ -226,7 +226,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-151";
+window.__E11_BUILD="2026-11-23v43-152";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -1915,7 +1915,7 @@ o{opacity:1;transform:translateY(0);}}
 /* 第二页组件强制分散定位（防止任何情况下堆叠） */
 #cp2-block-av,#cp2-block-chat,#cp2-record,#cp2-count-card,#cp2-block-photo{position:absolute;margin:0;}
 #cp2-block-av{left:35px;top:6px;width:320px;height:112px;}
-#cp2-block-chat{left:4px;top:122px;width:calc(100% - 8px);max-width:358px;height:140px;}
+#cp2-block-chat{left:4px;top:122px;width:calc(100% - 8px);max-width:358px;height:140px;overflow:hidden;}
 #cp2-record{left:40px;top:272px;width:150px;height:150px;}
 #cp2-count-card{left:200px;top:272px;width:150px;height:150px;}
 #cp2-block-photo{left:4px;top:428px;width:calc(100% - 8px);max-width:358px;height:196px;}
@@ -2581,7 +2581,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-151">
+<meta name="app-build" content="2026-11-23v43-152">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3809,7 +3809,7 @@ setTimeout(function(){
           </div>
           <div id="cp2-recover-list"></div>
         </div>
-      </div>      <div style="position:fixed;left:0;right:0;bottom:calc(14px + env(safe-area-inset-bottom));display:flex;justify-content:center;z-index:998;pointer-events:none;">
+      </div>      <div id="me-dock-wrap" style="position:fixed;left:0;right:0;bottom:calc(14px + env(safe-area-inset-bottom));display:flex;justify-content:center;z-index:998;pointer-events:none;">
         <div id="me-dock-bar" style="display:flex;justify-content:center;align-items:center;gap:14px;width:calc(100% - 32px);max-width:360px;padding:10px 24px;border-radius:28px;background:transparent;-webkit-backdrop-filter:blur(26px) saturate(180%);backdrop-filter:blur(26px) saturate(180%);border:1px solid rgba(255,255,255,.85);box-shadow:0 12px 32px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.95);pointer-events:auto;">
           <div style="width:64px;flex:0 0 auto;"><button class="me-app" id="me-nav-music"><span class="me-app-ic"><img class="me-app-img" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20fill='%239BA0A8'%20d='M12%203v10.55A4%204%200%201%200%2014%2017V7h4V3h-6z'/%3E%3C/svg%3E"></span><span class="me-app-lb">音乐</span></button></div>
           <div style="width:64px;flex:0 0 auto;"><button class="me-app" id="me-nav-settings"><span class="me-app-ic"><img class="me-app-img" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAAEEklEQVR4nO3dy1IbOxSGUeVUHjLDTM5TMWHIW5IBdoUiduNLq/Vra61pKkFofy038YXWAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACDQj9EL4MPL69v7I3/v/9+/zPATmzHYoyF/JewP/41ewMr2innvf2tmgqYUQVOKoClF0IO45+1D0IW4SARNMYKmFEHfaMWH8xm/Z88ufePSUPd4Vq5XLM+u7dq6Znkm0gm94dpwX17f3p8JMvXk21pX6pq/muKqG+HWAd5zch0dRY+1pZ/U0Ysb5d7wtoaccrJdW+Mj60uOOnZhozwT4OdBp4T81V5rTI06clGjpEaYKjFqPxSeiPl+iXsm6JY5mFmk7d3yQacNZEZJe7h00EmDmF3KXi4bdMoAKknY02WDpiZBU4qgKUXQlLJs0InPcs0uYU+XDbq1jAFUkbKXSwdNPcsHnXKyzCxpD5cPurWsgcwmbe8ETSmCPkk7aWaQuGc/Ry+AbTO8CyaJoIN8d+J9/XOB/yvuIWOkEYHs9bA9Ku602w730CcjPmJgzxjSwhpF0AP0im/vi2RGgm7Hns5HBHdk1Gn38YI+0JGhrXpSLx/0USfMiMCO+ppJp/TyQR9h5Gm52km91Dd7Vu2e+RbJHxS5p9JPrCQ9FK6m1+dqfyfi9NhbSsgpp/PZCvtS7h46ZWhc13NG5YJOkXY6t5a5pr2VCtrpPI9esyoVNAi6g+SH9uS17UHQlCJoShE0pQiaUgRNKYKmFEFTiqApRdCUIujFVH+9i6A7qB5NslJBV3+dQiW9ZlUqaLalPHJ4x8odUj49KCWeNL1nM3zwRxgZV8LF1do6e1D6Xd9nWxvqJN1HyoVb7pYjTcIFk7CGoywf9BEny8igjvjaKadza4I+zIioVzqZzwR9oCMDWzHm1gTdWqv3ecorfnbfmaAH6BXcy+vb+6on81nU1TXarL80yC8M+muJ/4dO9jnGewNZ/TS+JO4KGy0tknPkqetKE7moUdKiSZcYtR8KT8R8v8Q9EzSlCLplnjSzSNu75YNOG8iMkvZw6aCTBjG7lL1cOmjqWTbolBOlkoQ9XTZoahI0pQiaUgRNKcsGnfg6hNkl7OmyQbeWMYAqUvZy6aBbyxnEzJL2cPmgW8sayGzS9k7QJ2mD6Wmv7zVxz+IWNNqjz3ZdGm7CM2ef7bnGxJhbE/RF9w75u+GODnvv9aXG3Jqgr7plyI8M9qi4e73hNjnm1gS9aWvIzwy2Z9TPBtfrez6KHwo3XBvgs4NNDuPS2lI+RP4WUyyyol6n9Czh9eKEphRBU4qgC1n9dqM1QVOMoClF0JQi6EHc7/Yh6CJcIB8EPZAI92dDQ1R7GScAAAAAAAAAAAAAAAAAAAAAAAAAAABw1R9owq38gTOcsgAAAABJRU5ErkJggg=="></span><span class="me-app-lb">设置</span></button></div>
@@ -4328,7 +4328,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-151</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-152</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -7824,7 +7824,7 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-23",
   noticeKey:null,
-  lead:"v43-151：固定栏不再随页面高度变化往下移；照片框躲固定栏时改为收高度，不再盖住唱片和倒数日。",
+  lead:"v43-152：固定栏不再随浏览器工具栏/页面高度上下跑；平板宽屏不再贴左；第二页照片先按真实空间算比例，不再被压成一条；启动减少重复布局和每帧写盘。",
   items:[
     "第二页秒开：存档读完后立刻画第二页，不再等 5.2 秒；滑过去看到的就是上次保存的组件位置、照片框大小和内容。",
     "不做二次缩放：同一屏幕、同一套布局只用已经保存的比例；进入网站不会先按默认缩一遍、数据到了再缩第二遍。",
@@ -28350,6 +28350,11 @@ window.__keepPhotoAboveDock=function(){
   try{
     var ph=document.getElementById("cp2-block-photo"),dock=document.getElementById("me-dock-bar");
     if(!ph||!dock||!ph.offsetParent)return;
+    /* v43-152：比例还没锁定时先不要压缩照片框。
+       以前这里会在首次 __fitMeasure 之前就把照片压矮，fit 看到的是压过的矮照片，
+       于是算出偏大的 k（例如 390×640 的 k2 从 .738 变成 .94），整页偏大、照片反被压成一条。
+       等 fit 锁好之后再按真实剩余空间压缩。 */
+    if(!window._dbReady||!window.__fitLocked)return;
     /* 不依赖 __fitValid：用户手动把照片框拉大后 fit 已冻结，
        之前这里直接 return，照片框下半截就正好压在固定栏下面。 */
     var k=Number(window.__fitK)||1;if(!(k>0))k=1;
@@ -28930,21 +28935,49 @@ window.__cp2Activate=__cp2Activate;
   var LAB={av:"头像",chat:"对话框",record:"唱片",count:"倒数日",photo:"照片框"};
   var ORDER=["av","chat","record","count","photo"];
 window.__dockTopPx=function(){
-  try{if(window.__dockEl&&document.contains(window.__dockEl))return Math.round(window.__dockEl.getBoundingClientRect().top);}catch(e){}
-  /* 底部 dock 是固定元素，直接沿 me-dock-bar 往上找，别在第一次调用时扫全部 1000+ 个 div 做 getComputedStyle */
+  /* v43-152：固定栏顶边在一次布局里会被照片/组件校正反复读取。
+     每读一次 getBoundingClientRect 都可能触发同步重排，首屏累计接近 90ms。
+     这里缓存 200ms；窗口/键盘/旋转真正变化时由 __uiScaleSync 清空。 */
   try{
-    var _bar=document.getElementById("me-dock-bar");
-    if(_bar){
-      var _el=_bar.parentElement;
-      while(_el&&_el!==document.body){
-        if(getComputedStyle(_el).position==="fixed"){window.__dockEl=_el;return Math.round(_el.getBoundingClientRect().top);}
-        _el=_el.parentElement;
-      }
+    var _c=window.__dockTopCache;
+    if(_c)return _c.v;
+    /* 固定栏还没显示时不要每次调用都重新扫一遍；短缓存 0，回主页前会自然过期 */
+    if(window.__dockZeroAt&&Date.now()-window.__dockZeroAt<160)return 0;
+  }catch(_eCache){}
+  var _v=0;
+  try{
+    var _wrap=window.__dockWrap;
+    if(!_wrap||!_wrap.isConnected)_wrap=window.__dockWrap=document.getElementById("me-dock-wrap");
+    if(_wrap){
+      _v=Math.round(_wrap.getBoundingClientRect().top);
+      /* 固定栏自身高度变化（页码圆点并入、安全区变化）时作废缓存 */
+      try{
+        if(!window.__dockRO&&window.ResizeObserver){
+          window.__dockRO=new ResizeObserver(function(){window.__dockTopCache=null;});
+          window.__dockRO.observe(_wrap);
+        }
+      }catch(_eRO){}
     }
+    else if(window.__dockEl&&document.contains(window.__dockEl))_v=Math.round(window.__dockEl.getBoundingClientRect().top);
   }catch(e){}
-  var a=document.querySelectorAll("div");
-  for(var i=0;i<a.length;i++){var st=getComputedStyle(a[i]);if(st.position==="fixed"&&a[i].id!=="app"&&a[i].getBoundingClientRect().top>400&&(a[i].querySelector("#me-nav-settings")||a[i].querySelector("#me-nav-music"))){window.__dockEl=a[i];return Math.round(a[i].getBoundingClientRect().top);}}
-  return 0;
+  if(!_v){
+    /* 只认明确的固定栏容器，不再扫全页 1000+ 个 div 做 getComputedStyle。
+       启动阶段这个兜底扫描曾占掉约 68ms，是首屏最重的一处脚本耗时。 */
+    try{
+      var _bar=document.getElementById("me-dock-bar");
+      if(_bar){
+        var _el=_bar.parentElement;
+        while(_el&&_el!==document.body){
+          if(getComputedStyle(_el).position==="fixed"){window.__dockEl=_el;_v=Math.round(_el.getBoundingClientRect().top);break;}
+          _el=_el.parentElement;
+        }
+      }
+    }catch(e){}
+  }
+  /* 0 表示固定栏没显示（别的页面/锁屏），只缓存 160ms，回主页后能立刻重新量 */
+  if(_v>0)window.__dockTopCache={v:_v,t:Date.now()};
+  else window.__dockZeroAt=Date.now();
+  return _v;
 };
   function defPos(id){
     var cw=page.clientWidth||348;
@@ -33257,7 +33290,9 @@ body{margin:0;background:var(--bg,#fafafa);}
          尺寸锁死为 1，390/430/480 宽的手机上按钮、字号、间距都保持设计稿原大小；
          旧版存过的 __uiKLock 比例（1.05~1.3）全部作废，避免“换大屏手机后整页变大”。 */
       window.__uiKLock=1;
-      try{localStorage.setItem("__uiKLock.v1",JSON.stringify({k:1,w:w,ts:Date.now()}));}catch(_eSv2){}
+      /* v43-152：这里原来每次 sync 都同步写一次 localStorage。
+         visualViewport 滚动/键盘弹起时 sync 会按帧触发，等于每帧做一次 JSON 序列化+落盘，
+         徒增卡顿；这个键当前没有任何读取方，直接去掉。 */
       var k=1;
       var rw=w, rh=h;
       /* 竖屏最宽 440：再宽的屏只增加左右留白，不放大内容；横屏按当前宽度铺满，最高 900。 */
@@ -33274,21 +33309,34 @@ body{margin:0;background:var(--bg,#fafafa);}
       var _sig=[w,h,k,rw,rh,left,top,voffX,voffY].join("|");
       if(window.__uiSig===_sig)return;
       window.__uiSig=_sig;
+      /* 视口真的变了：固定栏顶边缓存立即作废（别让照片框按旧高度避让） */
+      window.__dockTopCache=null;
       root.style.width=rw+"px";
       root.style.height=rh+"px";
       root.style.left=left+"px";
       root.style.top=top+"px";
-      /* v43-151：手机端 k=1 时不要再写 scale(1)。
-         transform 哪怕是 scale(1) 也会让 position:fixed 改为相对 #ui-root 定位；
-        浏览器工具栏收起时 #ui-root 高度变大，底部固定栏就跟着往下移。
-        k=1 时直接不设 transform，固定栏重新贴住真实屏幕底部。 */
-      root.style.transform=(k===1?"none":"scale("+k+")");
+      /* v43-152：手机端保留 scale(1) 作为包含块，让各页的 fixed 层继续限制在 440 宽的舞台内；
+         底部固定栏已经移到 #ui-root 外面（见上方 dock 迁移），不再受这里高度变化影响。 */
+      root.style.transform="scale("+k+")";
       var app=document.getElementById("app");
       if(app){
         app.style.height=rh+"px";app.style.minHeight="0";
         app.style.width=rw+"px";app.style.maxWidth="none";
         app.style.left="0";app.style.transform="none";app.style.boxShadow="none";
       }
+      /* v43-152：固定栏仍在舞台内（保证弹层/公告的层级压得住它），
+         但根据「舞台高度 - 真实可见高度」动态补偿 bottom。
+         root 比可见区域高出多少，就把固定栏相对 root 往上抬多少，屏幕上始终贴底。 */
+      try{
+        var _dw=window.__dockWrap||(window.__dockWrap=document.getElementById("me-dock-wrap"));
+        if(_dw){
+          /* 用真实可见高度比较，不用上面算出来的 h：
+             h 可能就是被拉高的稳定屏高，rh==h 会让补偿永远为 0。 */
+          var _visH=_vvH||_innerH||_clientH||rh;
+          var _gap=Math.max(0,Math.round(rh-_visH));
+          _dw.style.bottom="calc("+(14+_gap)+"px + env(safe-area-inset-bottom))";
+        }
+      }catch(_eDockBottom){}
       window.__uiScale=k;
       document.documentElement.style.setProperty("--ui-k",String(k));
       document.documentElement.style.setProperty("--ui-inv-k",String(1/k));
