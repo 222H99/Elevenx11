@@ -226,7 +226,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-165";
+window.__E11_BUILD="2026-11-23v43-166";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2586,7 +2586,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-165">
+<meta name="app-build" content="2026-11-23v43-166">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4333,7 +4333,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-165</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-166</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5051,9 +5051,14 @@ setTimeout(function(){
           </div>
         </div>
         <button class="small-btn ghost" id="btn-bank-from-history" style="width:100%;font-size:12px;margin-top:6px;">从我问过的题目导入题库</button>
-        <div class="sq-opt-hint" style="margin:6px 0 0;">一行一题；选项用 | 分开；自由回答加 [自定义]。也可以分行写题目和 - 选项。</div>
-        <textarea class="bank-import" id="bank-import" rows="3" placeholder="一行一题，选项用 | 分开&#10;例：&#10;周末想做什么？|看电影|逛街|宅家&#10;晚饭吃什么？|火锅|烧烤|随便&#10;你最近在听什么歌？[自定义]"></textarea>
-        <button class="small-btn ghost" id="btn-bank-import" style="width:100%;font-size:12px;">粘贴导入题库</button>
+        <div class="sq-opt-hint" style="margin:6px 0 0;">一行一题；选项用 | 或制表符分开；只写题目会自动当自由回答。也可以题目一行、下面用 - 或 A. 写选项。</div>
+        <div style="display:flex;gap:6px;margin:6px 0;">
+          <button class="small-btn ghost" id="btn-bank-example-choice" style="flex:1;font-size:11px;padding:6px 0;">填选择题示例</button>
+          <button class="small-btn ghost" id="btn-bank-example-custom" style="flex:1;font-size:11px;padding:6px 0;">填自由回答示例</button>
+          <button class="small-btn ghost" id="btn-bank-clear" style="flex:0 0 52px;font-size:11px;padding:6px 0;">清空</button>
+        </div>
+        <textarea class="bank-import" id="bank-import" rows="7" placeholder="直接粘贴，格式不用很标准：&#10;周末想做什么？|看电影|逛街|宅家&#10;晚饭吃什么？|火锅|烧烤|随便&#10;你最近在听什么歌？"></textarea>
+        <button class="small-btn ghost" id="btn-bank-import" style="width:100%;font-size:12px;">粘贴并导入给对方的题库</button>
       </div>
     </div>
   </div>
@@ -6702,6 +6707,7 @@ setTimeout(function(){
       }
     }catch(_eSocialFlag){}
     try{__e11ApplyDeleted(st);}catch(_eApply){}try{applyTplDeleted(st);}catch(_eApplyTpl){}try{__e11FilterQuizBank(st);}catch(_eApplyQB){}
+    try{__syncAvatarMirrors();}catch(_eApplyAv){}
 
     try{st.__savedAt=Date.now();}catch(e){}
     window.__e11CloudPause=1;
@@ -7851,8 +7857,12 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-23",
   noticeKey:null,
-  lead:"v43-165：补上信开头/信结尾模板的删除防复活——删过的模板，云端、自动备份和跨作用域恢复都不会再补回来；手动重新添加同一条会正常加回。题库粘贴导入改成一行一题、选项用 | 分开，只写题目会自动按自定义题导入；删过的题库题也不再从云端旧档冒出来。",
+  lead:"v43-166：头像换成 pointerup 主入口，轻点就能弹相册；主页卡片头像把 profile 和 state.me/partner 两份镜像一起更新并打时间戳，刷新/云端合并后不会再被旧头像顶回去。模板墓碑另存本机独立键，更新或云端旧档整份覆盖也不会把删掉的模板补回来；题库粘贴导入更宽容，选择题、分行选项、JSON 和纯题目都能识别。",
   items:[
+    "头像换不了修复：个人主页卡片头像以前只写 profile.meAvatar，但读取时 state.me.avatar 优先；只要以前设过真头像，就会一直显示旧图。现在两份镜像一起写，并用 __avatarPick 优先读 profile；刷新后头像也不会被旧身份字段顶回。",
+    "头像点击改成 pointerup 主入口：手机横向滑页、页面切换后的 420ms 防误触都可能把 click 吃掉；现在轻点就弹选择器，滑动超过 10px 不误触。主页卡片、情侣页两个头像、设置页两个头像、信纸左上角头像都接上。",
+    "模板删除防复活加强：除了 deletedIds.letterTpl，本机另存 e11.tplDeleted.v1；版本更新/云端旧档整份覆盖导致 letterTpl 缺失时，先补默认模板再按本机墓碑过滤，删掉的模板不会重新长出来。手动添加同一条会解除墓碑。",
+    "题库粘贴导入更好填：一行一题、选项用 | 或制表符分开；也能识别「题目？ A. 看电影 B. 逛街」、分行 - 选项和 JSON；纯题目自动当自由回答。加了一键填示例/清空按钮。",
     "信模板删除防复活：信开头/信结尾模板按「类型+文本」写 deletedIds 墓碑，加载、云端快照、自动备份、跨作用域合并和离站快照后都会再过滤一次；删除后刷新不会恢复，手动再添加同一条会解除墓碑。",
     "题库批量导入更省事：一行一题，选项用 | 分开，例如「周末想做什么？|看电影|逛街|宅家」；只写题目会自动按自定义题导入。删过的题库题在渲染和出题前会按题干再过滤，不会被旧云端档补回。",
     "字卡删除防复活：单张删除、删除选中、删除分组、清空全部字卡都会把字卡/分组 id 写进 deletedIds；自动备份、云端快照、跨作用域合并、离站快照只补不删，按墓碑跳过已删除内容。",
@@ -10967,7 +10977,13 @@ async function init(){
       }catch(_eSkinPhoto){}
       state=migrate(s);
       /* v43-163：合并/迁移后最后再按墓碑清一次，防止默认分组 g1 这类内置内容被旧档补回来。 */
-      try{__e11ApplyDeleted(state,["cards","groups"]);}catch(_eLoadDel){}try{applyTplDeleted(state);}catch(_eLoadTpl){}try{__e11FilterQuizBank(state);}catch(_eLoadQB){}
+      try{__e11ApplyDeleted(state,["cards","groups"]);}catch(_eLoadDel){}
+      /* v43-166：先补齐模板数组，再按模板墓碑过滤；否则旧档没有 letterTpl 时，
+         默认模板刚补回来就绕过了下面的过滤，删掉的模板会重新出现。 */
+      try{ensureLetterTpl();}catch(_eEnsTpl){}
+      try{applyTplDeleted(state);}catch(_eLoadTpl){}
+      try{__e11FilterQuizBank(state);}catch(_eLoadQB){}
+      try{__syncAvatarMirrors();}catch(_eAvSync){}
       /* v43-135：本机外观档优先于 IndexedDB 旧状态。 */
       try{if(window.__userLookRestore)window.__userLookRestore();}catch(_eLookRestore2){}
       /* v43-128：设置小备份的 __ts 比 IndexedDB/云端更晚时，以备份为准。
@@ -11822,6 +11838,9 @@ function applySkin(){
 let typing=false;
 function setTyping(v){typing=v;renderTopStatus();}
 function renderTopStatus(){
+  /* v43-166：进顶部栏前先对齐 state.me/partner 与 profile 副本，
+     避免头像刚换完 profile 新、身份字段旧，顶部栏/聊天仍显示旧图。 */
+  try{if(typeof __syncAvatarMirrors==="function")__syncAvatarMirrors();}catch(_eSyncTop){}
   /* 只在内容真的变了才写：发送消息时会调用到这里，
      每次都重设头像 src / 名字文本会让顶部栏重新排版，看起来像闪一下 */
   const s=$("top-status-partner");
@@ -11859,9 +11878,11 @@ function __avatarPick(who){
     var p=state.profile||{};
     if(who==="me"){
       var me=state.me||{};
-      if(__avatarReal(me.avatar))return me.avatar;
-      if(__avatarReal(p.cpMeAvatar))return p.cpMeAvatar;
+      /* v43-166：界面里真正写的是 profile.meAvatar；以前这里先读 state.me.avatar，
+         只要旧字段里有真头像，就会把刚换的头像顶掉，刷新后看回旧图。 */
       if(__avatarReal(p.meAvatar))return p.meAvatar;
+      if(__avatarReal(p.cpMeAvatar))return p.cpMeAvatar;
+      if(__avatarReal(me.avatar))return me.avatar;
       var _bakMe=__avatarBakPick("me");
       if(_bakMe)return _bakMe;
       if(__avatarOk(me.avatar))return me.avatar;
@@ -12007,6 +12028,41 @@ function __mediaVaultRestore(){
 }
 window.__mediaVaultPut=__mediaVaultPut;
 window.__mediaVaultRestore=__mediaVaultRestore;
+/* v43-166：头像现在有 profile 副本和 state.me/partner 两份。任何一处换头像都走这里，
+   同时写所有镜像字段并打时间戳，刷新/云端合并后不会一份新一份旧、界面看回旧图。 */
+function __setAvatar(who,v){
+  if(!v)return;
+  var now=Date.now();
+  state.profile=state.profile||{};
+  if(who==="me"){
+    state.me=state.me||{};
+    state.me.avatar=v;state.me.__avatarTs=now;
+    state.profile.meAvatar=v;state.profile.cpMeAvatar=v;state.profile.mpAv2=v;
+  }else{
+    state.partner=state.partner||{};
+    state.partner.avatar=v;state.partner.__avatarTs=now;
+    state.profile.cpPartnerAvatar=v;state.profile.mpAv1=v;
+  }
+  state.profile.__avatarTs=now;
+  return v;
+}
+function __syncAvatarMirrors(){
+  try{
+    var p=state.profile||{},now=Number(p.__avatarTs)||0;
+    if(!__avatarReal(p.meAvatar)&&!__avatarReal(p.cpMeAvatar))return false;
+    var changed=false;
+    if(now>=(Number(state.me&&state.me.__avatarTs)||0)){
+      var mv=p.meAvatar||p.cpMeAvatar;
+      if(__avatarReal(mv)&&state.me&&state.me.avatar!==mv){state.me.avatar=mv;state.me.__avatarTs=now;changed=true;}
+    }
+    var pv=p.cpPartnerAvatar||p.mpAv1;
+    if(now>=(Number(state.partner&&state.partner.__avatarTs)||0)&&__avatarReal(pv)&&state.partner&&state.partner.avatar!==pv){
+      state.partner.avatar=pv;state.partner.__avatarTs=now;changed=true;
+    }
+    return changed;
+  }catch(_eSyncAv){return false;}
+}
+window.__setAvatar=__setAvatar;window.__syncAvatarMirrors=__syncAvatarMirrors;
 function __avatarBakSync(){
   try{
     var b={};try{b=JSON.parse(localStorage.getItem("avatarBak2")||"{}")||{};}catch(_){b={};}
@@ -14037,33 +14093,99 @@ $("btn-bank-from-history").addEventListener("click",()=>{
   save();renderQuizBankList();toast(added?("已导入 "+added+" 题到题库"):"没有可导入的问过题目");
 });
 /* 粘贴导入题库：系统自动识别题目与选项 */
+function __quizCleanText(v){
+  return String(v==null?"":v).replace(/\r/g,"").replace(/[\u200B-\u200D\uFEFF]/g,"")
+    .replace(/^(?:Q\d{0,3}|题目\d{0,3}|第[一二三四五六七八九十\d]+题|\d+[.、)）])\s*[.、:：)）]*\s*/i,"")
+    .replace(/\[自定义\]/g,"").replace(/\s+/g," ").trim();
+}
+function __quizCleanOpt(v){
+  return String(v==null?"":v).replace(/\r/g,"").replace(/[\u200B-\u200D\uFEFF]/g,"")
+    .replace(/^[-•*·◆▶○]\s*/,"")
+    .replace(/^[①②③④⑤⑥⑦⑧⑨⑩]\s*/,"")
+    .replace(/^[A-Ha-hＡ-Ｈ][.、:：)）]\s*/,"")
+    .replace(/^\d+[.、:：)）]\s*/,"").trim();
+}
+function __quizPush(list,q){
+  if(!q)return;
+  var text=__quizCleanText(q.text);if(!text)return;
+  var opts=(q.options||[]).map(__quizCleanOpt).filter(function(x){return !!x;});
+  var seen={};opts=opts.filter(function(x){var k=x.toLowerCase();if(seen[k])return false;seen[k]=1;return true;});
+  var kind=q.kind||"single";
+  if(kind!=="custom"&&opts.length<2)kind="custom";
+  list.push({text:text,kind:kind,options:kind==="custom"?[]:opts.slice(0,8)});
+}
 function importQuizBankFromText(txt){
-  const lines=txt.split(/\r?\n/).map(s=>s.trim()).filter(s=>s);
-  const list=[];let q=null;
-  const isBullet=l=>/^[-•*·◆▶○]/.test(l);
-  const isCircled=l=>/^[①②③④⑤⑥⑦⑧⑨⑩]/.test(l);
-  const isLetter=l=>/^[A-Ha-h][.、:：)）]/.test(l);
-  const isNumOpt=l=>/^\d+[)）]/.test(l);
-  const stripOpt=l=>l.replace(/^[-•*·◆▶○]\s*|^[①②③④⑤⑥⑦⑧⑨⑩]\s*|^[A-Ha-h][.、:：)）]\s*|^\d+[)）]\s*/,"").trim();
-  for(const l of lines){
-    /* 一行带 | 的写法最省事：题目|选项1|选项2|选项3 */
+  txt=String(txt==null?"":txt).replace(/\uFF5C/g,"|").replace(/｜/g,"|").replace(/\t/g,"|");
+  var list=[];var q=null;
+  /* 也接受 JSON：适合从表格/脚本一次贴进来 */
+  var _t=txt.trim();
+  if(_t.charAt(0)==="["){
+    try{
+      var arr=JSON.parse(_t);
+      if(Array.isArray(arr)){
+        arr.forEach(function(it){
+          if(typeof it==="string"){__quizPush(list,{text:it,kind:"custom",options:[]});return;}
+          if(!it||typeof it!=="object")return;
+          var opts=it.options||it.opts||it.choices||[];
+          __quizPush(list,{text:it.text||it.q||it.question||it.title||"",kind:(it.kind||it.type||"single"),options:Array.isArray(opts)?opts:[]});
+        });
+      }
+    }catch(_eJson){}
+  }
+  if(list.length){
+    return __quizCommitImport(list);
+  }
+  var lines=txt.split(/\r?\n/).map(function(x){return x.trim();}).filter(Boolean);
+  var isBullet=function(l){return /^[-•*·◆▶○]/.test(l);};
+  var isCircled=function(l){return /^[①②③④⑤⑥⑦⑧⑨⑩]/.test(l);};
+  var isLetter=function(l){return /^[A-Ha-hＡ-Ｈ][.、:：)）]/.test(l);};
+  var isNumOpt=function(l){return /^\d+[)）.、]/.test(l);};
+  for(var _i=0;_i<lines.length;_i++){
+    var l=lines[_i];
+    /* 1) 一行带 | / 制表符 / 全角竖线：题目|选项1|选项2 */
     if(l.indexOf("|")>=0){
-      if(q){list.push(q);q=null;}
-      const parts=l.split("|").map(s=>s.trim()).filter(Boolean);
-      if(!parts.length)continue;
-      const isCustom=/\[自定义\]|自定义/.test(parts[0]);
-      list.push({text:parts[0].replace(/\[自定义\]/g,"").trim(),kind:isCustom?"custom":(parts.length>2?"single":"custom"),options:isCustom?[]:parts.slice(1)});
+      __quizPush(list,q);q=null;
+      var parts=l.split(/\s*\|\s*/);
+      var text=__quizCleanText(parts.shift()||"");
+      if(!text)continue;
+      var isCustom=parts.length===0;
+      __quizPush(list,{text:text,kind:isCustom?"custom":"single",options:parts});
       continue;
     }
-    if(isBullet(l)||isCircled(l)||isLetter(l)||(isNumOpt(l)&&q)){const o=stripOpt(l);if(o&&q){q.options.push(o);}continue;}
-    if(q)list.push(q);
-    const isCustom=/\[自定义\]|自定义/.test(l);
-    q={text:l.replace(/^(Q\d{0,3}|题目\d{0,3}|第[一二三四五六七八九十\d]+题|\d+[.、)）])[.、:：)]*\s*/i,"").replace(/\[自定义\]/g,"").trim(),kind:isCustom?"custom":(/多选|multi/i.test(l)?"multi":"single"),options:[]};
+    /* 2) 题目和选项挤在一行：题目？ A. 电影 B. 逛街 C. 宅家 */
+    var _m=l.match(/^(.{1,80}?[？?])\s*(.+)$/);
+    if(_m){
+      var tail=_m[2];
+      var marks=tail.match(/(?:^|\s)(?:[A-Ha-hＡ-Ｈ]|[①②③④⑤⑥⑦⑧⑨⑩]|\d+)\s*[.、:：)）]\s*/g);
+      if(marks&&marks.length>=2){
+        var segs=tail.split(/(?:^|\s)(?:[A-Ha-hＡ-Ｈ]|[①②③④⑤⑥⑦⑧⑨⑩]|\d+)\s*[.、:：)）]\s*/).filter(function(x){return x.trim();});
+        __quizPush(list,q);q=null;
+        __quizPush(list,{text:_m[1],kind:"single",options:segs});
+        continue;
+      }
+    }
+    /* 3) 分行的选项：- / ① / A. / 1) */
+    if(isBullet(l)||isCircled(l)||isLetter(l)||(isNumOpt(l)&&q)){
+      var o=__quizCleanOpt(l);
+      if(o&&q){q.options.push(o);continue;}
+    }
+    /* 4) 新题目 */
+    __quizPush(list,q);q=null;
+    var isCustom=/\[自定义\]|自定义/.test(l);
+    q={text:__quizCleanText(l),kind:isCustom?"custom":(/多选|multi/i.test(l)?"multi":"single"),options:[]};
   }
-  if(q)list.push(q);
-  list.forEach(function(it){if(it&&it.kind!=="custom"&&(!it.options||it.options.length<2))it.kind="custom";});
-  let added=0;
-  for(const it of list){if(!it.text)continue;if(!state.quizBank.some(b=>b.text===it.text)){state.quizBank.push({id:uid(),text:it.text,kind:it.kind,options:it.options});unmarkQuizDeleted(it.text);added++;}}
+  __quizPush(list,q);
+  return __quizCommitImport(list);
+}
+function __quizCommitImport(list){
+  var added=0;
+  for(var i=0;i<list.length;i++){
+    var it=list[i];if(!it||!it.text)continue;
+    var key=quizKey(it.text);
+    if(state.quizBank.some(function(b){return quizKey(b.text)===key;}))continue;
+    state.quizBank.push({id:uid(),text:it.text,kind:it.kind,options:(it.options||[]).slice(0,8)});
+    unmarkQuizDeleted(it.text);added++;
+  }
   return added;
 }
 $("btn-bank-import").addEventListener("click",()=>{
@@ -14073,6 +14195,17 @@ $("btn-bank-import").addEventListener("click",()=>{
   save();renderQuizBankList();
   toast(added?("识别并导入 "+added+" 题"):"没识别到新题目，请检查格式");
 });
+(function(){
+  var ex1="周末想做什么？|看电影|逛街|宅家\n晚饭吃什么？|火锅|烧烤|随便\n最近在听什么歌？";
+  var ex2="周末想做什么？\n- 看电影\n- 逛街\n- 宅家\n\n最近在听什么歌？";
+  var box=document.getElementById("bank-import");
+  var b1=document.getElementById("btn-bank-example-choice");
+  var b2=document.getElementById("btn-bank-example-custom");
+  var bc=document.getElementById("btn-bank-clear");
+  if(b1)b1.addEventListener("click",function(){if(box){box.value=ex1;box.focus();}});
+  if(b2)b2.addEventListener("click",function(){if(box){box.value=ex2;box.focus();}});
+  if(bc)bc.addEventListener("click",function(){if(box){box.value="";box.focus();}});
+})();
 
 /* —— 问卷：填写 —— */
 /* 问卷 JSON 解析缓存：聊天每次重绘都会重新拼问卷卡，长列表里反复 JSON.parse 很浪费。
@@ -18261,22 +18394,46 @@ function markGroupDeletedId(id){
 function tplTombKey(kind,text){
   return String(kind||"")+"\u0001"+String(text||"").replace(/\r/g,"").replace(/\s+/g," ").trim();
 }
+/* 模板墓碑另存一份本机键：版本更新/云端旧档整份覆盖 state 时，
+   deletedIds.letterTpl 可能一起被换掉；本机键不参与云端合并，能兜住“更新后又恢复”。 */
+var TPL_TOMB_KEY="e11.tplDeleted.v1";
+function __tplTombLoad(){
+  try{var d=JSON.parse(localStorage.getItem(TPL_TOMB_KEY)||"{}");return d&&typeof d==="object"?d:{};}catch(_e){return {};}
+}
+function __tplTombSave(d){
+  try{localStorage.setItem(TPL_TOMB_KEY,JSON.stringify(d||{}));}catch(_e){}
+}
 function markTplDeleted(kind,text){
   try{
     var k=tplTombKey(kind,text);if(!k)return;
     state.deletedIds=state.deletedIds||{};state.deletedIds.letterTpl=state.deletedIds.letterTpl||{};
     if(!state.deletedIds.letterTpl[k])state.deletedIds.letterTpl[k]=Date.now();
+    var d=__tplTombLoad();if(!d[k])d[k]=Date.now();__tplTombSave(d);
   }catch(_eMarkT){}
 }
 function unmarkTplDeleted(kind,text){
   try{
     var k=tplTombKey(kind,text);if(!k)return;
     if(state.deletedIds&&state.deletedIds.letterTpl)delete state.deletedIds.letterTpl[k];
+    var d=__tplTombLoad();if(d[k]){delete d[k];__tplTombSave(d);}
   }catch(_eUnmarkT){}
 }
 function applyTplDeleted(st){
   try{
-    var d=st&&st.deletedIds&&st.deletedIds.letterTpl;if(!d||!st.letterTpl)return st;
+    if(!st)return st;
+    var d={};
+    var s=(st.deletedIds&&st.deletedIds.letterTpl)||{};
+    Object.keys(s).forEach(function(k){d[k]=s[k];});
+    var local=__tplTombLoad();
+    Object.keys(local).forEach(function(k){if(!d[k])d[k]=local[k];});
+    /* 本机独立键可能比 state 更全：合并回 state，后续保存/上传也不会丢。 */
+    if(Object.keys(d).length){
+      st.deletedIds=st.deletedIds||{};
+      var cur=st.deletedIds.letterTpl||{};
+      Object.keys(d).forEach(function(k){if(!cur[k])cur[k]=d[k];});
+      st.deletedIds.letterTpl=cur;
+    }
+    if(!st.letterTpl)return st;
     ["open","close"].forEach(function(k){
       if(!Array.isArray(st.letterTpl[k]))return;
       st.letterTpl[k]=st.letterTpl[k].filter(function(t){return !d[tplTombKey(k,t)];});
@@ -20027,20 +20184,13 @@ $("file-avatar").addEventListener("change",e=>{
   const r=new FileReader();
   r.onload=()=>{
     var _who=$("file-avatar").dataset.who,_raw=String(r.result||"");
-    var _oldAv=state[_who]&&state[_who].avatar;
     toast("正在处理头像…");
     /* 先压到 320px 再写 state；不要先把几 MB 原图存进去再压一次 */
     __avatarShrink(_raw).then(function(c){
       var _v=c||_raw;
-      state[_who].avatar=_v;
+      __setAvatar(_who,_v);
       try{__mediaVaultPut("avatar:"+_who,_v);}catch(_){}
-      try{
-        if(state.profile){
-          if(_who==="me"&&state.profile.cpMeAvatar===_oldAv)state.profile.cpMeAvatar=_v;
-          if(_who==="partner"&&state.profile.cpPartnerAvatar===_oldAv)state.profile.cpPartnerAvatar=_v;
-        }
-        renderCouple();
-      }catch(_e){}
+      try{renderCouple();}catch(_e){}
       save();try{__avatarBakSync();}catch(_){}try{__flushSave(true);}catch(_){}bindSetting();renderTopStatus();renderChat(true);try{renderMoments();}catch(_){}toast("头像已更新");
     }).catch(function(){toast("头像处理失败，请重试");});
   };
@@ -20550,6 +20700,14 @@ window.__androidPickError=function(token,msg){try{delete window.__androidPickJob
 function __nativePick(id){
   var inp=document.getElementById(id);
   if(!inp){try{toast("找不到上传控件："+id);}catch(e){}return;}
+  /* 同一次点击可能同时触发 pointerup 和 click；800ms 内对同一个 input 只开一次选择器，
+     避免手机端原生选择器刚弹就被第二次调用顶掉。 */
+  try{
+    var _npNow=Date.now();
+    if(window.__lastNativePickId===id&&_npNow-(window.__lastNativePickAt||0)<800)return;
+    window.__lastNativePickId=id;window.__lastNativePickAt=_npNow;
+  }catch(_eNpDebounce){}
+  try{inp.disabled=false;}catch(_eNpEnable){}
   try{
     /* 图片类输入统一交给原生解码；换头像/聊天发图/动态图都能用 */
     /* 多选图片（表情包批量导入）不要走原生单选：交给 WebView 的 file chooser，
@@ -20591,6 +20749,26 @@ function __nativePick(id){
   }catch(e){try{toast("打不开文件选择器："+(e&&e.message||e));}catch(_){}}
 }
 window.__nativePick=__nativePick;
+/* 头像统一用 pointerup 作为主入口：手机端横向滑动、页面切换后的 420ms 防误触
+   都可能把 click 吃掉，只剩 click 就会出现“点头像没反应”。这里记录按下位置，
+   位移超过 10px 视为滑动、不弹选择器；真正轻点才换头像。 */
+window.__bindAvatarPick=function(el,inputId,prepare){
+  if(!el||el.__e11AvPickBound)return;
+  el.__e11AvPickBound=1;
+  var sx=0,sy=0,st=0,moved=false,last=0;
+  function go(e){
+    var now=Date.now();
+    if(now-last<700){try{e.preventDefault();e.stopPropagation();}catch(_){return;}return;}
+    last=now;
+    try{e.preventDefault();e.stopPropagation();}catch(_){}
+    try{if(typeof prepare==="function")prepare();}catch(_){}
+    window.__nativePick(inputId);
+  }
+  el.addEventListener("pointerdown",function(e){sx=e.clientX;sy=e.clientY;st=Date.now();moved=false;},{passive:true,capture:true});
+  el.addEventListener("pointermove",function(e){if(Math.abs(e.clientX-sx)>10||Math.abs(e.clientY-sy)>10)moved=true;},{passive:true});
+  el.addEventListener("pointerup",function(e){if(moved)return;if(Date.now()-st>900)return;go(e);},{passive:false});
+  el.addEventListener("click",function(e){if(Date.now()-last<700){try{e.preventDefault();e.stopPropagation();}catch(_){return;}return;}go(e);});
+};
 /* 动态创建的“换头像/换封面/换壁纸”入口：不能直接对 display:none 或没挂到 DOM 的
    <input type=file> 调 click()，iOS Safari 不会弹系统选择器。这里统一把 input
    临时做成屏幕中央的 44×44 透明控件、挂进缩放舞台，选完或取消后自动移除。 */
@@ -25457,6 +25635,9 @@ function ensureLetterTpl(){
   if(!state.letterTpl||typeof state.letterTpl!=="object")state.letterTpl={};
   if(!Array.isArray(state.letterTpl.open))state.letterTpl.open=LT_TPL_OPEN.slice();
   if(!Array.isArray(state.letterTpl.close))state.letterTpl.close=LT_TPL_CLOSE.slice();
+  /* 默认模板每次只在这两个数组缺失时补回；补完必须立刻按本机墓碑过滤，
+     否则更新后云端旧档没有 letterTpl 时，被删掉的默认模板会重新长出来。 */
+  try{if(typeof applyTplDeleted==="function")applyTplDeleted(state);}catch(_eTplEnsure){}
   return state.letterTpl;
 }
 function pickTpl(arr){return arr&&arr.length?arr[Math.floor(Math.random()*arr.length)]:"";}
@@ -28880,6 +29061,7 @@ window.addEventListener("load",function(){setTimeout(function(){try{__compactBig
 })();
 
 function renderMe(){
+  try{if(typeof __syncAvatarMirrors==="function")__syncAvatarMirrors();}catch(_eSyncMe){}
   /* 主页资料没变就不重复铺：切回主页不再每次重建色块、照片框和资料文本 */
   try{
     var _sig=[state.profile.meAvatar||state.me.avatar||"",state.profile.mpName||state.me.name||"",state.profile.bio||"",state.profile.handle||"",state.profile.region||"",state.skin.meTopBg||0,state.skin.meTopImage||"",(state.me.photos||[])[0]||"",state.me1PhotosSize||""].join("~");
@@ -30345,12 +30527,30 @@ $("me-av-edit").addEventListener("click",()=>window.__nativePick("file-me-av"));
 $("me-av").addEventListener("click",()=>window.__nativePick("file-me-av"));
 $("file-me-av").addEventListener("change",e=>{
   const f=e.target.files&&e.target.files[0];if(!f)return;
-  const rd=new FileReader();rd.onload=()=>{var raw=String(rd.result);toast("正在处理头像…");__avatarShrink(raw).then(function(c){state.profile.meAvatar=c||raw;save();try{__avatarBakSync();}catch(_){}renderMe();toast("主页头像已更新");});};rd.readAsDataURL(f);e.target.value="";
+  const rd=new FileReader();rd.onload=()=>{var raw=String(rd.result);toast("正在处理头像…");__avatarShrink(raw).then(function(c){
+    var _v=c||raw;
+    /* v43-166：以前只写 profile.meAvatar，但 __avatarPick 优先读 state.me.avatar；
+       只要以前设过真头像，state.me.avatar 就会一直赢，主页卡片头像看起来“换不了”。 */
+    __setAvatar("me",_v);
+    save();try{__avatarBakSync();}catch(_){}try{__flushSave(true);}catch(_){}
+    try{renderMe();}catch(_){}
+    try{renderTopStatus();}catch(_){}
+    try{renderChat(true);}catch(_){}
+    toast("主页头像已更新");
+  });};rd.readAsDataURL(f);e.target.value="";
 });
 $("cp2-av-me").addEventListener("click",()=>window.__nativePick("cp-file-av-me"));
 $("cp-file-av-me").addEventListener("change",e=>{
   const f=e.target.files&&e.target.files[0];if(!f)return;
-  const rd=new FileReader();rd.onload=()=>{var raw=String(rd.result);toast("正在处理头像…");__avatarShrink(raw).then(function(c){state.profile.cpMeAvatar=c||raw;save();renderCouple();toast("情侣头像已更新");});};rd.readAsDataURL(f);e.target.value="";
+  const rd=new FileReader();rd.onload=()=>{var raw=String(rd.result);toast("正在处理头像…");__avatarShrink(raw).then(function(c){
+    var _v=c||raw;
+    __setAvatar("me",_v);
+    save();try{__avatarBakSync();}catch(_){}try{__flushSave(true);}catch(_){}
+    try{renderCouple();}catch(_){}
+    try{renderTopStatus();}catch(_){}
+    try{renderChat(true);}catch(_){}
+    toast("情侣头像已更新");
+  });};rd.readAsDataURL(f);e.target.value="";
 });
 (function(){
   /* 情侣头像（对方）：点击只换头像，不再跳去对方主页 */
@@ -30362,8 +30562,36 @@ $("cp-file-av-me").addEventListener("change",e=>{
 })();
 $("cp-file-av-partner").addEventListener("change",e=>{
   const f=e.target.files&&e.target.files[0];if(!f)return;
-  const rd=new FileReader();rd.onload=()=>{var raw=String(rd.result);toast("正在处理头像…");__avatarShrink(raw).then(function(c){state.profile.cpPartnerAvatar=c||raw;save();renderCouple();toast("情侣头像已更新");});};rd.readAsDataURL(f);e.target.value="";
+  const rd=new FileReader();rd.onload=()=>{var raw=String(rd.result);toast("正在处理头像…");__avatarShrink(raw).then(function(c){
+    var _v=c||raw;
+    __setAvatar("partner",_v);
+    save();try{__avatarBakSync();}catch(_){}try{__flushSave(true);}catch(_){}
+    try{renderCouple();}catch(_){}
+    try{renderTopStatus();}catch(_){}
+    try{renderChat(true);}catch(_){}
+    toast("情侣头像已更新");
+  });};rd.readAsDataURL(f);e.target.value="";
 });
+/* v43-166：所有头像改成 pointerup 主入口 + click 兜底，轻点一定能弹选择器；
+   横向滑动/页面防误触不会再把这次点击吃掉。 */
+try{
+  window.__bindAvatarPick(document.getElementById("me-av"),"file-me-av");
+  window.__bindAvatarPick(document.getElementById("me-av-edit"),"file-me-av");
+  window.__bindAvatarPick(document.getElementById("cp2-av-me"),"cp-file-av-me");
+  window.__bindAvatarPick(document.getElementById("cp2-av-partner"),"cp-file-av-partner");
+  window.__bindAvatarPick(document.getElementById("avatar-me"),"file-avatar",function(){
+    var i=document.getElementById("file-avatar");if(i)i.dataset.who="me";
+  });
+  window.__bindAvatarPick(document.getElementById("avatar-partner"),"file-avatar",function(){
+    var i=document.getElementById("file-avatar");if(i)i.dataset.who="partner";
+  });
+  /* 信纸/字卡编辑页左上角的头像：以前只是展示，点了没反应；现在点了就是换对方头像。 */
+  var _ltAv=document.getElementById("lt-write-av");
+  if(_ltAv){_ltAv.style.cursor="pointer";_ltAv.title="点击更换对方头像";window.__bindAvatarPick(_ltAv,"file-avatar",function(){
+    var i=document.getElementById("file-avatar");if(i)i.dataset.who="partner";
+  });}
+}catch(_eAvBindAll){}
+
 try{
   /* v43-121：四个资料字段都做输入即存。用户改完直接退出/杀进程，不点“确认保存”也不会丢。 */
   var _nt=null;
