@@ -226,7 +226,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-168";
+window.__E11_BUILD="2026-11-23v43-169";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -374,12 +374,17 @@ html,body{background:#fafafa;}
 /* v43-155：状态栏/电量栏这一条固定纯白（夜间纯黑），任何打开方式都盖住，
    不再只在 standalone 生效。之前浏览器/内嵌 WebView 里会露出页面或壁纸底色，
    iOS 再叠一层半透明材质，就成了截图里那条发灰的“电量栏”。 */
-body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top);background:var(--sysbar-bg,#ffffff);z-index:99999;pointer-events:none;}
+body::before{content:"";position:fixed;left:0;right:0;top:0;height:var(--safe-top, env(safe-area-inset-top));background:var(--sysbar-bg,#ffffff);z-index:99999;pointer-events:none;}
+/* APK 已经把网页铺到状态栏下面，电量栏这条不要再盖一层纯色 */
+html.native-edge body::before{display:none !important;}
 html,body{background:#fafafa;}
 /* 夜间：html/body 底层也转黑，iOS 状态栏与回弹区不再露出米白 */
 html.ui-dark,body.ui-dark{background:#000000 !important;}
 
 :root{
+  /* v43-169：APK 状态栏改成透明后，由原生返回电量栏高度；网页/PWA 仍用 env()。 */
+  --safe-top:env(safe-area-inset-top);
+  --safe-top:max(env(safe-area-inset-top), var(--native-safe-top,0px));
   --accent:#3478F6;
   --bg:#ffffff;
   --mybubble:#3478F6;
@@ -444,7 +449,7 @@ body.e11-has-mom-wall #view-moments .v-head{background:transparent !important;bo
   flex:0 0 auto;color:var(--ttext);
   background:var(--topbar);border-bottom:none;box-shadow:none;
   display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;padding:8px 12px;
-  padding-top:calc(8px + env(safe-area-inset-top));z-index:20;
+  padding-top:calc(8px + var(--safe-top, env(safe-area-inset-top)));z-index:20;
 }
 .top-left{justify-self:start;min-width:0;}
 .top-center{justify-self:center;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;max-width:96%;}
@@ -469,7 +474,7 @@ body.e11-has-mom-wall #view-moments .v-head{background:transparent !important;bo
 .icon{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;display:block;}
 /* ===== 横屏适配 ===== */
 @media (orientation:landscape) and (max-height:500px){
-  .topbar{padding:4px 12px;padding-top:calc(4px + env(safe-area-inset-top));}
+  .topbar{padding:4px 12px;padding-top:calc(4px + var(--safe-top, env(safe-area-inset-top)));}
   .top-center .avatar{width:30px;height:30px;}
   .avatar{width:30px;height:30px;}
   .top-name{font-size:12px;}
@@ -1038,7 +1043,7 @@ body.ui-dark #song-push-sheet .sp-foot button{background:rgba(118,118,128,.24);c
 .ml-veil{position:absolute;inset:0;z-index:1;pointer-events:none;background:rgba(255,255,255,.58);-webkit-backdrop-filter:blur(6px) saturate(140%);backdrop-filter:blur(6px) saturate(140%);opacity:0;transition:opacity .25s;}
 .ml-sheet.has-bg .ml-veil{opacity:1;}
 .ml-inner{position:relative;z-index:2;flex:1;min-height:0;display:flex;flex-direction:column;}
-.ml-bar{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:calc(8px + env(safe-area-inset-top)) 14px 2px;}
+.ml-bar{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:calc(8px + var(--safe-top, env(safe-area-inset-top))) 14px 2px;}
 .ml-bar-t{flex:1;font-size:12.5px;color:#8E8E93;letter-spacing:.5px;}
 .ml-bgbtn{flex:0 0 auto;border:none;border-radius:14px;background:rgba(120,120,128,.12);color:#4b4b4f;font-size:12px;font-weight:600;padding:6px 12px;letter-spacing:1px;cursor:pointer;}
 .ml-close{width:30px;height:30px;border:none;border-radius:50%;background:rgba(120,120,128,.12);color:#4b4b4f;font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;}
@@ -1255,7 +1260,7 @@ body:not(.app-ready) #view-chat{visibility:hidden !important;}
 /* 聊天页固定成独立合成层：图层全程常驻，切进/切出不会新建或拆除 */
 #view-chat{transform:translateZ(0);-webkit-backface-visibility:hidden;backface-visibility:hidden;}
 @keyframes viewFade{from{opacity:0}to{opacity:1}}
-.v-head{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:10px 8px;background:var(--topbar);color:var(--ttext);border-bottom:1px solid var(--line);padding-top:calc(10px + env(safe-area-inset-top));}
+.v-head{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:10px 8px;background:var(--topbar);color:var(--ttext);border-bottom:1px solid var(--line);padding-top:calc(10px + var(--safe-top, env(safe-area-inset-top)));}
 .v-title{font-size:17px;font-weight:600;flex:1;}
 .v-body{flex:1;overflow-y:auto;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch;}
 .back-btn{min-width:44px;min-height:44px;width:36px;height:36px;border:none;background:transparent;color:var(--accent);display:flex;align-items:center;justify-content:center;border-radius:10px;cursor:pointer;}
@@ -1416,7 +1421,7 @@ input[type=file][hidden]{display:block !important;position:fixed !important;left
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 /* 来消息浮动弹窗（液态玻璃） */
-#incoming-pop{position:absolute;left:10px;right:10px;top:calc(8px + env(safe-area-inset-top));z-index:90;
+#incoming-pop{position:absolute;left:10px;right:10px;top:calc(8px + var(--safe-top, env(safe-area-inset-top)));z-index:90;
   display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:18px;cursor:pointer;
   /* 这里原来用了 backdrop-filter 毛玻璃：iOS 上这块一出现/消失，要把底下整页重新合成一遍，
      几千行聊天或整张壁纸都会跟着重画，看起来就是「有提示的时候屏幕闪一下」。改成实色半透明，不再模糊背景 */
@@ -1443,11 +1448,11 @@ input[type=file][hidden]{display:block !important;position:fixed !important;left
 .call-main{display:flex;flex-direction:column;align-items:center;gap:16px;padding:24px;width:100%;}
 .call-video-stage{position:absolute;inset:0;display:none;background:#0b0d12;overflow:hidden;}
 .call-video-stage .cvs-partner{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(2px) brightness(.75);transform:scale(1.06);transition:filter .25s;}
-.cvs-tag{position:absolute;top:calc(14px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);font-size:12px;color:rgba(255,255,255,.85);background:rgba(0,0,0,.35);padding:4px 10px;border-radius:999px;z-index:3;}
+.cvs-tag{position:absolute;top:calc(14px + var(--safe-top, env(safe-area-inset-top)));left:50%;transform:translateX(-50%);font-size:12px;color:rgba(255,255,255,.85);background:rgba(0,0,0,.35);padding:4px 10px;border-radius:999px;z-index:3;}
 .call-video-stage.camoff .cvs-partner{filter:blur(20px) brightness(.25);}
 #call-overlay.video{background:#000;}
 #call-overlay.video .call-video-stage{display:block;}
-#call-overlay.video .call-main{position:relative;z-index:2;height:100%;justify-content:flex-start;gap:6px;padding:calc(48px + env(safe-area-inset-top)) 24px 0;}
+#call-overlay.video .call-main{position:relative;z-index:2;height:100%;justify-content:flex-start;gap:6px;padding:calc(48px + var(--safe-top, env(safe-area-inset-top))) 24px 0;}
 #call-overlay.video .call-controls{position:absolute;left:0;right:0;bottom:calc(26px + env(safe-area-inset-bottom));justify-content:center;margin-top:0;}
 #call-overlay.video .call-status{font-size:13px;opacity:.85;}
 #call-overlay.video .call-timer{font-size:15px;}
@@ -1649,7 +1654,7 @@ body.env-open #btn-letters-back{visibility:hidden!important;pointer-events:none!
 .an-foot{padding:12px 22px calc(16px + env(safe-area-inset-bottom));background:rgba(255,255,255,.9);}
 .an-btn{display:block;width:100%;padding:13px 0;border:none;border-radius:15px;background:linear-gradient(135deg,#3478F6,#5AC8FA);color:#fff;font-size:15px;font-weight:600;cursor:pointer;}
 /* ===== 作者声明页（开屏前） ===== */
-#about-x{display:none;position:fixed;top:calc(10px + env(safe-area-inset-top));right:14px;z-index:100005;width:38px;height:38px;border:0;border-radius:50%;background:rgba(120,120,128,.28);color:#fff;font-size:24px;line-height:36px;text-align:center;padding:0;cursor:pointer;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);}
+#about-x{display:none;position:fixed;top:calc(10px + var(--safe-top, env(safe-area-inset-top)));right:14px;z-index:100005;width:38px;height:38px;border:0;border-radius:50%;background:rgba(120,120,128,.28);color:#fff;font-size:24px;line-height:36px;text-align:center;padding:0;cursor:pointer;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);}
 #about-x.show{display:block;}
 .about-x-dark{background:rgba(255,255,255,.18)!important;}
 .about-screen{position:fixed;inset:0;z-index:100002;display:none;flex-direction:column;
@@ -1869,9 +1874,9 @@ o{opacity:1;transform:translateY(0);}}
 /* ===== 个人主页（锁屏后入口，iOS 桌面小组件风） ===== */
 .me-bg{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:var(--me-bg,#e8ecf2);}
 #view-me .v-head{position:relative;z-index:5;background:transparent;border-bottom:none;box-shadow:none;color:var(--ttext);}
-.me-topbar{position:relative;z-index:5;display:flex;align-items:center;justify-content:center;padding:16px 18px 8px;}
+.me-topbar{position:relative;z-index:5;display:flex;align-items:center;justify-content:center;padding:calc(16px + var(--safe-top,0px)) 18px 8px;}
 .me-title{font-size:clamp(15px,4.2vw,17px);font-weight:700;color:var(--ttext);letter-spacing:.5px;}
-.me-bgdot{position:fixed;right:18px;top:16px;width:36px;height:36px;border-radius:50%;border:none;background:none;color:var(--ttext);font-size:clamp(11px,3.2vw,13px);letter-spacing:2px;line-height:1;cursor:pointer;z-index:999;touch-action:manipulation;}
+.me-bgdot{position:fixed;right:18px;top:calc(16px + var(--safe-top,0px));width:36px;height:36px;border-radius:50%;border:none;background:none;color:var(--ttext);font-size:clamp(11px,3.2vw,13px);letter-spacing:2px;line-height:1;cursor:pointer;z-index:999;touch-action:manipulation;}
 .me-scroll{position:relative;z-index:1;flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:center;padding:4px 0 calc(56px + env(safe-area-inset-bottom));}
 .me-bg-sec{font-size:clamp(11px,3.2vw,13px);font-weight:700;color:var(--sub,#7c7f95);margin-bottom:2px;}
 .me-widget{position:relative;width:100%;max-width:88vw;margin:clamp(14px,4vw,18px) auto clamp(8px,2.5vw,12px);border-radius:clamp(22px,6vw,28px);overflow:hidden;display:flex;flex-direction:column;align-items:center;border:1px solid var(--glassborder,rgba(255,255,255,.6));box-shadow:none;cursor:pointer;color:var(--ttext);}
@@ -2277,7 +2282,7 @@ body.vrec-on .bottombar{opacity:0;pointer-events:none;}
 /* ================= 日记本 ================= */
 #diary-view{position:fixed;inset:0;z-index:120;display:none;flex-direction:column;
   background:radial-gradient(120% 80% at 50% 0%,#2b241f 0%,#17130f 55%,#0d0b09 100%);
-  padding:calc(12px + env(safe-area-inset-top)) 12px calc(14px + env(safe-area-inset-bottom));}
+  padding:calc(12px + var(--safe-top, env(safe-area-inset-top))) 12px calc(14px + env(safe-area-inset-bottom));}
 #diary-view.show{display:flex;}
 .diary-head{display:flex;align-items:center;justify-content:space-between;color:#E9DFD2;font-size:15px;font-weight:600;padding:2px 4px 10px;}
 .diary-head button{background:rgba(255,255,255,.12);border:none;color:#F4EADB;width:34px;height:34px;border-radius:17px;font-size:16px;}
@@ -2456,7 +2461,7 @@ body.vrec-on .bottombar{opacity:0;pointer-events:none;}
 .dp-brand{position:absolute;right:18px;bottom:12px;font-family:Georgia,"Times New Roman",serif;font-size:8.5px;letter-spacing:.3em;text-transform:uppercase;color:rgba(0,0,0,.2);pointer-events:none;}
 
 #dce-canvas,#dce-pens,#dce-sizes,#dce-cleardraw,#dce-bigger,#dce-smaller,#dce-flip{display:none!important;}
-#diary-cover-edit{overflow-y:auto;align-items:center;justify-content:flex-start;padding:calc(22px + env(safe-area-inset-top)) 16px 34px;}
+#diary-cover-edit{overflow-y:auto;align-items:center;justify-content:flex-start;padding:calc(22px + var(--safe-top, env(safe-area-inset-top))) 16px 34px;}
 #diary-cover-edit .dce-preview{width:min(52vw,196px);height:min(72vw,272px);flex:0 0 auto;}
 #dce-title,#dce-sub{flex:0 0 40px;width:min(86vw,320px);height:40px;padding:0 12px!important;font-size:13px!important;border-radius:12px!important;}
 .dce-row{gap:8px;width:100%;max-width:330px;flex:0 0 auto;}
@@ -2590,7 +2595,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-168">
+<meta name="app-build" content="2026-11-23v43-169">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4337,7 +4342,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-168</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-169</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -7861,8 +7866,10 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-23",
   noticeKey:null,
-  lead:"v43-168：聊天背景、主页背景、桌面背景不再只铺在内容区。只要设了背景图或自定义底色，对应页面的顶部导航栏就自动透明，背景一直铺到最上面，不再留一条白顶栏；移除背景后顶栏恢复原来的纯色。",
+  lead:"v43-169：APK 的电量栏也一起覆盖。状态栏改成透明、网页铺到电量栏下面，聊天背景会从电量栏一直连到顶栏，不再被一条白条截断；电量/信号图标按壁纸顶部明暗自动切黑或白。网页/PWA 顶部安全区也会按原生高度留出，按钮不会顶到电量栏。",
   items:[
+    "电量栏覆盖：APK 状态栏改成透明，网页延伸到电量栏下面；聊天背景、桌面背景、主页背景会一直铺到电量栏，不再留白条。原生返回电量栏高度，网页顶部按这个高度留安全区，顶栏图标和按钮不会被电量栏压住。",
+    "电量栏图标：按当前壁纸顶部亮度自动切深色/白色状态栏图标，浅色壁纸用黑图标、深色壁纸用白图标；没有壁纸时继续跟随明暗主题。",
     "顶栏让背景：聊天页设了背景图/自定义底色时，聊天顶栏透明；桌面全局背景和主页全局背景也覆盖各自顶栏，背景图从上到下连续，不再被一条纯色顶栏截断。",
     "顶栏恢复：移除背景图、恢复默认背景后，对应顶栏回到原来的纯色，顶栏背景色设置继续生效。",
     "头像分场景：聊天头像存 state.me/partner.avatar，主页卡片存 profile.meAvatar/partnerAvatar，情侣卡片存 cpMeAvatar/cpPartnerAvatar，音乐房存 mpAv1/mpAv2；__setAvatar 只写对应那一格，不再把所有副本一起改。",
@@ -10621,7 +10628,7 @@ function __storageGuard(){
   try{
     var el=document.createElement("div");
     el.id="__storage_warn";
-    el.style.cssText="position:fixed;left:10px;right:10px;top:calc(6px + env(safe-area-inset-top));z-index:3000;background:rgba(176,32,32,.96);color:#fff;padding:10px 12px;border-radius:14px;font-size:12.5px;line-height:1.55;box-shadow:0 6px 24px rgba(0,0,0,.3);display:flex;gap:8px;align-items:center;";
+    el.style.cssText="position:fixed;left:10px;right:10px;top:calc(6px + var(--safe-top, env(safe-area-inset-top)));z-index:3000;background:rgba(176,32,32,.96);color:#fff;padding:10px 12px;border-radius:14px;font-size:12.5px;line-height:1.55;box-shadow:0 6px 24px rgba(0,0,0,.3);display:flex;gap:8px;align-items:center;";
     el.innerHTML='<div style="flex:1">'+msg+'</div><button id="__storage_warn_go" style="flex:none;border:0;background:#fff;color:#b02020;font-size:12px;padding:6px 10px;border-radius:9px;">去导出</button><button id="__storage_warn_x" style="flex:none;border:0;background:transparent;color:#fff;font-size:16px;padding:2px 4px;">×</button>';
     document.body.appendChild(el);
     window.__storageWarnEl=el;
@@ -11491,8 +11498,77 @@ function setSkinImg(key,raw,after){
 }
 function __sysPrefDark(){try{return !!(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches);}catch(e){return false;}}
 
+/* v43-169：APK 状态栏透明后，网页顶部要按原生返回的电量栏高度留出安全区；
+   body::before 这条纯色盖板也不再使用，否则电量栏又会被盖成白色。 */
+function __applyNativeSafeTop(){
+  try{
+    if(!window.AndroidUI||typeof AndroidUI.getStatusBarHeight!=="function")return false;
+    var h=parseInt(AndroidUI.getStatusBarHeight(),10)||0;
+    if(h>0){
+      document.documentElement.style.setProperty("--native-safe-top",h+"px");
+      document.documentElement.classList.add("native-edge");
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+window.__applyNativeSafeTop=__applyNativeSafeTop;
+var __topLumCache={};
+function __topLumOf(src,cb){
+  if(!src){cb(null);return;}
+  if(Object.prototype.hasOwnProperty.call(__topLumCache,src)){cb(__topLumCache[src]);return;}
+  if(src.indexOf("data:")!==0){cb(null);return;}
+  try{
+    var im=new Image(),done=false;
+    var to=setTimeout(function(){if(!done){done=true;cb(null);}},1800);
+    im.onload=function(){
+      if(done)return;done=true;clearTimeout(to);
+      try{
+        var c=document.createElement("canvas");c.width=8;c.height=8;
+        var x=c.getContext("2d");
+        var sh=Math.max(1,Math.round(im.height*0.12));
+        x.drawImage(im,0,0,im.width,sh,0,0,8,8);
+        var d=x.getImageData(0,0,8,8).data,r=0,g=0,b=0,n=0;
+        for(var i=0;i<d.length;i+=4){r+=d[i];g+=d[i+1];b+=d[i+2];n++;}
+        var lum=n?((0.299*r+0.587*g+0.114*b)/n/255):null;
+        __topLumCache[src]=lum;cb(lum);
+      }catch(e){cb(null);}
+    };
+    im.onerror=function(){if(!done){done=true;clearTimeout(to);cb(null);}};
+    im.src=src;
+  }catch(e){cb(null);}
+}
+/* 壁纸压到电量栏后面时，按壁纸顶部亮度决定电量/信号图标用黑还是白，避免看不清。 */
+function __refreshStatusIcons(){
+  try{
+    if(!window.AndroidUI||typeof AndroidUI.setStatusBarIcons!=="function")return;
+    __applyNativeSafeTop();
+    var s=(state&&state.skin)||{},v=window.__curView||"";
+    var fallback=!__effectiveDark();
+    var src=(v==="view-chat")?s.bgImage:((v==="view-me")?s.meImage:((v==="view-moments")?s.momImage:""));
+    if(!src){
+      var col=(v==="view-chat")?String(s.bg||""):"";
+      if(col&&col.toLowerCase()!=="#ffffff"){
+        var lum=colorLum(col)/255;
+        AndroidUI.setStatusBarIcons(!!(lum>0.58));
+      }else{
+        AndroidUI.setStatusBarIcons(!!fallback);
+      }
+      return;
+    }
+    __topLumOf(src,function(l){
+      try{
+        if((window.__curView||"")!==v)return;
+        AndroidUI.setStatusBarIcons((l===null||l===undefined)?!!fallback:(l>0.58));
+      }catch(e){}
+    });
+  }catch(e){}
+}
+window.__refreshStatusIcons=__refreshStatusIcons;
+
 /* 顶栏（时间/信号/电量、浏览器工具条）只跟随「手机系统」明暗，不跟 App 内主题走 */
 function __syncSysBar(){
+  try{__applyNativeSafeTop();}catch(_eSafeBar){}
   /* 夜间模式就是夜间：顶栏也按 App 当前明暗走，不再被手机系统反过来染成另一种颜色 */
   var sysDark;
   try{
@@ -11525,6 +11601,7 @@ function __syncSysBar(){
     document.body.style.setProperty("--sysbar-bg",_barColor);
   }catch(_){}
   try{window.__lastSysDark=sysDark;}catch(e){}
+  try{__refreshStatusIcons();}catch(_eStatusIco){}
 }
 /* 主题 class 一变就补同步一次：有些 WebView 在 applySkin 内同步 meta 时不立即刷新顶栏，
    等 class 真正落到 DOM 后再写一次，状态栏/地址栏颜色才会跟上。 */
@@ -11626,7 +11703,7 @@ function __safeTextColor(want,bg){
   }catch(_){return colorLum(bg)>140?"#111111":"#ffffff";}
 }
 function applySkin(){
-
+  try{__applyNativeSafeTop();}catch(_eNativeSafe){}
   const r=document.documentElement.style,s=state.skin;
   const dark=__effectiveDark();
   /* APK 系统栏/导航栏/WebView 底色同步：浅色主题不再保留黑底，减少启动和切页时的黑白闪 */
@@ -12677,7 +12754,7 @@ function __openImageViewer(src,mid,onClose,thumbSrc){
   im.onload=function(){im.style.opacity="1";if(thumb)thumb.style.opacity="0";};
   wrap.appendChild(im);
   var bar=document.createElement("div");
-  bar.style.cssText="position:absolute;left:0;right:0;top:0;display:flex;align-items:center;justify-content:space-between;padding:calc(env(safe-area-inset-top) + 12px) 14px 12px;pointer-events:none;";
+  bar.style.cssText="position:absolute;left:0;right:0;top:0;display:flex;align-items:center;justify-content:space-between;padding:calc(var(--safe-top, env(safe-area-inset-top)) + 12px) 14px 12px;pointer-events:none;";
   if(mid){
     var more=document.createElement("button");more.type="button";more.textContent="更多";
     more.style.cssText="pointer-events:auto;height:34px;padding:0 14px;border:0;border-radius:17px;background:rgba(255,255,255,.16);color:#fff;font:600 14px -apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);";
@@ -21413,6 +21490,7 @@ function __fadeOutDiary(ms){
   }catch(_){try{el.classList.remove("show");el.classList.remove("writing");}catch(__){}}
 }
 function showView(id){
+  try{setTimeout(function(){try{window.__refreshStatusIcons&&window.__refreshStatusIcons();}catch(_eIcoView){}},0);}catch(_eIcoSet){}
   try{if(id==="view-settings"&&window.__e11ChipSync)window.__e11ChipSync();}catch(_eSetChip){}
   try{var _vt=document.getElementById(id);if(_vt)__cancelViewFade(_vt);}catch(_){}
   /* 切页时把还在倒计时的顶部消息条收掉：避免用户已经点进设置/信件，旧提示还压在上面 */
