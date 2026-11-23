@@ -252,7 +252,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-180";
+window.__E11_BUILD="2026-11-23v43-181";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -414,9 +414,8 @@ html,body{background:#fafafa;}
 html.ui-dark,body.ui-dark{background:#000000 !important;}
 
 :root{
-  /* v43-169：APK 状态栏改成透明后，由原生返回电量栏高度；网页/PWA 仍用 env()。 */
-  --safe-top:env(safe-area-inset-top);
-  --safe-top:max(env(safe-area-inset-top), var(--native-safe-top,0px));
+  /* v43-181：原生值异常/旧包返回物理像素时，最多按 60px 留白，避免高密度机型顶栏出现巨大空白。 */
+  --safe-top:min(max(env(safe-area-inset-top), var(--native-safe-top,0px)), 60px);
   --accent:#3478F6;
   --bg:#ffffff;
   --mybubble:#3478F6;
@@ -2627,7 +2626,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-180">
+<meta name="app-build" content="2026-11-23v43-181">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4374,7 +4373,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-180</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-181</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -7897,7 +7896,7 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-23",
   noticeKey:null,
-  lead:"v43-180：语音修到播放这一层。iOS 以前等合成完再播，手势已过期，AudioContext 是 suspended，所以合成成功也提示播放失败。现在第一次触摸就解锁音频上下文，MP3 改用正确的 audio/mpeg；播放被拦时会明确提示而不是怪 Voice ID。",
+  lead:"v43-181：修部分机型顶部电量栏和头像栏的大空白。原因是 APK 把状态栏的物理像素直接给了网页，高密度机型会把 108px 当成 108 CSS px。现在原生按 dp 返回，网页再按 dpr 折回并封顶 60px；语音手势解锁和 GroupId 选填都保留。",
   items:[
     "PWA 电量栏透明：manifest 与 theme-color 全程 #00000000；顶部安全区背景透明，不再按明暗写白/黑兜底。",
     "iOS 主屏幕：状态栏固定为 black-translucent，时间/电量图标直接压在壁纸上，背景图从最顶端铺下来；没有壁纸时顶部用黑底兜底，保证白色图标看得清。",
@@ -11563,6 +11562,13 @@ function __applyNativeSafeTop(){
   try{
     if(!window.AndroidUI||typeof AndroidUI.getStatusBarHeight!=="function")return false;
     var h=parseInt(AndroidUI.getStatusBarHeight(),10)||0;
+    /* 双保险：旧安装包可能仍返回物理像素，或个别 ROM 返回异常值。
+       正常状态栏不会超过 60dp；超过就按 dpr 折回 CSS px，并封顶 60。 */
+    if(h>60){
+      var _d=window.devicePixelRatio||1;
+      if(_d>1)h=Math.round(h/_d);
+    }
+    if(h<0)h=0;if(h>60)h=60;
     if(h>0){
       document.documentElement.style.setProperty("--native-safe-top",h+"px");
       document.documentElement.classList.add("native-edge");
