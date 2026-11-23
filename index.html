@@ -226,7 +226,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-150";
+window.__E11_BUILD="2026-11-23v43-151";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2581,7 +2581,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-150">
+<meta name="app-build" content="2026-11-23v43-151">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4328,7 +4328,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-150</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-151</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -7824,7 +7824,7 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-23",
   noticeKey:null,
-  lead:"v43-150：邀请听歌/画画的概率按 15 分钟一次真正生效，不再每分钟叠加；日记要等我写完并翻看 TA 那一页，TA 的回应才出现。",
+  lead:"v43-151：固定栏不再随页面高度变化往下移；照片框躲固定栏时改为收高度，不再盖住唱片和倒数日。",
   items:[
     "第二页秒开：存档读完后立刻画第二页，不再等 5.2 秒；滑过去看到的就是上次保存的组件位置、照片框大小和内容。",
     "不做二次缩放：同一屏幕、同一套布局只用已经保存的比例；进入网站不会先按默认缩一遍、数据到了再缩第二遍。",
@@ -28358,16 +28358,45 @@ window.__keepPhotoAboveDock=function(){
     var layKey=(((state&&state.cp2Layout&&state.cp2Layout.layout)||"")+"|"+JSON.stringify(((state&&state.cp2Layout&&state.cp2Layout.widgets||{}).photo||null)));
     if(!ph._kOrig||ph._kOrig.key!==layKey){ph._kOrig={top:ph.offsetTop,h:ph.offsetHeight,key:layKey};}
     ph.style.top=ph._kOrig.top+"px";ph.style.height=ph._kOrig.h+"px";
-    /* 用屏幕坐标反复校正，缩放换算误差在迭代里自动收敛；只在真的压住固定栏时才收 */
+    /* v43-151：先找出照片框上方最近的组件下沿（唱片/倒数日/对话）。
+       以前为了躲固定栏会一直把照片框往上推，推过头就盖住唱片和倒数日。
+       现在只在「照片框原本就在它们下方」时把这条线当地板，绝不再越过。 */
+    var pr0=ph.getBoundingClientRect();
+    var floor=0;
+    try{
+      var page2=document.getElementById("me-page-2")||document;
+      var ws=page2.querySelectorAll('[data-cp2]');
+      for(var wi=0;wi<ws.length;wi++){
+        var we=ws[wi];
+        if(!we||we===ph||we.offsetParent===null)continue;
+        if(getComputedStyle(we).display==="none")continue;
+        var wr=we.getBoundingClientRect();
+        if(wr.width<=1||wr.height<=1)continue;
+        /* 只看和照片框横向有交集的组件；在照片下方的组件不能当地板 */
+        if(wr.right<=pr0.left+1||wr.left>=pr0.right-1)continue;
+        if(wr.top>=pr0.bottom-1)continue;
+        if(wr.bottom>floor)floor=wr.bottom;
+      }
+    }catch(_eFloor){}
+    var minTopScreen=floor?floor+8:pr0.top;
+    var minTopCss=ph.offsetTop+Math.max(0,(minTopScreen-pr0.top)/k);
+    if(ph.offsetTop<minTopCss-0.5)ph.style.top=Math.ceil(minTopCss)+"px";
+    /* 用屏幕坐标反复校正，缩放换算误差在迭代里自动收敛。
+       能上移时优先上移；已经到组件地板就只压高度，绝不压到唱片/倒数日。 */
     for(var i=0;i<8;i++){
       var pr=ph.getBoundingClientRect(),dr=dock.getBoundingClientRect();
       var over=pr.bottom-(dr.top-6);
-      if(over<=1)break;   /* 只在真的压住固定栏时才动，正常留白不碰 */
+      if(over<=1)break;
       var step=Math.max(1,over/k);
-      /* v43-140：优先整体上移，保持照片框原高度；只有已经顶到 0 还放不下才压缩 */
-      if(ph.offsetTop>0){ph.style.top=Math.max(0,ph.offsetTop-Math.ceil(step))+"px";continue;}
+      if(ph.offsetTop>minTopCss+0.5){
+        var target=Math.max(minTopCss,ph.offsetTop-step);
+        if(target>=ph.offsetTop-0.5)break;
+        ph.style.top=Math.floor(target)+"px";
+        continue;
+      }
       var h=ph.offsetHeight;
-      if(h>48){ph.style.height=Math.max(48,h-step)+"px";}
+      if(h>48)ph.style.height=Math.max(48,h-Math.ceil(step))+"px";
+      else break;
     }
   }catch(e){}
 };
@@ -29643,6 +29672,10 @@ window.__fitInvalidate=function(dirty){
 window.__homeDockCheck=function(){
   try{
     if(window.__homeDockBusy)return;
+    /* v43-151：比例没锁定前不要在这里插一次强制重算。
+       启动/旋转/换布局时这里再算一遍，会让内容突然缩一下，看起来像固定栏自己往下移。
+       首屏比例交给 __fitCompute 自己锁；这里只负责把照片框收回固定栏上面。 */
+    if(!window._dbReady||!window.__fitLocked)return;
     var dock=window.__dockTopPx?window.__dockTopPx():0;
     if(!dock)return;
     var bad=false;
@@ -29662,28 +29695,7 @@ window.__homeDockCheck=function(){
     if(!bad)return;
     /* 适配已锁定：不再为了照片框重算整页比例（那会让桌面再次变小）。
        只把当前页照片框压回固定栏上方，比例完全不动。 */
-    if(window.__fitLocked){
-      if(page===1){try{window.__keepPhotoAboveDock&&window.__keepPhotoAboveDock();}catch(_){}}
-      return;
-    }
-    window.__homeDockBusy=1;
-    /* 已经锁定但照片框/当前页真的压住固定栏：给一次重新自适应，
-       让照片框回到固定栏上方；量完仍会重新锁定。 */
-    try{
-      var _fk=window.__fitContentSig?window.__fitContentSig():"";
-      if(window.__fitLocked&&_fk&&window.__fitEmergencyKey!==_fk){window.__fitEmergencyKey=_fk;window.__fitOneShot=true;}
-    }catch(_){}
-    try{window.__fitInvalidate&&window.__fitInvalidate();}catch(_){}
-    try{window.__fitCompute&&window.__fitCompute(true);}catch(_){}
-    /* 缩放到底仍压住（屏幕特别矮）时，第二页照片框再按固定栏上沿收一次高度 */
-    setTimeout(function(){
-      try{
-        var _p2=document.getElementById("cp2-block-photo");
-        var _dk=window.__dockTopPx?window.__dockTopPx():0;
-        if(_p2&&_dk&&_p2.getBoundingClientRect().bottom>_dk-2)window.__keepPhotoAboveDock&&window.__keepPhotoAboveDock();
-      }catch(_){}
-      window.__homeDockBusy=0;
-    },180);
+    if(page===1){try{window.__keepPhotoAboveDock&&window.__keepPhotoAboveDock();}catch(_){}}
   }catch(e){window.__homeDockBusy=0;}
 };
 window.__homeDockFitSoon=function(){
@@ -33266,7 +33278,11 @@ body{margin:0;background:var(--bg,#fafafa);}
       root.style.height=rh+"px";
       root.style.left=left+"px";
       root.style.top=top+"px";
-      root.style.transform="scale("+k+")";
+      /* v43-151：手机端 k=1 时不要再写 scale(1)。
+         transform 哪怕是 scale(1) 也会让 position:fixed 改为相对 #ui-root 定位；
+        浏览器工具栏收起时 #ui-root 高度变大，底部固定栏就跟着往下移。
+        k=1 时直接不设 transform，固定栏重新贴住真实屏幕底部。 */
+      root.style.transform=(k===1?"none":"scale("+k+")");
       var app=document.getElementById("app");
       if(app){
         app.style.height=rh+"px";app.style.minHeight="0";
