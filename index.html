@@ -226,7 +226,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-153";
+window.__E11_BUILD="2026-11-23v43-154";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -1287,6 +1287,12 @@ body:not(.app-ready) #view-chat{visibility:hidden !important;}
   display:flex;align-items:center;gap:8px;word-break:break-word;
 }
 .card-item .ci-text{flex:1;}
+/* v43-154：全部字卡按分组分段显示，每张卡都在自己设置的分组标题下面 */
+.card-group-head{display:flex;align-items:center;gap:8px;margin:14px 2px 0;padding:0 4px;font-size:12px;font-weight:600;color:var(--sub,#8A8A8E);letter-spacing:.2px;}
+.card-group-head .cgh-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70%;}
+.card-group-head .cgh-line{flex:1;height:1px;background:var(--line,rgba(0,0,0,.08));}
+.card-group-head .cgh-n{font-weight:500;opacity:.85;flex:0 0 auto;}
+.card-group-head.off{opacity:.6;}
 .card-item .ci-edit{width:26px;height:26px;border:none;background:transparent;color:var(--accent);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;border-radius:8px;font-size:15px;}
 .card-item .ci-edit:active{background:rgba(0,0,0,.08);}
 .card-item .ci-del{width:26px;height:26px;border:none;background:transparent;color:#8E8E93;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;border-radius:8px;}
@@ -2581,7 +2587,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-153">
+<meta name="app-build" content="2026-11-23v43-154">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4328,7 +4334,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-153</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-154</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -4910,7 +4916,8 @@ setTimeout(function(){
     <div class="sheet" id="card-view-sheet">
       <div class="sheet-grip"></div>
       <div style="padding:4px 16px 16px;">
-        <div class="edit-sheet-title" style="margin-bottom:12px;">查看字卡</div>
+        <div class="edit-sheet-title" style="margin-bottom:4px;">查看字卡</div>
+        <div id="card-view-group" style="font-size:12px;color:var(--sub,#8A8A8E);margin:0 0 10px;"></div>
         <div id="card-view-text" style="font-size:17px;line-height:1.65;color:var(--ttext);white-space:pre-wrap;word-break:break-word;max-height:48vh;overflow:auto;padding:14px 16px;border-radius:14px;background:var(--field,#f2f2f7);"></div>
         <div class="edit-actions" style="margin-top:16px;">
           <button class="small-btn ghost" id="card-view-close">关闭</button>
@@ -7839,7 +7846,7 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-23",
   noticeKey:null,
-  lead:"v43-153：分组里的字卡点一下就能查看全文，可一键转编辑；多选模式下仍是勾选，不会误弹窗。",
+  lead:"v43-154：全部字卡按分组分段显示，导入/复制不再跑到别组；删掉的问卷题点「从我问过的导入」不再复活。",
   items:[
     "第二页秒开：存档读完后立刻画第二页，不再等 5.2 秒；滑过去看到的就是上次保存的组件位置、照片框大小和内容。",
     "不做二次缩放：同一屏幕、同一套布局只用已经保存的比例；进入网站不会先按默认缩一遍、数据到了再缩第二遍。",
@@ -10473,6 +10480,29 @@ function migrate(s){
   if(Array.isArray(s.letters))s.letters=s.letters.filter(x=>!x||x.from!=="partner"||!(DEMO_LETTER.subject.includes(x.subject)&&DEMO_LETTER.body.includes(x.body)));
   if(Array.isArray(s.guestbook))s.guestbook=s.guestbook.filter(x=>!x||x.from!=="partner"||!DEMO_NOTE.includes(x.text));
   if(Array.isArray(s.moments))s.moments=s.moments.filter(x=>!x||x.from!=="partner"||!DEMO_MOMENT.includes(x.text));
+  /* v43-154：老存档/导入档里分组或字卡缺 kind 时，按「分组里的字卡属于哪一组」补回来。
+     以前复制字卡没带 kind，复制到信件/动态分组后会被当成聊天字卡，看起来不在自己设置的组下面。 */
+  try{
+    if(!Array.isArray(s.groups))s.groups=[];
+    if(!Array.isArray(s.cards))s.cards=[];
+    s.groups.forEach(function(g){
+      if(!g||!g.id)return;
+      if(g.kind!=="chat"&&g.kind!=="letter"&&g.kind!=="moment"){
+        var cnt={chat:0,letter:0,moment:0};
+        s.cards.forEach(function(c){if(c&&c.groupId===g.id&&c.kind&&cnt[c.kind]!==undefined)cnt[c.kind]++;});
+        var best="chat",bn=0;
+        Object.keys(cnt).forEach(function(k){if(cnt[k]>bn){bn=cnt[k];best=k;}});
+        g.kind=best;
+      }
+    });
+    var _gk={};s.groups.forEach(function(g){if(g&&g.id)_gk[g.id]=g.kind||"chat";});
+    s.cards.forEach(function(c){
+      if(!c)return;
+      var _k=_gk[c.groupId]||"chat";
+      /* 分组是唯一归属：卡片 kind 与所在组不一致时，以分组为准，卡片就不会跑到别的类别。 */
+      if(c.kind!==_k)c.kind=_k;
+    });
+  }catch(_eCardKindMig){}
   return s;
 }
 function preloadCp2Images(){
@@ -13793,7 +13823,7 @@ function renderQuizBankList(){
 function rememberMySurvey(m){
   try{
     if(!Array.isArray(state.surveyHistory))state.surveyHistory=[];
-    var s=JSON.parse(m.text||"{}");var qs=(s.questions||[]).filter(function(q){return q&&q.text;});
+    var s=JSON.parse(m.text||"{}");var qs=(s.questions||[]).filter(function(q){return q&&q.text&&!quizIsDeleted(q.text);});
     if(!qs.length)return;
     var key=qs.map(function(q){return q.text;}).join("|");
     if(state.surveyHistory.some(function(h){return h.key===key;}))return;
@@ -13804,7 +13834,7 @@ function rememberMySurvey(m){
 function rememberSurveyQuestions(list){
   try{
     if(!Array.isArray(state.surveyHistory))state.surveyHistory=[];
-    var qs=(list||[]).filter(function(q){return q&&q.text;}).map(function(q){return {text:q.text,kind:q.kind||(q.mode==="custom"?"custom":q.type||"single"),options:(q.options||[]).slice()};});
+    var qs=(list||[]).filter(function(q){return q&&q.text&&!quizIsDeleted(q.text);}).map(function(q){return {text:q.text,kind:q.kind||(q.mode==="custom"?"custom":q.type||"single"),options:(q.options||[]).slice()};});
     if(!qs.length)return;
     var key=qs.map(function(q){return q.text;}).join("|");
     if(state.surveyHistory.some(function(h){return h.key===key;}))return;
@@ -13825,7 +13855,7 @@ function backfillSurveyHistory(){
 function mySurveyQuestions(){
   var out=[],seen={};
   function add(q){
-    var t=((q&&q.text)||"").trim();if(!t||seen[t])return;seen[t]=1;
+    var t=((q&&q.text)||"").trim();if(!t||seen[t]||quizIsDeleted(t))return;seen[t]=1;
     out.push({text:t,kind:q.kind||(q.mode==="custom"?"custom":q.type||"single"),options:(q.options||[]).slice()});
   }
   try{(state.surveyHistory||[]).forEach(function(h){(h.questions||[]).forEach(add);});}catch(e){}
@@ -13836,9 +13866,28 @@ function mySurveyQuestions(){
   });}catch(e){}
   return out;
 }
+var QUIZ_DELETED_KEY="e11.quizDeleted.v1";
 function quizDeletedList(){
   if(!Array.isArray(state.quizDeleted))state.quizDeleted=[];
+  /* v43-154：删除记录单独落一个小键。主存档/云端旧档被合并时，state.quizDeleted 可能被冲掉，
+     导致「从我问过的题目导入题库」又把删掉的题加回来。小键只增不减，专门兜这个底。 */
+  try{
+    var arr=JSON.parse(localStorage.getItem(QUIZ_DELETED_KEY)||"[]");
+    if(Array.isArray(arr))arr.forEach(function(x){
+      var t=String(x||"").trim();
+      if(t&&!state.quizDeleted.some(function(y){return String(y||"").trim()===t;}))state.quizDeleted.push(t);
+    });
+  }catch(_eQd){}
   return state.quizDeleted;
+}
+function __quizDeletedPersist(){
+  try{
+    /* 只写当前 state，不要在这里再调 quizDeletedList()：
+       后者会把旧小键重新并回 state，刚解除的“删过”记录会被自己写回去。 */
+    var l=Array.isArray(state.quizDeleted)?state.quizDeleted:[];
+    if(l.length>300){l=l.slice(-300);state.quizDeleted=l;}
+    localStorage.setItem(QUIZ_DELETED_KEY,JSON.stringify(l));
+  }catch(_eQdW){}
 }
 function quizIsDeleted(text){
   var t=(text||"").trim();if(!t)return false;
@@ -13849,6 +13898,20 @@ function markQuizDeleted(text){
   var l=quizDeletedList();
   if(!l.some(function(x){return (x||"").trim()===t;}))l.push(t);
   if(l.length>300)state.quizDeleted=l.slice(-300);
+  __quizDeletedPersist();
+}
+function unmarkQuizDeleted(text){
+  var t=(text||"").trim();if(!t)return;
+  state.quizDeleted=(state.quizDeleted||[]).filter(function(x){return String(x||"").trim()!==t;});
+  __quizDeletedPersist();
+}
+/* 删掉/撤回一条我发过的问卷：把这题的题干记成“已删除”，以后从历史导入题库时不再复活。 */
+function markSurveyMessageDeleted(m){
+  try{
+    if(!m||m.type!=="survey"||m.from!=="me")return;
+    var s=JSON.parse(m.text||"{}");
+    (s.questions||[]).forEach(function(q){if(q&&q.text)markQuizDeleted(q.text);});
+  }catch(_eSd){}
 }
 function bankKind(b){return b.kind||(b.mode==="custom"?"custom":b.type||"single");}
 document.querySelector('[data-bkind="single"]').addEventListener("click",()=>{bankDraft.kind="single";renderBankOpts();});
@@ -13862,6 +13925,7 @@ $("btn-bank-add").addEventListener("click",()=>{
   const filled=bankDraft.options.map(o=>o&&o.trim()).filter(Boolean);
   if(kind!=="custom"&&filled.length<2){toast("单选/多选题库题至少填写 2 个选项");return;}
   state.quizBank.push({id:uid(),text:t,kind:kind,options:(kind==="custom"?[]:filled)});
+  unmarkQuizDeleted(t); /* 用户主动加回来，解除“删过”的记录 */
   bankDraft={text:"",kind:"single",options:["",""]};
   $("bank-q-text").value="";save();renderQuizBankList();renderBankOpts();toast("已加入题库");
 });
@@ -13889,7 +13953,7 @@ function importQuizBankFromText(txt){
   }
   if(q)list.push(q);
   let added=0;
-  for(const it of list){if(!it.text)continue;if(!state.quizBank.some(b=>b.text===it.text)){state.quizBank.push({id:uid(),text:it.text,kind:it.kind,options:it.options});added++;}}
+  for(const it of list){if(!it.text)continue;if(!state.quizBank.some(b=>b.text===it.text)){state.quizBank.push({id:uid(),text:it.text,kind:it.kind,options:it.options});unmarkQuizDeleted(it.text);added++;}}
   return added;
 }
 $("btn-bank-import").addEventListener("click",()=>{
@@ -15855,6 +15919,7 @@ function recallMsg(id,kind){
     return;
   }
   const m=msgById(id);if(!m||m.recalled)return;
+  markSurveyMessageDeleted(m);
   m.recalled=true;
   /* 已经引用过这条的（包括对方引用我）全部摘掉引用关系，避免出现"对方引用了我撤回的消息" */
   state.messages.forEach(function(x){if(x&&x.quoteId===id){x.quoteId=null;}});
@@ -15869,7 +15934,7 @@ $("act-del").addEventListener("click",()=>{
   if(!actMsgId||actKind==="rp"){closeActions();return;}
   var _delId=actMsgId;             /* closeActions() 会把 actMsgId 清空，先记下来 */
   const i=state.messages.findIndex(m=>m.id===_delId);
-  if(i>-1)state.messages.splice(i,1);
+  if(i>-1){markSurveyMessageDeleted(state.messages[i]);state.messages.splice(i,1);}
   if(quoteTarget===_delId)clearQuote();
   closeActions();
   /* 删掉这一行即可，不整屏重绘 */
@@ -15948,6 +16013,7 @@ try{window.__msgSelEnter=__msgSelEnter;window.__msgSelExit=__msgSelExit;}catch(e
     var n=__msgSelIds.length;if(!n)return;
     if(!(await __iosConfirm("删除选中的 "+n+" 条消息？此操作不可撤销。")))return;
     var ids=__msgSelIds.slice();
+    try{state.messages.forEach(function(m){if(m&&ids.indexOf(m.id)>=0)markSurveyMessageDeleted(m);});}catch(_eMsd){}
     state.messages=state.messages.filter(function(m){return ids.indexOf(m.id)<0;});
     state.redpackets=(state.redpackets||[]).filter(function(r){return ids.indexOf(r.id)<0;});
     try{state.messages.forEach(function(x){if(x&&ids.indexOf(x.quoteId)>=0)x.quoteId=null;});}catch(e){}
@@ -17888,7 +17954,22 @@ function renderCards(){
   /* 大库分片渲染：一次只建 80 条，滚动到底再续，避免 2000+ 条一次性建 DOM 卡住 */
   const CARD_CHUNK=20;
   const _allCards=cards;
-  let _rendered=0;
+  /* v43-154：全部字卡视图按分组分段。用户设置在哪一组，字卡就显示在哪个组标题下面；
+     搜索时只保留有命中的分组。进到单个分组时仍用顶部标题，不再重复分段头。 */
+  var _sections=[];
+  if(cards.length){
+    if(activeGroupId){
+      _sections=[{g:groupById(activeGroupId)||{id:"",name:"未分组"},cards:cards}];
+    }else{
+      groups.forEach(function(g){
+        var cs=cards.filter(function(c){return c.groupId===g.id;});
+        if(!q||cs.length)_sections.push({g:g,cards:cs});
+      });
+      var _orph=cards.filter(function(c){return !groups.some(function(g){return g.id===c.groupId;});});
+      if(_orph.length)_sections.push({g:{id:"",name:"未分组",disabled:false},cards:_orph});
+    }
+  }
+  let _si=0,_ci=0;
   function cardHTML(c){
     const selCls=cardSelMode&&cardSel.has(c.id)?" sel":"";
     const selModeCls=cardSelMode?" sel-mode":"";
@@ -17900,14 +17981,25 @@ function renderCards(){
       +(cardSelMode?'':'<button class="ci-del" data-cdel="'+c.id+'"><svg class="icon" style="width:18px;height:18px"><use xlink:href="#i-trash"/></svg></button>')
       +'</div>';
   }
+  function groupHeadHTML(sec){
+    var g=sec.g||{};
+    return '<div class="card-group-head'+(g.disabled?" off":"")+'" data-gid="'+esc(g.id||"")+'">'
+      +'<span class="cgh-name">'+esc(g.name||"未分组")+'</span><span class="cgh-line"></span><span class="cgh-n">'+sec.cards.length+' 张</span></div>';
+  }
   function moreCard(){
-    if(_rendered>=_allCards.length)return false;
-    const end=Math.min(_rendered+CARD_CHUNK,_allCards.length);
-    let h="";
-    for(let i=_rendered;i<end;i++)h+=cardHTML(_allCards[i]);
-    _rendered=end;
-    list.insertAdjacentHTML("beforeend",h);
-    return true;
+    if(_si>=_sections.length)return false;
+    let h="",n=0;
+    while(_si<_sections.length&&n<CARD_CHUNK){
+      const sec=_sections[_si];
+      if(_ci===0&&!activeGroupId)h+=groupHeadHTML(sec);
+      while(_ci<sec.cards.length&&n<CARD_CHUNK){
+        h+=cardHTML(sec.cards[_ci]);_ci++;n++;
+      }
+      if(_ci>=sec.cards.length){_si++;_ci=0;}
+      else break;
+    }
+    if(h)list.insertAdjacentHTML("beforeend",h);
+    return _si<_sections.length;
   }
   list.innerHTML="";
   moreCard();
@@ -18087,9 +18179,11 @@ function importCardJSON(data,kindArg){
     kind=normKind(kind)||K;
     text=String(text||"").replace(/\r/g,"").trim();if(!text)return;
     if(/^#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(text)||/^0x[0-9a-f]+$/i.test(text))return; /* 过滤颜色值，避免被当成字卡 */
-    if(cardsOfKind(kind).some(function(c){return c.text===text;}))return; /* 同类别内跨分组去重 */
+    /* v43-154：只在目标分组内查重。同一句字卡可以是用户有意放在多个分组里的，
+       以前按整个类别去重，第二组就永远收不到这张卡。 */
     var g=ensureGroup(gname,kind);
-    state.cards.push({id:uid(),groupId:g.id,text:text,kind:kind});added++;
+    if(state.cards.some(function(c){return c.groupId===g.id&&c.text===text;}))return;
+    state.cards.push({id:uid(),groupId:g.id,text:text,kind:groupKind(g)||kind});added++;
   }
   function textOf(o){
     if(typeof o==="string")return o;
@@ -18237,7 +18331,7 @@ if($("cmg-ok"))$("cmg-ok").addEventListener("click",function(){
   if(window.__cmgMode==="copy"){
     ids.forEach(function(id){
       var src=state.cards.filter(function(c){return c.id===id;})[0];
-      if(src)state.cards.push({id:uid(),groupId:g.id,text:src.text,__ts:Date.now()});
+      if(src&&!state.cards.some(function(x){return x.groupId===g.id&&x.text===src.text;}))state.cards.push({id:uid(),groupId:g.id,text:src.text,kind:groupKind(g),disabled:!!src.disabled,__ts:Date.now()});
     });
     window.__cmgMode="move";
     save();renderCards();
@@ -18264,6 +18358,10 @@ function openCardView(id){
   try{__blurSoftKeyboard();}catch(_){}
   var tx=document.getElementById("card-view-text");
   if(tx)tx.textContent=String(c.text||"");
+  try{
+    var _g=groupById(c.groupId),_gl=document.getElementById("card-view-group");
+    if(_gl)_gl.textContent=_g?("所属分组："+_g.name):"";
+  }catch(_eCvg){}
   var ov=document.getElementById("card-view-overlay");
   if(ov)ov.classList.add("show");
   try{var sh=document.getElementById("card-view-sheet");if(sh)sh.scrollTop=0;}catch(_){}
