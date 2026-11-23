@@ -252,7 +252,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183j";
+window.__E11_BUILD="2026-11-24v43-183l";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2643,7 +2643,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183j">
+<meta name="app-build" content="2026-11-24v43-183l">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4390,7 +4390,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-24v43-183j</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-24v43-183l</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -5079,6 +5079,17 @@ setTimeout(function(){
         <div id="survey-qlist"></div>
         <div style="display:flex;gap:8px;margin-top:10px;">
           <button class="small-btn ghost" id="btn-survey-addq" style="flex:1;">+ 添加问题</button>
+          <button class="small-btn ghost" id="btn-survey-import-toggle" style="flex:1;">批量导入问题</button>
+        </div>
+        <div id="survey-import-wrap" style="display:none;margin-top:8px;">
+          <textarea class="bank-import" id="survey-import-text" rows="6" placeholder="一次粘贴多题：&#10;周末想做什么？|看电影|逛街|宅家&#10;晚饭吃什么？|火锅|烧烤|随便&#10;最近在听什么歌？&#10;也支持 JSON 数组、题目一行 + - 选项分行"></textarea>
+          <div style="display:flex;gap:6px;margin-top:6px;">
+            <button class="small-btn ghost" id="btn-survey-import-file" style="flex:0 0 92px;font-size:12px;padding:6px 0;">选文件</button>
+            <button class="small-btn ghost" id="btn-survey-import" style="flex:1;font-size:12px;padding:6px 0;">识别并填入问卷</button>
+            <button class="small-btn ghost" id="btn-survey-import-clear" style="flex:0 0 52px;font-size:12px;padding:6px 0;">清空</button>
+          </div>
+          <div class="sq-opt-hint" style="margin-top:5px;">支持 .txt / .csv / .json；删除过的题不会重新导入。</div>
+          <input type="file" id="survey-import-file" accept=".txt,.csv,.json,text/plain,application/json" hidden>
         </div>
         <label style="display:flex;align-items:center;gap:8px;margin-top:12px;padding:2px 2px;">
           <input type="checkbox" id="survey-import-bank" style="width:17px;height:17px;flex:0 0 auto;">
@@ -5627,7 +5638,7 @@ setTimeout(function(){
     </ul>
 
     <h2>反馈与联系</h2>
-    <p>如有问题或建议，可通过以下方式联系：小红书 <b>@Eleven_</b>（ID：5609831119）。</p>
+    <p>如有问题或建议，请通过 QQ 联系：<b>@Zoez-07.26</b>（656356930）。</p>
 
     <h2>最后</h2>
     <p>感谢你使用 Eleven×11。创作的本意都是为爱发电，请尊重创作，尊重爱。</p>
@@ -6155,8 +6166,56 @@ setTimeout(function(){
     var set={};try{(st&&st[k]||[]).forEach(function(x){var id=__e11IdOf(x);if(id)set[id]=1;});}catch(_){}
     return set;
   }
+  /* 本机删除墓碑小键：删除动作同步写 localStorage，刷新/退出/云端旧档合并都先认它。
+     解决“删了东西，重开又被旧快照/自动备份补回来”的核心兜底。 */
+  window.__E11_DEL_KEY="e11.deleted.v1";
+  function __e11DelLocalRead(){
+    try{var o=JSON.parse(localStorage.getItem(window.__E11_DEL_KEY)||"{}");return (o&&typeof o==="object")?o:{};}catch(_){return {};}
+  }
+  function __e11DelLocalWrite(o){try{localStorage.setItem(window.__E11_DEL_KEY,JSON.stringify(o||{}));}catch(_){}}
+  window.__e11DelLocalRead=__e11DelLocalRead;
+  window.__e11MarkDeleted=function(kind,id){
+    try{
+      id=String(id);if(!kind||!id)return false;
+      var st=(typeof state!=="undefined"&&state)||{};
+      st.deletedIds=st.deletedIds||{};st.deletedIds[kind]=st.deletedIds[kind]||{};
+      var ts=Date.now();
+      if(!st.deletedIds[kind][id])st.deletedIds[kind][id]=ts;
+      var m=__e11DelLocalRead();m[kind]=m[kind]||{};
+      if(!m[kind][id])m[kind][id]=ts;
+      __e11DelLocalWrite(m);
+      try{window.__e11Dirty=1;}catch(_){}
+      return true;
+    }catch(_){return false;}
+  };
+  window.__e11DelLocalRestore=function(st){
+    try{
+      if(!st)return false;
+      var m=__e11DelLocalRead(),changed=false;
+      st.deletedIds=st.deletedIds||{};
+      Object.keys(m).forEach(function(k){
+        var ids=m[k]||{};st.deletedIds[k]=st.deletedIds[k]||{};
+        Object.keys(ids).forEach(function(id){
+          var ts=Number(ids[id])||Date.now();
+          if(!st.deletedIds[k][id]){st.deletedIds[k][id]=ts;changed=true;}
+        });
+      });
+      return changed;
+    }catch(_){return false;}
+  };
+  window.__e11DelMirrorState=function(st){
+    try{
+      if(!st||!st.deletedIds)return;
+      var m=__e11DelLocalRead(),changed=false;
+      Object.keys(st.deletedIds).forEach(function(k){
+        var ids=st.deletedIds[k]||{};m[k]=m[k]||{};
+        Object.keys(ids).forEach(function(id){if(!m[k][id]){m[k][id]=Number(ids[id])||Date.now();changed=true;}});
+      });
+      if(changed)__e11DelLocalWrite(m);
+    }catch(_){}
+  };
   function __e11MergeDeleted(a,b){
-    var out={};[a,b].forEach(function(src){try{Object.keys(src||{}).forEach(function(k){var ids=src[k]||{};out[k]=out[k]||{};Object.keys(ids).forEach(function(id){out[k][id]=Math.max(Number(out[k][id])||0,Number(ids[id])||Date.now());});});}catch(_){}});
+    var out={};[a,b,__e11DelLocalRead()].forEach(function(src){try{Object.keys(src||{}).forEach(function(k){var ids=src[k]||{};out[k]=out[k]||{};Object.keys(ids).forEach(function(id){out[k][id]=Math.max(Number(out[k][id])||0,Number(ids[id])||Date.now());});});}catch(_){}});
     return out;
   }
   /* v43-163：加载/跨作用域合并发生在另一个作用域，必须把墓碑工具挂到 window 才能调用。 */
@@ -6181,6 +6240,7 @@ setTimeout(function(){
         }
         known[k]=cur;
       });
+      try{window.__e11DelMirrorState(st);}catch(_eMirror){}
     }catch(_eTomb){}
   }
   window.__e11TombstoneScan=__e11TombstoneScan;
@@ -7911,10 +7971,16 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"2026-11-23",
+  date:"2026-11-24",
   noticeKey:null,
-  lead:"v43-183g：桌面“先大一下再缩小”的真正原因是揭幕太早。启动层在存档读完前就撤了，主页先按默认内容显示 1.0，数据渲染完才测量并缩到 0.7~0.9。现在启动层一直盖到存档加载、按真实内容量完最终比例后再撤；主页内容超出时改为纵向滚动，不再把整个桌面缩小。",
+  lead:"v43-183l：更新公告与反馈联系方式已调整；本版同时汇总 183k 的三项修复——删掉的数据不会再被旧档或云端备份复活；对方主页的头像、背景可以直接更换并保存；创建问卷时可以批量导入题目。背景、缩放布局和图片也改成同步落盘，刷新、退出、更新后不丢。",
   items:[
+    "删除防复活（v43-183k）：消息、字卡、分组、信件、留言、动态、红包、收藏、歌单、问卷删除时会同时写入本机删除墓碑，并立即落盘。刷新、退出、版本更新、合并云端旧档或自动备份后，都不会再把删掉的内容补回来。",
+    "问卷删除不复活（v43-183k）：批量导入和手动加入题库都会先检查删除墓碑，删过的题不会重新进入问卷或题库；只有你明确重新添加同一题才会解除。",
+    "对方主页头像（v43-183k）：对方主页的头像以前点选后只改了聊天头像，主页仍然读旧字段。现在主页头像单独写入 profile.partnerAvatar，刷新、退出后仍然保留。",
+    "对方主页背景（v43-183k）：对方主页的换背景按钮不再隐藏，选图后立即保存并落盘；资料编辑也恢复可用。",
+    "问卷批量导入（v43-183k）：创建问卷新增“批量导入问题”，可粘贴文本或选择 TXT/CSV/JSON；支持一行一题、用 | 分选项，CSV 表头写“题目,选项1,选项2”。自动去重、跳过已删题，最多 30 题。",
+    "背景与缩放落盘（v43-183j）：卡片、主页、留言、信件、画画、动态、情侣、一起听、歌词、通话、封面等图片键全部纳入存档白名单；背景按路径同步备份，空值写墓碑，旧图不会复活。缩放、位置和照片框尺寸在调整后立即强制写盘。",
     "桌面缩放修复（v43-183g）：启动揭幕延后到存档读完和最终测量之后，第一眼就是最终尺寸；旧版本留下的 0.7/0.8 缩放缓存不再直接套用，按当前内容重新量一次。",
     "桌面不再整体缩小（v43-183g）：内容超出屏幕时改成主页纵向滚动，并为底部 Dock 留出空间，不再把第一页/第二页缩成小号；只有轻微溢出才做不超过 6% 的等比微调。",
     "PWA 电量栏透明：manifest 与 theme-color 全程 #00000000；顶部安全区背景透明，不再按明暗写白/黑兜底。",
@@ -7954,7 +8020,7 @@ var ANNOUNCE={
     "清理假提示：对方没有动态时不再保留「发了一条新动态」的灰字；历史里只有提示、没有文字/图片/转发/评论的空白动态会自动清掉。",
     "设置、美化、聊天记录仍保存在本机 IndexedDB；更新只清运行时缓存，不动聊天、字卡、头像和图片。",
   ],
-  foot:"有问题或建议：小红书 @Eleven_（ID：5609831119）。"
+  foot:"有问题或建议：QQ @Zoez-07.26（656356930）。"
 };
 /* ===== 版本号自动 = 文件最后修改时间 =====
    以后只要换了 index.html（哪怕只改一个字），版本号自己就变：
@@ -9197,7 +9263,7 @@ function __slimState(root){
      这些图现在都已压到 320/720px，单张不大，内联比悬空引用可靠。 */
   /* v43-39：聊天背景和桌面背景也保持内联。以前它们被换成 bigref，
      启动时如果本机大图没读回来，历史图片修复就会把旧背景补回来，看起来就是“一打开又变回以前那张”。 */
-  var __KEEP_INLINE=function(k){return /^(avatar|meAvatar|cpMeAvatar|cpPartnerAvatar|cpPhotoAvatar|mpAv1|mpAv2|cpPhoto|cpPhotoCard|cpPhotoSub|cpRecord|cover|bgImage|meImage|meTopImage|gbImage|ltImage|gameImage|momImage|coupleImage|musicBgImg|musicDiscBgImg|musicDiscInnerImg|musicCoverImg|musicLyricBgImg|callBgImg|img)$/i.test(String(k||""));};
+  var __KEEP_INLINE=function(k){return /^(avatar|meAvatar|cpMeAvatar|cpPartnerAvatar|cpPhotoAvatar|mpAv1|mpAv2|cpPhoto|cpPhotoCard|cpPhotoSub|cpRecord|cover|partnerCover|bgImage|meImage|meTopImage|gbImage|ltImage|gameImage|momImage|coupleImage|musicBgImg|musicDiscBgImg|musicDiscInnerImg|musicCoverImg|musicLyricBgImg|callBgImg|img)$/i.test(String(k||""));};
   function walk(v,key){
     try{
       if(v&&typeof v==="object"&&Array.isArray(v)&&root&&root.me&&root.me.photos===v)return v.slice();
@@ -9624,6 +9690,7 @@ function __flushSave(immediate){
     window.__e11FullWriteAt=_fnow;
   }catch(_){}
   try{state.__savedAt=Date.now();}catch(e){}  /* 给这份存档打时间戳，启动时用来判断哪份更新 */
+  try{if(window.__e11DelMirrorState)window.__e11DelMirrorState(state);}catch(_eDelMir){}
   trimSocial();try{_emojiBackup();}catch(e){}
   var _pack=null,_slim=null,_sig=null;
   if(db){
@@ -11081,6 +11148,8 @@ async function init(){
         /* 头像、照片仍按下面的专门逻辑补；背景保持各自快照原样，不互相覆盖 */
       }catch(_eSkinPhoto){}
       state=migrate(s);
+      /* v43-183k：本机删除墓碑先并进最终 state，再清一次；刷新/退出/旧档合并都不会复活已删内容。 */
+      try{if(window.__e11DelLocalRestore)window.__e11DelLocalRestore(state);}catch(_eDelLocal){}
       /* v43-163：合并/迁移后最后再按墓碑清一次，防止默认分组 g1 这类内置内容被旧档补回来。 */
       try{__e11ApplyDeleted(state,["cards","groups"]);}catch(_eLoadDel){}
       /* v43-166：先补齐模板数组，再按模板墓碑过滤；否则旧档没有 letterTpl 时，
@@ -11614,7 +11683,8 @@ window.__E11_BG_PATHS=[
   ["skin","bgImage"],["skin","meImage"],["skin","meTopImage"],["skin","gbImage"],["skin","ltImage"],
   ["skin","gameImage"],["skin","momImage"],["skin","coupleImage"],
   ["musicBgImg"],["musicDiscBgImg"],["musicDiscInnerImg"],["musicCoverImg"],["musicLyricBgImg"],["callBgImg"],
-  ["settings","paperBg","img"],["settings","envBg","img"],["settings","myPaperBg","img"],["settings","myEnvBg","img"]
+  ["settings","paperBg","img"],["settings","envBg","img"],["settings","myPaperBg","img"],["settings","myEnvBg","img"],
+  ["profile","partnerCover"]
 ];
 window.__E11_BG_KEY=function(path){return "e11.bg.v2."+path.join("_");};
 window.__E11_BG_TS=function(path){return "e11.bg.v2.ts."+path.join("_");};
@@ -12267,7 +12337,8 @@ var __E11_BEAUTY_PATHS=[
   ["profile","meAvatar"],["profile","cpMeAvatar"],["profile","cpPartnerAvatar"],["profile","cpPhotoAvatar"],["profile","cpPhoto"],["profile","cpPhotoCard"],["profile","cpPhotoSub"],["profile","cpRecord"],["profile","mpAv1"],["profile","mpAv2"],["profile","cover"],
   ["me","avatar"],["partner","avatar"],["me","photos.0"],["partner","photos.0"],
   ["musicBgImg"],["musicCoverImg"],["musicDiscBgImg"],["musicDiscInnerImg"],["musicLyricBgImg"],["callBgImg"],
-  ["skin","coupleImage"],["settings","paperBg","img"],["settings","envBg","img"],["settings","myPaperBg","img"],["settings","myEnvBg","img"]
+  ["skin","coupleImage"],["settings","paperBg","img"],["settings","envBg","img"],["settings","myPaperBg","img"],["settings","myEnvBg","img"],
+  ["profile","partnerCover"]
 ];
 function __e11BPGet(o,path){
   var cur=o;
@@ -14200,6 +14271,7 @@ function openSurveyCreate(){
   /* 不再强制要求先有字卡：单选/多选直接手填选项，自定义题由对方自由作答 */
   surveyDraft=[{text:"",kind:"single",options:["",""]}];
   $("survey-title").value="";
+  try{if($("survey-import-wrap"))$("survey-import-wrap").style.display="none";if($("survey-import-text"))$("survey-import-text").value="";}catch(_eSI){}
   renderSurveyBuilder();renderQuizBankList();renderBankOpts();
   try{
     var _hasCards=cardPool().length>0;
@@ -14216,6 +14288,52 @@ function openSurveyCreate(){
 }
 $("plus-survey").addEventListener("click",()=>{closePlus();openSurveyCreate();});
 $("btn-survey-addq").addEventListener("click",()=>{surveyDraft.push({text:"",kind:"single",options:["",""]});renderSurveyBuilder();});
+/* 问卷本身也支持批量导入：复用题库解析器，但写入 surveyDraft，不碰题库。 */
+function __surveyImportText(txt){
+  var list=parseQuizText(txt||"");
+  if(!list.length){toast("没识别到题目，请检查格式");return 0;}
+  var existing={};
+  surveyDraft.forEach(function(q){var k=quizKey(q&&q.text);if(k)existing[k]=1;});
+  if(surveyDraft.length===1&&!(surveyDraft[0].text||"").trim())surveyDraft=[];
+  var added=0,skippedDeleted=0;
+  for(var i=0;i<list.length;i++){
+    var it=list[i];if(!it||!it.text)continue;
+    var k2=quizKey(it.text);
+    if(!k2||existing[k2])continue;
+    if(quizIsDeleted(it.text)){skippedDeleted++;continue;}
+    if(surveyDraft.length>=30){toast("一次最多 30 题");break;}
+    surveyDraft.push({text:it.text,kind:it.kind||"custom",options:(it.options||[]).slice(),customCount:1});
+    existing[k2]=1;added++;
+  }
+  renderSurveyBuilder();
+  if(added)toast("已填入 "+added+" 题");
+  else if(skippedDeleted)toast("这些题删除过，不再导入");
+  else toast("这些题已经在问卷里了");
+  return added;
+}
+$("btn-survey-import-toggle").addEventListener("click",function(){
+  var w=$("survey-import-wrap");if(!w)return;
+  var show=w.style.display==="none";
+  w.style.display=show?"block":"none";
+  if(show)setTimeout(function(){try{$("survey-import-text").focus();}catch(_){}},120);
+});
+$("btn-survey-import").addEventListener("click",function(){
+  var txt=($("survey-import-text")&&$("survey-import-text").value||"").trim();
+  if(!txt){toast("请先粘贴题目");return;}
+  if(__surveyImportText(txt)){try{$("survey-import-text").value="";}catch(_){}}
+});
+$("btn-survey-import-clear").addEventListener("click",function(){try{$("survey-import-text").value="";$("survey-import-text").focus();}catch(_){}});
+$("btn-survey-import-file").addEventListener("click",function(){try{$("survey-import-file").click();}catch(_){}});
+$("survey-import-file").addEventListener("change",function(e){
+  var f=e.target.files&&e.target.files[0];if(!f)return;
+  var rd=new FileReader();
+  rd.onload=function(){
+    var txt=String(rd.result||"");
+    try{$("survey-import-text").value=txt;}catch(_){}
+    __surveyImportText(txt);
+  };
+  rd.readAsText(f);e.target.value="";
+});
 $("survey-create-cancel").addEventListener("click",()=>$("survey-create-overlay").classList.remove("show"));
 $("survey-create-x").addEventListener("click",()=>$("survey-create-overlay").classList.remove("show"));
 $("survey-create-send").addEventListener("click",()=>{
@@ -14469,7 +14587,25 @@ function __quizPush(list,q){
   if(kind!=="custom"&&opts.length<2)kind="custom";
   list.push({text:text,kind:kind,options:kind==="custom"?[]:opts.slice(0,8)});
 }
-function importQuizBankFromText(txt){
+function __quizCsvToPipe(txt){
+  var src=String(txt||"");
+  if(!src||src.indexOf("|")>=0)return src;
+  var lines=src.split(/\r?\n/).filter(function(x){return x.trim();});
+  if(lines.length<2||!/题目|问题|question/i.test(lines[0]))return src;
+  function split(line){
+    var out=[],cur="",q=false;
+    for(var i=0;i<line.length;i++){
+      var ch=line.charAt(i);
+      if(ch==='"'){if(q&&line.charAt(i+1)==='"'){cur+='"';i++;}else q=!q;}
+      else if(ch===","&&!q){out.push(cur);cur="";}
+      else cur+=ch;
+    }
+    out.push(cur);return out;
+  }
+  return lines.slice(1).map(function(l){return split(l).map(function(x){return x.trim();}).join("|");}).join("\n");
+}
+function parseQuizText(txt){
+  txt=__quizCsvToPipe(txt);
   txt=String(txt==null?"":txt).replace(/\uFF5C/g,"|").replace(/｜/g,"|").replace(/\t/g,"|");
   var list=[];var q=null;
   /* 也接受 JSON：适合从表格/脚本一次贴进来 */
@@ -14488,7 +14624,7 @@ function importQuizBankFromText(txt){
     }catch(_eJson){}
   }
   if(list.length){
-    return __quizCommitImport(list);
+    return list;
   }
   var lines=txt.split(/\r?\n/).map(function(x){return x.trim();}).filter(Boolean);
   var isBullet=function(l){return /^[-•*·◆▶○]/.test(l);};
@@ -14530,19 +14666,22 @@ function importQuizBankFromText(txt){
     q={text:__quizCleanText(l),kind:isCustom?"custom":(/多选|multi/i.test(l)?"multi":"single"),options:[]};
   }
   __quizPush(list,q);
-  return __quizCommitImport(list);
+  return list;
 }
 function __quizCommitImport(list){
   var added=0;
   for(var i=0;i<list.length;i++){
     var it=list[i];if(!it||!it.text)continue;
+    /* 删过的题不再从批量导入/历史导入复活；要恢复请手动“加入题库”，那会明确解除墓碑。 */
+    if(quizIsDeleted(it.text))continue;
     var key=quizKey(it.text);
     if(state.quizBank.some(function(b){return quizKey(b.text)===key;}))continue;
     state.quizBank.push({id:uid(),text:it.text,kind:it.kind,options:(it.options||[]).slice(0,8)});
-    unmarkQuizDeleted(it.text);added++;
+    added++;
   }
   return added;
 }
+function importQuizBankFromText(txt){return __quizCommitImport(parseQuizText(txt));}
 $("btn-bank-import").addEventListener("click",()=>{
   const txt=$("bank-import").value.trim();if(!txt){toast("请先粘贴内容");return;}
   const added=importQuizBankFromText(txt);
@@ -16568,6 +16707,7 @@ $("act-stt").addEventListener("click",()=>{
 function recallMsg(id,kind){
   if(kind==="rp"){
     const r=state.redpackets.find(x=>x.id===id);if(!r)return;
+    try{window.__e11MarkDeleted("redpackets",id);}catch(_eRpDel){}
     state.redpackets=state.redpackets.filter(x=>x.id!==id);
     try{var _rr=document.querySelector('#msglist [data-rp="'+id+'"]');if(_rr&&_rr.parentNode)_rr.parentNode.removeChild(_rr);}catch(e){}
     var _sysr=pushMsg("me","sys","你撤回了一个红包");try{__appendChatMsg(_sysr);}catch(e){renderChat();}
@@ -16590,7 +16730,7 @@ $("act-del").addEventListener("click",()=>{
   if(!actMsgId||actKind==="rp"){closeActions();return;}
   var _delId=actMsgId;             /* closeActions() 会把 actMsgId 清空，先记下来 */
   const i=state.messages.findIndex(m=>m.id===_delId);
-  if(i>-1){markSurveyMessageDeleted(state.messages[i]);state.messages.splice(i,1);}
+  if(i>-1){markSurveyMessageDeleted(state.messages[i]);try{window.__e11MarkDeleted("messages",_delId);}catch(_eDelTomb){}state.messages.splice(i,1);}
   if(quoteTarget===_delId)clearQuote();
   closeActions();
   /* 删掉这一行即可，不整屏重绘 */
@@ -16598,7 +16738,8 @@ $("act-del").addEventListener("click",()=>{
   try{var _dr=document.querySelector('#msglist [data-id="'+_delId+'"]');if(_dr&&_dr.parentNode){_dr.parentNode.removeChild(_dr);_removed=true;}}catch(e){}
   if(!_removed)renderChat();
   try{_chatSig=_chatSigNow();}catch(e){}
-  save();toast("消息已删除");
+  try{window.__e11ForceUntil=Date.now()+2200;}catch(_e){}
+  save();try{__flushSave(true);}catch(_eDelFlush){}toast("消息已删除");
 });
 $("overlay").addEventListener("click",e=>{if(e.target.id==="overlay")closeActions();});
 
@@ -16669,12 +16810,13 @@ try{window.__msgSelEnter=__msgSelEnter;window.__msgSelExit=__msgSelExit;}catch(e
     var n=__msgSelIds.length;if(!n)return;
     if(!(await __iosConfirm("删除选中的 "+n+" 条消息？此操作不可撤销。")))return;
     var ids=__msgSelIds.slice();
-    try{state.messages.forEach(function(m){if(m&&ids.indexOf(m.id)>=0)markSurveyMessageDeleted(m);});}catch(_eMsd){}
+    try{state.messages.forEach(function(m){if(m&&ids.indexOf(m.id)>=0){markSurveyMessageDeleted(m);try{window.__e11MarkDeleted("messages",m.id);}catch(_){} }});}catch(_eMsd){}
     state.messages=state.messages.filter(function(m){return ids.indexOf(m.id)<0;});
     state.redpackets=(state.redpackets||[]).filter(function(r){return ids.indexOf(r.id)<0;});
     try{state.messages.forEach(function(x){if(x&&ids.indexOf(x.quoteId)>=0)x.quoteId=null;});}catch(e){}
     try{clearQuote&&clearQuote();}catch(e){}
-    save();__msgSelExit();try{renderChat(true);}catch(e){}
+    try{window.__e11ForceUntil=Date.now()+2200;}catch(_e){}
+    save();try{__flushSave(true);}catch(_eDelFlush2){}__msgSelExit();try{renderChat(true);}catch(e){}
     toast("已删除 "+n+" 条消息");
   });
 })();
@@ -18773,6 +18915,7 @@ function markCardDeletedId(id){
     if(id===undefined||id===null||!String(id))return;
     state.deletedIds=state.deletedIds||{};state.deletedIds.cards=state.deletedIds.cards||{};
     if(!state.deletedIds.cards[String(id)])state.deletedIds.cards[String(id)]=Date.now();
+    try{window.__e11MarkDeleted("cards",id);}catch(_eCardTomb){}
   }catch(_eMarkC){}
 }
 function markGroupDeletedId(id){
@@ -18780,6 +18923,7 @@ function markGroupDeletedId(id){
     if(id===undefined||id===null||!String(id))return;
     state.deletedIds=state.deletedIds||{};state.deletedIds.groups=state.deletedIds.groups||{};
     if(!state.deletedIds.groups[String(id)])state.deletedIds.groups[String(id)]=Date.now();
+    try{window.__e11MarkDeleted("groups",id);}catch(_eGroupTomb){}
   }catch(_eMarkG){}
 }
 
@@ -20578,8 +20722,8 @@ window.__applyChatSizes=applyChatSizes;
   setTimeout(bind,300);setTimeout(bind,1500);
 })();
 /* ===== 头像（相册导入）===== */
-$("avatar-me").addEventListener("click",()=>{$("file-avatar").dataset.who="me";window.__nativePick("file-avatar");});
-$("avatar-partner").addEventListener("click",()=>{$("file-avatar").dataset.who="partner";window.__nativePick("file-avatar");});
+$("avatar-me").addEventListener("click",()=>{$("file-avatar").dataset.who="me";$("file-avatar").dataset.surface="chat";window.__nativePick("file-avatar");});
+$("avatar-partner").addEventListener("click",()=>{$("file-avatar").dataset.who="partner";$("file-avatar").dataset.surface="chat";window.__nativePick("file-avatar");});
 /* 头像整行都可点：以前只有左边那张小图能点，点文字“点击更换我的头像”完全没反应 */
 (function(){
   [["avatar-me","me"],["avatar-partner","partner"]].forEach(function(pair){
@@ -20589,6 +20733,7 @@ $("avatar-partner").addEventListener("click",()=>{$("file-avatar").dataset.who="
     row.addEventListener("click",function(e){
       if(e.target===img)return; /* 图片自己的监听已经处理 */
       $("file-avatar").dataset.who=pair[1];
+      $("file-avatar").dataset.surface="chat";
       window.__nativePick("file-avatar");
     });
   });
@@ -20597,14 +20742,18 @@ $("file-avatar").addEventListener("change",e=>{
   const f=e.target.files[0];if(!f)return;
   const r=new FileReader();
   r.onload=()=>{
-    var _who=$("file-avatar").dataset.who,_raw=String(r.result||"");
+    var _who=$("file-avatar").dataset.who,_surface=$("file-avatar").dataset.surface||"chat",_raw=String(r.result||"");
     toast("正在处理头像…");
     /* 先压到 320px 再写 state；不要先把几 MB 原图存进去再压一次 */
     __avatarShrink(_raw).then(function(c){
       var _v=c||_raw;
-      __setAvatar(_who,_v,"chat");
+      __setAvatar(_who,_v,_surface);
       try{__mediaVaultPut("avatar:"+_who,_v);}catch(_){}
-      save();try{__avatarBakSync();}catch(_){}try{__flushSave(true);}catch(_){}bindSetting();renderTopStatus();renderChat(true);try{renderMoments();}catch(_){}toast("聊天头像已更新");
+      save();try{__avatarBakSync();}catch(_){}try{__flushSave(true);}catch(_){}
+      try{bindSetting();}catch(_){}try{renderTopStatus();}catch(_){}try{renderChat(true);}catch(_){}
+      try{renderMoments();renderMomentProfile();}catch(_){}
+      try{window.__e11PersistNow&&window.__e11PersistNow();}catch(_){}
+      toast(_surface==="home"?"主页头像已更新":"聊天头像已更新");
     }).catch(function(){toast("头像处理失败，请重试");});
   };
   r.readAsDataURL(f);e.target.value="";
@@ -21395,7 +21544,7 @@ $("btn-clear-msgs").addEventListener("click",async()=>{
   try{
     state.deletedIds=state.deletedIds||{};state.deletedIds.messages=state.deletedIds.messages||{};
     (state.messages||[]).forEach(function(m){
-      if(m&&m.id)state.deletedIds.messages[String(m.id)]=Date.now();
+      if(m&&m.id)try{window.__e11MarkDeleted("messages",m.id);}catch(_){}
       /* v43-158：清空全部聊天也等于删掉所有问卷，先把题干记进删除表并从历史存档摘掉，
          否则「从我问过的题目」还能把刚清掉的问卷题导回来。 */
       try{markSurveyMessageDeleted(m);}catch(_eClearQ){}
@@ -21404,7 +21553,8 @@ $("btn-clear-msgs").addEventListener("click",async()=>{
   }catch(_eClearTomb){}
   state.messages=[];state.redpackets=[];newR=0;updateNewBadge();
   try{window.__e11KnownIds=null;}catch(_){}
-  save();renderChat();renderRedpackets();toast("聊天记录已清空");
+  try{window.__e11ForceUntil=Date.now()+2600;}catch(_e){}
+  save();try{__flushSave(true);}catch(_eClearFlush){}renderChat();renderRedpackets();toast("聊天记录已清空");
 });
 $("btn-reset-all").addEventListener("click",async()=>{
   if(!(await __iosConfirm("一键重置：只清空这台设备上的聊天、动态、留言、信件、字卡、表情、问卷和设置，并恢复默认。云端存档不会清空，之后可在设置里点「恢复云端」拉回来。确认重置本机？",{okText:"重置本机"})))return;
@@ -22980,7 +23130,7 @@ function renderMusicList(){
       var _im=li.querySelector(".ml-cover img");
       if(_im)_missingCovers.push({sg:s,im:_im});
     }
-    li.querySelector(".ml-del").onclick=(e)=>{e.stopPropagation();state.musicPlaylist.splice(i,1);if(state.musicCur===i){au.pause();state.musicCur=-1;}else if(state.musicCur>i)state.musicCur--;save();try{__flushSave(true);}catch(_){}try{window.__E11Cloud&&window.__E11Cloud.flush&&window.__E11Cloud.flush();}catch(_){}renderMusicList();};
+    li.querySelector(".ml-del").onclick=(e)=>{e.stopPropagation();try{var _mp=state.musicPlaylist[i];if(_mp&&_mp.id)window.__e11MarkDeleted("musicPlaylist",_mp.id);}catch(_eMpDel){};state.musicPlaylist.splice(i,1);if(state.musicCur===i){au.pause();state.musicCur=-1;}else if(state.musicCur>i)state.musicCur--;save();try{__flushSave(true);}catch(_){}try{window.__E11Cloud&&window.__E11Cloud.flush&&window.__E11Cloud.flush();}catch(_){}renderMusicList();};
     li.onclick=()=>playMusic(i);
     _frag.appendChild(li);
   });
@@ -25949,6 +26099,7 @@ $("fav-list")&&$("fav-list").addEventListener("click",function(e){
   if(del){
     e.preventDefault();e.stopPropagation();
     var id=del.dataset.favDel;
+    try{window.__e11MarkDeleted("favorites",id);}catch(_eFavDel){}
     state.favorites=(state.favorites||[]).filter(function(f){return !f||f.id!==id;});
     try{save();__flushSave(true);}catch(_){}
     __renderFavSheet();
@@ -26021,8 +26172,9 @@ $("btn-moments-back").addEventListener("click",function(){
   showView("view-chat");
 });
 $("mp-avatar").addEventListener("click",function(){
-  /* 顶部的头像：永远是“更换头像”（当前显示谁的就换谁的） */
+  /* 主页头像单独走 home 字段；以前这里仍写聊天头像，所以对方主页怎么点都不变。 */
   $("file-avatar").dataset.who=(mpSide==="partner"?"partner":"me");
+  $("file-avatar").dataset.surface="home";
   window.__nativePick("file-avatar");
 });
 try{
@@ -26285,9 +26437,11 @@ function renderLetters(force){
       if(b.__ltDelB)return;b.__ltDelB=1;
       b.addEventListener("click",async()=>{
         if(!(await __iosConfirm("删除这封信？")))return;
+        try{window.__e11MarkDeleted("letters",b.dataset.ldel);}catch(_eLDel){}
         state.letters=state.letters.filter(x=>x.id!==b.dataset.ldel);
         try{if(window.__pruneSocialNotices&&window.__pruneSocialNotices()){window.__chatDirty=1;}}catch(e){}
-        save();renderLetters();updateNewBadge();toast("信已删除");
+        try{window.__e11ForceUntil=Date.now()+2000;}catch(_){}
+        save();try{__flushSave(true);}catch(_){}renderLetters();updateNewBadge();toast("信已删除");
       });
     });
     root.querySelectorAll(".lt-reply-send").forEach(b=>{
@@ -27422,9 +27576,11 @@ function renderGuestbook(force){
           }
         }catch(_){}
         if(!(await __iosConfirm("删除这条留言？")))return;
+        try{ids.forEach(function(id){window.__e11MarkDeleted("guestbook",id);});}catch(_eGDel){}
         state.guestbook=state.guestbook.filter(x=>!ids.includes(x.id));
         try{if(window.__pruneSocialNotices&&window.__pruneSocialNotices()){window.__chatDirty=1;}}catch(e){}
-        save();renderGuestbook();toast("留言已删除");
+        try{window.__e11ForceUntil=Date.now()+2000;}catch(_){}
+        save();try{__flushSave(true);}catch(_){}renderGuestbook();toast("留言已删除");
       });
     });
     root.querySelectorAll("[data-adelonly]").forEach(b=>{
@@ -27432,9 +27588,11 @@ function renderGuestbook(force){
       b.addEventListener("click",async e=>{
         e.stopPropagation();
         if(!(await __iosConfirm("删除你的这条回复？")))return;
+        try{window.__e11MarkDeleted("guestbook",b.dataset.adelonly);}catch(_eGDel2){}
         state.guestbook=state.guestbook.filter(x=>x.id!==b.dataset.adelonly);
         try{if(window.__pruneSocialNotices&&window.__pruneSocialNotices()){window.__chatDirty=1;}}catch(e){}
-        save();renderGuestbook();toast("已删除我的回复");
+        try{window.__e11ForceUntil=Date.now()+2000;}catch(_){}
+        save();try{__flushSave(true);}catch(_){}renderGuestbook();toast("已删除我的回复");
       });
     });
     root.querySelectorAll("[data-gbreply]").forEach(card=>{
@@ -27760,8 +27918,10 @@ function renderMomentProfile(){
   if($("mom-view-title"))$("mom-view-title").textContent=isP?"对方主页":"主页";
 
   if($("btn-moment-post"))$("btn-moment-post").style.display=isP?"none":"";
-  if($("btn-mp-cover"))$("btn-mp-cover").style.visibility=isP?"hidden":"";
-  if($("btn-mp-bio"))$("btn-mp-bio").style.visibility=isP?"hidden":"";
+  /* 对方主页也要能换封面/头像/资料：以前把这两个按钮对 partner 隐藏，用户点封面
+     只能弹系统文件框，且头像走的是聊天头像字段，主页看起来完全没变。 */
+  if($("btn-mp-cover")){$("btn-mp-cover").style.visibility="";$("btn-mp-cover").textContent=isP?"换背景":"换背景";}
+  if($("btn-mp-bio"))$("btn-mp-bio").style.visibility="";
 }
 function authorName(f){return f==="me"?(state.profile.mpName||state.me.name):(state.profile.partnerMpName||state.partner.name);}
 function authorAvatar(f){return f==="me"?state.me.avatar:state.partner.avatar;}
@@ -28302,9 +28462,11 @@ function bindMomentFeed(){
       save();if(!__refreshMomentCard(m1.id))renderMoments();toast(i1>-1?"已取消点赞":"已点赞");return;}
     var db=t.closest("[data-mdel]");
     if(db){e.stopPropagation();if(!(await __iosConfirm("删除这条动态？")))return;
+      try{window.__e11MarkDeleted("moments",db.dataset.mdel);}catch(_eMDel){}
       state.moments=state.moments.filter(function(x){return x.id!==db.dataset.mdel;});
       try{if(window.__pruneSocialNotices&&window.__pruneSocialNotices()){window.__chatDirty=1;}}catch(e){}
-      save();renderMoments();toast("动态已删除");return;}
+      try{window.__e11ForceUntil=Date.now()+2000;}catch(_){}
+      save();try{__flushSave(true);}catch(_){}renderMoments();toast("动态已删除");return;}
     var cb=t.closest("[data-cm]");
     if(cb){var card0=cardOf(cb);var ci0=card0?card0.querySelector('[data-ci="'+cb.dataset.cm+'"]'):null;
       if(ci0){ci0.classList.toggle("hidden");if(!ci0.classList.contains("hidden")){var inp0=ci0.querySelector("input");if(inp0)setTimeout(function(){inp0.focus();},80);}}return;}
@@ -28516,8 +28678,8 @@ $("file-partner-cover").addEventListener("change",function(e){
   const r=new FileReader();
   r.onload=function(){
     if(!state.profile)state.profile={};
-    var _raw=String(r.result||"");state.profile.partnerCover=_raw;save();renderMomentProfile();toast("对方封面已更新");
-    try{__shrinkImg(_raw,1000,0.8).then(function(c){if(!c||c===_raw||state.profile.partnerCover!==_raw)return;state.profile.partnerCover=c;save();renderMomentProfile();});}catch(_){}
+    var _raw=String(r.result||"");state.profile.partnerCover=_raw;try{if(window.__e11BgLocalSync)window.__e11BgLocalSync();}catch(_){}save();__flushSave(true);renderMomentProfile();toast("对方封面已更新");
+    try{__shrinkImg(_raw,1000,0.8).then(function(c){if(!c||c===_raw||state.profile.partnerCover!==_raw)return;state.profile.partnerCover=c;try{if(window.__e11BgLocalSync)window.__e11BgLocalSync();}catch(_){}save();__flushSave(true);try{window.__e11PersistNow&&window.__e11PersistNow();}catch(_){}renderMomentProfile();});}catch(_){}
   };
   r.readAsDataURL(f);e.target.value="";
 });
