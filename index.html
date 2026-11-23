@@ -226,7 +226,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-23v43-174";
+window.__E11_BUILD="2026-11-23v43-175";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2603,7 +2603,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-23v43-174">
+<meta name="app-build" content="2026-11-23v43-175">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4350,7 +4350,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-174</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-23v43-175</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -6819,9 +6819,8 @@ setTimeout(function(){
       try{__e11TombstoneScan(true);}catch(_eKnown){}
       /* 文字档一到就并行补头像/照片/表情/封面，不再等进页面 700ms 之后。 */
       try{setTimeout(function(){window.__e11TryMediaRepair&&window.__e11TryMediaRepair();},250);}catch(_eMediaSoon){}
-      /* 云端恢复完成后马上预热当前歌单：以前预热只跑在启动 2.6 秒，云端 5MB 还没回来，
-         列表是空的，所以每次点歌都要重新等接口，听起来就是“播放慢”。 */
-      try{var _plr=(window.state&&window.state.musicPlaylist)||[];if(_plr.length&&typeof prefetchSongUrls==="function")setTimeout(function(){prefetchSongUrls(_plr.length);},900);}catch(_eWarmMusic){}
+      /* 音乐链接不再在启动/云端恢复后预热：没进音乐页时属于纯浪费流量。
+         进入音乐页时会在那里按需预热当前几首。 */
       /* 云端旧快照里如果是 bigref，本机库把图补齐后主动回传一次，
          让另一台设备（电脑网页）也能拿到真实头像/照片/表情，而不是一串引用编号。
          如果本机也没图，putVault 的关键图保护会拒绝覆盖，不会把云端弄坏。 */
@@ -7874,7 +7873,7 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-23",
   noticeKey:null,
-  lead:"v43-174：把 iPhone 主屏幕的黑色透明状态栏写进静态 head，不再等 JS 运行后再加。删除旧的主屏幕图标、重新添加后，时间/电量会直接压在壁纸上；APK 端也保持透明。",
+  lead:"v43-175：修掉启动时重复的版本/后端请求，版本检查从 15 秒一次改为 5 分钟一次；MiniMax 自动区域会跨国内/海外重试，Voice ID 失效时改用默认音色，不再整条语音报错。",
   items:[
     "PWA 电量栏透明：manifest 与 theme-color 全程 #00000000；顶部安全区背景透明，不再按明暗写白/黑兜底。",
     "iOS 主屏幕：状态栏固定为 black-translucent，时间/电量图标直接压在壁纸上，背景图从最顶端铺下来；没有壁纸时顶部用黑底兜底，保证白色图标看得清。",
@@ -19590,19 +19589,33 @@ $("set-diary-cards").addEventListener("change",e=>{state.settings.diaryCards=Mat
       if(s2&&/已登录|登录成功/.test(s2.textContent)){/* 状态由轮询刷新 */}
     },300);
   });
-  /* 打开时刷新一次登录态显示 */
-  setTimeout(function(){
+  /* 设置页里的网易云登录态改为按需刷新：只有设置页真正打开时才查一次。
+     以前页面一启动就查，明明停在聊天页也白打一次 session 请求。 */
+  var _nyFetching=0;
+  function refresh(){
+    if(_nyFetching)return;
     try{
       if(typeof backendAddr!=="function")return;
       backendAddr(function(base){
         if(!base||!st)return;
+        _nyFetching=1;
         fetch(base+"/api/netease/session",{method:"POST",mode:"cors",headers:{"Content-Type":"application/json","x-wns-client":"1"},body:"{}"})
           .then(function(r){return r.json();}).then(function(d){
             paint(d&&d.loggedIn?d.profile:null);
-          }).catch(function(){});
+          }).catch(function(){}).then(function(){_nyFetching=0;});
       });
-    }catch(e){}
-  },1200);
+    }catch(e){_nyFetching=0;}
+  }
+  window.__nyRefreshState=refresh;
+  try{
+    var _vs=document.getElementById("view-settings");
+    if(_vs){
+      if(_vs.classList.contains("open"))setTimeout(refresh,0);
+      if(window.MutationObserver)new MutationObserver(function(){
+        if(_vs.classList.contains("open"))refresh();
+      }).observe(_vs,{attributes:true,attributeFilter:["class"]});
+    }
+  }catch(_eNyObs){}
   window.__nySetPaint=paint;
 })();
 $("set-music-invite").addEventListener("change",e=>{state.settings.socialProbMusic=Math.min(100,Math.max(0,Number(e.target.value)||0));e.target.value=state.settings.socialProbMusic;save();toast("对方邀请一起听歌概率已设为 "+state.settings.socialProbMusic+"%");});
@@ -22744,29 +22757,6 @@ function songSrcOf(song){
     return song.url||"";
   }catch(e){return (song&&song.url)||"";}
 }
-var __backendProbe=0,__probeP=null; /* 0=未探测 1=是同源后端 -1=不是 */
-var __probeFailAt=0;
-function probeSameOriginBackend(){
-  /* 已知可用：1；纯本地文件：-1；还没试过或上次失败：0（可重试） */
-  if(__backendProbe===1)return Promise.resolve();
-  if(__backendProbe===-1)return Promise.resolve();
-  if(!/^https?:$/.test(location.protocol)){__backendProbe=-1;return Promise.resolve();}
-  if(__probeP)return __probeP;
-  if(__probeFailAt&&Date.now()-__probeFailAt<4000)return Promise.resolve();  /* 失败后 4 秒内不重复打 */
-  var ctl=null,to=null;
-  try{ctl=new AbortController();to=setTimeout(function(){try{ctl.abort();}catch(e){}},8000);}catch(e){}
-  __probeP=fetch(location.origin+"/api/netease/session",{method:"POST",mode:"cors",headers:{"Content-Type":"application/json","x-wns-client":"1"},body:"{}",signal:ctl?ctl.signal:undefined})
-    .then(function(r){
-      if(to)clearTimeout(to);
-      if(!r.ok){__backendProbe=0;__probeFailAt=Date.now();__probeP=null;return;}
-      return r.json().then(function(d){
-        if(d&&typeof d.code!=="undefined"){__backendProbe=1;__probeFailAt=0;}
-        else{__backendProbe=0;__probeFailAt=Date.now();__probeP=null;}
-      });
-    })
-    .catch(function(){if(to)clearTimeout(to);__backendProbe=0;__probeFailAt=Date.now();__probeP=null;});
-  return __probeP;
-}
 /* 后端地址：优先用户填的；没填就看当前网站自己是否就是后端 */
 var __BACKEND_FIXED="https://elevenx11-production.up.railway.app";  /* 页面托管在 GitHub Pages 等纯静态站时，后端仍在这里 */
 function backendAddr(cb){
@@ -22801,10 +22791,8 @@ function backendSongUrl(id){
     });
   });
 }
-/* 开机后顺手探一下：当前网站是不是自带后端 */
-setTimeout(function(){try{probeSameOriginBackend();}catch(e){}},800);
-/* 开机就预热一起听前几首的播放链接：等真正点播放时链接已经在缓存里，不用再等接口 */
-setTimeout(function(){try{var _pl=(state&&state.musicPlaylist)||[];if(_pl.length&&typeof prefetchSongUrls==="function")prefetchSongUrls(_pl.length);}catch(e){}},2600);
+/* 不再在启动时盲探同源后端：探针结果没有被任何业务读取，
+   还会在每次打开页面时白打一次 /api/netease/session。需要音乐数据时再按需请求。 */
 function __nyLocalCookie(){
   try{return String(localStorage.getItem('__nyCookieLocal')||'').trim();}catch(e){return '';}
 }
@@ -32466,6 +32454,7 @@ try{
   var REMOTE_BASE="https://4mhd000knq3sz.doubao.link/app/app_17j7cuqfra0/";
   var REMOTE_VER=REMOTE_BASE+"version.json";
   var running=false;
+  var lastCheckAt=0;
   var pendingBuild="";
   var FORCE_KEY="__e11ForceAt";
   var TRY_KEY="__e11UpdateTry";
@@ -32638,6 +32627,10 @@ try{
   }
   async function check(manual){
     if(running)return;
+    /* 启动时 pageshow / 800ms / 5s 三道检查会叠成 3 次请求。
+       非手动检查做 30 秒节流，启动阶段只发一次。 */
+    if(!manual&&Date.now()-lastCheckAt<30000)return;
+    lastCheckAt=Date.now();
     running=true;
     try{
       var info=await remoteInfo();
@@ -32669,8 +32662,9 @@ try{
   }
   window.__e11CheckVersion=check;
   setTimeout(function(){check(false);},800);
-  setTimeout(function(){check(false);},5000);
-  setInterval(function(){if(!document.hidden)check(false);},15000);
+  /* 只有页面可见时才低频兜底：15 秒一次相当于每小时 240 次 version.json，
+     对手机流量和唤醒都不划算。启动、回到前台已经各有一次检查。 */
+  setInterval(function(){if(!document.hidden)check(false);},300000);
   window.addEventListener("pageshow",function(){setTimeout(function(){check(false);},150);});
   document.addEventListener("visibilitychange",function(){
     if(document.hidden){
@@ -34552,13 +34546,18 @@ body{margin:0;background:var(--bg,#fafafa);}
        用户没填 Voice ID 时按区域选：国内用 male-qn-qingse / female-shaonv，
        海外用 Deep_Voice_Man / Calm_Woman。之前海外把国内音色发过去会报 voice id 无效。 */
     var _rawVoice=String(voice||c.ttsVoice||"").trim();
-    if(_rawVoice==="alloy")_rawVoice="";
+    /* OpenAI 的音色名（alloy/echo/fable/onyx/nova/shimmer）不是 MiniMax Voice ID。
+       以前只过滤了 alloy，填 nova 之类会原样发给 MiniMax，直接报 voice id 不存在。 */
+    if(/^(alloy|echo|fable|onyx|nova|shimmer)$/i.test(_rawVoice))_rawVoice="";
     var _female=String(c.voiceGender||"男")==="女";
     var _defCn=_female?"female-shaonv":"male-qn-qingse";
     var _defOs=_female?"Calm_Woman":"Deep_Voice_Man";
+    function defaultFor(base){
+      return /api\.minimax\.io|api-uw\.minimax\.io/i.test(String(base||""))?_defOs:_defCn;
+    }
     function voiceFor(base){
       if(_rawVoice)return _rawVoice;
-      return /api\.minimax\.io|api-uw\.minimax\.io/i.test(String(base||""))?_defOs:_defCn;
+      return defaultFor(base);
     }
     var speed=Number(c.voiceSpeed);if(!isFinite(speed)||speed<=0)speed=1;speed=Math.max(0.5,Math.min(2,speed));
     var langMap={"日语":"Japanese","英语":"English","韩语":"Korean","德语":"German"};
@@ -34568,11 +34567,11 @@ body{margin:0;background:var(--bg,#fafafa);}
       var emoMap=[["开心","happy"],["高兴","happy"],["活泼","happy"],["温柔","neutral"],["平静","neutral"],["悲伤","sad"],["难过","sad"],["生气","angry"],["愤怒","angry"],["害怕","fearful"],["惊讶","surprised"],["厌恶","disgusted"]];
       for(var _ei=0;_ei<emoMap.length;_ei++){if(style.indexOf(emoMap[_ei][0])>=0){emotion=emoMap[_ei][1];break;}}
     }
-    function request(base){
+    function request(base,voiceOverride){
       base=String(base||"").trim().replace(/\/+$/,"");
       var url=/\/t2a_v2$/i.test(base)?base:(/\/v1$/i.test(base)?base+"/t2a_v2":base+"/v1/t2a_v2");
       url+=(url.indexOf("?")>=0?"&":"?")+"GroupId="+encodeURIComponent(group);
-      var vs={voice_id:voiceFor(base),speed:speed,vol:1,pitch:0};
+      var vs={voice_id:(voiceOverride===undefined?voiceFor(base):(voiceOverride||defaultFor(base))),speed:speed,vol:1,pitch:0};
       if(emotion)vs.emotion=emotion;
       var body={
         model:model||c.ttsModel||"speech-02-turbo",
@@ -34588,8 +34587,10 @@ body{margin:0;background:var(--bg,#fafafa);}
           var j=null;try{j=JSON.parse(t);}catch(e){throw new Error("MiniMax 返回不是 JSON："+String(t||"").slice(0,140));}
           var br=j&&j.base_resp;
           if(br&&Number(br.status_code)!==0){
-            var _e=new Error("MiniMax 错误 "+(br.status_code||"")+(br.status_msg?(" · "+br.status_msg):""));
-            _e.mmCode=Number(br.status_code)||0;_e.noRetry=true;throw _e;
+            var _code=Number(br.status_code)||0;
+            var _hint={2054:"Voice ID 不存在，检查是否已过期或被删除；清空 Voice ID 可用默认音色",20132:"Voice ID 参数错误，检查大小写和连字符",2042:"这个 Voice ID 不属于当前账号"}[_code]||"";
+            var _e=new Error("MiniMax 错误 "+(br.status_code||"")+(br.status_msg?(" · "+br.status_msg):"")+(_hint?(" · "+_hint):""));
+            _e.mmCode=_code;_e.noRetry=true;throw _e;
           }
           var audio=j&&j.data&&j.data.audio;
           if(!audio)throw new Error("MiniMax 没有返回音频，检查 GroupId / 音色 / 模型");
@@ -34601,16 +34602,31 @@ body{margin:0;background:var(--bg,#fafafa);}
       });
     }
     var lastErr=null;
-    function tryNext(i){
+    /* 2054=voice id 不存在；20132=voice_id 参数错误；2042=无权访问该音色。
+       先按原音色试；自动区域下可以换国内/海外域名再试。全失败后再用默认音色兜底，
+       避免一个过期的克隆音色让整条语音直接播不出来。 */
+    var _voiceErr=[2054,20132,2042];
+    function runBases(v,i){
       if(i>=bases.length)return Promise.reject(lastErr||new Error("MiniMax 语音接口不可用"));
-      return request(bases[i]).catch(function(e){
+      return request(bases[i],v).catch(function(e){
         lastErr=e;
-        if(e&&e.noRetry)throw e;
+        var _ve=_voiceErr.indexOf(Number(e&&e.mmCode))>=0;
+        /* 自动区域：音色/权限错误换下一个域名可能就对了；
+           其它业务错误（Key、Group、余额）不重复打。 */
+        if(e&&e.noRetry&&!(region==="auto"&&_ve&&bases.length>1))throw e;
         try{console.warn("MiniMax TTS 切换区域",bases[i],String(e&&e.message||e));}catch(_){}
-        return tryNext(i+1);
+        return runBases(v,i+1);
       });
     }
-    return tryNext(0);
+    try{window.__e11TtsVoiceNote="";}catch(_){}
+    return runBases(_rawVoice,0).catch(function(e){
+      if(_rawVoice&&_voiceErr.indexOf(Number(e&&e.mmCode))>=0){
+        try{window.__e11TtsVoiceNote="原 Voice ID 不可用，已改用默认音色";}catch(_){}
+        lastErr=null;
+        return runBases("",0);
+      }
+      throw e;
+    });
   }
 
   /* v43-118：MiniMax 语音转文字（长按语音消息菜单调用）。
@@ -34900,7 +34916,7 @@ body{margin:0;background:var(--bg,#fafafa);}
   });
   bind("btn-tts-test","click",function(){
     var b=this;b.disabled=true;status("tts-test-sub","合成中…");
-    var _c=cfg();var _v=String(_c.ttsVoice||"").trim();if(_c.ttsProvider==="minimax"&&(!_v||_v==="alloy"))_v="";__e11TtsFetch("这是一条云端语音测试。",_v).then(function(d){status("tts-test-sub","音色："+(_v||(String(_c.voiceGender||"男")==="女"?"默认女声":"默认男声"))+" · 播放");playSrc(d,null);}).catch(function(e){status("tts-test-sub","失败："+String(e&&e.message||e).slice(0,140));}).then(function(){b.disabled=false;});
+    var _c=cfg();var _v=String(_c.ttsVoice||"").trim();if(_c.ttsProvider==="minimax"&&(!_v||/^(alloy|echo|fable|onyx|nova|shimmer)$/i.test(_v)))_v="";__e11TtsFetch("这是一条云端语音测试。",_v).then(function(d){var _n=window.__e11TtsVoiceNote||"";status("tts-test-sub","音色："+(_v||(String(_c.voiceGender||"男")==="女"?"默认女声":"默认男声"))+(_n?(" · "+_n):"")+" · 播放");playSrc(d,null);}).catch(function(e){status("tts-test-sub","失败："+String(e&&e.message||e).slice(0,180));}).then(function(){b.disabled=false;});
   });
   /* 有些版本设置页打开时不会再调 bindSetting，这里补一次；只读本机配置，不碰聊天状态。 */
   try{
