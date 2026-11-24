@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183z34";
+window.__E11_BUILD="2026-11-24v43-183z35";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2748,7 +2748,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183z34">
+<meta name="app-build" content="2026-11-24v43-183z35">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -7672,7 +7672,10 @@ setTimeout(function(){
       /* v43-75：正常重新进入网站只认“上次退出时”的本机档，不再自动把云端档拉下来覆盖。
          这台设备以前同步过、本机又有内容时，只有用户主动点「从云端恢复」才拉取（force=1）。 */
       var _hasLocal=__e11LocalHasArchive();
-      if(!force&&_hasLocal&&meta0&&Number(meta0.savedAt)>0)return 0;
+      /* v43-183z35：只要本机还有任何聊天/动态/信件/留言/字卡/日记，就绝不自动拿云端旧档覆盖。
+         以前还要求 e11.cloudMeta 存在；更新或清缓存后这个 meta 丢了，就会把账号空间里另一段
+         时间的旧聊天拉下来，表现就是“更新后数据变成不知道什么时候的”。只有手动「恢复云端」才拉。 */
+      if(!force&&_hasLocal)return 0;
       return cloudGet({fresh:!_hasLocal}).then(function(cloud){
         if(!cloud)return false;
         var meta=meta0;
@@ -8077,40 +8080,42 @@ setTimeout(function(){
   }
 
   async function logout(){
-    if(!(await __iosConfirm("退出后，本机会清空这个账号的本地缓存；云端存档保留。确定退出？",{okText:"退出"})))return;
+    if(!(await __iosConfirm("退出后，本机数据不会删除，云端存档也保留。确定退出云端？",{okText:"退出"})))return;
     window.__e11CloudPause=1;
     var finished=false;
-    var finish=function(){
+    function finish(){
       if(finished)return;finished=true;
-      clearSession();
+      try{clearSession();}catch(e){}
       try{localStorage.removeItem(LS_OWNER);}catch(e){}
-      /* 不再 location.reload()：iOS 主屏幕/PWA 退出后 reload 会先黑一下再白一下。
-         这里直接把内存状态清成默认、停掉音乐、原地把登录卡铺回来。 */
-      try{var au=musicAudio();au.pause();au.removeAttribute("src");au.load();}catch(_){}
-      var _wasDark=false;try{_wasDark=(document.documentElement.getAttribute("data-boot")==="dark")||document.body.classList.contains("ui-dark");}catch(_){}
-      try{state=defaultState();if(_wasDark){state.skin.dark=true;state.skin.themeMode="manual";}state.musicCur=-1;state.musicPlaylist=[];state.miniPos=null;window.__curView="";refreshMiniPlayer();}catch(_){}
-      clearLocalApp().then(function(){
-        try{window.__restoring=0;window.__e11CloudPause=0;}catch(_){}
-        try{renderAll();}catch(_){}
-        try{showLoginCard();}catch(_){}
-        try{setMsg("auth-msg","已退出登录");}catch(_){}
-      }).catch(function(){
-        try{window.__restoring=0;window.__e11CloudPause=0;showLoginCard();}catch(_){}
-      });
-    };
-    if(!(window.__e11AuthCheck?!!window.__e11AuthCheck():!!authOk())){window.__cloudLoginExplicit=1;finish();return;}
-    /* 退出前先核对云端：云端消息更完整时绝不能把本机旧档传上去覆盖。
-       确认本机更新才做最后一次上传。 */
-    var _local=null;try{_local=window.__e11StateGet?window.__e11StateGet():null;}catch(_){}
-    var _lts=Number(_local&&_local.__savedAt)||0;
-    window.__e11CloudGet().then(function(cloud){
-      if(cloud&&__e11CloudWins(cloud,_local,Number(cloud.savedAt)||0,_lts)){finish();return;}
-      return window.__E11Cloud.uploadNow().then(finish).catch(async function(){
-        if(await __iosConfirm("云端保存失败，继续退出可能丢掉最后一次改动。仍然退出？",{okText:"仍然退出"}))finish();
-      });
-    }).catch(async function(){
-      if(await __iosConfirm("还没核对云端，退出前上传失败。仍然退出？",{okText:"仍然退出"}))finish();
-    });
+      /* v43-183z35：退出只断开登录，不再清空本机数据。
+         以前 finish 会 clearLocalApp()，把 localStorage 里的最近档、离站快照一起删掉，
+         网络一慢又卡在云端核对，看起来就是“退不出去，数据也没了”。 */
+      try{window.__e11AuthOk=false;window.__e11SkipLock=0;window.__e11CloudStatus="未登录";window.__cloudLoginOpen=0;}catch(e){}
+      try{window.__restoring=0;window.__e11CloudPause=0;}catch(e){}
+      try{if(typeof renderAccountRow==="function")renderAccountRow();}catch(e){}
+      try{if(typeof setChip==="function")setChip("未登录");}catch(e){}
+      try{if(typeof chipSync==="function")chipSync();}catch(e){}
+      try{setMsg("auth-msg","已退出登录，本机数据保留");}catch(e){}
+      try{window.__cloudLoginExplicit=1;showLoginCard();}catch(e){}
+      try{toast("已退出云端，本机数据保留");}catch(e){}
+    }
+    if(!(window.__e11AuthCheck?!!window.__e11AuthCheck():!!authOk())){finish();return;}
+    /* 退出不能让网络卡住：最多等 4.5 秒，时间一到先断开登录。
+       云端最后一次上传在后台继续，成功与否都不影响本机退出。 */
+    var _hard=setTimeout(function(){
+      try{toast("云端没响应，已先退出登录；本机数据保留");}catch(_){}
+      finish();
+    },4500);
+    try{
+      var _local=null;try{_local=window.__e11StateGet?window.__e11StateGet():null;}catch(_){}
+      var _lts=Number(_local&&_local.__savedAt)||0;
+      var cloud=null;try{cloud=await window.__e11CloudGet();}catch(_eCloudGet){cloud=null;}
+      if(cloud&&__e11CloudWins(cloud,_local,Number(cloud.savedAt)||0,_lts)){clearTimeout(_hard);finish();return;}
+      var _up=null;try{_up=window.__E11Cloud&&window.__E11Cloud.uploadNow?window.__E11Cloud.uploadNow():null;}catch(_eUp){_up=null;}
+      if(_up&&_up.catch)_up.catch(function(){});
+    }catch(e){}
+    clearTimeout(_hard);
+    finish();
   }
 
   document.addEventListener("click",function(e){
@@ -8405,11 +8410,15 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-183z34",
-  time:"2026-11-24 20:21",
+  date:"v43-183z35",
+  time:"2026-11-24 20:35",
   noticeKey:null,
-  lead:"2026-11-24 20:21 修改（v43-183z34）：麦克风先确认系统权限再录；问卷页键盘弹起不再透出聊天；字卡分组按名称合并、孤儿卡接回分组；离开网站自动补写离站快照；背景和列表少做无效写入。",
+  lead:"2026-11-24 20:35 修改（v43-183z35）：本机已有聊天/动态/信件/留言时，启动不再自动拉云端旧档覆盖；更新后缺失内容会从本机 3 份自动备份补一次；清空聊天写清空时刻，旧离站快照不能把聊天补回来；退出云端最多等 4.5 秒，且不再清空本机数据。",
   items:[
+    "更新后数据变成别的时段（v43-183z35）：以前启动时只要 e11.cloudMeta 丢了，就会把账号云端里另一段旧聊天拉下来覆盖本机；更新、清缓存后最容易触发。现在只要本机还有聊天、动态、信件、留言、字卡或日记中的任何一项，就绝不自动拉云端，只有手动点「从云端恢复」才会拉。",
+    "更新后动态信件留言不见了（v43-183z35）：刚更新完这一轮，如果动态、信件、留言、字卡明显缺失，会在首屏后强制读本机 3 份自动备份按 id 补一次，只补不删，仍按删除墓碑和清空时刻过滤；同时把其它登录状态的 IndexedDB 数据合并回当前页面，不再只写进库不刷新。",
+    "清空聊天后退出又回来（v43-183z35）：清空时会写 __chatClearedAt 清空时刻，离站快照和自动备份里早于这个时刻的消息全部丢弃；就算个别机型墓碑键没写成功，也不会再恢复到清空前的聊天。",
+    "云端空间退出不了（v43-183z35）：退出要等云端核对和最后一次上传，网络一慢就一直卡在「退出」上。现在最多等 4.5 秒，超时先断开登录并弹登录卡；退出不再清空本机 localStorage/离站快照，本机数据保留，云端存档也保留。",
     "麦克风点了没反应（v43-183z34）：录音前先查系统录音权限，没有权限就先弹系统授权；网页版和小程序仍然直接走浏览器授权。以前只靠网页弹窗，Android WebView 里系统权限没开就会静默失败。现在授权结果会回传页面，5 秒没等到才提示去系统设置允许录音，不再一直卡在录音浮层。",
     "问卷打字时透出聊天（v43-183z34）：创建问卷、回答问卷这两层以前是半透明黑底，键盘一弹，下面聊天内容就从弹层底下透出来。现在两层改成整块不透明，深色模式跟着变黑，键盘再高也只看到问卷本身。",
     "字卡分组乱跑、掉未分组（v43-183z34）：启动、合并本机/云端存档、每次渲染前都会把同名同类的重复分组并成一个，原来指向重复组的字卡改到保留组；指向已不存在分组的孤儿卡，按 groupName / 分组名找同名组，找不到就接回默认分组或同类第一个分组，不再堆进「未分组」。批量导入、复制分组建卡时也把分组名一起写进去。",
@@ -9246,12 +9255,15 @@ window.__e11MergeDbScopes=async function(){
           keys.forEach(function(k){
             var cur=Array.isArray(live[k])?live[k]:[],src=Array.isArray(base[k])?base[k]:[];
             var ids={},del=(live.deletedIds&&live.deletedIds[k])||{};
+            var added=0;
             cur.forEach(function(x){if(x&&x.id)ids[x.id]=1;});
             src.forEach(function(x){if(!x||!x.id||del[x.id])return;var old=ids[x.id]?cur.filter(function(y){return y&&y.id===x.id;})[0]:null;
-              if(!old){cur.push(x);ids[x.id]=1;add++;}
-              else if(x.src&&!old.src){old.src=x.src;old.emojiId=old.emojiId||x.emojiId;add++;}
+              if(!old){cur.push(x);ids[x.id]=1;added++;}
+              else if(x.src&&!old.src){old.src=x.src;old.emojiId=old.emojiId||x.emojiId;added++;}
             });
-            if(add)live[k]=cur;
+            /* v43-183z35：added 必须按每个板块记；以前 add 是外层变量，循环里加完又判断 add，
+               后台合并补到的数据不会刷新到当前页面，看起来像“合并了还是空”。 */
+            if(added){live[k]=cur;add+=added;}
           });
           try{if(__e11PickCfg(live,base))changed++;}catch(_){}
           if(add>0||changed){live.__savedAt=Date.now();window.__e11SetState(live);try{save();}catch(_){};try{if(window.__e11RefreshAllViews)window.__e11RefreshAllViews();else renderAll();}catch(_){};try{var vc=document.getElementById("view-chat");if(vc&&vc.classList.contains("open"))renderChat(true);}catch(_){};changed+=add;}
@@ -9535,6 +9547,11 @@ window.__bkMergeNewest=function(force){
         src.forEach(function(x){
           var kk=__e11MsgKey(x);
           if(kk&&seenKey[kk])return;
+          /* v43-183z35：清空聊天后，自动备份里比清空时刻更早的消息不能再补回来。 */
+          if(k==="messages"){
+            var _bc=Number(state.__chatClearedAt)||0;
+            if(_bc&&!(Number(x&&(x.time||x.ts))>_bc))return;
+          }
           var id=x&&(x.id!==undefined?x.id:x.key);
           /* v43-183z31：除内存墓碑外还要查本机墓碑键。
              启动合并可能早于 state.deletedIds 读回，只看内存会把刚删的动态从自动备份里补回来。 */
@@ -10175,6 +10192,17 @@ function __e11MergeExitState(s,e){
       });
       s[k]=a;
     });
+    /* v43-183z35：清空聊天会写 __chatClearedAt。即使某些机型上墓碑键写失败、或墓碑被更新清掉，
+       比清空时刻更早的离站消息也不能再回来。没有 time 的旧消息一律视为清空前。 */
+    try{
+      var _chatClr=Math.max(Number(s.__chatClearedAt)||0,Number(ex.__chatClearedAt)||0);
+      if(_chatClr){
+        if(Array.isArray(ex.messages))ex.messages=ex.messages.filter(function(m){return Number(m&&(m.time||m.ts))>_chatClr;});
+        if(Array.isArray(s.messages))s.messages=s.messages.filter(function(m){if(!m)return true;var t=Number(m.time||m.ts);return !isFinite(t)||t>_chatClr;});
+        if(!s.__chatClearedAt||s.__chatClearedAt<_chatClr){s.__chatClearedAt=_chatClr;ch=true;}
+        if(!(Number(ex.__chatClearedAt)||0)&&(Number(s.__chatClearedAt)||0))ex.__chatClearedAt=s.__chatClearedAt;
+      }
+    }catch(_eChatClr){}
     if(Array.isArray(s.messages)){
       var byM={};s.messages.forEach(function(m){if(m)byM[(window.__e11MsgKey?window.__e11MsgKey(m):m.id)||m.id]=m;});
       (ex.messages||[]).forEach(function(m){
@@ -11606,6 +11634,19 @@ async function init(){
       if(_dn){try{save();__flushSave(true);}catch(_){}try{window.__e11RefreshAllViews?window.__e11RefreshAllViews():renderAll();}catch(_){}try{toast("已找回之前丢失的日记历史");}catch(_){}}
     }catch(_){}
     try{window.__bkMergeNewest&&window.__bkMergeNewest();}catch(_){}
+    /* v43-183z35：刚更新完的这一轮，如果动态/信件/留言/字卡明显缺失，
+       强制把 3 份本机自动备份按 id 补一次（只补不删，仍按墓碑和清空时刻过滤）。
+       以前严格模式只认离站快照，云端旧档把本机覆盖后就再也不看本机备份，表现就是更新后全没了。 */
+    try{
+      if(window.__e11BuildChanged){
+        setTimeout(function(){
+          try{
+            var _miss=["moments","letters","guestbook","cards"].some(function(k){return !Array.isArray(state[k])||state[k].length===0;});
+            if(_miss&&window.__bkMergeNewest)window.__bkMergeNewest(true);
+          }catch(_eUpRecover){}
+        },900);
+      }
+    }catch(_eUpRecoverOuter){}
     /* v43-141：上一次导出后如果数据被异常清空，进页面先用导出前自动备份补回 */
     try{window.__e11ExportGuardCheck&&window.__e11ExportGuardCheck();}catch(_){}
   },2500);}catch(_){}
