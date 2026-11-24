@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-192z33f";
+window.__E11_BUILD="2026-11-25v43-193z33f";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2747,7 +2747,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-192z33f">
+<meta name="app-build" content="2026-11-25v43-193z33f">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4459,7 +4459,7 @@ setTimeout(function(){
         <div class="set-row"><button class="small-btn ghost" id="btn-cloud-test" style="font-size:12px;padding:6px 12px;">测试连接</button><span class="set-sub" id="cloud-test-sub" style="margin-left:10px;flex:1;">未测试</span></div>
         <div class="set-row"><span class="set-label">从云端恢复<div class="set-sub">不会自动覆盖本机；只有点这个按钮才拉取云端存档</div></span><button class="small-btn ghost" id="btn-cloud-pull" style="font-size:12px;padding:6px 12px;">恢复云端</button><span class="set-sub" id="cloud-pull-sub" style="margin-left:10px;flex:1;"></span></div>
         <div class="set-row"><span class="set-label">麦克风权限<div class="set-sub" id="mic-perm-sub">检查系统或浏览器是否已允许录音</div></span><button class="small-btn ghost" id="btn-mic-check" style="font-size:12px;padding:6px 12px;">检查权限</button></div>
-        <div class="set-row"><span class="set-label">深度恢复（本机旧库 + 云端）<div class="set-sub">扫描本机所有旧库、3 份备份、聊天流水、社交备份和云端；只补未删除内容，删除记录继续生效</div></span><button class="small-btn ghost" id="btn-deep-restore" style="font-size:12px;padding:6px 12px;">深度恢复</button><span class="set-sub" id="deep-restore-sub" style="margin-left:10px;flex:1;"></span></div>
+        <div class="set-row"><span class="set-label">深度恢复（本机旧库 + 云端）<div class="set-sub">扫描本机所有旧库、7 份备份、聊天流水、社交备份和云端；只补未删除内容，删除记录继续生效</div></span><button class="small-btn ghost" id="btn-deep-restore" style="font-size:12px;padding:6px 12px;">深度恢复</button><span class="set-sub" id="deep-restore-sub" style="margin-left:10px;flex:1;"></span></div>
         <div class="set-row"><span class="set-label">保存并切换<div class="set-sub">会清掉本机登录态，聊天记录保留；切换后需要重新登录</div></span><button class="small-btn" id="btn-cloud-save" style="font-size:12px;padding:6px 12px;">保存并重启</button></div>
         <div class="set-row"><span class="set-label">恢复官方云端<div class="set-sub">回到内置 Supabase，登录态会清掉</div></span><button class="small-btn ghost" id="btn-cloud-reset" style="font-size:12px;padding:6px 12px;">恢复官方</button></div>
       </div>
@@ -4628,7 +4628,7 @@ setTimeout(function(){
           <button class="small-btn ghost" style="flex:1;font-size:13px;" id="btn-export-emoji">只导出表情包</button>
         </div>
         <div class="set-row" style="flex-direction:column;align-items:stretch;">
-          <button class="small-btn ghost" style="width:100%;" id="btn-snapshots">自动备份（最近 3 次）</button>
+          <button class="small-btn ghost" style="width:100%;" id="btn-snapshots">自动备份（最近 7 次）</button>
           <div class="set-sub" id="snap-sub" style="margin-top:6px;">每天自动存一份，点开可一键恢复</div>
         </div>
         <div class="set-row"><label class="small-btn ghost" for="file-import" style="width:100%;display:flex;align-items:center;justify-content:center;cursor:pointer;text-align:center;">导入数据（全量/分类自动识别）</label></div>
@@ -4766,7 +4766,7 @@ setTimeout(function(){
       <div class="sheet-grip"></div>
       <div style="padding:6px 16px 18px;">
         <div class="edit-sheet-title">自动备份</div>
-        <div class="set-sub" id="bk-sub" style="margin:6px 0 10px;">每天自动存一份，保留最近 3 次</div>
+        <div class="set-sub" id="bk-sub" style="margin:6px 0 10px;">每次离开网站自动存一份，保留最近 7 次；进入时直接取最新一份</div>
         <div id="bk-list"></div>
         <button class="small-btn ghost" style="width:100%;margin-top:12px;" id="bk-now">立即备份一次</button>
       </div>
@@ -8532,11 +8532,12 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-192z33f",
-  time:"2026-11-25 18:10",
+  date:"v43-193z33f",
+  time:"2026-11-25 21:30",
   noticeKey:null,
-  lead:"2026-11-25 修改（v43-192z33f）：启动时不再强制重置一起听/画画会话，更新或重开不会打断一起听；只有点「关闭」下一次才需要重新邀请。",
+  lead:"2026-11-25 修改（v43-193z33f）：最近 7 份完整备份保留，进入网站时全部合并；离开网站自动写一份全量备份，配额不足自动退成文字核心档，备份不再自己消失。",
   items:[
+    "备份自己丢失（v43-193z33f）：配额满时旧代码删的是 meta 里第一份（最新那份），备份会一份接一份消失；完整档写失败也没有文字兜底。现在只删最旧一份，保留 6 份；完整档失败自动改存文字核心档。进入网站时最近 7 份备份全部按 id 合并，离开网站再自动写一份全量档。",
     "更新后一起听被关掉（v43-192z33f）：页面末尾有一段“新页面第一次打开就强制 musicSession=false 并 save()”的旧逻辑。更新/退出后 sessionStorage 被清空，一起听会被判成没开始；而且 save 发生在启动读库前，还会把默认空档写回主库。现在启动阶段不再重置会话、不再写盘，只有点「关闭」才会把 miniClosed 置真，下一次才需要重新邀请。",
     "更新退出后数据没保存（v43-191z33f）：离站快照以前把聊天和 2.6MB 全局外观拼成一个键，手机配额一满整份写失败。现在按体积逐级降级，先写完整、再写不带外观、最后至少保留最近 40 条聊天，保证退出时有一份能落盘。",
     "自动恢复卡住（v43-191z33f）：上次自动恢复如果中途退出或失败，会留下 running/failed 标记，旧逻辑以后永久跳过。现在只把 done 当作成功，失败或中断下次进入自动重试；旧离站快照也不再按 7 天/24 小时丢弃。",
@@ -9260,7 +9261,7 @@ function __e11ReadScopeDb(name){
           if(!odb.objectStoreNames.contains(STORE)){try{odb.close();}catch(_){}finish(null);return;}
           var tx=odb.transaction(STORE,"readonly"),st=tx.objectStore(STORE);
           var out={};
-          var keys=["state","bk_snap_meta","bk_slot_0","bk_slot_1","bk_slot_2"];
+          var keys=["state","bk_snap_meta","bk_slot_0","bk_slot_1","bk_slot_2","bk_slot_3","bk_slot_4","bk_slot_5","bk_slot_6"];
           var pending=keys.length;
           keys.forEach(function(k){
             var g=st.get(k);
@@ -9346,7 +9347,7 @@ window.__e11MergeDbScopes=async function(){
       }
       if(Array.isArray(other[BK_META])&&other[BK_META].length){
         if(!baseMeta.length){
-          baseMeta=other[BK_META].slice(0,3);
+          baseMeta=other[BK_META].slice(0,7);
           for(var bi=0;bi<baseMeta.length;bi++){var os=baseMeta[bi].slot;if(other["bk_slot_"+os])await dbSet("bk_slot_"+os,other["bk_slot_"+os]);}
           await dbSet(BK_META,baseMeta);gotBackup=true;
         }else{
@@ -9356,7 +9357,7 @@ window.__e11MergeDbScopes=async function(){
           var newest=baseMeta.slice().sort(function(a,b){return (Number(b.ts)||0)-(Number(a.ts)||0);})[0];
           if(om&&Number(om.ts||0)>Number(newest&&newest.ts||0)+1000&&other["bk_slot_"+om.slot]){
             var oldest=baseMeta.slice().sort(function(a,b){return (Number(a.ts)||0)-(Number(b.ts)||0);})[0];
-            if(oldest){var tgt=oldest.slot;await dbSet("bk_slot_"+tgt,other["bk_slot_"+om.slot]);baseMeta=baseMeta.filter(function(x){return x!==oldest;});baseMeta.push({slot:tgt,ts:om.ts,msgs:om.msgs,cards:om.cards,letters:om.letters,moments:om.moments,globals:om.globals});baseMeta=baseMeta.sort(function(a,b){return (Number(b.ts)||0)-(Number(a.ts)||0);}).slice(0,3);await dbSet(BK_META,baseMeta);gotBackup=true;}
+            if(oldest){var tgt=oldest.slot;await dbSet("bk_slot_"+tgt,other["bk_slot_"+om.slot]);baseMeta=baseMeta.filter(function(x){return x!==oldest;});baseMeta.push({slot:tgt,ts:om.ts,msgs:om.msgs,cards:om.cards,letters:om.letters,moments:om.moments,globals:om.globals});baseMeta=baseMeta.sort(function(a,b){return (Number(b.ts)||0)-(Number(a.ts)||0);}).slice(0,7);await dbSet(BK_META,baseMeta);gotBackup=true;}
           }
         }
       }
@@ -9446,7 +9447,7 @@ try{
 
 /* —— 自动备份：快照存 IndexedDB，轮换 3 个槽位，不占 localStorage —— */
 const BK_META="bk_snap_meta";
-function __bkSlots(){return ["bk_slot_0","bk_slot_1","bk_slot_2"];}
+function __bkSlots(){return ["bk_slot_0","bk_slot_1","bk_slot_2","bk_slot_3","bk_slot_4","bk_slot_5","bk_slot_6"];}
 function __bkMeta(){return __e11DbGetTimed(BK_META,6000).then(function(m){return Array.isArray(m)?m:[];}).catch(function(){return [];});}
 /* 全局备份：聊天/动态/信件/字卡/日记这些都在 state 里；设置、一起听、偏好、
    头像副本等只存在 localStorage，单独收进来，恢复时才不会再被本机旧键盖回去。
@@ -9578,20 +9579,38 @@ function __bkSave(force,opts){
        退出会越来越久，手机端看起来就是黑屏卡住。 */
     if(force&&opts&&opts.onlyIfDirty&&newest&&Number(state.__savedAt||0)<=Number(newest.ts||0)+1000)return "skip";
     var used={};meta.forEach(function(x){used[x.slot]=1;});
-    var slot=0;for(var i=0;i<3;i++){if(!used[i]){slot=i;break;}}
+    /* v43-193：7 个完整槽位。先用空槽；7 个都满了就覆盖最旧的一份，
+       不再像旧逻辑那样永远覆盖 slot 0（那样实际只有 3 份，最新那份还会被写两次）。 */
+    var slot=-1;for(var i=0;i<7;i++){if(!used[i]){slot=i;break;}}
+    if(slot<0){
+      var _oldest=meta.slice().sort(function(a,b){return (Number(a.ts)||0)-(Number(b.ts)||0);})[0];
+      slot=_oldest&&_oldest.slot!==undefined?Number(_oldest.slot):0;
+      if(!(slot>=0&&slot<7))slot=0;
+    }
     var globals=__bkCollectGlobals();
     /* v43-105：自动备份改为完整状态（含图片/表情/一起听），恢复时才能真正恢复全部。
        IndexedDB 容量足够；每个槽仍只在自动备份时写，不参与每次编辑。 */
     /* v43-111：不再每次备份都 JSON 深拷贝整份存档（几 MB 会卡退出）。
        IndexedDB 的 put 本身会做结构化克隆，直接放入当前 state 即可。 */
     var _bkState=state;
-    var snap={ts:Date.now(),full:1,state:_bkState,globals:globals};
-    return dbSet("bk_slot_"+slot,snap).then(function(){
+    var _bkTs=Date.now();
+    var snap={ts:_bkTs,full:1,state:_bkState,globals:globals};
+    function _finish(coreOnly){
       var _dp=state.diary&&state.diary.pages&&typeof state.diary.pages==="object"?Object.keys(state.diary.pages).length:0;
-      var m={slot:slot,ts:snap.ts,msgs:(state.messages||[]).length,cards:(state.cards||[]).length,letters:(state.letters||[]).length,moments:(state.moments||[]).length,diary:_dp,diarySig:__e11DiarySig(state.diary),skinTs:Number(state.skin&&state.skin.__ts)||0,setTs:Number(state.settings&&state.settings.__ts)||0,globals:Object.keys(globals).length};
+      var m={slot:slot,ts:_bkTs,msgs:(state.messages||[]).length,cards:(state.cards||[]).length,letters:(state.letters||[]).length,moments:(state.moments||[]).length,diary:_dp,diarySig:__e11DiarySig(state.diary),skinTs:Number(state.skin&&state.skin.__ts)||0,setTs:Number(state.settings&&state.settings.__ts)||0,globals:Object.keys(globals).length,core:coreOnly?1:0};
       var list=meta.filter(function(x){return x.slot!==slot;});
-      list.unshift(m);list=list.slice(0,3);
-      return dbSet(BK_META,list).then(function(){return "ok";});
+      list.unshift(m);list=list.slice(0,7);
+      return dbSet(BK_META,list).then(function(){return coreOnly?"core":"ok";});
+    }
+    /* v43-193：先写完整档；配额不足时自动退成“文字核心档”，绝不因为图片太大就让整份备份消失。
+       以前完整档写失败后，上层会删掉最新槽位，用户看起来就是备份自己丢了。 */
+    return dbSet("bk_slot_"+slot,snap).then(function(){return _finish(false);}).catch(function(_eFull){
+      try{
+        var core=__e11CorePack(state);
+        core.__bkCore=1;
+        var small={ts:_bkTs,core:1,state:core,globals:globals};
+        return dbSet("bk_slot_"+slot,small).then(function(){return _finish(true);});
+      }catch(_eSmall){return Promise.reject(_eFull);}
     });
   });
 }
@@ -9685,19 +9704,16 @@ window.__bkMergeNewest=function(force){
       var curD=state.diary&&state.diary.pages&&typeof state.diary.pages==="object"?Object.keys(state.diary.pages).length:0;
       var curDS=__e11DiarySig(state.diary);
       var curST=Number(state.skin&&state.skin.__ts)||0,curSeT=Number(state.settings&&state.settings.__ts)||0;
-      var slots=(meta||[]).slice(0,3).filter(function(m){
-        /* 小档全部读（很便宜），确保条数相同但内容不同的老历史也能补回来；
-           大档只在“备份确实比现在多/新”时才读，避免每次启动把 3 份带图大档全塞进内存。 */
-        if(curN<30)return true;
-        return Number(m&&m.msgs||0)>curN||Number(m&&m.cards||0)>curC||Number(m&&m.letters||0)>curL||Number(m&&m.moments||0)>curM
-          ||Number(m&&m.diary||0)>curD||(m&&m.diarySig&&m.diarySig!==curDS)||(m&&!m.diarySig&&Number(m.diary||0)>0)
-          ||Number(m&&m.skinTs||0)>curST+500||Number(m&&m.setTs||0)>curSeT+500||Number(m&&m.globals||0)>0&&curST===0;
-      });
+      /* v43-193：进入网站时把最近 7 份备份全部合一次，不只看“条数更多”的那几份。
+         条数相同但内容不同的历史（比如补发消息、改过的字卡）以前会被跳过；
+         合并只补 id 缺失的内容，并按墓碑/清空时间过滤，不会把删掉的补回来。 */
+      var slots=(meta||[]).slice(0,7);
       if(!slots.length)return 0;
       return slots.reduce(function(p,m){
         return p.then(function(){return dbGet("bk_slot_"+m.slot).catch(function(){return null;}).then(function(bk){added+=mergeOne(bk);});});
       },Promise.resolve()).then(function(){
         if(!added)return 0;
+        try{var _clr=Number(state.__chatClearedAt)||0;if(_clr&&Array.isArray(state.messages))state.messages=state.messages.filter(function(m){return (Number(m&&m.time)||0)>_clr;});}catch(_eBkClr){}
         try{__e11NormalizeMessages(state);}catch(_eBkNorm3){}
         try{__e11ApplyDeleted(state);}catch(_eBkDel){}try{applyTplDeleted(state);}catch(_eBkTpl){}
         state.__savedAt=Date.now();
@@ -9711,10 +9727,14 @@ window.__bkMergeNewest=function(force){
   }catch(_){window.__bkMerging=0;return 0;}
 };
 function __bkAuto(){
-  try{__bkSave(false).then(function(r){if(r==="ok")try{__bkPaint();}catch(e){}}).catch(function(e){
+  try{__bkSave(false).then(function(r){if(r==="ok"||r==="core")try{__bkPaint();}catch(e){}}).catch(function(e){
     try{if(e&&(e.name==="QuotaExceededError")){__bkMeta().then(function(m){
-      m.slice(0,1).forEach(function(x){dbSet("bk_slot_"+x.slot,null).catch(function(){});});
-      dbSet(BK_META,m.slice(0,1)).catch(function(){});});}}catch(_){}
+      /* v43-193：配额满时只丢最旧的一份，保留其余 6 份；旧代码误删 meta[0]（最新那份），
+         备份就会一份接一份“自己消失”。 */
+      var _old=m[m.length-1];if(!_old)return;
+      dbSet("bk_slot_"+_old.slot,null).catch(function(){});
+      dbSet(BK_META,m.filter(function(x){return x.slot!==_old.slot;})).catch(function(){});
+    });}}catch(_){}
   });}catch(e){}
 }
 function __bkPaint(){
@@ -11038,7 +11058,10 @@ window.__e11PersistNow=function(){
       if(window.__e11ExitSave)window.__e11ExitSave(state);
       else __e11ExitSave(state);
       try{localStorage.setItem("privateChat",JSON.stringify({__idbOnly:1,__savedAt:Number(state&&state.__savedAt)||Date.now()}));}catch(_){}
-      if(_dirty){try{window.__e11FullBackupSoon&&window.__e11FullBackupSoon(true);}catch(_){}window.__e11Dirty=0;}
+      /* v43-193：每次真正离开网站/切后台都写一份完整自动备份，不再只在“有改动”时写。
+         这样进入时永远有一份最新离开前的全量档；7 个槽位轮换，覆盖最旧的一份。 */
+      try{window.__e11FullBackupSoon&&window.__e11FullBackupSoon(true);}catch(_eExitBk){}
+      try{window.__e11Dirty=0;}catch(_eExitDirty){}
     }catch(e){}finally{window.__e11ExitFast=0;}
   }
   try{document.addEventListener("visibilitychange",function(){if(document.visibilityState==="hidden")flushAll();});}catch(e){}
@@ -11804,7 +11827,7 @@ async function init(){
       var _dn=window.__e11DiaryRestore?window.__e11DiaryRestore():0;
       if(_dn){try{save();__flushSave(true);}catch(_){}try{window.__e11RefreshAllViews?window.__e11RefreshAllViews():renderAll();}catch(_){}try{toast("已找回之前丢失的日记历史");}catch(_){}}
     }catch(_){}
-    try{window.__bkMergeNewest&&window.__bkMergeNewest();}catch(_){}
+    try{window.__bkMergeNewest&&window.__bkMergeNewest(true);}catch(_){}
     /* v43-141：上一次导出后如果数据被异常清空，进页面先用导出前自动备份补回 */
     try{window.__e11ExportGuardCheck&&window.__e11ExportGuardCheck();}catch(_){}
   },2500);}catch(_){}
@@ -14035,7 +14058,7 @@ window.__e11SocialAudit=function(){
     if(exit&&exit.state){var ets=Number(exit.ts||exit.state.__savedAt)||0;if(ets>Date.now()-7*24*3600*1000)merge(exit.state,allowRevive);}
     return __bkMeta().then(function(meta){
       var chain=Promise.resolve();
-      (meta||[]).slice(0,3).forEach(function(m,idx){
+      (meta||[]).slice(0,7).forEach(function(m,idx){
         chain=chain.then(function(){
           return dbGet("bk_slot_"+m.slot).then(function(bv){
             merge(bv&&bv.state,(idx===0&&allowRevive&&!exit));
@@ -38211,7 +38234,7 @@ body{margin:0;background:var(--bg,#fafafa);}
       b.disabled=false;
     });
     if($("btn-deep-restore"))$("btn-deep-restore").addEventListener("click",async function(){
-      if(!(await __iosConfirm("深度恢复会扫描本机所有旧库、3 份备份、聊天流水、社交备份和云端，把未删除的聊天、字卡、信件、留言、动态按 id 并回来。已删除的不会恢复。继续？",{okText:"深度恢复"})))return;
+      if(!(await __iosConfirm("深度恢复会扫描本机所有旧库、7 份备份、聊天流水、社交备份和云端，把未删除的聊天、字卡、信件、留言、动态按 id 并回来。已删除的不会恢复。继续？",{okText:"深度恢复"})))return;
       var b=this,st=$("deep-restore-sub");b.disabled=true;if(st)st.textContent="正在汇总云端和本机备份…";
       try{
         var r=await window.__E11DeepRestore();
