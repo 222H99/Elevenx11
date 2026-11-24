@@ -264,7 +264,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-183z9";
+window.__E11_BUILD="2026-11-25v43-183z10";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -1444,6 +1444,15 @@ body:not(.app-ready) #view-chat{visibility:hidden !important;}
 .bio-cover-meta{flex:1;min-width:0;line-height:1.35;}
 .bio-cover-name{font-size:14px;color:var(--ttext);font-weight:600;}
 #cover-overlay.from-bio{z-index:1200;}
+.del-choice-btn{display:block;width:100%;border:0;border-radius:13px;padding:13px 14px;margin:8px 0 0;font-size:16px;font-family:inherit;background:var(--panel2,#f2f2f7);color:var(--ttext,#1c1c1e);cursor:pointer;text-align:center;}
+.del-choice-btn.danger{color:#FF3B30;font-weight:600;}
+.del-choice-btn.cancel{color:#007AFF;margin-top:12px;}
+#del-multi-bar{position:fixed;left:14px;right:14px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:2147482900;display:none;align-items:center;gap:8px;padding:10px 12px;border-radius:18px;background:rgba(28,28,30,.92);color:#fff;box-shadow:0 10px 34px rgba(0,0,0,.28);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);}
+#del-multi-bar.show{display:flex;}
+#del-multi-count{flex:1;font-size:13px;color:rgba(255,255,255,.82);}
+#del-multi-bar .small-btn.ghost{background:rgba(255,255,255,.12);color:#fff;border-color:transparent;}
+.e11-del-sel{outline:2px solid #FF3B30 !important;outline-offset:-2px;}
+body.e11-del-multi .moment-card,body.e11-del-multi .qa-card,body.e11-del-multi .lt-card,body.e11-del-multi .lt-sub{cursor:pointer;}
 .set-input{width:86px;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:16px;outline:none;background:var(--field);color:var(--ttext);text-align:center;}
 /* 设置页数字项的加减器：手机上不用点进键盘、也不用一格格拖滑杆 */
 .num-step{display:flex;align-items:center;gap:4px;flex:0 0 auto;}
@@ -1955,7 +1964,7 @@ o{opacity:1;transform:translateY(0);}}
 .qa-reply-form{margin-top:10px;display:flex;gap:8px;align-items:center;}
 .qa-reply-form .text-input{flex:1;width:100%;min-width:0;box-sizing:border-box;border:none;background:var(--field,#fff);border-radius:14px;padding:8px 12px;font-size:13px;color:var(--ttext);}
 .qa-reply-form .qa-reply-send{border:none;background:linear-gradient(135deg,#3478F6,#5AC8FA);color:#fff;border-radius:14px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;flex:0 0 auto;}
-.qa-del{position:absolute;top:8px;right:10px;border:none;background:rgba(0,0,0,.20);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border-radius:50%;width:24px;height:24px;color:#fff;font-size:13px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;}
+.qa-del{position:absolute;z-index:3;top:8px;right:10px;border:none;background:rgba(0,0,0,.20);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border-radius:50%;width:24px;height:24px;color:#fff;font-size:13px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;}
 .gb-answered{position:relative;z-index:1;font-size:13px;font-weight:600;color:var(--ttext);opacity:.8;margin:12px 14px 8px;}
 .gb-input-field{flex:1;position:relative;display:flex;align-items:center;min-width:0;}
 .gb-input #btn-note-send{flex:0 0 auto;white-space:nowrap;}
@@ -2701,7 +2710,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-183z9">
+<meta name="app-build" content="2026-11-25v43-183z10">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4449,7 +4458,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-25v43-183z9</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-25v43-183z10</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -4980,6 +4989,28 @@ setTimeout(function(){
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- 动态 / 留言 / 信件：删除方式选择 -->
+  <div class="overlay" id="del-choice-overlay">
+    <div class="sheet" id="del-choice-sheet">
+      <div class="sheet-grip"></div>
+      <div style="padding:4px 16px 18px;">
+        <div class="edit-sheet-title" id="del-choice-title">删除动态</div>
+        <div class="set-sub" id="del-choice-sub" style="margin:-4px 0 12px;">选择删除方式</div>
+        <button class="del-choice-btn danger" id="del-opt-one">删除此条</button>
+        <button class="del-choice-btn" id="del-opt-multi">多选删除</button>
+        <button class="del-choice-btn danger" id="del-opt-all">删除全部</button>
+        <button class="del-choice-btn cancel" id="del-opt-cancel">取消</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 多选删除底栏 -->
+  <div id="del-multi-bar">
+    <span id="del-multi-count">已选 0 项</span>
+    <button class="small-btn ghost" id="del-multi-cancel" style="font-size:13px;padding:7px 12px;">取消</button>
+    <button class="small-btn" id="del-multi-do" style="font-size:13px;padding:7px 12px;background:#FF3B30;color:#fff;">删除所选</button>
   </div>
 
   <!-- 个签编辑浮层 -->
@@ -6282,6 +6313,14 @@ setTimeout(function(){
       return true;
     }catch(_){return false;}
   };
+  window.__e11IsDeleted=function(kind,id){
+    try{
+      if(!kind||!id)return false;id=String(id);
+      var st=(typeof state!=="undefined"&&state)||{};
+      if(st.deletedIds&&st.deletedIds[kind]&&st.deletedIds[kind][id])return true;
+      var m=__e11DelLocalRead();return !!(m&&m[kind]&&m[kind][id]);
+    }catch(_){return false;}
+  };
   window.__e11DelLocalRestore=function(st){
     try{
       if(!st)return false;
@@ -7337,7 +7376,18 @@ setTimeout(function(){
       try{before.diary=((window.__e11StateGet&&window.__e11StateGet()||{}).diary&&Object.keys(((window.__e11StateGet&&window.__e11StateGet()||{}).diary.pages)||{}).length)||0;}catch(_bD){}
       var after={};cats.forEach(function(k){after[k]=Array.isArray(base[k])?base[k].length:0;});
       try{after.diary=base.diary&&base.diary.pages?Object.keys(base.diary.pages).length:0;}catch(_aD){}
-      /* v43-184：深度恢复不再清掉删除墓碑，删过的东西不能因为“云端还有”就复活。 */
+      /* v43-183z10：深度恢复以前只在 applySnapshot 里认本机墓碑，
+         如果合并基准恰好选中了旧备份、而本机墓碑键又没读全，删掉的内容仍会回来。
+         这里把当前档、每一份备份、云端两档的墓碑全部并进 base，再统一过滤一遍。 */
+      try{
+        var _deepDel=base.deletedIds||{};
+        cands.forEach(function(c){_deepDel=__e11MergeDeleted(_deepDel,c.st&&c.st.deletedIds);});
+        _deepDel=__e11MergeDeleted(_deepDel,__e11DelLocalRead());
+        base.deletedIds=_deepDel;
+        __e11ApplyDeleted(base);
+      }catch(_eDeepDelFix){}
+      after={};cats.forEach(function(k){after[k]=Array.isArray(base[k])?base[k].length:0;});
+      try{after.diary=base.diary&&base.diary.pages?Object.keys(base.diary.pages).length:0;}catch(_aD2){}
       var total=after.messages+after.cards+after.letters+after.guestbook+after.moments+(after.diary||0);
       if(!total)throw new Error("云端和本机备份里都没有内容");
       base.__savedAt=Date.now();
@@ -8132,8 +8182,11 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-25",
   noticeKey:null,
-  lead:"v43-183z9：字体支持粘贴 CSS / TTF 链接导入；对方主页只保留查看，封面和资料统一到「我的 → 编辑资料」里修改；从对方主页返回先回我的主页；安卓键盘弹起时输入栏不再消失。",
+  lead:"v43-183z10：动态里历史评论的表情包恢复显示；动态、留言、信件删除时可选择“删除此条 / 多选删除 / 删除全部”；删掉的内容不会再被深度恢复或自动备份补回来。",
   items:[
+    "历史表情恢复（v43-183z10）：动态评论和回复里的表情以前会被拆成图片编号存起来，刷新后编号找不到原图，历史表情就变空白。现在启动时会连动态里的评论一起还原，旧评论的表情也能重新显示；新发的评论表情直接随存档保存，不再拆开。",
+    "删除三选项（v43-183z10）：动态、留言、信件的删除按钮改成底部菜单，可选“删除此条”“多选删除”“删除全部”。多选时点整张卡片勾选，底部显示已选数量，再点“删除所选”；删除前会再确认一次。",
+    "删除不复活（v43-183z10）：删除时逐条写入本机墓碑，并同步到云端合并、自动备份、深度恢复和社交对账的所有入口。即使删到列表为空，也不会再从旧备份把内容补回来；深度恢复也会先按墓碑过滤。",
     "字体链接导入（v43-183z9）：设置 → 外观 → 上传字体，新增“链接导入 CSS / TTF”。粘贴 Google Fonts 这类 CSS 地址或 TTF / OTF / WOFF 直链即可自动读取并应用；CSS 会解析出里面的字体文件地址。能取到文件就缓存到本机 IndexedDB，取不到时按直链在线加载。",
     "主页编辑收口（v43-183z9）：对方主页不再显示“换背景 / 编辑资料”，封面也不能直接点换；双方封面统一到「我的 → 编辑资料 → 我的资料 / 对方资料」里，点“换背景”打开和我的封面同一个选择面板。",
     "返回层级（v43-183z9）：聊天 → 我的主页 → 对方主页。对方主页点返回先落在我的主页，再点一次才回聊天；安卓系统返回键同样。",
@@ -9466,7 +9519,7 @@ function __slimState(root){
      这些图现在都已压到 320/720px，单张不大，内联比悬空引用可靠。 */
   /* v43-39：聊天背景和桌面背景也保持内联。以前它们被换成 bigref，
      启动时如果本机大图没读回来，历史图片修复就会把旧背景补回来，看起来就是“一打开又变回以前那张”。 */
-  var __KEEP_INLINE=function(k){return /^(avatar|meAvatar|cpMeAvatar|cpPartnerAvatar|cpPhotoAvatar|mpAv1|mpAv2|cpPhoto|cpPhotoCard|cpPhotoSub|cpRecord|cover|partnerCover|bgImage|meImage|meTopImage|gbImage|ltImage|gameImage|momImage|coupleImage|musicBgImg|musicDiscBgImg|musicDiscInnerImg|musicCoverImg|musicLyricBgImg|callBgImg|img)$/i.test(String(k||""));};
+  var __KEEP_INLINE=function(k){return /^(avatar|meAvatar|cpMeAvatar|cpPartnerAvatar|cpPhotoAvatar|mpAv1|mpAv2|cpPhoto|cpPhotoCard|cpPhotoSub|cpRecord|cover|partnerCover|bgImage|meImage|meTopImage|gbImage|ltImage|gameImage|momImage|coupleImage|musicBgImg|musicDiscBgImg|musicDiscInnerImg|musicCoverImg|musicLyricBgImg|callBgImg|img|emoji)$/i.test(String(k||""));};
   function walk(v,key){
     try{
       if(v&&typeof v==="object"&&Array.isArray(v)&&root&&root.me&&root.me.photos===v)return v.slice();
@@ -11549,7 +11602,11 @@ try{window.__scheduleCp2Render&&window.__scheduleCp2Render();}catch(e){}
             if(ch){try{save();__flushSave(true);}catch(_){};try{__repairEmojiMessages();}catch(_){};}
             var _epNow=document.getElementById("emoji-panel");
             if(_epNow&&_epNow.classList.contains("open")){try{document.getElementById("emoji-grid").dataset.epSig="";}catch(_){}renderEmojis();}
-            if(ch){var vc=document.getElementById("view-chat");if(vc&&vc.classList.contains("open"))renderChat(true);}
+            if(ch){
+              var vc=document.getElementById("view-chat");if(vc&&vc.classList.contains("open"))renderChat(true);
+              try{if(typeof renderMoments==="function")renderMoments();}catch(_eMomRef){}
+              try{if(typeof renderGuestbook==="function")renderGuestbook();}catch(_eGbRef){}
+            }
           }catch(_){}
         });
       }catch(_eEm){}
@@ -13149,7 +13206,7 @@ window.__e11SocialAudit=function(){
     var allowRevive=false;
     try{allowRevive=localStorage.getItem(onceKey)!=="1";}catch(_){allowRevive=false;}
     function idOf(x){try{return x&&(x.id!==undefined?String(x.id):(x.key!==undefined?String(x.key):""));}catch(_){return "";}}
-    function deleted(k,id){try{var d=state.deletedIds&&state.deletedIds[k];return !!(d&&d[id]);}catch(_){return false;}}
+    function deleted(k,id){try{return window.__e11IsDeleted?window.__e11IsDeleted(k,id):!!(state.deletedIds&&state.deletedIds[k]&&state.deletedIds[k][id]);}catch(_){return false;}}
     function emptyMoment(x){return x&&x.from==="partner"&&!String(x.text||"").trim()&&!x.img&&!x.repostOf&&!(x.comments&&x.comments.length);}
     function mergeMessages(src){
       if(!src||!Array.isArray(src.messages)||!src.messages.length)return;
@@ -13249,9 +13306,10 @@ function __recoverSocialFromBackups(){
     window.__socialBkRecovering=1;
     return __bkMeta().then(function(meta){
       var i=0,changed=false;
-      function clean(arr){
+      function clean(k,arr){
         return (arr||[]).filter(function(x){
           if(!x)return false;
+          if(x.id&&window.__e11IsDeleted&&window.__e11IsDeleted(k,x.id))return false;
           var t=String(x.text||""),s=String(x.subject||""),b=String(x.body||"");
           try{if(typeof DEMO_MOMENT!=="undefined"&&DEMO_MOMENT.indexOf(t)>=0)return false;}catch(_){}
           try{if(typeof DEMO_LETTER!=="undefined"&&DEMO_LETTER.subject&&DEMO_LETTER.subject.indexOf(s)>=0&&DEMO_LETTER.body&&DEMO_LETTER.body.indexOf(b)>=0)return false;}catch(_){}
@@ -13264,13 +13322,13 @@ function __recoverSocialFromBackups(){
         return dbGet("bk_slot_"+m.slot).then(function(bv){
           var bs=(bv&&bv.state)||null;if(!bs)return step();
           if(needL&&Array.isArray(bs.letters)&&bs.letters.length){
-            var L=clean(bs.letters);if(L.length){state.letters=L.slice();needL=false;changed=true;}
+            var L=clean("letters",bs.letters);if(L.length){state.letters=L.slice();needL=false;changed=true;}
           }
           if(needM&&Array.isArray(bs.moments)&&bs.moments.length){
-            var M=clean(bs.moments);if(M.length){state.moments=M.slice();needM=false;changed=true;}
+            var M=clean("moments",bs.moments);if(M.length){state.moments=M.slice();needM=false;changed=true;}
           }
           if(needG&&Array.isArray(bs.guestbook)&&bs.guestbook.length){
-            var G=clean(bs.guestbook);if(G.length){state.guestbook=G.slice();needG=false;changed=true;}
+            var G=clean("guestbook",bs.guestbook);if(G.length){state.guestbook=G.slice();needG=false;changed=true;}
           }
           return (changed&&!needL&&!needM&&!needG)?true:step();
         }).catch(function(){return step();});
@@ -13310,9 +13368,10 @@ function __recoverMediaFromCloud(){
       try{if(Array.isArray(st.emojis)&&__mergeEmojiList(state.emojis,st.emojis))changed=true;}catch(_){}
       try{if(Array.isArray(st.partnerEmojis)&&__mergeEmojiList(state.partnerEmojis,st.partnerEmojis))changed=true;}catch(_){}
       try{
-        if(needL&&Array.isArray(st.letters)&&st.letters.length){state.letters=st.letters.slice();changed=true;}
-        if(needM&&Array.isArray(st.moments)&&st.moments.length){state.moments=st.moments.slice();changed=true;}
-        if(needG&&Array.isArray(st.guestbook)&&st.guestbook.length){state.guestbook=st.guestbook.slice();changed=true;}
+        function live(k,arr){return (Array.isArray(arr)?arr:[]).filter(function(x){return x&&x.id&&!(window.__e11IsDeleted&&window.__e11IsDeleted(k,x.id));});}
+        if(needL){var _L=live("letters",st.letters);if(_L.length){state.letters=_L;changed=true;}}
+        if(needM){var _M=live("moments",st.moments);if(_M.length){state.moments=_M;changed=true;}}
+        if(needG){var _G=live("guestbook",st.guestbook);if(_G.length){state.guestbook=_G;changed=true;}}
       }catch(_){}
       window.__cloudMediaRecovering=0;
       if(changed){
@@ -18576,7 +18635,9 @@ function __resolveEmojiBigRefs(){
       if(Array.isArray(v)){for(var i=0;i<v.length;i++)scan(v[i]);}
       else for(var k in v){if(Object.prototype.hasOwnProperty.call(v,k))scan(v[k]);}
     }
-    try{scan(state&&state.emojis);scan(state&&state.partnerEmojis);scan(state&&state.messages);}catch(_){}
+    /* v43-183z10：动态评论/回复里的表情以前没被扫描，刷新后 bigref 永远换不回原图。
+       整份 state 一起扫（含 moments 的 comments/replies），才不会漏。 */
+    try{scan(state);}catch(_){}
     var ids=Object.keys(refs);if(!ids.length)return Promise.resolve(false);
     return Promise.all(ids.map(function(id){
       return dbGet(__BIG_KEY+id).catch(function(){return null;}).then(function(v){return [id,v];});
@@ -22785,6 +22846,11 @@ function __fadeOutDiary(ms){
   }catch(_){try{el.classList.remove("show");el.classList.remove("writing");}catch(__){}}
 }
 function showView(id){
+  /* 离开动态/留言/信件页时收掉多选底栏，避免底栏浮在聊天或设置上面 */
+  try{
+    var _dmv=["view-moments","view-guestbook","view-letters"];
+    if(_dmv.indexOf(id)<0&&window.__e11DelMultiReset)window.__e11DelMultiReset();
+  }catch(_eDmReset){}
   try{setTimeout(function(){try{window.__refreshStatusIcons&&window.__refreshStatusIcons();}catch(_eIcoView){}},0);}catch(_eIcoSet){}
   try{if(id==="view-settings"&&window.__e11ChipSync)window.__e11ChipSync();}catch(_eSetChip){}
   try{var _vt=document.getElementById(id);if(_vt)__cancelViewFade(_vt);}catch(_){}
@@ -23153,6 +23219,9 @@ window.__androidBack=function(){
     /* 系统返回和页面返回按钮可能同一拍到达：已有一次返回在 380ms 内处理过就直接消费掉，
        不执行第二次，也不会把用户退到桌面/退出 WebView。 */
     if(window.__e11BackLock&&Date.now()-window.__e11BackLock<380)return true;
+    var _dco=document.getElementById("del-choice-overlay");
+    if(_dco&&_dco.classList.contains("show")){try{window.__e11DelChoiceClose&&window.__e11DelChoiceClose();}catch(_){}return true;}
+    if(window.__e11DelMultiActive&&window.__e11DelMultiActive()){try{window.__e11DelMultiReset&&window.__e11DelMultiReset();}catch(_){}return true;}
     var dv=document.getElementById("diary-view");
     if(dv&&dv.classList.contains("show")){try{if(window.__closeDiary)window.__closeDiary();else{dv.classList.remove("show");dv.classList.remove("writing");}}catch(_){}return true;}
     /* 音乐相关 fixed 弹层还开着时，系统返回一次就收层并回聊天，不再让歌词层继续盖住聊天。 */
@@ -27336,13 +27405,9 @@ function renderLetters(force){
     __bindStarButtons(root);
     root.querySelectorAll("[data-ldel]").forEach(b=>{
       if(b.__ltDelB)return;b.__ltDelB=1;
-      b.addEventListener("click",async()=>{
-        if(!(await __iosConfirm("删除这封信？")))return;
-        try{window.__e11MarkDeleted("letters",b.dataset.ldel);}catch(_eLDel){}
-        state.letters=state.letters.filter(x=>x.id!==b.dataset.ldel);
-        try{if(window.__pruneSocialNotices&&window.__pruneSocialNotices()){window.__chatDirty=1;}}catch(e){}
-        try{window.__e11ForceUntil=Date.now()+2000;}catch(_){}
-        save();try{__flushSave(true);}catch(_){}renderLetters();updateNewBadge();toast("信已删除");
+      b.addEventListener("click",function(e){
+        e.preventDefault();e.stopPropagation();
+        try{window.__e11DeleteChoice("letters",b.dataset.ldel,[b.dataset.ldel]);}catch(_eLDel){}
       });
     });
     root.querySelectorAll(".lt-reply-send").forEach(b=>{
@@ -28476,12 +28541,8 @@ function renderGuestbook(force){
             });
           }
         }catch(_){}
-        if(!(await __iosConfirm("删除这条留言？")))return;
-        try{ids.forEach(function(id){window.__e11MarkDeleted("guestbook",id);});}catch(_eGDel){}
-        state.guestbook=state.guestbook.filter(x=>!ids.includes(x.id));
-        try{if(window.__pruneSocialNotices&&window.__pruneSocialNotices()){window.__chatDirty=1;}}catch(e){}
-        try{window.__e11ForceUntil=Date.now()+2000;}catch(_){}
-        save();try{__flushSave(true);}catch(_){}renderGuestbook();toast("留言已删除");
+        try{window.__e11DeleteChoice("guestbook",ids[0],ids);}catch(_eGDel){}
+        return;
       });
     });
     root.querySelectorAll("[data-adelonly]").forEach(b=>{
@@ -28768,6 +28829,169 @@ $("note-text").addEventListener("input",e=>{const c=$("gb-counter");if(c)c.textC
   });
   el.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();el.blur();}});
 });
+
+/* ===== 动态 / 留言 / 信件：删除方式（删除此条 / 多选 / 删除全部） ===== */
+(function(){
+  var __dKind="",__dId="",__dIds=[],__mode={kind:"",groups:{},selected:{}};
+  var __LABEL={moments:"动态",guestbook:"留言",letters:"信件"};
+  function __list(kind){try{return Array.isArray(state[kind])?state[kind]:[];}catch(_){return [];}}
+  function __card(kind,key){
+    try{
+      if(kind==="moments")return document.querySelector('#moment-feed .moment-card[data-id="'+String(key).replace(/"/g,'\\"')+'"]');
+      if(kind==="guestbook"){
+        var cs=document.querySelectorAll("#note-list .qa-card[data-qdel]");
+        for(var i=0;i<cs.length;i++){var v=(cs[i].getAttribute("data-qdel")||"").split(",")[0];if(v===String(key))return cs[i];}
+        return null;
+      }
+      if(kind==="letters"){
+        var b=document.querySelector('#letter-list [data-ldel="'+String(key).replace(/"/g,'\\"')+'"]');
+        return b&&b.closest?b.closest(".lt-card,.lt-sub"):null;
+      }
+    }catch(_){}
+    return null;
+  }
+  function __paint(){
+    try{document.querySelectorAll(".e11-del-sel").forEach(function(x){x.classList.remove("e11-del-sel");});}catch(_){}
+    if(!__mode.kind){
+      var _bar0=document.getElementById("del-multi-bar");if(_bar0)_bar0.classList.remove("show");
+      try{document.body.classList.remove("e11-del-multi");}catch(_){}
+      return;
+    }
+    Object.keys(__mode.selected).forEach(function(k){
+      if(!__mode.selected[k])return;
+      var c=__card(__mode.kind,k);if(c)c.classList.add("e11-del-sel");
+    });
+    var n=Object.keys(__mode.selected).filter(function(k){return __mode.selected[k];}).length;
+    var cnt=document.getElementById("del-multi-count");if(cnt)cnt.textContent="已选 "+n+" 项";
+    var bar=document.getElementById("del-multi-bar");if(bar)bar.classList.toggle("show",!!__mode.kind);
+    try{document.body.classList.toggle("e11-del-multi",!!__mode.kind);}catch(_){}
+  }
+  function __reset(){
+    __mode.kind="";__mode.groups={};__mode.selected={};
+    __paint();
+  }
+  window.__e11DelMultiReset=__reset;
+  window.__e11DelMultiActive=function(){return !!__mode.kind;};
+  function __descIds(kind,rootId){
+    var out=[String(rootId)],seen={};seen[String(rootId)]=1;
+    var list=__list(kind);
+    function walk(pid){
+      list.forEach(function(x){
+        if(!x||!x.id)return;var id=String(x.id);
+        if(seen[id])return;
+        if(String(x.replyTo||"")===String(pid)){seen[id]=1;out.push(id);walk(id);}
+      });
+    }
+    walk(rootId);return out;
+  }
+  function __allGroups(kind){
+    var list=__list(kind),by={};list.forEach(function(x){if(x&&x.id)by[String(x.id)]=1;});
+    var gs=[];
+    list.forEach(function(x){
+      if(!x||!x.id)return;
+      if(kind!=="moments"&&x.replyTo&&by[String(x.replyTo)])return;
+      gs.push({key:String(x.id),ids:kind==="moments"?[String(x.id)]:__descIds(kind,x.id)});
+    });
+    return gs;
+  }
+  function __deleteGroups(kind,groups){
+    if(!kind||!groups||!groups.length)return 0;
+    var ids={},n=0;
+    groups.forEach(function(g){(g&&g.ids||[]).forEach(function(id){if(id&&!ids[String(id)]){ids[String(id)]=1;n++;}});});
+    if(!n)return 0;
+    Object.keys(ids).forEach(function(id){try{window.__e11MarkDeleted(kind,id);}catch(_){}});
+    try{state[kind]=(state[kind]||[]).filter(function(x){return !(x&&x.id&&ids[String(x.id)]);});}catch(_){}
+    try{if(window.__pruneSocialNotices&&window.__pruneSocialNotices()){window.__chatDirty=1;}}catch(_){}
+    try{window.__e11ForceUntil=Date.now()+2000;}catch(_){}
+    try{save();}catch(_){}
+    try{__flushSave(true);}catch(_){}
+    try{
+      if(kind==="moments")renderMoments();
+      else if(kind==="guestbook")renderGuestbook(true);
+      else{renderLetters(true);updateNewBadge();}
+    }catch(_){}
+    return n;
+  }
+  function __open(kind,id,ids){
+    if(!__LABEL[kind])return;
+    __dKind=kind;__dId=String(id||"");__dIds=(ids&&ids.length?ids:[__dId]).map(String);
+    var title=document.getElementById("del-choice-title");
+    var sub=document.getElementById("del-choice-sub");
+    var n=__allGroups(kind).length;
+    if(title)title.textContent="删除"+__LABEL[kind];
+    if(sub)sub.textContent="共 "+n+" 项 · 删除后不会被云端或备份恢复";
+    var ov=document.getElementById("del-choice-overlay");
+    if(ov)ov.classList.add("show");
+  }
+  window.__e11DeleteChoice=function(kind,id,ids){__open(kind,id,ids);};
+  function __startMulti(){
+    var ov=document.getElementById("del-choice-overlay");if(ov)ov.classList.remove("show");
+    __mode.kind=__dKind;__mode.groups={};__mode.selected={};
+    if(__dId){__mode.groups[__dId]={key:__dId,ids:__dIds.slice()};__mode.selected[__dId]=true;}
+    __paint();
+  }
+  function __closeChoice(){
+    var ov=document.getElementById("del-choice-overlay");if(ov)ov.classList.remove("show");
+  }
+  window.__e11DelChoiceClose=__closeChoice;
+  try{
+    var ov=document.getElementById("del-choice-overlay");
+    if(ov)ov.addEventListener("click",function(e){if(e.target===ov)__closeChoice();});
+    var ob=document.getElementById("del-opt-cancel");if(ob)ob.addEventListener("click",__closeChoice);
+    var o1=document.getElementById("del-opt-one");
+    if(o1)o1.addEventListener("click",function(){
+      __closeChoice();
+      if(!__dKind)return;
+      var n=__deleteGroups(__dKind,[{key:__dId,ids:__dIds}]);
+      if(n)toast((__LABEL[__dKind]||"内容")+"已删除");
+    });
+    var om=document.getElementById("del-opt-multi");if(om)om.addEventListener("click",__startMulti);
+    var oa=document.getElementById("del-opt-all");
+    if(oa)oa.addEventListener("click",async function(){
+      var kind=__dKind,gs=__allGroups(kind);
+      __closeChoice();
+      if(!gs.length){toast("没有可删除的"+__LABEL[kind]);return;}
+      if(!(await __iosConfirm("删除全部 "+gs.length+" 项"+__LABEL[kind]+"？删除后不会被云端或备份恢复。",{okText:"删除全部"})))return;
+      var n=__deleteGroups(kind,gs);
+      toast("已删除 "+n+" 条"+__LABEL[kind]);
+    });
+    var mc=document.getElementById("del-multi-cancel");if(mc)mc.addEventListener("click",__reset);
+    var md=document.getElementById("del-multi-do");
+    if(md)md.addEventListener("click",async function(){
+      var kind=__mode.kind;
+      var gs=Object.keys(__mode.selected).filter(function(k){return __mode.selected[k];}).map(function(k){return __mode.groups[k];}).filter(Boolean);
+      if(!gs.length){toast("先选择要删除的"+__LABEL[kind]);return;}
+      if(!(await __iosConfirm("删除已选的 "+gs.length+" 项"+__LABEL[kind]+"？删除后不会被云端或备份恢复。",{okText:"删除所选"})))return;
+      var n=__deleteGroups(kind,gs);__reset();
+      toast("已删除 "+n+" 条"+__LABEL[kind]);
+    });
+  }catch(_){}
+  /* 多选模式：点整张卡片切换选中，不触发原来的打开/评论/播放等操作 */
+  document.addEventListener("click",function(e){
+    try{
+      if(!__mode.kind)return;
+      if(e.target.closest("#del-multi-bar,#del-choice-overlay"))return;
+      var card=e.target.closest(".moment-card,.qa-card,.lt-card,.lt-sub");
+      if(!card)return;
+      if(__mode.kind==="moments"&&!card.closest("#moment-feed"))return;
+      if(__mode.kind==="guestbook"&&!card.closest("#note-list"))return;
+      if(__mode.kind==="letters"&&!card.closest("#letter-list"))return;
+      var key="",ids=[];
+      if(__mode.kind==="moments"){key=card.dataset.id||"";ids=[key];}
+      else if(__mode.kind==="guestbook"){
+        var q=card.querySelector("[data-qdel]");var qv=q?(q.getAttribute("data-qdel")||""):"";
+        ids=qv.split(",").filter(Boolean);key=ids[0]||"";
+      }else{
+        var l=card.querySelector("[data-ldel]");key=l?(l.getAttribute("data-ldel")||""):"";ids=key?__descIds("letters",key):[];
+      }
+      if(!key)return;
+      e.preventDefault();e.stopPropagation();
+      __mode.groups[key]=__mode.groups[key]||{key:key,ids:ids};
+      __mode.selected[key]=!__mode.selected[key];
+      __paint();
+    }catch(_){}
+  },true);
+})();
 
 /* ===== 主页（仿INS）===== */
 function partnerGradientImg(c1,c2){
@@ -29361,12 +29585,9 @@ function bindMomentFeed(){
       if(!m1.likes)m1.likes=[];var i1=m1.likes.indexOf("me");if(i1>-1)m1.likes.splice(i1,1);else m1.likes.push("me");
       save();if(!__refreshMomentCard(m1.id))renderMoments();toast(i1>-1?"已取消点赞":"已点赞");return;}
     var db=t.closest("[data-mdel]");
-    if(db){e.stopPropagation();if(!(await __iosConfirm("删除这条动态？")))return;
-      try{window.__e11MarkDeleted("moments",db.dataset.mdel);}catch(_eMDel){}
-      state.moments=state.moments.filter(function(x){return x.id!==db.dataset.mdel;});
-      try{if(window.__pruneSocialNotices&&window.__pruneSocialNotices()){window.__chatDirty=1;}}catch(e){}
-      try{window.__e11ForceUntil=Date.now()+2000;}catch(_){}
-      save();try{__flushSave(true);}catch(_){}renderMoments();toast("动态已删除");return;}
+    if(db){e.preventDefault();e.stopPropagation();
+      try{window.__e11DeleteChoice("moments",db.dataset.mdel,[db.dataset.mdel]);}catch(_eMDel){}
+      return;}
     var cb=t.closest("[data-cm]");
     if(cb){var card0=cardOf(cb);var ci0=card0?card0.querySelector('[data-ci="'+cb.dataset.cm+'"]'):null;
       if(ci0){ci0.classList.toggle("hidden");if(!ci0.classList.contains("hidden")){var inp0=ci0.querySelector("input");if(inp0)setTimeout(function(){inp0.focus();},80);}}return;}
