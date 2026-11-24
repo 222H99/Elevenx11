@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-203z34";
+window.__E11_BUILD="2026-11-25v43-204z34";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2747,7 +2747,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-203z34">
+<meta name="app-build" content="2026-11-25v43-204z34">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -6956,8 +6956,16 @@ setTimeout(function(){
     var cs=cloud&&cloud.state?cloud.state:cloud;
     var c=__e11MsgStats(cs),l=__e11MsgStats(local);
     try{window.__e11CloudMsgCount=c.n;}catch(_){}
-    if(!c.n)return false;
+    if(!c.n){
+      /* 云端可能一条聊天都没有，但有信件/动态/字卡/日记/歌单；不能因此判定“云端没有东西”。 */
+      try{var _cOnly=__e11ContentScore(cs),_lOnly=__e11ContentScore(local);if(_cOnly>_lOnly+30)return true;}catch(_eCOnly){}
+      return false;
+    }
     if(!l.n)return true;
+    /* v43-204：本机只剩欢迎语/刚自动生成的 1–2 条时，云端几十条旧聊天会因为最后一条 id 更小
+       被判定“本机更新”，登录后什么都不恢复。这里先按“云端明显更多”赢，applySnapshot 仍会把
+       本机这几条并进来，不会丢新消息。 */
+    if(c.n>=10&&c.n>=l.n+10)return true;
     if(c.max>l.max)return true;
     if(c.max<l.max)return false;
     /* 同一条最后消息时，只有云端多出很多条（>20）才算“云端历史更全”；
@@ -7891,6 +7899,7 @@ setTimeout(function(){
               state.messages=_out;
             }catch(_eRecDedup){}
             state.__savedAt=Date.now();save();
+            try{localStorage.removeItem("e11.resetLocalOnly.v1");}catch(_eRecAllGate){}
           }catch(_eRecAllFix){}
           try{window.__e11IgnoreMsgDel=0;}catch(_eRecAllFlag){}
         }
@@ -8051,7 +8060,12 @@ setTimeout(function(){
              先比最后一条消息 id 和消息条数，云端更完整才恢复；本机消息更新才用本机。 */
           if(cloud&&__e11CloudWins(cloud,local,cloudTs,localTs)){
             setWait("正在恢复你的云端存档","只恢复这个账号自己的数据，不会碰其他账号。");
-            return applySnapshot(cloud).then(function(){localStorage.setItem(LS_OWNER,session.user.id);window.__e11CloudStatus="已同步";setAction(null);__enterAfterAction();__e11RecoverToast(cloud&&cloud.state);return true;});
+            return applySnapshot(cloud).then(function(){
+              localStorage.setItem(LS_OWNER,session.user.id);
+              /* 成功从云端恢复后解除“只清本机”闸门，否则之后启动/同步仍按重置态处理，看起来像没恢复。 */
+              try{localStorage.removeItem("e11.resetLocalOnly.v1");}catch(_eClrReset){}
+              window.__e11CloudStatus="已同步";setAction(null);__enterAfterAction();__e11RecoverToast(cloud&&cloud.state);return true;
+            });
           }
           if(owner&&owner!==session.user.id){
             return clearLocalApp().then(function(){setAction({uid:session.user.id,mode:"blank"});location.reload();});
