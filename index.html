@@ -264,7 +264,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183z18";
+window.__E11_BUILD="2026-11-24v43-183z19";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2712,7 +2712,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183z18">
+<meta name="app-build" content="2026-11-24v43-183z19">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3647,6 +3647,14 @@ html.tablet-mode #rotate-guard,html.tablet-mode body #rotate-guard{display:none!
 /* 正在输入时绝不显示竖屏提示：平板/手机键盘弹起会把可视区压短，
    CSS 会瞬间把 orientation 判成 landscape，提示层就误弹出来挡住输入框。 */
 html.kb-typing #rotate-guard,html.kb-typing body #rotate-guard{display:none!important;}
+</style>
+<style id="e11-gb-layout-fix">
+/* v43-183z19：上面 #view-guestbook .v-body 那段规则在浏览器里没被解析到（整页只剩 block），
+   导致 .note-list 的 flex:1 失效、列表高度溢出到 1176，键盘弹起时没有可滚余量。
+   这里单独补一条，保证留言页是「固定头 + 可滚列表」。 */
+#view-guestbook .v-body{display:flex!important;flex-direction:column!important;flex:1 1 0%!important;min-height:0!important;overflow:hidden!important;}
+#view-guestbook .note-list{display:flex!important;flex-direction:column!important;flex:1 1 0%!important;min-height:0!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch;}
+#view-guestbook .qa-list{flex:none!important;}
 </style>
 </head>
 <body>
@@ -8192,11 +8200,12 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-183z18",
-  time:"2026-11-24 18:10",
+  date:"v43-183z19",
+  time:"2026-11-24 18:18",
   noticeKey:null,
-  lead:"2026-11-24 18:10 修改（v43-183z18）：更新公告不再被键盘盖住——弹公告前先收起键盘，公告层只铺当前真正可见的高度，卡片和「我知道了」始终在键盘上方；键盘还在收起的动画里也会自动重新贴合。",
+  lead:"2026-11-24 18:18 修改（v43-183z19）：留言卡里点「回复对方」时，回复框不再压在键盘下面——留言页的列表恢复成真正可滚的一列，键盘弹起后回复框自动滚到键盘上沿以上，下面的留言也能继续滚。",
   items:[
+    "留言回复框被键盘盖住（v43-183z19）：点留言卡里的「回复对方…」时，留言页的 .v-body 实际是 block 而不是 flex，.note-list 没有高度约束、整列溢出到 1176，键盘弹起时页面也没进键盘适配，回复框就停在键盘下面。现在留言页固定成「顶部卡片 + 可滚列表」，回复框聚焦也算键盘状态，列表底部加键盘高度的滚动余量，并把回复框自动滚到键盘上沿以上。",
     "更新公告被键盘盖住（v43-183z18）：锁屏密码、搜索框还聚焦时键盘没退，公告按整屏 844 居中，下半截连同按钮被键盘挡在后面。现在弹公告前先让当前输入框失焦、收起键盘；公告层按 visualViewport 的真实可见高度铺，卡片最大高度跟着缩短，正文自己滚，按钮固定在可见区域底部；键盘收起或地址栏回弹时再校准两次。MIX 4 宽度兜底沿用上一版。",
     "小米 MIX 4 右边白条（v43-183z17）：MIX 4 物理屏 1080、dpr 2.75，真正 CSS 宽约 393；有些系统显示大小下 WebView 的布局宽度和 visualViewport 都只报 349，上一版按可见宽度取最大值仍然补不回来。现在再加一层 screen.width 兜底：物理像素先除以 dpr，落在 320~600 的手机宽度区间才采用，把舞台补到 393。正常手机、平板、桌面窗口不受影响。",
     "安卓右边白条修掉（v43-183z16）：有些安卓 WebView 在系统显示大小/页面轻微缩放下，布局宽度只报 349，真正可见宽度是 393，整站就只铺到左边 89%，右边留一条白。现在舞台宽度取布局宽度、窗口宽度和 visualViewport 宽度的最大值，按真正可见宽度铺满；正常屏幕仍按原宽度，不会放大。",
@@ -28706,18 +28715,21 @@ function renderGuestbook(force){
         card.appendChild(rf);
         const inp=rf.querySelector(".qa-reply-inp");
         try{inp.focus({preventScroll:true});}catch(_){inp.focus();}
-        const pageBody=document.querySelector("#view-guestbook .v-body");
+        /* v43-183z19：留言页真正滚的是 #note-list，.v-body 是 overflow:hidden 的，
+           以前往 .v-body 加 scrollTop 等于没滚，回复框就一直停在键盘下面。 */
+        const list=card.closest("#note-list");
         const keepReplyVisible=function(){
           try{
-            if(!inp.isConnected||!pageBody)return;
-            const lr=pageBody.getBoundingClientRect();
+            if(!inp.isConnected||!list)return;
+            const lr=list.getBoundingClientRect();
             const ir=inp.getBoundingClientRect();
             const vv=window.visualViewport;
             const bottom=Math.min(lr.bottom,(vv?(vv.offsetTop||0)+vv.height:window.innerHeight))-10;
-            if(ir.bottom>bottom)pageBody.scrollTop+=(ir.bottom-bottom);
-            else if(ir.top<lr.top+6)pageBody.scrollTop-=(lr.top+6-ir.top);
+            if(ir.bottom>bottom)list.scrollTop+=(ir.bottom-bottom+8);
+            else if(ir.top<lr.top+6)list.scrollTop-=(lr.top+6-ir.top);
           }catch(_){}
         };
+        try{__scheduleGuestbookKb();}catch(_){}
         requestAnimationFrame(keepReplyVisible);
         setTimeout(keepReplyVisible,180);
         setTimeout(keepReplyVisible,380);
@@ -28973,7 +28985,10 @@ function __fitGuestbookKb(){
     var vc=document.getElementById("view-guestbook");
     if(!vc)return;
     var ae=document.activeElement;
-    var typing=!!(ae&&ae.id==="note-text"&&vc.classList.contains("open"));
+    /* v43-183z19：留言卡里的“回复对方…”输入框也要算在留言页键盘适配里。
+       以前只认顶部 #note-text，点留言回复时这里直接 reset，页面退回整屏，
+       回复框和下面的留言列表就一起压到键盘下面。 */
+    var typing=!!(ae&&vc.classList.contains("open")&&(ae.id==="note-text"||(ae.closest&&ae.closest("#note-list"))));
     var m=__e11MomentKbMetrics();
     if(!typing||m.kbH<=40||m.visH<180){__e11GuestbookKbReset();return;}
     try{document.documentElement.scrollTop=0;document.body.scrollTop=0;}catch(_){}
@@ -28994,15 +29009,19 @@ function __fitGuestbookKb(){
       try{_safe=Math.round(m.kbH/(scale||1));}catch(_){_safe=m.kbH;}
       list.style.paddingBottom="calc("+(18+_safe)+"px + env(safe-area-inset-bottom))";
     }
-    /* 输入框在顶部卡片里，正常情况下本来就在键盘上方；如果机型顶部栏太高把输入行压到
-       键盘下，再把列表滚一下，把输入行带回来。 */
+    /* 输入框在顶部卡片里，正常情况下本来就在键盘上方；留言卡回复框在列表底部，
+       点开时在键盘下面。这里统一把当前输入框滚到键盘上沿以上。 */
     try{
-      var inp=document.getElementById("note-text");
-      if(inp){
+      var inp=ae&&ae.closest?ae.closest("#note-list, .gb-input"):null;
+      inp=inp&&inp.tagName==="INPUT"?inp:(ae&&ae.tagName==="INPUT"?ae:document.getElementById("note-text"));
+      if(inp&&list){
         var ir=inp.getBoundingClientRect();
         var vv=window.visualViewport;
-        var visBottom=(vv?(vv.offsetTop||0)+vv.height:(window.innerHeight||0))-8;
-        if(ir.bottom>visBottom&&list)list.scrollTop+=Math.min(40,ir.bottom-visBottom);
+        var visBottom=(vv?(vv.offsetTop||0)+vv.height:(window.innerHeight||0))-10;
+        var lr=list.getBoundingClientRect();
+        var limit=Math.min(visBottom,lr.bottom)-10;
+        if(ir.bottom>limit)list.scrollTop+=Math.max(0,ir.bottom-limit+8);
+        if(ir.top<lr.top+6)list.scrollTop-=(lr.top+6-ir.top);
       }
     }catch(_){}
   }catch(_){}
@@ -29021,10 +29040,19 @@ try{
       window.visualViewport.addEventListener("scroll",function(){__scheduleGuestbookKb();},{passive:true});
     }
     document.addEventListener("focusin",function(e){
-      try{if(e.target&&e.target.id==="note-text")setTimeout(__scheduleGuestbookKb,60);}catch(_){}
+      try{
+        var t=e.target;
+        if(t&&(t.id==="note-text"||(t.closest&&t.closest("#note-list"))))setTimeout(__scheduleGuestbookKb,60);
+      }catch(_){}
     },true);
     document.addEventListener("focusout",function(e){
-      try{if(e.target&&e.target.id==="note-text")setTimeout(function(){if(!document.activeElement||document.activeElement.id!=="note-text")__e11GuestbookKbReset();},120);}catch(_){}
+      try{
+        var t=e.target;
+        if(t&&(t.id==="note-text"||(t.closest&&t.closest("#note-list"))))setTimeout(function(){
+          var a=document.activeElement;
+          if(!a||a.id!=="note-text"&&!(a.closest&&a.closest("#note-list")))__e11GuestbookKbReset();
+        },120);
+      }catch(_){}
     },true);
   }
 }catch(_){}
