@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183z29";
+window.__E11_BUILD="2026-11-24v43-183z30";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -322,7 +322,7 @@ setTimeout(function(){try{localStorage.setItem("e11.buildSeen.v1",window.__E11_B
     catch(e){try{window.Notification=E11Notification;}catch(_){}}
   }catch(e){}
 })();
-/* v43-183z29：撤掉系统通知栏里同 tag 的消息，避免和页内邀请弹窗叠在一起。
+/* v43-183z30：撤掉系统通知栏里同 tag 的消息，避免和页内邀请弹窗叠在一起。
    浏览器没有 AndroidUI 时是空操作。 */
 window.__e11CancelNotify=function(tag){
   try{tag=tag||"eleven-msg";if(window.AndroidUI&&AndroidUI.cancelNotify)AndroidUI.cancelNotify(String(tag));}catch(e){}
@@ -2731,7 +2731,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183z29">
+<meta name="app-build" content="2026-11-24v43-183z30">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -8217,7 +8217,11 @@ function msgPreviewText(m){
   if(m.type==="voice")return "[语音] "+Math.max(1,Math.round(Number(m.dur)||1))+'"';
   if(m.type==="survey")return "【问卷】";
   if(m.type==="redpacket")return "【红包】";
-  if(m.type==="invite")return m.inv==="music"?"【一起听歌邀请】":"【一起画画邀请】";
+  if(m.type==="invite"){
+    if(m.inv==="music")return "【一起听歌邀请】";
+    if(m.inv==="draw")return "【一起画画邀请】";
+    return "【邀请】";
+  }
   if(m.type==="song")return "【推歌】"+__songName(m.song);
   if(m.type==="sys")return _prevClip(m.text||"",48);
   return _prevClip(m.text||"",36);
@@ -8372,13 +8376,15 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-183z29",
-  time:"2026-11-24 22:40",
+  date:"v43-183z30",
+  time:"2026-11-24 23:05",
   noticeKey:null,
-  lead:"2026-11-24 22:40 修改（v43-183z29）：邀请层改成串行，前一个没关掉时后一个不再盖上来；两个邀请都在等时会按先来后到逐个弹。",
+  lead:"2026-11-24 23:05 修改（v43-183z30）：听歌邀请的提示不再写成一起画画；打开网站先等缓存，启动黑屏明显缩短；检查更新超时减半，手动检查不再排队等两次网络。",
   items:[
-    "邀请不再叠（v43-183z29）：听歌邀请还开着时，画画邀请不会再盖上来；反过来也一样。两个邀请都在等时按消息时间先来后到，关掉一个再弹下一个。",
-    "长图按键像卡住（v43-183z29）：点「生成长图」后先在按钮上显示「生成中…」并让页面画一帧，再开始排版和编码；超过 2600 高度的长图从 2 倍像素降到 1.5 倍，PNG 编码量少约 44%。APK 里「保存 / 分享」改为直接写「下载/Eleven11」，不再先等系统分享面板。",
+    "听歌提示修正（v43-183z30）：邀请消息以前是先建消息、后补 inv，pushMsg 里的顶部提示和系统通知先跑，读到空 inv 就按画画兜底。现在建消息时就把 music/draw 带上，未知类型也只显示「邀请」，不会再串成一起画画。",
+    "打开网站黑屏久（v43-183z30）：Service Worker 以前每次进入都等线上 HTML 最多 3 秒，有缓存也要等。现在最多等 450ms，超过就直接用缓存先出首屏，同时后台继续更新；第二次以后进入不再卡在启动层。",
+    "检查更新慢（v43-183z30）：请求超时从 5 秒降到 2.5 秒；15 秒内复用上一次版本结果。手动点击如果正好撞上启动自动检查，不再排第二次网络请求，拿到结果就立即提示。",
+    "长图按键像卡住（v43-183z30）：点「生成长图」后先在按钮上显示「生成中…」并让页面画一帧，再开始排版和编码；超过 2600 高度的长图从 2 倍像素降到 1.5 倍，PNG 编码量少约 44%。APK 里「保存 / 分享」改为直接写「下载/Eleven11」，不再先等系统分享面板。",
     "动态评论楼层（v43-183z25）：按截图恢复 2/3 格交替缩进，第 4 层以后不再挤平。",
     "留言找回（v43-183z24）：「找回旧留言 / 重新载入」两个按钮走完整恢复，有查找中状态和结果提示；普通来源没有时再走云端完整档 + 3 份自动备份的深度恢复。",
     "页内提示条停留太久（v43-183z23）：顶部来消息提示条以前只负责显示，没有自动收起，除非点 X 或切页就一直压在界面上。现在显示 3 秒自动收起；新消息进来会重新计时，点提示条仍然直达聊天。普通 toast 也缩短为短句 1.2 秒、长句 2 秒。",
@@ -13599,7 +13605,7 @@ function __recoverSocialFromBackups(force){
         return (arr||[]).filter(function(x){
           if(!x)return false;
           if(x.id&&window.__e11IsDeleted&&window.__e11IsDeleted(k,x.id))return false;
-          /* v43-183z29：恢复时不再按演示文案过滤，真实内容优先。 */
+          /* v43-183z30：恢复时不再按演示文案过滤，真实内容优先。 */
           return true;
         });
       }
@@ -13723,7 +13729,7 @@ function quoteBlock(m){
   else if(q.type==="voice"){body='【语音 '+(Math.max(1,Math.round(Number(q.dur)||1)))+'″】';}
   else if(q.type==="survey"){body='【问卷】';}
   else if(q.type==="redpacket"){body='【红包】';}
-  else if(q.type==="invite"){body=q.inv==="music"?'【一起听歌邀请】':'【一起画画邀请】';}
+  else if(q.type==="invite"){body=q.inv==="music"?'【一起听歌邀请】':(q.inv==="draw"?'【一起画画邀请】':'【邀请】');}
   else{body=esc(q.text||"");}
   return '<div class="quote">'+body+'</div>';
 }
@@ -15936,7 +15942,7 @@ function pushMsg(from,type,text,opts){
   /* 新消息必须排在所有已存在消息之后，否则恢复备份里有时钟超前的旧消息时，
      新发/新收的消息会被排到它前面，聊天页看起来就是“新消息怎么都看不到”。 */
   if(_msgTime<_maxPrevT)_msgTime=_maxPrevT;
-  const m={id:id,from:from,type:type,text:text,src:opts.src||"",w:Number(opts.w)||0,h:Number(opts.h)||0,dur:opts.dur||0,sched:!!opts.sched,time:_msgTime,quoteId:opts.quoteId||null,kind:opts.kind||"",active:!!opts.active,catchup:!!opts.catchup,read:from!=="me",recalled:false,momentId:opts.momentId||"",commentId:opts.commentId||"",ttsText:opts.ttsText||"",sttText:opts.sttText||"",voice:opts.voice||""};
+  const m={id:id,from:from,type:type,text:text,src:opts.src||"",w:Number(opts.w)||0,h:Number(opts.h)||0,dur:opts.dur||0,sched:!!opts.sched,time:_msgTime,quoteId:opts.quoteId||null,kind:opts.kind||"",active:!!opts.active,catchup:!!opts.catchup,read:from!=="me",recalled:false,momentId:opts.momentId||"",commentId:opts.commentId||"",ttsText:opts.ttsText||"",sttText:opts.sttText||"",voice:opts.voice||"",inv:opts.inv||""};
   state.messages.push(m);
   try{
     if(from==="me"&&(type==="text"||type==="image")&&!opts.catchup&&!opts.quiet&&!opts.sched){
@@ -17645,7 +17651,7 @@ function __lsMsgText(m){
     if(m.type==="redpacket"){var r={};try{r=JSON.parse(m.text||"{}");}catch(_){}
       return "🧧 红包"+(r.amount?(" · "+r.amount+" 元"):"")+(r.note?(" · "+r.note):"");}
     if(m.type==="song"&&m.song)return "🎵 推歌 · "+__songName(m.song);
-    if(m.type==="invite")return m.inv==="music"?"🎧 一起听歌邀请":"🎨 一起画画邀请";
+    if(m.type==="invite")return m.inv==="music"?"🎧 一起听歌邀请":(m.inv==="draw"?"🎨 一起画画邀请":"🎟 邀请");
     if(m.type==="poke")return "👋 拍了拍";
     if(m.type==="survey")return "📋 问卷";
     if(m.type==="sys")return String(m.text||"");
@@ -17666,7 +17672,7 @@ function __lsQuote(m){
     else if(q.type==="voice")t="🎙 语音 "+Math.max(1,Math.round(Number(q.dur)||1))+"″";
     else if(q.type==="survey")t="[问卷]";
     else if(q.type==="redpacket")t="[红包]";
-    else if(q.type==="invite")t=q.inv==="music"?"[一起听歌邀请]":"[一起画画邀请]";
+    else if(q.type==="invite")t=q.inv==="music"?"[一起听歌邀请]":(q.inv==="draw"?"[一起画画邀请]":"[邀请]");
     else t=String(q.text||msgPreviewText(q)||"").replace(/\s+/g," ").trim();
     if(!t)t="[消息]";
     return {text:t.slice(0,160),q:q};
@@ -17751,7 +17757,7 @@ function __lsBtnBusy(on){
   else{b.textContent=b.dataset.oldText||"生成长图";b.disabled=__msgSelIds.length?false:true;try{delete b.dataset.oldText;}catch(_){}}
 }
 function __msgSelLongShot(ids){
-  /* v43-183z29：先把按钮变成「生成中…」并让浏览器画一帧，再开始拼 Canvas。
+  /* v43-183z30：先把按钮变成「生成中…」并让浏览器画一帧，再开始拼 Canvas。
      以前所有排版/测量/编码都在点击的同一帧里跑，手机上按下去像卡住没反应。 */
   if(__lsBusy)return;
   __lsBusy=true;__lsBtnBusy(true);
@@ -23779,7 +23785,7 @@ $("file-chat-img").addEventListener("change",e=>{
 /* ===== 一起听 · 对方邀请听歌 ===== */
 let musicInviteShown=false,pendingMusicInvId=null,musicAutoAccept=null;
 let musicSession=false; // 双方达成过听歌邀请后，点一起听直接进入主页，不再发邀请（不论歌单是否有歌）
-/* v43-183z29：同一时刻只允许一个邀请层。
+/* v43-183z30：同一时刻只允许一个邀请层。
    以前听歌邀请还开着，画画邀请也会盖上来，看起来像“双弹”。 */
 var __inviteSeenIds={};
 function __inviteAnyOpen(){
@@ -23798,7 +23804,10 @@ function musicInviteOpen(dir,type){
   clearTimeout(musicAutoAccept);
   // 聊天里同步出现邀请卡片消息
   if(!pendingMusicInvId||!msgById(pendingMusicInvId)){
-    const id=pushMsg(fromMe?"me":"partner","invite","",{});
+    /* v43-183z30：inv 必须在 pushMsg 创建时就带上。
+       以前是建完消息再补 inv，pushMsg 内部已经先发了顶部提示/系统通知，
+       预览读到空 inv 就按“画画”兜底，听歌邀请被提示成一起画画。 */
+    const id=pushMsg(fromMe?"me":"partner","invite","",{inv:type});
     const m0=msgById(id);if(m0){m0.inv=type;m0.status="pending";}
     pendingMusicInvId=id;
   }
@@ -27278,7 +27287,7 @@ function drawInviteOpen(dir){
   if(!fromMe&&$("music-invite").classList.contains("show"))return;
   clearTimeout(drawAutoAccept);
   if(!pendingDrawInvId||!msgById(pendingDrawInvId)){
-    const id=pushMsg(fromMe?"me":"partner","invite","",{});
+    const id=pushMsg(fromMe?"me":"partner","invite","",{inv:"draw"});
     const m0=msgById(id);if(m0){m0.inv="draw";m0.status="pending";}
     pendingDrawInvId=id;
   }
@@ -29914,7 +29923,7 @@ function renderComments(m){
     const cls=isRep?"mc-row rep":"mc-row";
     /* 按真实层级缩进：旧代码只看「奇偶层」交替缩进，回复的回复（第 3 层）
        会被当成第 1 层显示，看起来就像对方回错了评论。 */
-    /* v43-183z29：楼层按用户给的截图走「首评最左 → 第 2 格 → 第 3 格 → 第 2 格 → 第 3 格…」，
+    /* v43-183z30：楼层按用户给的截图走「首评最左 → 第 2 格 → 第 3 格 → 第 2 格 → 第 3 格…」，
        不再把第 4 层以后全部夹在 3 格（那会让后面几条回复看起来都堆在同一层）。
        数据仍按 replyTo/replies 的真实父子关系递归，只有“视觉格数”做 2/3 交替。 */
     let d=Math.max(0,Number(depth)||0);
@@ -29922,7 +29931,7 @@ function renderComments(m){
        正好复刻截图：2、3、2、3… 不再随层级一直向右堆。 */
     if(d>=1)d=(d%2===1?2:1);
     const dep=d>1?' data-depth="'+d+'"':'';
-    /* v43-183z29：评论和楼中楼回复不再只允许删自己的；对方发的也显示删除。 */
+    /* v43-183z30：评论和楼中楼回复不再只允许删自己的；对方发的也显示删除。 */
     const delBtn='<button class="mc-del" data-mdelc="'+item.id+'">删除</button>';
     const repBtn='<div class="mc-sub"><button class="mc-reply" data-mreply="'+item.id+'" data-mname="'+esc(authorName(item.from))+'">回复</button>'+delBtn+'</div>';
     /* 主动评论是顶层；只有对方针对我的评论的回复才带“回复你”标记。
@@ -35100,12 +35109,16 @@ try{
       bar.appendChild(tx);bar.appendChild(go);bar.appendChild(x);
     }catch(_){}
   }
+  var __verInfoCache=null,__verInfoAt=0;
   async function remoteInfo(){
+    /* v43-183z30：15 秒内复用上一次结果。手动点击如果正好撞上启动自动检查，
+       不再排一次新请求、再等一个超时。 */
+    if(__verInfoCache&&Date.now()-__verInfoAt<15000)return __verInfoCache;
     var url=(apkMode()?REMOTE_VER:"./version.json")+"?__v="+Date.now().toString(36);
     var ctrl=null,to=null;
     try{
       /* 5 秒足够拿到一个几十字节的 version.json；超时就给明确提示，不让按钮一直“检查中”。 */
-      if(typeof AbortController!=="undefined"){ctrl=new AbortController();to=setTimeout(function(){try{ctrl.abort();}catch(_){}},5000);}
+      if(typeof AbortController!=="undefined"){ctrl=new AbortController();to=setTimeout(function(){try{ctrl.abort();}catch(_){}},2500);}
       var r=await fetch(url,{cache:"no-store",credentials:"omit",signal:ctrl?ctrl.signal:undefined});
       if(!r||!r.ok)throw new Error("HTTP "+(r&&r.status));
       var j=await r.json();
@@ -35113,7 +35126,8 @@ try{
       if(!nb)throw new Error("版本文件为空");
       var apk=String((j&&j.apk)||"");
       if(apk&&!/^https?:/i.test(apk))apk=REMOTE_BASE+apk.replace(/^\/+/,"");
-      return {build:nb,apk:apk};
+      __verInfoCache={build:nb,apk:apk};__verInfoAt=Date.now();
+      return __verInfoCache;
     }catch(e){
       /* APK 的 WebView 偶尔会拦跨域；退回原生 HttpURLConnection */
       if(apkMode()&&window.AndroidUI&&typeof AndroidUI.api==="function"){
@@ -35125,7 +35139,8 @@ try{
             var ab=String(jj.build||"");
             var au=String(jj.apk||"");
             if(au&&!/^https?:/i.test(au))au=REMOTE_BASE+au.replace(/^\/+/,"");
-            return {build:ab,apk:au};
+            __verInfoCache={build:ab,apk:au};__verInfoAt=Date.now();
+            return __verInfoCache;
           }
         }catch(_){}
       }
@@ -35189,11 +35204,19 @@ try{
     }
   }
   window.__e11CheckVersion=check;
-  setTimeout(function(){check(false);},800);
+  /* v43-183z30：自动检查让位给首屏渲染，空闲后再发；手动点按钮不受影响。 */
+  (function(){
+    var go=function(){setTimeout(function(){check(false);},350);};
+    if(window.requestIdleCallback)requestIdleCallback(go,{timeout:2200});
+    else setTimeout(go,1500);
+  })();
   /* 只有页面可见时才低频兜底：15 秒一次相当于每小时 240 次 version.json，
      对手机流量和唤醒都不划算。启动、回到前台已经各有一次检查。 */
   setInterval(function(){if(!document.hidden)check(false);},300000);
-  window.addEventListener("pageshow",function(){setTimeout(function(){check(false);},150);});
+  window.addEventListener("pageshow",function(e){
+    /* 首次加载已经在空闲时查过；只有 bfcache 回来才立刻补一次。 */
+    if(e&&e.persisted)setTimeout(function(){check(false);},150);
+  });
   document.addEventListener("visibilitychange",function(){
     if(document.hidden){
       if(pendingBuild){var b=pendingBuild;pendingBuild="";if(!apkMode())forceUpdate(b,true);}
