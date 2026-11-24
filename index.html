@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183z38";
+window.__E11_BUILD="2026-11-24v43-183z39";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2748,7 +2748,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183z38">
+<meta name="app-build" content="2026-11-24v43-183z39">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -8465,11 +8465,13 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-183z38",
-  time:"2026-11-24 21:19",
+  date:"v43-183z39",
+  time:"2026-11-24 21:45",
   noticeKey:null,
-  lead:"2026-11-24 21:19 修改（v43-183z38）：针对“点返回消息就没了、也没存档”，聊天页返回前强制写离站快照，每条文字消息发出时再同步留一份 10 条的小发件箱；同时系统返回键在聊天页改为回主页，并先收键盘。",
+  lead:"2026-11-24 21:45 修改（v43-183z39）：预览正常、主站不一样，原因是主站旧 Service Worker 为了首屏速度，网络只要超过 450ms 就直接回旧缓存页；预览没有这份旧缓存，所以每次都是新版。现在在线时会等新版 HTML，旧缓存只留给断网。主站存满后消息写不进去，也加了配额抢救和会话兜底。",
   items:[
+    "主站显示旧版、预览正常（v43-183z39）：同一份 z38 部署到两边，线上 HTML 完全一致；差异来自主站浏览器/WebView 里的旧 Service Worker。旧逻辑导航时只等网络 450ms，2MB 的页面没下完就直接返回上一版缓存，主站就一直像没更新；预览是新缓存或没有旧缓存，所以正常。现在在线时先等 2.5 秒，没下完再等 4 秒，只有真断网才回旧缓存，主站下次打开一定拿新版。",
+    "主站消息没存档、预览正常（v43-183z39）：主站用久了，localStorage 可能被十几张背景大图占满；写离站快照或发件箱时 setItem 静默失败，消息就真的没留下。预览是新环境、空间充足所以正常。现在写不进去会先清可再生缓存，再按时间只保留最近几张背景备份；还不行就写 sessionStorage 应急副本，启动时一起读回来，至少保证聊天和设置这份快照落盘。",
     "点返回消息就消失、没存档（v43-183z38）：聊天页的左上角返回和安卓系统返回，现在都会先把当前消息强制同步写进离站快照，再离开；不会再等 260ms 防抖或 IndexedDB 异步写完。每条文字消息发出时还会同步写一份最多 10 条的“发件箱”，即使进程被系统回收、主库没写进去，下次启动也会按 id+时间补回来；删除墓碑和清空时刻仍然优先，删掉的不会复活。",
     "聊天页按系统返回直接退出 App（v43-183z38）：以前聊天页的系统返回直接交回安卓，安卓就退出 Activity，用户感觉像被踢出去。现在聊天页先回主页，主页再按一次才退出；键盘打开时只收键盘，不切页。",
     "性能：删除过滤不再反复解析（v43-183z37）：删除表、内容指纹表以前在每次合并/过滤循环里都重新 JSON.parse 一遍，几千条档案时一次启动要解析上百次。现在按原始字符串缓存，值没变就直接复用。删除过滤和墓碑扫描也加了指纹，列表没变化就跳过整轮全量扫描。",
@@ -10186,7 +10188,14 @@ function __e11ExitSave(st,force){
     }
     try{localStorage.setItem(__E11_EXIT_KEY,txt);}catch(_e1){
       try{localStorage.removeItem("bigPending");}catch(_){}
-      try{localStorage.removeItem(__E11_EXIT_KEY);localStorage.setItem(__E11_EXIT_KEY,txt);}catch(_e2){return false;}
+      try{localStorage.removeItem(__E11_EXIT_KEY);}catch(_){}
+      /* v43-183z39：先清可再生缓存、只留最近 3 张背景备份；还写不进去就只留 1 张。
+         主站老数据把配额占满时，至少保证聊天/设置这份离站快照能落盘。 */
+      var _okExit=false;
+      try{window.__e11QuotaRescue&&window.__e11QuotaRescue(3);localStorage.setItem(__E11_EXIT_KEY,txt);_okExit=true;}catch(_e2){}
+      if(!_okExit){try{window.__e11QuotaRescue&&window.__e11QuotaRescue(1);localStorage.setItem(__E11_EXIT_KEY,txt);_okExit=true;}catch(_e3){}}
+      if(!_okExit){try{sessionStorage.setItem(__E11_EXIT_KEY+"__emergency",txt);}catch(_eSessExit){}}
+      if(!_okExit)return false;
     }
     try{localStorage.setItem("e11.exit.meta.v1",JSON.stringify({ts:_exitTs,len:txt.length}));}catch(_eMeta){}
     try{window.__e11ExitSavedAt=_exitTs;}catch(_){}
@@ -10195,7 +10204,9 @@ function __e11ExitSave(st,force){
 }
 function __e11ExitRead(){
   try{
-    var raw=localStorage.getItem(__E11_EXIT_KEY);if(!raw)return null;
+    var raw=localStorage.getItem(__E11_EXIT_KEY);
+    if(!raw){try{raw=sessionStorage.getItem(__E11_EXIT_KEY+"__emergency");}catch(_eExitSessRead){}}
+    if(!raw)return null;
     var o=JSON.parse(raw);if(!o||!o.state)return null;
     return {ts:Number(o.ts||o.state.__savedAt)||0,state:o.state,globals:o.globals||{}};
   }catch(e){return null;}
@@ -10867,6 +10878,28 @@ function __backupPendingBig(pending){
   }catch(e){}
 }
 window.__backupPendingBig=__backupPendingBig;
+/* v43-183z39：主站用久了，localStorage 可能被十几张背景大图占满，写离站快照/发件箱时
+   会静默失败——预览是干净环境所以正常，主站就表现成“消息没存档”。
+   只有真的写不进去时才清：先清可再生的缓存，再按修改时间保留最近几张背景备份。 */
+window.__e11QuotaRescue=function(keepBg){
+  try{
+    ["bigPending","privateChat","cpPhotoBak","callSave","me1OrigIcons","me1Sizes","cp2Layout","cpPhotoSize"].forEach(function(k){try{localStorage.removeItem(k);}catch(_){}});
+    try{sessionStorage.removeItem("bigPending__emergency");}catch(_){}
+    var _bg=[];try{
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i);if(!k||!k.indexOf||k.indexOf("e11.bg.v2.")!==0)continue;
+        if(k.indexOf("e11.bg.v2.ts.")===0||k.indexOf("e11.bg.pick.")===0)continue;
+        var _path=k.slice("e11.bg.v2.".length);
+        var ts=0;try{ts=Number(localStorage.getItem("e11.bg.v2.ts."+_path))||0;}catch(_){}
+        _bg.push({k:k,ts:ts});
+      }
+    }catch(_eBgList){}
+    _bg.sort(function(a,b){return a.ts-b.ts;});
+    var _drop=Math.max(0,_bg.length-Math.max(0,Number(keepBg)||0));
+    for(var j=0;j<_drop;j++){try{localStorage.removeItem(_bg[j].k);}catch(_){}}
+    return true;
+  }catch(_eQuota){return false;}
+};
 function __emergencySnapshot(){
   if(window.__restoring||!window.__stateReady)return;
   try{
@@ -11073,14 +11106,22 @@ window.__e11MsgOutboxPut=function(m){
     o=o.filter(function(x){return x&&!(String(x.id)===item.id&&Number(x.time)===item.time);});
     o.push(item);
     o=o.slice(-10);
-    localStorage.setItem(key,JSON.stringify(o));
+    var _raw=JSON.stringify(o);
+    try{localStorage.setItem(key,_raw);}
+    catch(_eOutFull){
+      /* 空间被旧背景占满时，先腾出可再生缓存，再保留最近两张背景，确保最后一句还能留档 */
+      try{window.__e11QuotaRescue&&window.__e11QuotaRescue(2);localStorage.setItem(key,_raw);}
+      catch(_eOutFull2){try{sessionStorage.setItem(key+"__emergency",_raw);}catch(_eOutSess){}}
+    }
     return true;
   }catch(_eOut){return false;}
 };
 window.__e11MsgOutboxRestore=function(s){
   try{
     if(!s||!Array.isArray(s.messages))return 0;
-    var raw=localStorage.getItem(window.__E11_MSG_OUTBOX_KEY);if(!raw)return 0;
+    var raw=localStorage.getItem(window.__E11_MSG_OUTBOX_KEY);
+    if(!raw){try{raw=sessionStorage.getItem(window.__E11_MSG_OUTBOX_KEY+"__emergency");}catch(_eOutSessRead){}}
+    if(!raw)return 0;
     var o=JSON.parse(raw);if(!Array.isArray(o))return 0;
     var clr=Number(s.__chatClearedAt)||0;
     var exists={};s.messages.forEach(function(m){
