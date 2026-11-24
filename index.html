@@ -267,7 +267,19 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183z31";
+window.__E11_BUILD="2026-11-24v43-183z32";
+/* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
+   旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
+window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
+window.__e11StrictNoRestore=function(){
+  try{
+    if(!window.__E11_STRICT_LAST||window.__E11AllowRecover)return false;
+    var m=JSON.parse(localStorage.getItem("e11.exit.meta.v1")||"null");
+    if(!m||!(Number(m.ts)>Date.now()-7*24*3600*1000))return false;
+    var raw=localStorage.getItem("e11.exit.v1");
+    return !!(raw&&raw.length>2);
+  }catch(_){return false;}
+};
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2731,7 +2743,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183z31">
+<meta name="app-build" content="2026-11-24v43-183z32">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -6491,11 +6503,17 @@ setTimeout(function(){
   window.__e11SongStableId=__e11SongStableId;
   function __e11ApplyDeleted(st,kinds){
     try{
-      var d=st&&st.deletedIds;if(!d)return st;
+      var d=(st&&st.deletedIds)||{};
+      /* v43-183z32：本机同步墓碑键也要算进来。内存里的删除表可能还没读回，
+         只看 d 就会让刚删的分组/字卡/动态从旧档里复活。 */
+      var _loc={};try{if(typeof __e11DelLocalRead==="function")_loc=__e11DelLocalRead()||{};}catch(_eLocRead){}
       var _ks=(Array.isArray(kinds)&&kinds.length)?kinds:__e11DeleteKinds;
       _ks.forEach(function(k){
         if(!Array.isArray(st[k]))return;
-        var ids=d[k];if(!ids)return;
+        var ids={},a=d[k],b=_loc[k],has=false;
+        if(a&&typeof a==="object"){Object.keys(a).forEach(function(id){ids[id]=1;has=true;});}
+        if(b&&typeof b==="object"){Object.keys(b).forEach(function(id){ids[id]=1;has=true;});}
+        if(!has)return;
         if(k==="musicPlaylist")st[k].forEach(function(x){if(x&&!x.id){var _sid=__e11SongStableId(x);if(_sid)x.id=_sid;}});
         st[k]=st[k].filter(function(x){
           var id=__e11IdOf(x);if(id&&ids[id])return false;
@@ -6523,6 +6541,7 @@ setTimeout(function(){
         var by={},arr=[];
         ((old&&Array.isArray(old[k])?old[k]:[]).concat(st[k]||[])).forEach(function(x){
           if(!x||!x.id)return;var id=String(x.id);
+          try{if(window.__e11IsDeleted&&window.__e11IsDeleted(k,id))return;}catch(_){}
           if(by[id])return;by[id]=1;arr.push(x);
         });
         out[k]=arr;
@@ -6535,8 +6554,11 @@ setTimeout(function(){
       localStorage.setItem(window.__E11_SOCIAL_KEY,txt);return true;
     }catch(_){return false;}
   };
-  window.__e11SocialLocalMerge=function(st){
+  window.__e11SocialLocalMerge=function(st,force){
     try{
+      /* v43-183z32：有最近离站快照时不再自动从独立小备份补内容；
+         手动“找回旧留言/找回内容”会显式传 force。 */
+      if(!force&&window.__e11StrictNoRestore&&window.__e11StrictNoRestore())return 0;
       st=st||((typeof state!=="undefined")?state:null);if(!st)return 0;
       var raw=localStorage.getItem(window.__E11_SOCIAL_KEY);if(!raw)return 0;
       var o=JSON.parse(raw);if(!o||typeof o!=="object")return 0;
@@ -6568,7 +6590,7 @@ setTimeout(function(){
     }
     var before=0;try{before=(state.guestbook||[]).length;}catch(_){}
     _busy(true,"正在查本机备份、离站快照、自动备份和云端…");
-    var n=0;try{n=window.__e11SocialLocalMerge?window.__e11SocialLocalMerge(state):0;}catch(_){}
+    var n=0;try{n=window.__e11SocialLocalMerge?window.__e11SocialLocalMerge(state,true):0;}catch(_){}
     try{if(window.__e11ApplyDeleted)window.__e11ApplyDeleted(state,["guestbook"]);}catch(_){}
     if(n){try{save();__flushSave(true);renderGuestbook(true);updateNewBadge();}catch(_){}}
     var p=Promise.resolve(n);
@@ -7125,7 +7147,7 @@ setTimeout(function(){
     /* 云端是完整备份，信件/动态/留言都以云端为准；本机只补“云端没有的新条目”，
        不能用本机空数组把云端 167 封信、175 条动态、237 条留言清掉。 */
     __e11MergeLocalSocial(st,localState);
-    try{if(window.__e11SocialLocalMerge)window.__e11SocialLocalMerge(st);}catch(_eSocSnapCloud){}
+    try{if(window.__e11SocialLocalMerge)window.__e11SocialLocalMerge(st,false);}catch(_eSocSnapCloud){}
     __e11MergeLocalDiary(st,localState);
     /* 其他板块也按 id 合一次：云端旧档不能把本机刚加的字卡/歌单/红包/分组/收藏冲掉，
        真正的删除由下面的墓碑过滤，不会因为合并又复活。 */
@@ -8377,11 +8399,14 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-183z31",
-  time:"2026-11-24 19:44",
+  date:"v43-183z32",
+  time:"2026-11-24 19:58",
   noticeKey:null,
-  lead:"2026-11-24 19:44 修改（v43-183z31）：主页和桌面卡片的头像、封面不再丢；删掉的动态不会被旧备份补回来；「删除全部动态」只删当前主页这一边。",
+  lead:"2026-11-24 19:58 修改（v43-183z32）：所有板块删掉的东西都不再自动恢复；有最近离站快照时，这次打开就按上次离开的数据来，不再从旧备份里乱补。",
   items:[
+    "删除的字卡分组又回来（v43-183z32）：删分组以前只走 260ms 防抖保存，马上退出时删除墓碑还没进主档；旧备份/离站快照一并就把整个分组和里面的字卡带回来。现在删分组立刻强制写本机、推云端，并在合并后再按「内存 + 本机同步墓碑」清一遍。",
+    "所有板块删除都不恢复（v43-183z32）：删除墓碑现在对聊天、信件、动态、留言、字卡、分组、歌单、房间消息、收藏、表情、红包、问卷记录全部生效；每次写盘前先清一遍，旧云档/自动备份/社交备份/离站快照合并后也再清一遍，不会再有任何板块把删掉的条目补回来。",
+    "不再乱补旧数据（v43-183z32）：只要本机有最近 7 天的离站快照，它就是这次打开的唯一权威。自动备份补齐、社交小备份回填、云端旧档补空位都停用；只有你手动点「找回旧留言」这类入口才会显式去读旧备份。",
     "主页头像和封面丢失（v43-183z31）：换了主页卡片/桌面卡片的头像、我的封面或他的封面，马上退出、刷新或滑掉 App，回来会变默认或上次那张。原因是只写了异步主库，离开时没等它完成。现在头像和封面单独有一份同步小备份，换完立刻写；退出/切后台再强制写一次美化图库和主库，重开优先按本机最后一次选择恢复。",
     "删掉的动态又回来（v43-183z31）：启动时自动备份的并集合并可能早于删除墓碑读回，只看内存里的删除表，就会把刚删的动态从旧备份补回来。现在合并时同时查本机墓碑键，删过的一条都不补。",
     "删除全部只删一边（v43-183z31）：以前「删除全部动态」直接遍历整个动态数组，会把我和对方的动态一起算进去。现在按当前主页过滤：在我的主页只删我的，在对方主页只删对方的，另一边一条不动。",
@@ -9458,8 +9483,11 @@ window.__e11FullBackupSoon=function(force){
 /* v43-108：启动后在后台比对最近一份完整备份，把“主存档里缺了、备份里还有”的内容按 id 补回来。
    只补不删，并遵守 deletedIds 墓碑；用户主动删掉的东西不会被复活。
    这样即使主存档被旧版写坏/只恢复了一半，历史消息和字卡也能自动回来。 */
-window.__bkMergeNewest=function(){
+window.__bkMergeNewest=function(force){
   try{
+    /* v43-183z32：有最近的离站快照时，它就是上次离开的完整状态；
+       自动备份只补“这次根本没读到存档”的情况，不再往正常状态里补旧内容。 */
+    if(!force&&window.__e11StrictNoRestore&&window.__e11StrictNoRestore())return Promise.resolve(0);
     if(!window.__stateReady||localStorage.getItem("e11.resetLocalOnly.v1"))return Promise.resolve(0);
     if(window.__bkMerging)return window.__bkMerging;window.__bkMerging=1;
     var keys=["messages","cards","letters","guestbook","moments","redpackets","musicPlaylist","emojis","partnerEmojis","groups","favorites","surveyHistory"];
@@ -9528,7 +9556,7 @@ window.__bkMergeNewest=function(){
       },Promise.resolve()).then(function(){
         if(!added)return 0;
         try{__e11NormalizeMessages(state);}catch(_eBkNorm3){}
-        try{__e11ApplyDeleted(state,["cards","groups"]);}catch(_eBkDel){}try{applyTplDeleted(state);}catch(_eBkTpl){}
+        try{__e11ApplyDeleted(state);}catch(_eBkDel){}try{applyTplDeleted(state);}catch(_eBkTpl){}
         state.__savedAt=Date.now();
         try{save();}catch(_eBkSv){}
         try{window.__e11RefreshAllViews?window.__e11RefreshAllViews():renderAll();}catch(_eBkR){}
@@ -10112,7 +10140,10 @@ function __e11MergeExitState(s,e){
       if(!s[k]||__e11CfgStamp(ex,k)>__e11CfgStamp(s,k)+300){s[k]=o;ch=true;}
     });
     var del=s.deletedIds||{};
-    function deleted(k,id){try{return !!(del&&del[k]&&del[k][id]);}catch(_){return false;}}
+    function deleted(k,id){
+      try{if(del&&del[k]&&del[k][id])return true;}catch(_){}
+      try{return !!(window.__e11IsDeleted&&window.__e11IsDeleted(k,id));}catch(_){return false;}
+    }
     ["cards","letters","guestbook","moments","redpackets","musicPlaylist","emojis","partnerEmojis","groups","favorites","surveyHistory"].forEach(function(k){
       var a=Array.isArray(s[k])?s[k]:[],b=Array.isArray(ex[k])?ex[k]:[];
       if(!b.length)return;
@@ -10166,6 +10197,8 @@ function __e11MergeExitState(s,e){
     if(Number(s.__savedAt||0)<ts)s.__savedAt=ts;
     /* 合并后可能有同 id 不同内容的历史消息，统一重新编号，避免下一次按 id 去重时又丢一条。 */
     if(ch){try{__e11NormalizeMessages(s);}catch(_eNormAfterMerge){}}
+    /* v43-183z32：最后再按“内存 + 本机同步墓碑”清一遍所有板块。 */
+    try{if(window.__e11ApplyDeleted)window.__e11ApplyDeleted(s);}catch(_eExitApplyDel){}
     return ch;
   }catch(_){return false;}
 }
@@ -10600,6 +10633,8 @@ function __prefReapplyAll(){
 
 function save(){
   try{window.__e11Dirty=1;}catch(_eDirty){}
+  /* v43-183z32：任何写盘前先按墓碑清一遍所有板块，删掉的条目不会被这份存档再写回去。 */
+  try{if(window.__e11ApplyDeleted)window.__e11ApplyDeleted(state);}catch(_eSaveDel){}
   /* v43-183z21：社交内容一变就同步落一份独立小备份，保证“更新/旧档覆盖”后还能接回来。 */
   try{
     var _socArr=(typeof state!=="undefined"&&state)||{};
@@ -11778,7 +11813,7 @@ async function init(){
       /* v43-183k：本机删除墓碑先并进最终 state，再清一次；刷新/退出/旧档合并都不会复活已删内容。 */
       try{if(window.__e11DelLocalRestore)window.__e11DelLocalRestore(state);}catch(_eDelLocal){}
       /* v43-183z21：读档后先把独立社交备份里缺的条目接回来（墓碑会随后清掉已删的）。 */
-      try{if(window.__e11SocialLocalMerge)window.__e11SocialLocalMerge(state);}catch(_eSocRec){}
+      try{if(window.__e11SocialLocalMerge)window.__e11SocialLocalMerge(state,false);}catch(_eSocRec){}
       /* v43-163：合并/迁移后最后再按墓碑清一次，防止默认分组 g1 这类内置内容被旧档补回来。 */
       try{__e11ApplyDeleted(state);}catch(_eLoadDel){}
       /* v43-166：先补齐模板数组，再按模板墓碑过滤；否则旧档没有 letterTpl 时，
@@ -13602,6 +13637,7 @@ window.__recoverMediaFromBackups=__recoverMediaFromBackups;
    3) 删除过的条目仍按墓碑跳过，不会把用户删掉的东西复活。 */
 window.__e11SocialAudit=function(){
   try{
+    if(window.__e11StrictNoRestore&&window.__e11StrictNoRestore())return Promise.resolve(0);
     if(window.__socialAuditing)return Promise.resolve(0);
     if(!window._dbReady||typeof __bkMeta!=="function"||typeof dbGet!=="function")return Promise.resolve(0);
     var kinds=[
@@ -13703,6 +13739,7 @@ window.__e11SocialAudit=window.__e11SocialAudit;
 function __recoverSocialFromBackups(force){
   force=force===true;
   try{
+    if(!force&&window.__e11StrictNoRestore&&window.__e11StrictNoRestore())return Promise.resolve(false);
     if(window.__socialBkRecovering||typeof __bkMeta!=="function"||typeof dbGet!=="function")return Promise.resolve(false);
     var needL=!Array.isArray(state.letters)||state.letters.length===0;
     var needM=!Array.isArray(state.moments)||state.moments.length===0;
@@ -13760,7 +13797,8 @@ window.__recoverSocialFromBackups=__recoverSocialFromBackups;
 function __recoverMediaFromCloud(){
   try{
     if(window.__cloudMediaRecovering||typeof window.__e11CloudGet!=="function")return Promise.resolve(false);
-    var needE=false,needL=!Array.isArray(state.letters)||!state.letters.length,needM=!Array.isArray(state.moments)||!state.moments.length,needG=!Array.isArray(state.guestbook)||!state.guestbook.length;
+    var _strict=!!(window.__e11StrictNoRestore&&window.__e11StrictNoRestore());
+    var needE=false,needL=!_strict&&(!Array.isArray(state.letters)||!state.letters.length),needM=!_strict&&(!Array.isArray(state.moments)||!state.moments.length),needG=!_strict&&(!Array.isArray(state.guestbook)||!state.guestbook.length);
     [state.emojis,state.partnerEmojis].forEach(function(a){(a||[]).forEach(function(e){var v=e&&(e.src||e.url||"");if(!__emojiSrcOk(v)||e.__missing)needE=true;});});
     if(!needE&&!needL&&!needM&&!needG)return Promise.resolve(false);
     window.__cloudMediaRecovering=1;
@@ -19925,7 +19963,12 @@ async function delGroup(id){
   state.cards=state.cards.filter(c=>String(c.groupId)!==String(id));
   if(String(state.settings.replyGroupId)===String(id)){state.settings.replyGroupId=null;state.settings.replyGroupPinned=false;}
   if(String(activeGroupId)===String(id)){activeGroupId=null;__setCardActiveGid(K,null);}
-  save();renderCards();
+  /* v43-183z32：分组删除立刻强制落盘 + 推云端，不能只等 260ms 防抖；
+     否则刚删完就退出，旧档里的分组又会被读回来。 */
+  save();try{__flushSave(true);}catch(_eGFlush){}
+  try{if(window.__cardMediaPersist)window.__cardMediaPersist();}catch(_eGPersist){}
+  try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_eGCloud){}
+  renderCards();
 }
 function cardKeyText(text){
   return String(text||"").replace(/\r/g,"").replace(/[\u200B-\u200D\uFEFF]/g,"").replace(/\s+/g," ").trim();
@@ -28988,7 +29031,7 @@ function renderGuestbook(force){
   try{
     if(window.__e11ApplyDeleted)window.__e11ApplyDeleted(state,["guestbook"]);
     if((!Array.isArray(state.guestbook)||!state.guestbook.length)&&window.__e11SocialLocalMerge){
-      if(window.__e11SocialLocalMerge(state)){window.__e11ApplyDeleted&&window.__e11ApplyDeleted(state,["guestbook"]);try{save();}catch(_){}}
+      if(window.__e11SocialLocalMerge(state,false)){window.__e11ApplyDeleted&&window.__e11ApplyDeleted(state,["guestbook"]);try{save();}catch(_){}}
     }
   }catch(_eGbGuard){}
   /* 数据里只要有一条畸形（缺字段、循环引用、text 不是字符串），这里就会抛错，
