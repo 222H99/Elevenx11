@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-197z33f";
+window.__E11_BUILD="2026-11-25v43-198z33f";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2747,7 +2747,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-197z33f">
+<meta name="app-build" content="2026-11-25v43-198z33f">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4624,10 +4624,19 @@ setTimeout(function(){
       <div class="set-sec-title">数据管理</div>
       <div class="set-group">
         <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;">
-          <button class="small-btn ghost" style="width:100%;font-size:14px;padding:11px 12px;" id="btn-recover-all2">全部恢复（聊天 · 日记 · 留言 · 信件 · 动态）</button>
+          <div class="set-label" style="font-size:14px;">恢复数据</div>
+          <button class="small-btn ghost" style="width:100%;font-size:14px;padding:11px 12px;" id="btn-quick-restore">快速恢复（最近一份备份）</button>
+        </div>
+        <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;">
+          <button class="small-btn ghost" style="width:100%;font-size:14px;padding:11px 12px;" id="btn-recover-all2">全部恢复（本机 7 份 + 云端）</button>
+        </div>
+        <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;">
           <button class="small-btn ghost" style="width:100%;font-size:14px;padding:11px 12px;" id="btn-cloud-replace2">云端还原（用云端覆盖本机）</button>
+        </div>
+        <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;">
           <button class="small-btn ghost" style="width:100%;font-size:14px;padding:11px 12px;" id="btn-deep-restore2">深度恢复（本机旧库 + 云端）</button>
         </div>
+        <div class="set-row"><div class="set-sub" id="restore-status" style="display:none;margin:0;">正在恢复…</div></div>
         <div class="set-row"><button class="small-btn ghost" style="width:100%;" id="btn-export">全量导出（聊天 / 信件 / 动态 / 字卡 / 表情 / 设置）</button></div>
         <div class="set-row" style="gap:8px;">
           <button class="small-btn ghost" style="flex:1;font-size:13px;" id="btn-export-chat">只导出聊天</button>
@@ -7550,6 +7559,9 @@ setTimeout(function(){
     /* v43-194：all=1 是用户在设置里明确点“全部恢复（含误删聊天）”。
        只放开 messages 这一类的删除墓碑和清空时间，其它内容的删除仍然生效。 */
     var _recAll=!!(opts&&opts.all);
+    /* v43-198：快速模式只读“永久最大档 + 最新一份备份 + 聊天流水 + 云端最新档”，
+       不扫 7 份大档、不扫旧库、不拉 4MB 完整档，几秒内先恢复大部分内容。 */
+    var _quick=!!(opts&&opts.quick);
     try{var _curFix=window.__e11StateGet&&window.__e11StateGet();if(_curFix)window.__e11RepairBulkTombs&&window.__e11RepairBulkTombs(_curFix);}catch(_eDeepTombFix){}
     var cands=[];
     function add(name,st){
@@ -7577,7 +7589,10 @@ setTimeout(function(){
         if(Array.isArray(st.messages)||Array.isArray(st.cards)||Array.isArray(st.letters)||Array.isArray(st.guestbook)||Array.isArray(st.moments))add("键 "+k,st);
       });
     }catch(_eKeyScan){}
-    function _paint(t){try{var el=document.getElementById("deep-restore-sub");if(el)el.textContent=t;}catch(_){}}
+    function _paint(t){
+      try{var el=document.getElementById("deep-restore-sub");if(el)el.textContent=t;}catch(_){}
+      try{var rs=document.getElementById("restore-status");if(rs){rs.style.display="block";rs.textContent=t;}}catch(_){}
+    }
     /* 并发读取：以前 3 份备份、多个旧库一份一份排队，手机端慢到像卡死。 */
     function runPool(items,limit,fn){
       return new Promise(function(res){
@@ -7604,11 +7619,19 @@ setTimeout(function(){
         /* v43-114：完整备份里有图片/表情，手机端读一份就可能超过 2 秒。
            旧逻辑 1.8 秒就判失败，3 份历史备份全被当成“读不出来”，深度恢复自然恢复不了历史消息。
            v43-115：改成分批顺序读，避免 3 份大档同时进内存把手机顶卡。 */
-        var _keys=__bkSlots().concat([BK_BEST]);
-        localP=runPool(_keys,3,function(k,i){
-          _paint("正在快速读取本机备份 "+(i+1)+"/"+_keys.length+"…");
-          return __e11DbGetTimed(k,5000).then(function(v){return v&&v.state?v.state:null;});
-        });
+        if(_quick){
+          localP=__bkMeta().then(function(m){
+            var _keys=[BK_BEST];if(m&&m[0]&&m[0].slot!==undefined)_keys.push("bk_slot_"+m[0].slot);
+            _paint("正在读取最近一份备份…");
+            return runPool(_keys,2,function(k){return __e11DbGetTimed(k,8000).then(function(v){return v&&v.state?v.state:null;});});
+          });
+        }else{
+          var _keys=__bkSlots().concat([BK_BEST]);
+          localP=runPool(_keys,3,function(k,i){
+            _paint("正在快速读取本机备份 "+(i+1)+"/"+_keys.length+"…");
+            return __e11DbGetTimed(k,5000).then(function(v){return v&&v.state?v.state:null;});
+          });
+        }
       }
     }catch(_){}
     /* v43-105：深度恢复必须同时拿 latest.json 和 latest.full.json。
@@ -7617,7 +7640,7 @@ setTimeout(function(){
        退出登录/换账号/更新后旧库可能留在 privateChatDB_v1_xxx 里，必须一起扫。 */
     var scopeP=Promise.resolve([]);
     try{
-      if(indexedDB.databases&&typeof __e11ReadScopeDb==="function"){
+      if(!_quick&&indexedDB.databases&&typeof __e11ReadScopeDb==="function"){
         scopeP=indexedDB.databases().then(function(dbs){
           var names=(dbs||[]).map(function(x){return x&&x.name;}).filter(function(n){return n&&n.indexOf("privateChatDB_v1")===0&&n!==DB_NAME;});
           /* 已知库优先，最多 10 个；4 路并发，避免旧库多时逐个开库拖几十秒。 */
@@ -7637,8 +7660,8 @@ setTimeout(function(){
     var cloudInfo={ok:0,reason:"",msgs:0,social:0,diary:0};
     if(typeof authOk==="function"&&authOk()&&typeof session!=="undefined"&&session&&session.user){
       _paint("正在读取云端完整档…");
-      var _latestP=api(cloudUrl(),{token:session.access_token,timeout:25000}).catch(function(){return null;});
-      var _fullP=(typeof cloudBackupGet==="function")?cloudBackupGet().catch(function(){return null;}):Promise.resolve(null);
+      var _latestP=api(cloudUrl(),{token:session.access_token,timeout:_quick?15000:25000}).catch(function(){return null;});
+      var _fullP=_quick?Promise.resolve(null):((typeof cloudBackupGet==="function")?cloudBackupGet().catch(function(){return null;}):Promise.resolve(null));
       cloudP=Promise.all([_latestP,_fullP]).then(function(pair){
         var d=pair[0],f=pair[1];
         var st=(f&&f.state)||(d&&d.state)||null;
@@ -38378,7 +38401,26 @@ body{margin:0;background:var(--bg,#fafafa);}
     /* v43-196：数据管理页放三个大按钮，解决“全部恢复点不动”：
        原来的云同步页在横向分页里，按钮在屏幕外/被分页容器挡住。这里用同一套逻辑转发。 */
     [["btn-recover-all2","btn-recover-all"],["btn-cloud-replace2","btn-cloud-replace"],["btn-deep-restore2","btn-deep-restore"]].forEach(function(pair){
-      var a=$(pair[0]),b=$(pair[1]);if(a&&b)a.addEventListener("click",function(){b.click();});
+      var a=$(pair[0]),b=$(pair[1]);if(a&&b)a.addEventListener("click",function(){
+        try{var rs=$("restore-status");if(rs){rs.style.display="block";rs.textContent="正在准备恢复…";}}catch(_){}
+        try{toast("开始恢复，请稍候…");}catch(_){}
+        b.click();
+      });
+    });
+    if($("btn-quick-restore"))$("btn-quick-restore").addEventListener("click",async function(){
+      if(!(await __iosConfirm("只读最近一份备份和云端最新档，几秒内先恢复大部分内容。以前删掉的也会回来。继续？",{okText:"快速恢复"})))return;
+      var b=this,old=b.textContent,rs=$("restore-status");
+      b.disabled=true;b.textContent="恢复中…";if(rs){rs.style.display="block";rs.textContent="正在读取最近一份备份…";}
+      try{
+        var r=await window.__E11DeepRestore({all:1,quick:1});
+        if(rs)rs.textContent="已恢复";
+        toast("快速恢复完成：聊天 "+r.after.messages+" 条 · 日记 "+(r.after.diary||0)+" 页 · 留言 "+r.after.guestbook+" 条 · 信件 "+r.after.letters+" 封 · 动态 "+r.after.moments+" 条");
+        setTimeout(function(){location.reload();},800);
+      }catch(e){
+        if(rs)rs.textContent="快速恢复失败";
+        toast("快速恢复失败："+String(e&&e.message||e).slice(0,100));
+      }
+      b.disabled=false;b.textContent=old;
     });
     if($("btn-cloud-replace"))$("btn-cloud-replace").addEventListener("click",async function(){
       if(!(await __iosConfirm("用云端最全存档覆盖本机，日记、留言、信件、动态一起恢复；删除记录不生效。继续？",{okText:"云端还原"})))return;
