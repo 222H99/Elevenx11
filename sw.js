@@ -1,8 +1,8 @@
 /* Eleven×11 Service Worker
    作用一：缓存主页面，第二次打开时不再重新下载 2MB HTML，直接出首屏（黑屏时间大幅缩短）。
    作用二：提供通知点击回到 App 的最小能力。
-   策略：有缓存时优先等网络新版（2.6 秒），超时才用缓存并后台更新；避免平台注入变动后还拿旧的整页。 */
-const E11_VERSION = "2026-11-24v43-183z5";
+   策略：有缓存立即返回，同时在后台抓取新版并写回缓存；首次无缓存才等网络。 */
+const E11_VERSION = "2026-11-24v43-183z6";
 const E11_CACHE = "e11-shell-" + E11_VERSION;
 const E11_INDEX = "./index.html";
 const E11_TIMEOUT = 2600;
@@ -38,7 +38,7 @@ function e11Timeout(ms) {
   return new Promise((res) => setTimeout(() => res(null), ms));
 }
 
-async function e11Navigate(request) {
+async function e11Navigate(request, event) {
   const cache = await caches.open(E11_CACHE);
   const cached = await cache.match(E11_INDEX);
   const network = fetch(request, { cache: "no-store" }).then(async (r) => {
@@ -58,9 +58,9 @@ async function e11Navigate(request) {
       { headers: { "Content-Type": "text/html; charset=utf-8" } }
     );
   }
-  const fresh = await Promise.race([network, e11Timeout(E11_TIMEOUT)]);
-  if (fresh && fresh.ok) return fresh;
-  try { self.clients && self.clients.claim(); } catch (_) {}
+  /* 有缓存就立刻返回，不再等网络 2.6 秒：以前每次点进网站都要先等一次新请求，
+     慢网/弱网就是几秒白屏。新版在后台抓取并写回缓存，下次启动直接命中。 */
+  try { event.waitUntil(network.catch(() => null)); } catch (_) {}
   return cached;
 }
 
@@ -71,7 +71,7 @@ self.addEventListener("fetch", (e) => {
   try { url = new URL(req.url); } catch (_) { return; }
   if (url.origin !== self.location.origin) return;
   if (req.mode === "navigate" || (req.destination === "document" && url.pathname.endsWith("/"))) {
-    e.respondWith(e11Navigate(req));
+    e.respondWith(e11Navigate(req, e));
     return;
   }
   /* sw.js 自身永远走网络，保证下次启动能拿到新版本 */
