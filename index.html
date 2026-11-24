@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183z32";
+window.__E11_BUILD="2026-11-24v43-183z33";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2743,7 +2743,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183z32">
+<meta name="app-build" content="2026-11-24v43-183z33">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -8399,11 +8399,13 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-183z32",
-  time:"2026-11-24 19:58",
+  date:"v43-183z33",
+  time:"2026-11-24 20:09",
   noticeKey:null,
-  lead:"2026-11-24 19:58 修改（v43-183z32）：所有板块删掉的东西都不再自动恢复；有最近离站快照时，这次打开就按上次离开的数据来，不再从旧备份里乱补。",
+  lead:"2026-11-24 20:09 修改（v43-183z33）：背景换完就按本机最后一次选择保存，退出、刷新、更新网站后不再被旧存档或旧备份改回去。",
   items:[
+    "背景设置完又变（v43-183z33）：聊天背景、我的全局背景、卡片背景、留言板、信件、画画、动态主页、情侣空间、信纸、信封、一起听、通话这些背景，现在统一先写一份只记「最后一次选择」的小备份。纯色/渐变预设和信纸、信封预设以前只靠设置小备份，会被旧存档整份盖掉；现在启动时在旧档恢复之后，再无条件按这份选择恢复。",
+    "信纸/信封换图会把本地撑满（v43-183z33）：信纸背景图以前整张塞进设置小备份，一张图就可能把 localStorage 顶满，后面的背景设置全都写不进去，刷新又回旧图。现在大图从设置小备份里剔除，单独走图片备份；信纸、信封的预设和换图也在点完立即强制落盘。",
     "删除的字卡分组又回来（v43-183z32）：删分组以前只走 260ms 防抖保存，马上退出时删除墓碑还没进主档；旧备份/离站快照一并就把整个分组和里面的字卡带回来。现在删分组立刻强制写本机、推云端，并在合并后再按「内存 + 本机同步墓碑」清一遍。",
     "所有板块删除都不恢复（v43-183z32）：删除墓碑现在对聊天、信件、动态、留言、字卡、分组、歌单、房间消息、收藏、表情、红包、问卷记录全部生效；每次写盘前先清一遍，旧云档/自动备份/社交备份/离站快照合并后也再清一遍，不会再有任何板块把删掉的条目补回来。",
     "不再乱补旧数据（v43-183z32）：只要本机有最近 7 天的离站快照，它就是这次打开的唯一权威。自动备份补齐、社交小备份回填、云端旧档补空位都停用；只有你手动点「找回旧留言」这类入口才会显式去读旧备份。",
@@ -10495,6 +10497,19 @@ function __settingsBackup(force){
       var v=src[k];
       /* 通知铃声/录音这类 dataURL 可能有几 MB，不塞进小键，避免把整个设置备份顶爆 */
       if(typeof v==="string"&&/(Data|data)$/.test(k)&&v.length>4000)return;
+      /* v43-183z33：信纸/信封是 {img:dataURL} 对象，以前整块塞进设置小备份，
+         一张图就把 localStorage 顶爆，导致后面的背景设置全都写不进去、刷新回旧值。
+         大图从设置小备份里剔除，交给 __E11_BG_PATHS 的图片备份恢复。 */
+      if(v&&typeof v==="object"&&!Array.isArray(v)){
+        var big=false,o={};
+        Object.keys(v).forEach(function(x){
+          var vv=v[x];
+          if(typeof vv==="string"&&vv.indexOf("data:")===0&&vv.length>4000){big=true;return;}
+          o[x]=vv;
+        });
+        ss[k]=big?o:v;
+        return;
+      }
       ss[k]=v;
     });
     /* v43-128：美化（换肤、气泡、顶栏/底栏、背景、头像框、字卡信纸配色）和设置一起备份。
@@ -12452,6 +12467,10 @@ function bgCompress(d){
 function setSkinImg(key,raw,after){
   try{
     if(!state.skin)state.skin={};
+    /* v43-183z33：换成照片时把同一处的纯色/渐变预设归零，避免预设和新图同时存在，
+       下次启动按快照恢复出一半旧预设、一半新图。 */
+    var _bgPair={gbImage:"gbBg",ltImage:"ltBg",momImage:"momBg",gameImage:"gameBg",meImage:"meBg",meTopImage:"meTopBg"};
+    if(_bgPair[key])state.skin[_bgPair[key]]=0;
     state.skin[key]=raw;
     state.skin.__ts=Date.now();
     try{window.__settingsSaveSig=JSON.stringify(state.settings||{});}catch(_){}
@@ -12542,7 +12561,80 @@ window.__e11BgLocalSync=function(){
         }
       }catch(_ePath){}
     });
+    try{if(window.__e11BgPrefSync)window.__e11BgPrefSync();}catch(_eBgPrefSync){}
   }catch(_eBgSync){}
+};
+/* v43-183z33：背景图片之外，纯色/渐变预设和信纸、信封预设原来只靠设置小备份。
+   设置小备份会被旧档整份覆盖，信纸/信封图片还会因为内嵌 dataURL 顶爆配额而写不进去。
+   这里单独存一份“最后一次背景选择”（只存预设关键词/颜色，图片只存 __data__ 标记），
+   启动时在旧 skin/旧设置之后无条件恢复，保证换完退出、刷新、更新都还是上次选的那个。 */
+window.__E11_BG_SKIN_KEYS=["bg","bgImage","gbBg","gbImage","ltBg","ltImage","momBg","momImage","gameBg","gameImage","meBg","meImage","meTopBg","meTopImage","coupleImage"];
+window.__E11_BG_SET_KEYS=["paperBg","envBg","myPaperBg","myEnvBg"];
+window.__E11_BG_PREF_KEY="e11.bgsel.v1";
+window.__e11BgPrefSync=function(){
+  try{
+    if(typeof state==="undefined"||!state)return false;
+    state.skin=state.skin||{};
+    var sk={};window.__E11_BG_SKIN_KEYS.forEach(function(k){
+      var v=state.skin[k];
+      sk[k]=(typeof v==="string"&&v.indexOf("data:")===0)?"__data__":(v===undefined?"":v);
+    });
+    var se={},ss=state.settings||{};
+    window.__E11_BG_SET_KEYS.forEach(function(k){
+      var v=ss[k];
+      if(!v||typeof v!=="object"){se[k]="";return;}
+      var o={};
+      Object.keys(v).forEach(function(x){
+        var vv=v[x];
+        if(x==="img"){o.__img=vv?1:0;return;}
+        if(typeof vv==="string"&&vv.indexOf("data:")===0){o.__data=1;return;}
+        if(vv!==undefined&&vv!==null&&typeof vv!=="object"&&typeof vv!=="function")o[x]=vv;
+      });
+      se[k]=o;
+    });
+    localStorage.setItem(window.__E11_BG_PREF_KEY,JSON.stringify({ts:Date.now(),skin:sk,settings:se,musicBg:Number(state.musicBg)||0}));
+    return true;
+  }catch(_eBgs){return false;}
+};
+window.__e11BgPrefRestore=function(){
+  try{
+    if(typeof state==="undefined"||!state)return false;
+    var raw=null;try{raw=localStorage.getItem(window.__E11_BG_PREF_KEY);}catch(_eR){raw=null;}
+    if(!raw)return false;
+    var o=null;try{o=JSON.parse(raw);}catch(_eP){o=null;}
+    if(!o)return false;
+    var changed=false;state.skin=state.skin||{};state.settings=state.settings||{};
+    window.__E11_BG_SKIN_KEYS.forEach(function(k){
+      if(!o.skin||o.skin[k]===undefined)return;
+      var v=o.skin[k];
+      /* 图片标记不在这里写值，真实 dataURL 由 __E11_BG_PATHS 的备份负责。 */
+      if(v==="__data__")return;
+      if(state.skin[k]!==v){state.skin[k]=v;changed=true;}
+    });
+    window.__E11_BG_SET_KEYS.forEach(function(k){
+      var s=o.settings&&o.settings[k];
+      if(s===""){if(state.settings[k]){state.settings[k]=null;changed=true;}return;}
+      if(!s||typeof s!=="object")return;
+      /* 最后一次选的是照片：不把当前设置改成空对象，图片交给背景图片备份恢复。 */
+      if(s.__img||s.__data)return;
+      var n={};
+      Object.keys(s).forEach(function(x){if(x!=="__img"&&x!=="__data"&&s[x]!==undefined)n[x]=s[x];});
+      var cur=state.settings[k];
+      try{if(JSON.stringify(cur||{})!==JSON.stringify(n)){state.settings[k]=n;changed=true;}}
+      catch(_eCmp){state.settings[k]=n;changed=true;}
+    });
+    if(o.musicBg!==undefined&&Number(state.musicBg)!==Number(o.musicBg)){state.musicBg=Number(o.musicBg)||0;changed=true;}
+    if(changed){
+      try{state.skin.__ts=Math.max(Number(state.skin.__ts)||0,Number(o.ts)||0,Date.now());}catch(_eTs){}
+      try{applySkin();}catch(_eA){}
+      try{applyPaperBg();}catch(_eB){}
+      try{applyEnvBg();}catch(_eC){}
+      try{renderPartnerStyleUI();}catch(_eD){}
+      try{renderMe();}catch(_eE){}
+      try{renderCouple();}catch(_eF){}
+    }
+    return changed;
+  }catch(_eBgPr){return false;}
 };
 window.__e11BgLocalRestore=function(){
   try{
@@ -12597,6 +12689,7 @@ window.__e11BgLocalRestore=function(){
       }
       curObj[path[path.length-1]]=bak;changed=true;
     });
+    try{if(window.__e11BgPrefRestore&&window.__e11BgPrefRestore())changed=true;}catch(_eBgPrefRestore){}
     try{if(window.__cardFaceRestore&&window.__cardFaceRestore())changed=true;}catch(_eCfRestore){}
     if(changed){
       /* 不再调用 __bgPersistNow（它会再触发云端），只重绘并异步保存 */
@@ -28256,6 +28349,7 @@ function openPaperBgSheet(){
       el.addEventListener("click",function(){
         setPaperSetting({k:el.getAttribute("data-paper")});
         save();try{__flushSave();}catch(e){}
+        try{window.__bgPersistNow&&window.__bgPersistNow();}catch(_ePaperSet){}
         box.querySelectorAll(".paper-sw").forEach(function(x){x.classList.toggle("on",x===el);});
         applyPaperBg();toast("信纸背景已更新");
       });
@@ -28286,6 +28380,7 @@ function openPaperBgSheet(){
           cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);
           setPaperSetting({img:__imgDataURL(cv,0.8)});
           save();try{__flushSave();}catch(e){}
+          try{window.__bgPersistNow&&window.__bgPersistNow();}catch(_ePaperImg){}
           applyPaperBg();toast("信纸背景已换成这张图");
           var sh=document.getElementById("paper-bg-sheet");sh&&sh.classList.remove("show");
         };
@@ -28299,6 +28394,7 @@ function openPaperBgSheet(){
   rs&&rs.addEventListener("click",function(){
     setPaperSetting(null);   /* 恢复默认 = 跟随主题（白天白纸、夜间黑纸） */
     save();try{__flushSave();}catch(e){}
+    try{window.__bgPersistNow&&window.__bgPersistNow();}catch(_ePaperReset){}
     applyPaperBg();openPaperBgSheet();toast("信纸已恢复跟随主题");
   });
   applyPaperBg();
@@ -28315,6 +28411,7 @@ function renderPartnerStyleUI(){
       var el=e.target.closest?e.target.closest("[data-ptpaper]"):null;if(!el)return;
       state.settings.paperBg={k:el.getAttribute("data-ptpaper")};
       save();try{__flushSave();}catch(e){}
+      try{window.__bgPersistNow&&window.__bgPersistNow();}catch(_ePtPaper){}
       renderPartnerStyleUI();
       if(window.__envCtx&&window.__envCtx.root){try{document.getElementById("env-card").innerHTML=envThreadHTML(window.__envCtx.root,window.__envCtx.l);}catch(e){}}
       toast("对方来信信纸已更新");
@@ -28331,6 +28428,7 @@ function renderPartnerStyleUI(){
       var el=e.target.closest?e.target.closest("[data-ptenv]"):null;if(!el)return;
       state.settings.envBg={k:el.getAttribute("data-ptenv")};
       save();try{__flushSave();}catch(e){}
+      try{window.__bgPersistNow&&window.__bgPersistNow();}catch(_ePtEnv){}
       renderPartnerStyleUI();toast("对方来信信封已更新");
     });}
   }
@@ -28525,6 +28623,7 @@ function openEnvBgSheet(){
       el.addEventListener("click",function(){
         setEnvSetting({k:el.getAttribute("data-env")});
         save();try{__flushSave();}catch(e){}
+        try{window.__bgPersistNow&&window.__bgPersistNow();}catch(_eEnvSet){}
         box.querySelectorAll(".env-sw").forEach(function(x){x.classList.toggle("on",x===el);});
         applyEnvBg();toast("信封背景已更新");
       });
@@ -28599,6 +28698,7 @@ function openEnvBgSheet(){
             var url=cv.toDataURL("image/jpeg",0.8);
             setEnvSetting({img:url});
             save();try{__flushSave();}catch(e){}
+            try{window.__bgPersistNow&&window.__bgPersistNow();}catch(_eEnvImg){}
             applyEnvBg();bg.classList.remove("show");
             try{openEnvBgSheet();}catch(e){}
             try{renderLetters();}catch(e){}
