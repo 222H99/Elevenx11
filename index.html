@@ -252,7 +252,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183z2";
+window.__E11_BUILD="2026-11-24v43-183z3";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2665,7 +2665,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183z2">
+<meta name="app-build" content="2026-11-24v43-183z3">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4413,7 +4413,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-24v43-183z2</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-24v43-183z3</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -4515,7 +4515,8 @@ setTimeout(function(){
           <div class="set-sub" id="snap-sub" style="margin-top:6px;">每天自动存一份，点开可一键恢复</div>
         </div>
         <div class="set-row"><label class="small-btn ghost" for="file-import" style="width:100%;display:flex;align-items:center;justify-content:center;cursor:pointer;text-align:center;">导入数据（全量/分类自动识别）</label></div>
-        <div class="set-row"><button class="small-btn ghost" style="width:100%;" id="btn-clear-msgs">清空聊天记录</button></div>
+        <div class="set-row"><button class="small-btn ghost" style="width:100%;" id="btn-clear-msgs">清空聊天记录（含一起听房间聊天）</button></div>
+        <div class="set-row" style="flex-direction:column;align-items:stretch;"><button class="small-btn ghost" style="width:100%;" id="btn-clear-music-room">清空一起听聊天记录（保留歌单）</button><div class="set-sub" style="margin-top:6px;">只清空歌词页房间里的聊天；一起听的歌单、当前歌曲和背景都不动</div></div>
         <div class="set-row" style="flex-direction:column;align-items:stretch;"><button class="small-btn ghost" style="width:100%;color:var(--danger);" id="btn-reset-all">一键重置（只清本机）</button><div class="set-sub" style="margin-top:6px;">只清这台设备的聊天、字卡、动态和设置；云端存档保留，可在上面「从云端恢复」拉回</div></div>
       </div>
       <div class="set-sec-title">存储空间</div>
@@ -6180,7 +6181,7 @@ setTimeout(function(){
   }
   /* 删除也要同步：只靠“并集”会把用户删掉的聊天/字卡/信件又拉回来。
      这里给每条被删掉的记录记一个墓碑（kind + id），云端日志和完整档合并后按墓碑过滤。 */
-  var __e11DeleteKinds=["messages","letters","guestbook","moments","cards","groups","musicPlaylist","favorites","emojis","partnerEmojis","redpackets","surveyHistory"];
+  var __e11DeleteKinds=["messages","letters","guestbook","moments","cards","groups","musicPlaylist","musicRoomMsgs","favorites","emojis","partnerEmojis","redpackets","surveyHistory"];
   function __e11IdOf(x){
     try{if(x&&typeof x==="object"&&x.id!==undefined&&x.id!==null)return String(x.id);if(x&&typeof x==="object"&&x.key!==undefined&&x.key!==null)return String(x.key);if(typeof x==="string"||typeof x==="number")return String(x);}catch(_){}
     return "";
@@ -6309,7 +6310,7 @@ setTimeout(function(){
     if(!latest||!latest.state)return full;
     var base=JSON.parse(JSON.stringify(full.state));
     var add=latest.state;
-    var ARR=["messages","letters","guestbook","moments","cards","groups","redpackets","musicPlaylist","emojis","partnerEmojis","surveyHistory","quizDeleted","hostMsgs","pendingLetterReplies","pendingCommentReplies","pendingNoteReplies","favorites"];
+    var ARR=["messages","letters","guestbook","moments","cards","groups","redpackets","musicPlaylist","musicRoomMsgs","emojis","partnerEmojis","surveyHistory","quizDeleted","hostMsgs","pendingLetterReplies","pendingCommentReplies","pendingNoteReplies","favorites"];
     ARR.forEach(function(k){
       if(!Array.isArray(base[k]))base[k]=[];
       if(!Array.isArray(add[k]))return;
@@ -6583,7 +6584,25 @@ setTimeout(function(){
         mpName:String(p.mpName||""),partnerMpName:String(p.partnerMpName||""),
         mpDist:p.mpDist,mpDur:String(p.mpDur||""),mpNote:String(p.mpNote||""),
         mpSong:String(p.mpSong||""),mpSongArtist:String(p.mpSongArtist||""),
-        mpAv1:String(p.mpAv1||""),mpAv2:String(p.mpAv2||""),mpCover:String(p.mpCover||"")};
+        mpAv1:String(p.mpAv1||""),mpAv2:String(p.mpAv2||""),mpCover:String(p.mpCover||""),
+        musicSession:!!(st&&st.musicSession),musicCur:Number(st&&st.musicCur)||-1,
+        /* 一起听房间聊天单独留一份，刷新/更新/退出后不能因为主库没写完就消失。 */
+        musicRoomMsgs:(Array.isArray(st&&st.musicRoomMsgs)?st.musicRoomMsgs.slice(-150):[]).map(function(m){
+          var x={id:m.id,from:m.from,type:m.type,text:String(m.text||""),time:Number(m.time)||0};
+          if(m.dur)x.dur=m.dur;
+          /* 房间图片只在不太大时备份，避免把 localStorage 配额吃满；原图仍在主库/聊天里。 */
+          if(m.src&&String(m.src).length<=24000)x.src=m.src;
+          return x;
+        }),
+        musicRoomClearedAt:Number(st&&st.musicRoomClearedAt)||0,
+        profileTs:Number(p.__ts)||0};
+      /* 图片多时先去掉房间图片、再压到最近 80 条，保证这份兜底键一定写得进去。 */
+      try{
+        if(JSON.stringify(o.musicRoomMsgs||[]).length>900000){
+          (o.musicRoomMsgs||[]).forEach(function(m){if(m&&m.type==="image")m.src="";});
+        }
+        if(JSON.stringify(o.musicRoomMsgs||[]).length>900000)o.musicRoomMsgs=(o.musicRoomMsgs||[]).slice(-80);
+      }catch(_eRmCap){}
       localStorage.setItem("e11.musicRoom",JSON.stringify(o));
       return o;
     }catch(_){return null;}
@@ -6597,9 +6616,22 @@ setTimeout(function(){
     try{
       var b=JSON.parse(localStorage.getItem("e11.musicRoom")||"null");if(!b)return;
       var bts=Number(b.ts)||0,curTs=Number(st&&st.musicRoomTs)||0;
+      /* 房间聊天不靠 profile 时间戳：按 id 并集，清空时间之后的新记录才保留。
+         这样更新/退出后，即使主库还在写，也不会把刚聊的“一起听记录”冲掉。 */
+      var _clr=Math.max(Number(st&&st.musicRoomClearedAt)||0,Number(b.musicRoomClearedAt)||0);
+      if(Array.isArray(b.musicRoomMsgs)){
+        var _cur=Array.isArray(st.musicRoomMsgs)?st.musicRoomMsgs:[];
+        var _by={};(b.musicRoomMsgs||[]).forEach(function(m){if(m&&m.id)_by[m.id]=m;});
+        _cur.forEach(function(m){if(m&&m.id)_by[m.id]=m;});
+        var _arr=Object.keys(_by).map(function(id){return _by[id];}).filter(function(m){return m&&Number(m.time||0)>_clr;});
+        _arr.sort(function(a,b2){return (Number(a.time)||0)-(Number(b2.time)||0);});
+        st.musicRoomMsgs=_arr.slice(-150);
+        st.musicRoomClearedAt=_clr;
+        try{window.__e11ApplyDeleted&&window.__e11ApplyDeleted(st,["musicRoomMsgs"]);}catch(_eRmDel2){}
+      }
       /* 只有本机备份比当前（可能是云端旧档）更新时才覆盖；否则保留云端/当前值。
          以前只在字段为空时补，云端把 mpName/mpDur 写成默认值后就永远补不回来。 */
-      if(bts>curTs+500){
+      if(bts>curTs+500&&(!b.profileTs||Number(b.profileTs)>=Number(st.profile&&st.profile.__ts)||0)){
         var p=st.profile=st.profile||{};
         if(b.musicRoomNote!==undefined)st.musicRoomNote=b.musicRoomNote;
         /* 备份更新时连空值一起恢复：用户在界面里清掉的名字/时长/文案/头像，
@@ -6609,6 +6641,7 @@ setTimeout(function(){
         });
         if(b.mpDist!==undefined)p.mpDist=b.mpDist;
         st.musicRoomTs=bts;
+        try{window.__e11ApplyDeleted&&window.__e11ApplyDeleted(st,["musicRoomMsgs"]);}catch(_eRmDel){}
         return true;
       }
     }catch(_){}
@@ -6785,6 +6818,16 @@ setTimeout(function(){
         var _ft=[];((st.favTags||[]).concat(localState.favTags)).forEach(function(x){if(x&&_ft.indexOf(x)<0)_ft.push(x);});
         st.favTags=_ft;
       }
+      /* 云端旧档不能把本机刚聊的一起听记录冲掉；按 id 并集，墓碑/清空时间过滤。 */
+      try{
+        var _rmClr=Math.max(Number(st.musicRoomClearedAt)||0,Number(localState&&localState.musicRoomClearedAt)||0);
+        var _rmBy={},_rmA=[];
+        function _rmAdd(list){ (Array.isArray(list)?list:[]).forEach(function(m){ if(m&&m.id&&!_rmBy[m.id]){_rmBy[m.id]=m;_rmA.push(m);} }); }
+        _rmAdd(st.musicRoomMsgs);_rmAdd(localState&&localState.musicRoomMsgs);
+        _rmA=_rmA.filter(function(m){return Number(m.time||0)>_rmClr;});
+        _rmA.sort(function(a,b2){return (Number(a.time)||0)-(Number(b2.time)||0);});
+        st.musicRoomMsgs=_rmA.slice(-150);st.musicRoomClearedAt=_rmClr;
+      }catch(_eRmMerge){}
     }catch(_eBoardMerge){}
     /* 云端可能是另一台设备较早的档；本机还没同步出去的几条新消息不能丢。
        两边按 id 取并集，随后再用墓碑过滤掉真正删掉的消息。 */
@@ -7993,8 +8036,10 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-24",
   noticeKey:null,
-  lead:"v43-183z2：以 183n 稳定版为主线，修掉删除后复活、字卡重复和背景回旧图；字卡/加号/通话界面按屏幕自动收放，锁屏键盘弹起时密码框和按钮固定在键盘上方。",
+  lead:"v43-183z3：一起听房间聊天更新、退出、重开都不再丢；设置里的清除数据更彻底，旧 IndexedDB 主档不会在重载后把内容带回来。",
   items:[
+    "一起听记录不丢（v43-183z3）：歌词页房间里的聊天单独留一份本机兜底，并与主库、离站快照、云端按 id 合并；更新网站、退出重进、刷新后都按最后记录恢复。清空聊天或单独清空房间会写删除墓碑，旧档不能再补回来。",
+    "清除数据更彻底（v43-183z3）：设置 → 数据管理新增“清空一起听聊天记录（保留歌单）”；一键清除会等 IndexedDB 事务完成再重载，个别手机事务卡住也有兜底。重载后早于清除时间的旧主档一律不采用，避免“清了又回来”。",
     "删除永不复活（v43-183z2）：删掉的表情包、字卡、字卡分组不再被云端旧档、历史媒体修复或自动备份补回来。以前检测到“云端还有内容”会整批清掉本机删除墓碑，这是表情和字卡复活的主因；现在墓碑永久保留，媒体合并后也会再按墓碑过滤。",
     "字卡自动去重（v43-183z2）：进入字卡页先按类别自动清掉跨分组重复，整份字卡同一句只留一条；多选工具栏新增「去重」按钮，勾选后点一下就能清掉当前类别的重复字卡。",
     "字卡/加号/通话自适应（v43-183z2）：字卡页头和分组在窄屏自动换行/收窄，分组标签可横向滑动，不再横向溢出；加号菜单限高可滚动，矮屏也能看到全部功能；通话页头像、按钮间距按屏幕高度收放，控制键不会被挤出屏幕。",
@@ -8455,6 +8500,7 @@ function defaultState(){
     quizBank:[],
     redpackets:[],
     musicPlaylist:[],
+    musicRoomMsgs:[],musicRoomClearedAt:0,
     musicBg:0,musicBgImg:"",musicDiscBgImg:"",musicDiscInnerImg:"",musicCoverImg:"",musicCur:-1,musicVol:0.8,musicLoop:false,miniPos:null,miniCollapsed:false,
     messages:[],
     seq:0,
@@ -9582,7 +9628,7 @@ function __e11MergeExitState(s,e){
       var _del={};
       [s.deletedIds,ex.deletedIds].forEach(function(src){Object.keys(src||{}).forEach(function(k){var ids=src[k]||{};_del[k]=_del[k]||{};Object.keys(ids).forEach(function(id){_del[k][id]=Math.max(Number(_del[k][id])||0,Number(ids[id])||0);});});});
       ex.deletedIds=_del;s.deletedIds=_del;
-      ["messages","letters","guestbook","moments","cards","groups","musicPlaylist","favorites","emojis","partnerEmojis","redpackets","surveyHistory"].forEach(function(k){
+      ["messages","letters","guestbook","moments","cards","groups","musicPlaylist","musicRoomMsgs","favorites","emojis","partnerEmojis","redpackets","surveyHistory"].forEach(function(k){
         if(Array.isArray(ex[k]))ex[k]=ex[k].filter(function(x){var id=x&&(x.id!==undefined?x.id:x.key);return !(id!==undefined&&_del[k]&&_del[k][String(id)]);});
       });
     }catch(_eExitDel){}
@@ -9629,6 +9675,19 @@ function __e11MergeExitState(s,e){
       });
       s.messages.sort(__e11MsgOrder);
     }
+    /* 一起听房间聊天：离站快照与主库按 id 并集，清空/删除墓碑之后才保留。
+       旧逻辑只并聊天/字卡/日记，房间里的记录会因主库较旧而回退。 */
+    try{
+      var _rmClr=Math.max(Number(s.musicRoomClearedAt)||0,Number(ex.musicRoomClearedAt)||0);
+      var _rmBy={},_rmA=[];
+      function _rmAdd(list){ (Array.isArray(list)?list:[]).forEach(function(m){ if(m&&m.id&&!_rmBy[m.id]){_rmBy[m.id]=m;_rmA.push(m);} }); }
+      _rmAdd(s.musicRoomMsgs);_rmAdd(ex.musicRoomMsgs);
+      _rmA=_rmA.filter(function(m){var id=String(m.id);return Number(m.time||0)>_rmClr&&!deleted("musicRoomMsgs",id);});
+      _rmA.sort(function(a,b2){return (Number(a.time)||0)-(Number(b2.time)||0);});
+      _rmA=_rmA.slice(-150);
+      if(JSON.stringify(_rmA)!==JSON.stringify(s.musicRoomMsgs||[])){s.musicRoomMsgs=_rmA;ch=true;}
+      s.musicRoomClearedAt=_rmClr;
+    }catch(_eExitRoom){}
     /* v43-117：离站快照里的日记页/封面也要并回来。旧逻辑只合并聊天和字卡，
        所以改完日记马上退出、主库还没落盘时，日记历史就“丢了”。 */
     try{if(window.__e11MergeDiary&&window.__e11MergeDiary(s,ex))ch=true;}catch(_eExitDiary){}
@@ -10607,6 +10666,8 @@ function migrate(s){
   if(s.settings.letterMaxSec===undefined)s.settings.letterMaxSec=300;
   if(s.settings.gbPrompt===undefined)s.settings.gbPrompt="你说 我在听";
   if(!Array.isArray(s.musicPlaylist))s.musicPlaylist=defaultState().musicPlaylist;
+  if(!Array.isArray(s.musicRoomMsgs))s.musicRoomMsgs=[];
+  if(s.musicRoomClearedAt===undefined)s.musicRoomClearedAt=0;
   if(s.musicBg===undefined)s.musicBg=0;
   if(s.musicBgImg===undefined)s.musicBgImg="";
   if(s.musicDiscBgImg===undefined)s.musicDiscBgImg="";
@@ -10990,6 +11051,12 @@ async function init(){
     try{dbGet("emojiLib").then(function(b){if(b)window.__emojiLibDb=b;}).catch(function(){});}catch(_eEmojiDb){}
     aboutLoadStatus("正在同步聊天记录…");
     var s=await dbGet("state");
+    /* 一键清除后，个别手机 IndexedDB 还没删完就重载：早于清除时间的旧主档一律不采用。
+       这一行是“清除数据后旧内容又回来”的最后一道保险。 */
+    try{
+      var _rstTsBoot=Number(localStorage.getItem("e11.resetLocalOnly.v1"))||0;
+      if(_rstTsBoot&&s&&Number(s.__savedAt||0)<=_rstTsBoot)s=null;
+    }catch(_eRstBoot){}
     /* v43-103：IDB 是唯一主路径；只有整库完全读不到时，才回退旧文字档/离站档，
        避免老设备首次升级丢数据，也不让正常启动再付一次大档解析成本。 */
     /* 只有“整库根本没有 messages 字段”才回退旧档；用户主动删空聊天后 s.messages=[] 是合法状态，
@@ -21758,7 +21825,7 @@ $("file-import").addEventListener("change",e=>{
   r.readAsText(f);e.target.value="";
 });
 $("btn-clear-msgs").addEventListener("click",async()=>{
-  if(!(await __iosConfirm("确认清空全部聊天记录（含红包）？")))return;
+  if(!(await __iosConfirm("确认清空全部聊天记录（含红包和一起听房间聊天）？")))return;
   try{
     state.deletedIds=state.deletedIds||{};state.deletedIds.messages=state.deletedIds.messages||{};
     (state.messages||[]).forEach(function(m){
@@ -21769,10 +21836,29 @@ $("btn-clear-msgs").addEventListener("click",async()=>{
     });
     state.__chatClearedAt=Date.now();
   }catch(_eClearTomb){}
+  /* 一起听房间聊天也算聊天记录：清空时一起写墓碑，旧快照/云端不能再补回来。 */
+  try{
+    state.deletedIds=state.deletedIds||{};state.deletedIds.musicRoomMsgs=state.deletedIds.musicRoomMsgs||{};
+    (state.musicRoomMsgs||[]).forEach(function(m){if(m&&m.id)try{window.__e11MarkDeleted("musicRoomMsgs",m.id);}catch(_){}});
+    state.musicRoomMsgs=[];state.musicRoomClearedAt=Date.now();
+    try{window.__e11MusicRoomTouch&&window.__e11MusicRoomTouch();}catch(_eMrClr){}
+    try{if(window.__renderMusicRoom)window.__renderMusicRoom();}catch(_eMrRender){}
+  }catch(_eMrClear){}
   state.messages=[];state.redpackets=[];newR=0;updateNewBadge();
   try{window.__e11KnownIds=null;}catch(_){}
   try{window.__e11ForceUntil=Date.now()+2600;}catch(_e){}
   save();try{__flushSave(true);}catch(_eClearFlush){}renderChat();renderRedpackets();toast("聊天记录已清空");
+});
+$("btn-clear-music-room")&&$("btn-clear-music-room").addEventListener("click",async()=>{
+  if(!(await __iosConfirm("清空一起听房间里的聊天记录？歌单、当前歌曲和背景会保留。",{okText:"清空房间聊天",danger:true})))return;
+  state.deletedIds=state.deletedIds||{};state.deletedIds.musicRoomMsgs=state.deletedIds.musicRoomMsgs||{};
+  (state.musicRoomMsgs||[]).forEach(function(m){if(m&&m.id)try{window.__e11MarkDeleted("musicRoomMsgs",m.id);}catch(_){}});
+  state.musicRoomMsgs=[];state.musicRoomClearedAt=Date.now();
+  try{window.__e11MusicRoomTouch&&window.__e11MusicRoomTouch();}catch(_eMrT){}
+  try{if(window.__renderMusicRoom)window.__renderMusicRoom();}catch(_eMrR){}
+  save();try{__flushSave(true);}catch(_eMrF){}
+  try{window.__E11Cloud&&window.__E11Cloud.flush&&window.__E11Cloud.flush();}catch(_eMrC){}
+  toast("一起听房间聊天已清空，歌单保留");
 });
 $("btn-reset-all").addEventListener("click",async()=>{
   if(!(await __iosConfirm("一键重置：只清空这台设备上的聊天、动态、留言、信件、字卡、表情、问卷和设置，并恢复默认。云端存档不会清空，之后可在设置里点「恢复云端」拉回来。确认重置本机？",{okText:"重置本机"})))return;
@@ -21783,6 +21869,8 @@ $("btn-reset-all").addEventListener("click",async()=>{
   window.__restoring=1;
   window.__e11CloudPause=1;
   window.__e11CloudHold=1;
+  var _resetTs=Date.now();
+  try{localStorage.setItem("e11.resetStarted.v1",String(_resetTs));}catch(_eRst0){}
   var _blank=null;
   try{
     _blank=defaultState();
@@ -21797,17 +21885,18 @@ $("btn-reset-all").addEventListener("click",async()=>{
     var _ks=[];for(var _i=0;_i<localStorage.length;_i++){var _k=localStorage.key(_i);if(_k&&!_keep[_k])_ks.push(_k);}
     _ks.forEach(function(k){try{localStorage.removeItem(k);}catch(_e){}});
     /* 只重置本机：云端存档原样保留，标记“本次不要自动拉云端、也不要把空白档传上去” */
-    try{localStorage.removeItem("__e11HardReset");localStorage.removeItem("__e11ImportUpload");localStorage.setItem("e11.resetLocalOnly.v1",String(Date.now()));localStorage.setItem("e11.forceLock.v1","1");}catch(_eHr){}
+    try{localStorage.removeItem("__e11HardReset");localStorage.removeItem("__e11ImportUpload");localStorage.setItem("e11.resetLocalOnly.v1",String(_resetTs));localStorage.setItem("e11.forceLock.v1","1");}catch(_eHr){}
     try{document.cookie="e11pw=; Max-Age=0; Path=/; SameSite=Lax";}catch(_eCkReset){}
     try{sessionStorage.clear();}catch(_eSs){}
   }catch(_){}
-  function _done(){location.reload();}
+  var _resetReloading=false;
+  function _done(){if(_resetReloading)return;_resetReloading=true;location.reload();}
   function _clearCacheThenGo(){
     /* 不调用 resetCloud：云端存档必须保留，供之后手动「恢复云端」 */
     try{
       if(window.caches&&caches.keys){
         caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k);}));}).catch(function(){}).then(function(){setTimeout(_done,80);});
-        setTimeout(_done,900);return;
+        setTimeout(_done,1200);return;
       }
     }catch(_){}
     _done();
@@ -21829,8 +21918,10 @@ $("btn-reset-all").addEventListener("click",async()=>{
       if(k.indexOf("bk_slot_")!==0&&k!=="bk_snap_meta"){try{c.delete();}catch(_eDel){}};
       try{c.continue();}catch(_eCont){}
     };
-    tx.oncomplete=()=>_dropDBThenGo();
-    tx.onerror=()=>{toast("重置失败，请重试");};
+    tx.oncomplete=()=>{try{clearTimeout(_rstSafety);}catch(_){}_dropDBThenGo();};
+    tx.onabort=tx.onerror=()=>{try{toast("本机数据正在强制清理，马上重新加载");}catch(_){}_dropDBThenGo();};
+    /* 个别手机 IndexedDB 事务会卡住不回 complete；到点也要走，启动时再按重置标记忽略旧档。 */
+    var _rstSafety=setTimeout(function(){try{toast("本机数据正在强制清理，马上重新加载");}catch(_){}_dropDBThenGo();},2500);
   }else{_dropDBThenGo();}
 });
 /* 进站密码固定为 6 位，文件里只保留校验指纹 */
@@ -25311,6 +25402,7 @@ function stxt(t){var e=document.getElementById('ny-st'); if(e)e.textContent=t;}
     opts=opts||{};var list=mlRoomList();
     list.push({id:uid(),from:from,type:type,text:text||"",src:opts.src||"",dur:opts.dur||0,time:Date.now()});
     if(list.length>150)state.musicRoomMsgs=list.slice(-150);
+    try{window.__e11MusicRoomTouch&&window.__e11MusicRoomTouch();}catch(_eMrTouch){}
     save();
     /* 一起听的聊天同时写进正式聊天记录 */
     try{
