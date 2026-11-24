@@ -264,7 +264,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183z17";
+window.__E11_BUILD="2026-11-24v43-183z18";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -1744,7 +1744,7 @@ body.env-open #btn-letters-back{visibility:hidden!important;pointer-events:none!
   /* 公告层只让卡片本身接收点击：卡片以外的区域不再挡住主页/设置/发送按钮 */
   pointer-events:none;}
 .announce-screen.show{display:flex;}
-.an-card{width:min(360px,100%);max-height:76vh;display:flex;flex-direction:column;border-radius:22px;overflow:hidden;pointer-events:auto;
+.an-card{width:min(360px,100%);max-height:min(76vh,calc(var(--an-vh,100vh) - 40px));display:flex;flex-direction:column;border-radius:22px;overflow:hidden;pointer-events:auto;
   background:rgba(255,255,255,.96);box-shadow:0 24px 60px rgba(0,0,0,.24);border:1px solid rgba(255,255,255,.7);}
 .an-head{padding:20px 22px 12px;border-bottom:1px solid rgba(0,0,0,.06);}
 .an-badge{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.4px;color:#fff;background:linear-gradient(135deg,#3478F6,#5AC8FA);padding:3px 9px;border-radius:999px;}
@@ -2712,7 +2712,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183z17">
+<meta name="app-build" content="2026-11-24v43-183z18">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -8192,11 +8192,12 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-183z17",
-  time:"2026-11-24 18:06",
+  date:"v43-183z18",
+  time:"2026-11-24 18:10",
   noticeKey:null,
-  lead:"2026-11-24 18:06 修改（v43-183z17）：小米 MIX 4 这类屏幕再补一层物理宽度兜底——WebView 把布局宽度和 visualViewport 都报小到 349 时，按屏幕物理宽 1080 / dpr 2.75 算回 393，整站铺满，不再在右边留白条。",
+  lead:"2026-11-24 18:10 修改（v43-183z18）：更新公告不再被键盘盖住——弹公告前先收起键盘，公告层只铺当前真正可见的高度，卡片和「我知道了」始终在键盘上方；键盘还在收起的动画里也会自动重新贴合。",
   items:[
+    "更新公告被键盘盖住（v43-183z18）：锁屏密码、搜索框还聚焦时键盘没退，公告按整屏 844 居中，下半截连同按钮被键盘挡在后面。现在弹公告前先让当前输入框失焦、收起键盘；公告层按 visualViewport 的真实可见高度铺，卡片最大高度跟着缩短，正文自己滚，按钮固定在可见区域底部；键盘收起或地址栏回弹时再校准两次。MIX 4 宽度兜底沿用上一版。",
     "小米 MIX 4 右边白条（v43-183z17）：MIX 4 物理屏 1080、dpr 2.75，真正 CSS 宽约 393；有些系统显示大小下 WebView 的布局宽度和 visualViewport 都只报 349，上一版按可见宽度取最大值仍然补不回来。现在再加一层 screen.width 兜底：物理像素先除以 dpr，落在 320~600 的手机宽度区间才采用，把舞台补到 393。正常手机、平板、桌面窗口不受影响。",
     "安卓右边白条修掉（v43-183z16）：有些安卓 WebView 在系统显示大小/页面轻微缩放下，布局宽度只报 349，真正可见宽度是 393，整站就只铺到左边 89%，右边留一条白。现在舞台宽度取布局宽度、窗口宽度和 visualViewport 宽度的最大值，按真正可见宽度铺满；正常屏幕仍按原宽度，不会放大。",
     "留言页键盘保持整屏（v43-183z15）：和动态回复同一套处理。键盘弹起时留言页仍铺满整屏，不把页面截到键盘上沿；只给留言列表底部加键盘高度的可滚余量，最后几条也能滚到键盘上方。输入框和发送键始终留在键盘上方，键盘下面看到的是留言页自己的底色，不会再漏出底层聊天界面。键盘收起、离开留言页立即还原。",
@@ -8336,8 +8337,51 @@ function renderAnnounce(){
     +ANNOUNCE.items.map(function(t){return '<div class="an-item">'+t+'</div>';}).join("")
     +(ANNOUNCE.foot?'<div class="an-foot-note">'+ANNOUNCE.foot+'</div>':"");
 }
+function __e11AnnounceFit(){
+  var el=document.getElementById("announce-screen");
+  if(!el||!el.classList.contains("show"))return;
+  try{
+    var vv=window.visualViewport;
+    var vh=Math.max(200,(vv&&vv.height)||window.innerHeight||document.documentElement.clientHeight||0);
+    var top=Math.max(0,(vv&&vv.offsetTop)||0);
+    /* v43-183z18：公告层原来固定铺满布局视口，键盘弹起时卡片还按 844 居中，
+       下半截连同“我知道了”一起被键盘盖住。这里改成只铺当前真正可见的一块，
+       键盘多高就少铺多高，卡片在可见区域里重新居中。 */
+    el.style.top=top+"px";
+    el.style.height=vh+"px";
+    el.style.bottom="auto";
+    el.style.setProperty("--an-vh",vh+"px");
+  }catch(_e){}
+}
+if(!window.__e11AnnounceFitBound){
+  window.__e11AnnounceFitBound=1;
+  var _anFit=function(){try{__e11AnnounceFit();}catch(_e){}};
+  window.addEventListener("resize",_anFit,{passive:true});
+  if(window.visualViewport){
+    window.visualViewport.addEventListener("resize",_anFit,{passive:true});
+    window.visualViewport.addEventListener("scroll",_anFit,{passive:true});
+  }
+}
 function showAnnounce(){
-  try{renderAnnounce();var el=document.getElementById("announce-screen");if(el)el.classList.add("show");}catch(e){}
+  /* 公告出现前先收键盘：锁屏密码/搜索框还聚焦时，键盘会盖在公告下半截上。 */
+  try{
+    var _ae=document.activeElement;
+    if(_ae&&(_ae.tagName==="INPUT"||_ae.tagName==="TEXTAREA"||_ae.isContentEditable)){
+      _ae.blur();
+      if(window.visualViewport&&window.visualViewport.height<window.innerHeight-40){
+        try{window.scrollTo(0,0);}catch(_e){}
+      }
+    }
+  }catch(_e){}
+  try{
+    renderAnnounce();
+    var el=document.getElementById("announce-screen");
+    if(el)el.classList.add("show");
+    __e11AnnounceFit();
+    /* 键盘收起/地址栏回弹有动画，再补两次校准。 */
+    setTimeout(__e11AnnounceFit,120);
+    setTimeout(__e11AnnounceFit,320);
+  }catch(e){}
 }
 function closeAnnounce(){
   try{document.getElementById("announce-screen").classList.remove("show");}catch(e){}
@@ -33711,7 +33755,7 @@ try{
   }
   try{
     var _ab=document.getElementById("btn-announce");
-    if(_ab)_ab.addEventListener("click",function(){renderAnnounce();document.getElementById("announce-screen").classList.add("show");});
+    if(_ab)_ab.addEventListener("click",function(){showAnnounce();});
     var _abt=document.getElementById("btn-about");
     if(_abt)_abt.addEventListener("click",function(){
       window.__aboutViewer=1;
