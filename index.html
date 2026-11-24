@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183z34";
+window.__E11_BUILD="2026-11-24v43-183z33f";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -1348,7 +1348,7 @@ body:not(.app-ready) #view-chat{visibility:hidden !important;}
 @keyframes viewFade{from{opacity:0}to{opacity:1}}
 .v-head{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:10px 8px;background:var(--topbar);color:var(--ttext);border-bottom:1px solid var(--line);padding-top:calc(10px + var(--safe-top, env(safe-area-inset-top)));}
 .v-title{font-size:17px;font-weight:600;flex:1;}
-.v-body{flex:1;overflow-y:auto;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch;contain:layout style paint;overscroll-behavior:contain;}
+.v-body{flex:1;overflow-y:auto;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch;}
 .back-btn{min-width:44px;min-height:44px;width:36px;height:36px;border:none;background:transparent;color:var(--accent);display:flex;align-items:center;justify-content:center;border-radius:10px;cursor:pointer;}
 /* ===== 字卡板块 ===== */
 .ck-tabs{display:flex;gap:6px;padding:10px 14px 10px;background:var(--bg,#fff);border-bottom:1px solid rgba(0,0,0,.06);flex:0 0 auto;}
@@ -1632,7 +1632,7 @@ body.ui-dark #overlay #sheet{background:rgba(38,38,42,.95);box-shadow:0 12px 34p
 #view-letters .v-head{position:relative;z-index:3;background:transparent;border-bottom:none;}
 #view-letters .v-body{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;padding:0 0 12px;overflow:hidden;}
 .lt-bg{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:var(--lt-bg,linear-gradient(180deg,var(--bg),var(--bg)));}
-.lt-list{position:relative;z-index:1;flex:1;min-height:0;overflow-y:auto;padding:12px 14px 4px;-webkit-overflow-scrolling:touch;contain:layout style paint;overscroll-behavior:contain;}
+.lt-list{position:relative;z-index:1;flex:1;min-height:0;overflow-y:auto;padding:12px 14px 4px;-webkit-overflow-scrolling:touch;}
 #view-letters .empty-hint{position:relative;z-index:1;flex:1;display:flex;align-items:center;justify-content:center;text-align:center;min-height:180px;}
 .lt-card{position:relative;margin:0 0 12px;border-radius:22px;padding:14px;
   background:var(--glass,rgba(255,255,255,.22));-webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%);
@@ -1979,7 +1979,7 @@ o{opacity:1;transform:translateY(0);}}
   border:1px solid var(--glassborder,rgba(255,255,255,.3));}
 .gb-input .text-input{flex:1;width:100%;min-width:0;box-sizing:border-box;border:none;background:var(--field,#fff);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-radius:16px;padding:10px 12px;font-size:14px;color:var(--ttext);}
 .gb-input .text-input::placeholder{color:var(--sub,#9AA0A6);}
-.note-list{position:relative;z-index:1;flex:1;min-height:0;overflow-y:auto;padding:12px 14px 4px;-webkit-overflow-scrolling:touch;contain:layout style paint;overscroll-behavior:contain;}
+.note-list{position:relative;z-index:1;flex:1;min-height:0;overflow-y:auto;padding:12px 14px 4px;-webkit-overflow-scrolling:touch;}
 .qa-card{position:relative;margin:0 0 12px;border-radius:22px;padding:14px;
   background:var(--glass,rgba(255,255,255,.22));-webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%);
   border:1px solid var(--glassborder,rgba(255,255,255,.22));box-shadow:0 10px 28px rgba(0,0,0,.06);}
@@ -2353,12 +2353,11 @@ body.msgsel-on #view-chat .bottombar{display:none;}
 #notify-prompt .np-t{padding-right:28px;}
 #notify-on{background:#007aff;color:#fff;}
 #notify-later{background:rgba(0,0,0,.06);color:#333;}
-
 #survey-create-overlay,#survey-answer-overlay{background:var(--bg,#fff);}
 #survey-create-overlay.show,#survey-answer-overlay.show{background:var(--bg,#fff);}
-/* 问卷弹层不透明：键盘弹起时弹层下方以前是半透明遮罩，会透出聊天页。
-   现在整个问卷层用当前主题底色铺满，键盘下方也只看到问卷底色。 */
+/* v43-183z33f：问卷两层用整块主题底色，键盘弹起时不再透出下面的聊天页。 */
 body.ui-dark #survey-create-overlay,body.ui-dark #survey-answer-overlay{background:#000;}
+
 #survey-create-sheet,#survey-answer-sheet{position:relative;display:flex;flex-direction:column;}
 #survey-create-sheet{max-height:min(calc(100% - 8px),84vh);}
 #survey-answer-sheet{max-height:min(calc(100% - 8px),82vh);}
@@ -2748,7 +2747,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183z34">
+<meta name="app-build" content="2026-11-24v43-183z33f">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -8405,16 +8404,16 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-183z34",
-  time:"2026-11-24 20:21",
+  date:"v43-183z33f",
+  time:"2026-11-24 22:24",
   noticeKey:null,
-  lead:"2026-11-24 20:21 修改（v43-183z34）：麦克风先确认系统权限再录；问卷页键盘弹起不再透出聊天；字卡分组按名称合并、孤儿卡接回分组；离开网站自动补写离站快照；背景和列表少做无效写入。",
+  lead:"2026-11-24 22:24 修改（v43-183z33f）：在 z33 原版上只修五项——麦克风权限、问卷键盘透出、字卡分组归位、离站数据原样、自动备份不吞聊天。",
   items:[
-    "麦克风点了没反应（v43-183z34）：录音前先查系统录音权限，没有权限就先弹系统授权；网页版和小程序仍然直接走浏览器授权。以前只靠网页弹窗，Android WebView 里系统权限没开就会静默失败。现在授权结果会回传页面，5 秒没等到才提示去系统设置允许录音，不再一直卡在录音浮层。",
-    "问卷打字时透出聊天（v43-183z34）：创建问卷、回答问卷这两层以前是半透明黑底，键盘一弹，下面聊天内容就从弹层底下透出来。现在两层改成整块不透明，深色模式跟着变黑，键盘再高也只看到问卷本身。",
-    "字卡分组乱跑、掉未分组（v43-183z34）：启动、合并本机/云端存档、每次渲染前都会把同名同类的重复分组并成一个，原来指向重复组的字卡改到保留组；指向已不存在分组的孤儿卡，按 groupName / 分组名找同名组，找不到就接回默认分组或同类第一个分组，不再堆进「未分组」。批量导入、复制分组建卡时也把分组名一起写进去。",
-    "离开就自动备份（v43-183z34）：切后台、锁屏、关闭标签、返回键退出、页面被系统冻结都会立刻写一份离站快照；一直开着被直接杀进程时，最多每 30 秒补一次，只在这期间真的存过新数据才写，避免空转。下次进入仍然只认最近这份离站快照，旧备份不会把删掉的东西补回来。",
-    "性能（v43-183z34）：背景小备份从每次聊天保存的热路径里移走，只在真正换背景和离站时写；聊天、字卡、信件、动态这些长列表加上 contain 和 overscroll 限制，滚动时布局和重绘范围更小。离站补写也先比对内容签名，没变就不重复序列化整份数据。",
+    "麦克风点了没反应（v43-183z33f）：录音前先查系统录音权限，没有权限就先弹系统授权；网页版仍然直接走浏览器授权。授权结果会回传页面，5 秒没等到才提示去系统设置允许录音。",
+    "问卷打字透出聊天（v43-183z33f）：创建问卷、回答问卷两层改成整块不透明主题底色，深色模式变黑，键盘再高也只看到问卷本身。",
+    "字卡分组乱跑（v43-183z33f）：启动、合并存档、每次渲染前按「类别+组名」合并同名重复组，卡片改到保留组；孤儿卡按分组名接回，找不到接回默认组或同类第一个组，不再堆进「未分组」。",
+    "离开数据原样（v43-183z33f）：切后台、锁屏、关闭、返回、页面冻结都会立刻写离站快照；一直开着被直接杀进程时最多每 30 秒补一次，下次进入只认最近这份快照。",
+    "自动备份不吞聊天（v43-183z33f）：离站快照签名加入保存时间，内容没变不重复写；快照和备份只补不删，删除墓碑仍优先挡住恢复。",
     "背景设置完又变（v43-183z33）：聊天背景、我的全局背景、卡片背景、留言板、信件、画画、动态主页、情侣空间、信纸、信封、一起听、通话这些背景，现在统一先写一份只记「最后一次选择」的小备份。纯色/渐变预设和信纸、信封预设以前只靠设置小备份，会被旧存档整份盖掉；现在启动时在旧档恢复之后，再无条件按这份选择恢复。",
     "信纸/信封换图会把本地撑满（v43-183z33）：信纸背景图以前整张塞进设置小备份，一张图就可能把 localStorage 顶满，后面的背景设置全都写不进去，刷新又回旧图。现在大图从设置小备份里剔除，单独走图片备份；信纸、信封的预设和换图也在点完立即强制落盘。",
     "删除的字卡分组又回来（v43-183z32）：删分组以前只走 260ms 防抖保存，马上退出时删除墓碑还没进主档；旧备份/离站快照一并就把整个分组和里面的字卡带回来。现在删分组立刻强制写本机、推云端，并在合并后再按「内存 + 本机同步墓碑」清一遍。",
@@ -10895,13 +10894,11 @@ window.__e11PersistNow=function(){
   try{document.addEventListener("visibilitychange",function(){if(document.visibilityState==="hidden")flushAll();});}catch(e){}
   try{window.addEventListener("pagehide",flushAll);}catch(e){}
   try{window.addEventListener("beforeunload",flushAll);}catch(e){}
-  /* v43-183z34：安卓/Chrome 的 page freeze 不一定会走 pagehide，冻结前也写一次，
-     保证下次进来就是离开那一刻的数据。 */
+  /* v43-183z33f：安卓/Chrome 冻结前也写一次离站快照。 */
   try{document.addEventListener("freeze",flushAll);}catch(e){}
   /* 回到前台后允许下一次切后台/退出再写一次离站快照。 */
   try{document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")window.__e11FlushDone=0;});}catch(e){}
-  /* v43-183z34：应用一直开着、用户直接杀进程时，最多只丢 30 秒改动。
-     只在数据真变过时写，不空转序列化，避免拖慢前台。 */
+  /* v43-183z33f：应用一直开着被直接杀进程时，最多丢 30 秒改动；数据没变就不写。 */
   try{
     setInterval(function(){
       try{
@@ -12523,7 +12520,6 @@ function setSkinImg(key,raw,after){
       }
     }catch(e){}
     try{if(window.__e11BgLocalSync)window.__e11BgLocalSync();}catch(_eBgSetSync){}
-    try{if(window.__e11BgPrefSync)window.__e11BgPrefSync();}catch(_eBgSetPref){}
     try{__flushSave(true);}catch(e){} /* v43-39：导入背景后立即落盘，切后台/马上关掉也不会退回旧背景 */
     /* 云端也立刻推一次：只存本机时，重装/换端仍可能读回旧背景 */
     try{window.__E11Cloud&&window.__E11Cloud.flush&&window.__E11Cloud.flush();}catch(e){}
@@ -12594,6 +12590,7 @@ window.__e11BgLocalSync=function(){
         }
       }catch(_ePath){}
     });
+    try{if(window.__e11BgPrefSync)window.__e11BgPrefSync();}catch(_eBgPrefSync){}
   }catch(_eBgSync){}
 };
 /* v43-183z33：背景图片之外，纯色/渐变预设和信纸、信封预设原来只靠设置小备份。
@@ -12832,7 +12829,6 @@ function __bgPersistNow(){
   /* 先同步小备份，再做异步主库/云端落盘：刷新/退出时至少这一份在 */
   try{window.__e11ForceUntil=Date.now()+2600;}catch(_eForceSet){}
   try{window.__e11BgLocalSync&&window.__e11BgLocalSync();}catch(_eBgPre){}
-  try{window.__e11BgPrefSync&&window.__e11BgPrefSync();}catch(_eBgPref){}
   /* v43-183z：背景改动先同步写设置/美化小备份和皮肤时间戳。
      以前只等异步主库/云端，遇到 cloudPause/restore 直接 return，刷新就回旧背景。 */
   try{
@@ -19755,7 +19751,7 @@ function groupsOfKind(k){return (state.groups||[]).filter(function(g){return gro
 function cardsOfKind(k){return (state.cards||[]).filter(function(c){return cardKindOf(c)===k;});}
 /* v43-155：卡片有 groupId，但对应分组已经不在了（云端旧档/导入后分组被重建）。
    这些卡以前只在「全部」里能看到，点任何分组都是 0 条，像“没放进我设置的分组”。 */
-/* v43-183z34：云端合并/导入会偶尔把同名分组带成两个不同 id，或者分组的 id 被重建，
+/* v43-183z33f：云端合并/导入会偶尔把同名分组带成两个不同 id，或者分组的 id 被重建，
    卡片就掉进「未分组」。这里按「类别 + 分组名」把同名重复组合并成一个，卡片跟着改到
    唯一的分组 id；没有分组的卡先按 groupName 找，仍找不到且该类别只有一个组就归进去。 */
 window.__e11NormalizeCardGroups=function(st){
@@ -19794,7 +19790,7 @@ window.__e11NormalizeCardGroups=function(st){
       if(!target){
         var sameKind=keep.filter(function(x){return ((x.kind==="letter"||x.kind==="moment")?x.kind:"chat")===ck;});
         if(sameKind.length){
-          /* v43-183z34：找不到归属的孤儿卡不再留在「未分组」：
+          /* v43-183z33f：找不到归属的孤儿卡不再留在「未分组」：
              优先接回默认分组，没有再接当前类别的第一个分组。 */
           target=sameKind.filter(function(x){return /^(默认|默认分组|导入分组)$/.test(String(x.name||"").trim());})[0]||sameKind[0];
         }
@@ -19891,7 +19887,7 @@ function bindCardKindTabs(){
   }
 }
 function renderCards(){
-  /* v43-183z34：渲染前先把同名分组合并、把掉队的卡接回分组，避免显示成“未分组”。 */
+  /* v43-183z33f：渲染前先合并同名分组、把孤儿卡接回分组，避免显示成「未分组」。 */
   try{if(window.__e11NormalizeCardGroups&&window.__e11NormalizeCardGroups(state)){save();}}catch(_eNgRender){}
   /* v43-184：每次进字卡页先自动清一次跨分组重复，保证整份字卡只留一条。 */
   try{var _autoDup=dedupeCards(cardKindView);if(_autoDup){try{save();}catch(_){}}}catch(_eAutoDup){}
@@ -34720,9 +34716,8 @@ try{
       return false;
     }
   }
-  /* v43-183z34：录音前先让原生层确认系统麦克风权限。
-     以前直接 getUserMedia，WebView 的 onPermissionRequest 和系统权限弹窗
-     偶尔互相等待，用户看到的就是“点了麦克风没反应”。 */
+  /* v43-183z33f：录音前先让原生层确认系统麦克风权限。
+     以前直接 getUserMedia，WebView 的系统权限没开就会静默失败，表现为点了没反应。 */
   var __micWaiters=[],__micTimer=null;
   function __micFlush(ok){
     if(__micTimer){clearInterval(__micTimer);__micTimer=null;}
