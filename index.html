@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-201z34";
+window.__E11_BUILD="2026-11-25v43-202z34";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2747,7 +2747,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-201z34">
+<meta name="app-build" content="2026-11-25v43-202z34">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -7586,6 +7586,24 @@ setTimeout(function(){
   /* v43-87：云端某项被旧版重置清零后，单靠「恢复云端」救不回来。
      这里把云端、本机当前档、核心档、离站档、3 份自动备份一起枚举，
      按 id 合并每一类内容，取并集而不是让空数组覆盖。 */
+  /* v43-202：旧版/旧备份里可能残留“同一秒批量写入”的聊天删除标记。
+     深度恢复把所有备份的删除表并进来时，这些误伤标记会再次把刚恢复的聊天整批过滤掉，
+     用户看到的就是“点深度恢复，聊天页反而空了”。这里只对 messages 的墓碑做簇清理：
+     ≥4 条且相邻间隔 ≤4 秒视为批量误伤；逐条删除时间分散，原样保留。 */
+  window.__e11DeepCleanDel=function(d){
+    try{
+      d=d||{};var out={};Object.keys(d).forEach(function(k){out[k]=Object.assign({},d[k]||{});});
+      var ids=out.messages||{};
+      var pairs=Object.keys(ids).map(function(id){return [id,Number(ids[id])||0];}).filter(function(x){return x[1]>0;});
+      if(pairs.length<4)return out;
+      pairs.sort(function(a,b){return a[1]-b[1];});
+      var groups=[],cur=[];
+      pairs.forEach(function(x){if(cur.length&&x[1]-cur[cur.length-1][1]>4000){groups.push(cur);cur=[];}cur.push(x);});
+      if(cur.length)groups.push(cur);
+      groups.forEach(function(g){if(g.length>=4)g.forEach(function(x){delete out.messages[x[0]];});});
+      return out;
+    }catch(_){return d||{};}
+  };
   window.__E11DeepRestore=function(opts){
     var _deepT0=Date.now();
     /* v43-194：all=1 是用户在设置里明确点“全部恢复（含误删聊天）”。
@@ -7801,16 +7819,23 @@ setTimeout(function(){
       try{after.diary=base.diary&&base.diary.pages?Object.keys(base.diary.pages).length:0;}catch(_aD){}
       /* v43-190z33f：只恢复未删除的内容。墓碑和清空时间优先于任何备份。 */
       try{
-        var _deepDel=base.deletedIds||{};
-        cands.forEach(function(c){_deepDel=__e11MergeDeleted(_deepDel,c.st&&c.st.deletedIds);});
-        _deepDel=__e11MergeDeleted(_deepDel,__e11DelLocalRead());
+        /* v43-202：先清掉各份备份里“同秒批量写入”的聊天误删标记，再做并集，
+           否则深度恢复会把旧备份的批量墓碑重新灌回本机，刚并进来的聊天又被整批过滤。 */
+        var _curNow=window.__e11StateGet&&window.__e11StateGet();
+        if(_curNow&&_curNow.deletedIds)_curNow.deletedIds=window.__e11DeepCleanDel(_curNow.deletedIds);
+        try{var _locDel=window.__e11DeepCleanDel(__e11DelLocalRead());__e11DelLocalWrite(_locDel);}catch(_eLocClean){}
+        var _deepDel=window.__e11DeepCleanDel(base.deletedIds||{});
+        cands.forEach(function(c){_deepDel=__e11MergeDeleted(_deepDel,window.__e11DeepCleanDel(c.st&&c.st.deletedIds));});
+        _deepDel=__e11MergeDeleted(_deepDel,window.__e11DeepCleanDel(__e11DelLocalRead()));
         base.deletedIds=_deepDel;
         if(_recAll){try{window.__e11IgnoreMsgDel=1;}catch(_igd){}}
         if(!_recAll)__e11ApplyDeleted(base);
       }catch(_eDeepDelFix){}
       try{
-        var _chatClr=0;
-        cands.forEach(function(c){var v=Number(c.st&&c.st.__chatClearedAt)||0;if(v>_chatClr)_chatClr=v;});
+        /* v43-202：清空时间只认“本机当前”这一份。
+           以前取所有备份里最大的 __chatClearedAt，任意一份旧备份里有过一次清空，
+           深度恢复就会把早于那个时间的所有聊天又过滤掉，表现同样是一次恢复后聊天变空。 */
+        var _chatClr=Number(window.__e11StateGet&&window.__e11StateGet()&&window.__e11StateGet().__chatClearedAt)||0;
         if(_chatClr&&!_recAll){
           base.__chatClearedAt=Math.max(Number(base.__chatClearedAt)||0,_chatClr);
           if(Array.isArray(base.messages))base.messages=base.messages.filter(function(m){return (Number(m&&m.time)||0)>_chatClr;});
