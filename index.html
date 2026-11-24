@@ -21198,9 +21198,9 @@ window.__applyChatSizes=applyChatSizes;
       }catch(e){rej(e);}
     });
   }
-  function loadCustomFont(){
+  function loadCustomFont(force){
     if(window.__e11FontLoading)return window.__e11FontLoading;
-    if(curKey()!=="custom"){return Promise.resolve(false);}
+    if(!force&&curKey()!=="custom"){return Promise.resolve(false);}
     window.__e11FontLoading=(async function(){
       try{
         if(!db)await openDB();
@@ -21262,10 +21262,27 @@ window.__applyChatSizes=applyChatSizes;
     if(sel&&!sel._fb){
       sel._fb=1;
       sel.addEventListener("change",function(){
-        var k=this.value;
-        if(k==="custom"&&!window.__e11CustomLoaded){
-          toast("请先上传一个字体文件");
-          this.value=curKey();
+        var k=this.value,self=this;
+        if(k==="custom"){
+          /* 之前上传过、但这次启动为了省流量没加载：选“我的字体”时再读一次本机字体 */
+          if(window.__e11FontMissing){
+            toast("本机没有字体文件，请先上传一个");
+            self.value=curKey();
+            return;
+          }
+          state.settings=state.settings||{};
+          state.settings.fontFamily="custom";
+          state.settings.__ts=Date.now();
+          try{__prefSave();}catch(e){}
+          applyFontFamily();
+          try{save();}catch(e){}
+          if(!window.__e11CustomLoaded){
+            toast("正在载入字体…");
+            loadCustomFont(true).then(function(){
+              if(window.__e11CustomLoaded){applyFontFamily();toast("界面字体：我的字体");}
+              else{state.settings.fontFamily="system";state.settings.__ts=Date.now();try{__prefSave();}catch(_){}applyFontFamily();toast("本机没有字体文件，请先上传一个");self.value="system";}
+            });
+          }else{toast("界面字体：我的字体");}
           return;
         }
         state.settings=state.settings||{};
