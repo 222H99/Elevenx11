@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-199z33f";
+window.__E11_BUILD="2026-11-25v43-200z33f";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2747,7 +2747,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-199z33f">
+<meta name="app-build" content="2026-11-25v43-200z33f">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4633,7 +4633,11 @@ setTimeout(function(){
         <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;">
           <button class="small-btn ghost" style="width:100%;font-size:14px;padding:11px 12px;" id="btn-deep-restore2">深度恢复（本机旧库 + 云端）</button>
         </div>
+        <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;">
+          <button class="small-btn ghost" style="width:100%;font-size:14px;padding:11px 12px;" id="btn-tomb-clean">清理批量误删标记（不动逐条删除）</button>
+        </div>
         <div class="set-row"><div class="set-sub" id="restore-status" style="display:none;margin:0;">正在恢复…</div></div>
+        <div class="set-row"><div class="set-sub" id="restore-debug" style="display:none;margin:0;white-space:pre-wrap;line-height:1.6;"></div></div>
         <div class="set-row"><button class="small-btn ghost" style="width:100%;" id="btn-export">全量导出（聊天 / 信件 / 动态 / 字卡 / 表情 / 设置）</button></div>
         <div class="set-row" style="gap:8px;">
           <button class="small-btn ghost" style="flex:1;font-size:13px;" id="btn-export-chat">只导出聊天</button>
@@ -6543,6 +6547,36 @@ setTimeout(function(){
     }catch(_){return false;}
   }
   window.__e11RepairBulkTombs=__e11RepairBulkTombs;
+  /* v43-200：只清“同一秒批量写入”的误删标记，用来救被旧版整批误标成删除、
+     但用户其实没删的内容。逐条删除的时间分散，不会被清掉。 */
+  window.__E11CleanBulkTombs=function(){
+    try{
+      var kinds=["messages","letters","guestbook","moments","cards","groups","musicPlaylist","musicRoomMsgs","favorites","emojis","partnerEmojis","redpackets","surveyHistory"];
+      var st=(typeof state!=="undefined"&&state)||{};st.deletedIds=st.deletedIds||{};
+      var loc=(typeof __e11DelLocalRead==="function")?__e11DelLocalRead():{};
+      var removed=0,detail=[];
+      kinds.forEach(function(k){
+        var ids=Object.assign({},st.deletedIds[k]||{},loc[k]||{});
+        var pairs=Object.keys(ids).map(function(id){return [id,Number(ids[id])||0];}).filter(function(x){return x[1]>0;});
+        if(pairs.length<4)return;
+        pairs.sort(function(a,b){return a[1]-b[1];});
+        var groups=[],cur=[];
+        pairs.forEach(function(x){if(cur.length&&x[1]-cur[cur.length-1][1]>4000){groups.push(cur);cur=[];}cur.push(x);});
+        if(cur.length)groups.push(cur);
+        var drop=[];
+        groups.forEach(function(g){if(g.length>=4)drop=drop.concat(g.map(function(x){return x[0];}));});
+        if(!drop.length)return;
+        drop.forEach(function(id){if(st.deletedIds[k]&&st.deletedIds[k][id])delete st.deletedIds[k][id];if(loc[k]&&loc[k][id])delete loc[k][id];});
+        removed+=drop.length;detail.push(k+" "+drop.length);
+      });
+      if(removed){
+        if(typeof __e11DelLocalWrite==="function")__e11DelLocalWrite(loc);
+        if(typeof __e11DelMirrorState==="function")__e11DelMirrorState(st);
+        try{state.__savedAt=Date.now();save();}catch(_){}
+      }
+      return {removed:removed,detail:detail};
+    }catch(_){return {removed:0,detail:[]};}
+  };
   try{window.__e11DeleteKinds=__e11DeleteKinds;}catch(_eKindsExp){}
   /* 没有 id 的导入歌曲用内容算一个稳定 id：删除墓碑按这个 id 写，
      云端/历史快照里同一首无 id 的歌也会算出同一个 id，才不会被旧档补回来。 */
@@ -7820,7 +7854,8 @@ setTimeout(function(){
         try{setTimeout(function(){window.__e11TryMediaRepair&&window.__e11TryMediaRepair();},250);}catch(_){}
         var _ms=Date.now()-_deepT0;
         try{var el=document.getElementById("deep-restore-sub");if(el)el.textContent="已恢复（"+(Math.round(_ms/100)/10)+" 秒）";}catch(_eMs){}
-        return {before:before,after:after,src:cands.map(function(c){return c.name;}),ms:_ms,cloud:cloudInfo};
+        var _dbg=cands.map(function(c){var q=c.st||{};return c.name+"：聊天 "+(q.messages||[]).length+" · 信 "+(q.letters||[]).length+" · 留言 "+(q.guestbook||[]).length+" · 动态 "+(q.moments||[]).length+" · 日记 "+((q.diary&&q.diary.pages)?Object.keys(q.diary.pages).length:0);});
+        return {before:before,after:after,src:cands.map(function(c){return c.name;}),ms:_ms,cloud:cloudInfo,debug:_dbg};
       });
     });
   };
@@ -38380,6 +38415,7 @@ body{margin:0;background:var(--bg,#fafafa);}
       try{
         var r=await window.__E11DeepRestore();
         if(st)st.textContent="已恢复";
+        try{var dbg=$("restore-debug");if(dbg&&r.debug){dbg.style.display="block";dbg.textContent=r.debug.join("\n");}}catch(_){}
         try{toast("深度恢复完成：聊天 "+r.after.messages+" 条 · 字卡 "+r.after.cards+" 张 · 信件 "+r.after.letters+" 封 · 留言 "+r.after.guestbook+" 条 · 动态 "+r.after.moments+" 条");}catch(_){}
         setTimeout(function(){location.reload();},900);
       }catch(e){
@@ -38390,6 +38426,19 @@ body{margin:0;background:var(--bg,#fafafa);}
     });
     /* v43-196：数据管理页放三个大按钮，解决“全部恢复点不动”：
        原来的云同步页在横向分页里，按钮在屏幕外/被分页容器挡住。这里用同一套逻辑转发。 */
+    if($("btn-tomb-clean"))$("btn-tomb-clean").addEventListener("click",async function(){
+      if(!(await __iosConfirm("只清同一秒批量写入的误删标记，你逐条删的不动；清完自动快速恢复。继续？",{okText:"清理并恢复"})))return;
+      var b=this,old=b.textContent,rs=$("restore-status");b.disabled=true;b.textContent="清理中…";
+      try{
+        var c=window.__E11CleanBulkTombs();
+        if(rs){rs.style.display="block";rs.textContent="已清 "+(c.removed||0)+" 条误删标记，正在恢复…";}
+        var r=await window.__E11DeepRestore({quick:1});
+        toast("已清 "+(c.removed||0)+" 条误删标记；恢复后聊天 "+r.after.messages+" 条 · 信 "+r.after.letters+" · 留言 "+r.after.guestbook+" · 动态 "+r.after.moments);
+        try{var dbg=$("restore-debug");if(dbg&&r.debug){dbg.style.display="block";dbg.textContent=r.debug.join("\n");}}catch(_){}
+        setTimeout(function(){location.reload();},900);
+      }catch(e){toast("清理失败："+String(e&&e.message||e).slice(0,100));}
+      b.disabled=false;b.textContent=old;
+    });
     if($("btn-quick-restore"))$("btn-quick-restore").addEventListener("click",async function(){
       if(!(await __iosConfirm("只读最近一份备份和云端最新档，几秒内先恢复大部分内容；已删除的不会恢复。继续？",{okText:"快速恢复"})))return;
       var b=this,old=b.textContent,rs=$("restore-status");
@@ -38397,6 +38446,7 @@ body{margin:0;background:var(--bg,#fafafa);}
       try{
         var r=await window.__E11DeepRestore({quick:1});
         if(rs)rs.textContent="已恢复";
+        try{var dbg=$("restore-debug");if(dbg&&r.debug){dbg.style.display="block";dbg.textContent=r.debug.join("\n");}}catch(_){}
         toast("快速恢复完成：聊天 "+r.after.messages+" 条 · 日记 "+(r.after.diary||0)+" 页 · 留言 "+r.after.guestbook+" 条 · 信件 "+r.after.letters+" 封 · 动态 "+r.after.moments+" 条");
         setTimeout(function(){location.reload();},800);
       }catch(e){
