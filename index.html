@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183z28";
+window.__E11_BUILD="2026-11-24v43-183z29";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -322,7 +322,7 @@ setTimeout(function(){try{localStorage.setItem("e11.buildSeen.v1",window.__E11_B
     catch(e){try{window.Notification=E11Notification;}catch(_){}}
   }catch(e){}
 })();
-/* v43-183z28：撤掉系统通知栏里同 tag 的消息，避免和页内邀请弹窗叠在一起。
+/* v43-183z29：撤掉系统通知栏里同 tag 的消息，避免和页内邀请弹窗叠在一起。
    浏览器没有 AndroidUI 时是空操作。 */
 window.__e11CancelNotify=function(tag){
   try{tag=tag||"eleven-msg";if(window.AndroidUI&&AndroidUI.cancelNotify)AndroidUI.cancelNotify(String(tag));}catch(e){}
@@ -2731,7 +2731,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183z28">
+<meta name="app-build" content="2026-11-24v43-183z29">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -8372,13 +8372,13 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-183z28",
-  time:"2026-11-24 22:10",
+  date:"v43-183z29",
+  time:"2026-11-24 22:40",
   noticeKey:null,
-  lead:"2026-11-24 22:10 修改（v43-183z28）：对方发的动态评论和楼中楼回复也可以删除了；删除父评论会连同它下面的回复一起删。",
+  lead:"2026-11-24 22:40 修改（v43-183z29）：邀请层改成串行，前一个没关掉时后一个不再盖上来；两个邀请都在等时会按先来后到逐个弹。",
   items:[
-    "对方评论也能删（v43-183z28）：动态评论区的删除按钮以前只给自己的评论/回复显示，对方发的那几条没有入口。现在每一条评论和楼中楼回复都有「删除」；删父评论会连同它下面的回复一起删，删回复只删这一条和它的子回复。",
-    "长图按键像卡住（v43-183z28）：点「生成长图」后先在按钮上显示「生成中…」并让页面画一帧，再开始排版和编码；超过 2600 高度的长图从 2 倍像素降到 1.5 倍，PNG 编码量少约 44%。APK 里「保存 / 分享」改为直接写「下载/Eleven11」，不再先等系统分享面板。",
+    "邀请不再叠（v43-183z29）：听歌邀请还开着时，画画邀请不会再盖上来；反过来也一样。两个邀请都在等时按消息时间先来后到，关掉一个再弹下一个。",
+    "长图按键像卡住（v43-183z29）：点「生成长图」后先在按钮上显示「生成中…」并让页面画一帧，再开始排版和编码；超过 2600 高度的长图从 2 倍像素降到 1.5 倍，PNG 编码量少约 44%。APK 里「保存 / 分享」改为直接写「下载/Eleven11」，不再先等系统分享面板。",
     "动态评论楼层（v43-183z25）：按截图恢复 2/3 格交替缩进，第 4 层以后不再挤平。",
     "留言找回（v43-183z24）：「找回旧留言 / 重新载入」两个按钮走完整恢复，有查找中状态和结果提示；普通来源没有时再走云端完整档 + 3 份自动备份的深度恢复。",
     "页内提示条停留太久（v43-183z23）：顶部来消息提示条以前只负责显示，没有自动收起，除非点 X 或切页就一直压在界面上。现在显示 3 秒自动收起；新消息进来会重新计时，点提示条仍然直达聊天。普通 toast 也缩短为短句 1.2 秒、长句 2 秒。",
@@ -13599,7 +13599,7 @@ function __recoverSocialFromBackups(force){
         return (arr||[]).filter(function(x){
           if(!x)return false;
           if(x.id&&window.__e11IsDeleted&&window.__e11IsDeleted(k,x.id))return false;
-          /* v43-183z28：恢复时不再按演示文案过滤，真实内容优先。 */
+          /* v43-183z29：恢复时不再按演示文案过滤，真实内容优先。 */
           return true;
         });
       }
@@ -17751,7 +17751,7 @@ function __lsBtnBusy(on){
   else{b.textContent=b.dataset.oldText||"生成长图";b.disabled=__msgSelIds.length?false:true;try{delete b.dataset.oldText;}catch(_){}}
 }
 function __msgSelLongShot(ids){
-  /* v43-183z28：先把按钮变成「生成中…」并让浏览器画一帧，再开始拼 Canvas。
+  /* v43-183z29：先把按钮变成「生成中…」并让浏览器画一帧，再开始拼 Canvas。
      以前所有排版/测量/编码都在点击的同一帧里跑，手机上按下去像卡住没反应。 */
   if(__lsBusy)return;
   __lsBusy=true;__lsBtnBusy(true);
@@ -23779,10 +23779,22 @@ $("file-chat-img").addEventListener("change",e=>{
 /* ===== 一起听 · 对方邀请听歌 ===== */
 let musicInviteShown=false,pendingMusicInvId=null,musicAutoAccept=null;
 let musicSession=false; // 双方达成过听歌邀请后，点一起听直接进入主页，不再发邀请（不论歌单是否有歌）
+/* v43-183z29：同一时刻只允许一个邀请层。
+   以前听歌邀请还开着，画画邀请也会盖上来，看起来像“双弹”。 */
+var __inviteSeenIds={};
+function __inviteAnyOpen(){
+  try{
+    if($("music-invite").classList.contains("show"))return true;
+    if($("draw-invite").classList.contains("show"))return true;
+  }catch(_eInvAny){}
+  return false;
+}
 function musicInviteOpen(dir,type){
   type=type||"music";
   const ov=$("music-invite");
   const fromMe=dir==="me";
+  /* 对方邀请：另一个邀请还开着就先不叠上来，等它关掉再走 __resumePendingInvites */
+  if(!fromMe&&$("draw-invite").classList.contains("show"))return;
   clearTimeout(musicAutoAccept);
   // 聊天里同步出现邀请卡片消息
   if(!pendingMusicInvId||!msgById(pendingMusicInvId)){
@@ -23815,6 +23827,7 @@ function musicInviteOpen(dir,type){
   $("mvi-txt").textContent= type==="draw"?"邀请你一起画画":"邀请你一起听歌";
   ov.dataset.dir=fromMe?"me":"partner";
   ov.dataset.type=type;
+  if(!fromMe&&pendingMusicInvId)__inviteSeenIds[pendingMusicInvId]=1;
   try{window.__e11CancelNotify&&window.__e11CancelNotify("eleven-msg");}catch(_){}
   ov.classList.add("show");
   /* 邀请卡片只追加这一行，不整屏重绘 */
@@ -23855,6 +23868,7 @@ function musicInviteClose(){
   /* 关键是复位：只点背景关掉时也必须允许下一次邀请再弹，否则会永远不再弹 */
   musicInviteShown=false;
   try{clearTimeout(musicAutoAccept);}catch(_){}
+  setTimeout(function(){try{__resumePendingInvites();}catch(_eNextInv){}},520);
 }
 var __musicInviteLastAt=0;
 /* 聊天里还挂着的对方邀请，进聊天页/刷新后要能重新认出来。
@@ -23862,22 +23876,23 @@ var __musicInviteLastAt=0;
 function __resumePendingInvites(){
   try{
     if(window.__curView!=="view-chat")return;
-    if($("music-invite").classList.contains("show")||$("draw-invite").classList.contains("show"))return;
-    var list=state.messages||[],last=null;
-    for(var i=list.length-1;i>=0;i--){
+    if(__inviteAnyOpen())return;
+    /* 按时间从早到晚找还挂着的邀请：先来的先弹，不抢最后一条 */
+    var list=state.messages||[],first=null;
+    for(var i=0;i<list.length;i++){
       var m=list[i];
-      if(m&&m.type==="invite"&&m.from==="partner"&&m.status==="pending"&&(m.inv==="music"||m.inv==="draw")){last=m;break;}
+      if(m&&m.type==="invite"&&m.from==="partner"&&m.status==="pending"&&(m.inv==="music"||m.inv==="draw")&&!__inviteSeenIds[m.id]){first=m;break;}
     }
-    if(!last)return;
-    if(last.inv==="draw"){pendingDrawInvId=last.id;drawInviteShown=true;drawInviteOpen("partner");}
-    else{pendingMusicInvId=last.id;musicInviteShown=true;musicInviteOpen("partner","music");}
+    if(!first)return;
+    if(first.inv==="draw"){pendingDrawInvId=first.id;drawInviteShown=true;drawInviteOpen("partner");}
+    else{pendingMusicInvId=first.id;musicInviteShown=true;musicInviteOpen("partner","music");}
   }catch(_eResumeInv){}
 }
 window.__resumePendingInvites=__resumePendingInvites;
 function maybePartnerMusicInvite(){
   /* v43-150：只在聊天页/音乐页弹，别的页面不把用户拽走。 */
   if(window.__curView!=="view-chat"&&window.__curView!=="view-music")return;
-  if(musicInviteShown||$("music-invite").classList.contains("show"))return;
+  if(musicInviteShown||__inviteAnyOpen())return;
   /* 一起听是大事件：一次抽签后 15 分钟内不再抽。
      以前只在“邀请成功”时记时间，失败后每分钟都会重抽，15% 被叠成很高的实际概率。 */
   if(Date.now()-(__musicInviteLastAt||0)<15*60000)return;
@@ -27245,7 +27260,7 @@ var __drawInviteLastAt=0;
 function maybePartnerDrawInvite(){
   /* v43-150：只从聊天页发起邀请；正在画画时不重开画布，避免把当前画作冲掉。 */
   if(window.__curView!=="view-chat")return;
-  if(drawInviteShown||$("draw-invite").classList.contains("show"))return;
+  if(drawInviteShown||__inviteAnyOpen())return;
   try{if(state.drawSession&&game&&game.agreed)return;}catch(_eDrawIng){}
   /* 画画属于「大事件」：一次抽签后 15 分钟内不再抽。
      以前只在弹窗成功时记时间，没抽中会每分钟继续抽，实际频率远高于设置值。 */
@@ -27260,6 +27275,7 @@ let drawInviteShown=false,pendingDrawInvId=null,drawAutoAccept=null;
 function drawInviteOpen(dir){
   const ov=$("draw-invite");
   const fromMe=dir==="me";
+  if(!fromMe&&$("music-invite").classList.contains("show"))return;
   clearTimeout(drawAutoAccept);
   if(!pendingDrawInvId||!msgById(pendingDrawInvId)){
     const id=pushMsg(fromMe?"me":"partner","invite","",{});
@@ -27271,6 +27287,7 @@ function drawInviteOpen(dir){
   $("dvi-me").src=state.me.avatar||avatarSvg("#A5A5B0");
   $("dvi-name").textContent= fromMe?("你邀请 "+(state.profile.partnerMpName||state.partner.name||"对方")):("@"+(state.profile.partnerMpName||state.partner.name||"对方"));
   ov.dataset.dir=fromMe?"me":"partner";
+  if(!fromMe&&pendingDrawInvId)__inviteSeenIds[pendingDrawInvId]=1;
   try{window.__e11CancelNotify&&window.__e11CancelNotify("eleven-msg");}catch(_){}
   ov.classList.add("show");
   renderChat();
@@ -27308,6 +27325,7 @@ function drawInviteClose(){
   $("draw-invite").classList.remove("show");
   drawInviteShown=false;
   try{clearTimeout(drawAutoAccept);}catch(_){}
+  setTimeout(function(){try{__resumePendingInvites();}catch(_eNextInv2){}},520);
 }
 $("dvi-yes").addEventListener("click",()=>{
   const fromMe=$("draw-invite").dataset.dir==="me";
@@ -29896,7 +29914,7 @@ function renderComments(m){
     const cls=isRep?"mc-row rep":"mc-row";
     /* 按真实层级缩进：旧代码只看「奇偶层」交替缩进，回复的回复（第 3 层）
        会被当成第 1 层显示，看起来就像对方回错了评论。 */
-    /* v43-183z28：楼层按用户给的截图走「首评最左 → 第 2 格 → 第 3 格 → 第 2 格 → 第 3 格…」，
+    /* v43-183z29：楼层按用户给的截图走「首评最左 → 第 2 格 → 第 3 格 → 第 2 格 → 第 3 格…」，
        不再把第 4 层以后全部夹在 3 格（那会让后面几条回复看起来都堆在同一层）。
        数据仍按 replyTo/replies 的真实父子关系递归，只有“视觉格数”做 2/3 交替。 */
     let d=Math.max(0,Number(depth)||0);
@@ -29904,7 +29922,7 @@ function renderComments(m){
        正好复刻截图：2、3、2、3… 不再随层级一直向右堆。 */
     if(d>=1)d=(d%2===1?2:1);
     const dep=d>1?' data-depth="'+d+'"':'';
-    /* v43-183z28：评论和楼中楼回复不再只允许删自己的；对方发的也显示删除。 */
+    /* v43-183z29：评论和楼中楼回复不再只允许删自己的；对方发的也显示删除。 */
     const delBtn='<button class="mc-del" data-mdelc="'+item.id+'">删除</button>';
     const repBtn='<div class="mc-sub"><button class="mc-reply" data-mreply="'+item.id+'" data-mname="'+esc(authorName(item.from))+'">回复</button>'+delBtn+'</div>';
     /* 主动评论是顶层；只有对方针对我的评论的回复才带“回复你”标记。
