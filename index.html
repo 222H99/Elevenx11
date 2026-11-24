@@ -264,7 +264,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-183z8";
+window.__E11_BUILD="2026-11-25v43-183z9";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -1433,6 +1433,17 @@ body:not(.app-ready) #view-chat{visibility:hidden !important;}
 
 .font-preview{margin:0 0 16px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--ttext);font-size:17px;line-height:1.55;overflow-wrap:anywhere;}
 .font-preview .fp-tag{font-size:12px;color:#8E8E93;margin-right:6px;}
+.font-url-box{display:flex;align-items:center;gap:6px;flex:1 1 100%;width:100%;min-width:0;max-width:none;margin-top:8px;}
+.font-link-row{flex-wrap:wrap;align-items:flex-start;}
+.font-link-row .set-label{flex:1 1 100%;}
+#font-url{flex:1;min-width:0;width:100%;}
+#bio-sheet .text-input{width:100%;box-sizing:border-box;}
+#bio-sheet [style*="display:flex"] .text-input{width:auto;min-width:0;}
+.bio-cover-row{display:flex;align-items:center;gap:10px;margin:10px 0 4px;padding:8px 10px;border:1px solid var(--line);border-radius:14px;background:var(--panel);}
+.bio-cover-thumb{width:58px;height:38px;border-radius:10px;flex:0 0 auto;background:linear-gradient(135deg,#5AC8FA,#3478F6);background-size:cover;background-position:center;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35);}
+.bio-cover-meta{flex:1;min-width:0;line-height:1.35;}
+.bio-cover-name{font-size:14px;color:var(--ttext);font-weight:600;}
+#cover-overlay.from-bio{z-index:1200;}
 .set-input{width:86px;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:16px;outline:none;background:var(--field);color:var(--ttext);text-align:center;}
 /* 设置页数字项的加减器：手机上不用点进键盘、也不用一格格拖滑杆 */
 .num-step{display:flex;align-items:center;gap:4px;flex:0 0 auto;}
@@ -2690,7 +2701,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-183z8">
+<meta name="app-build" content="2026-11-25v43-183z9">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4438,7 +4449,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-25v43-183z8</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-25v43-183z9</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -4469,6 +4480,12 @@ setTimeout(function(){
           </div>
         </div>
         <input type="file" id="file-e11-font" accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2" hidden>
+        <div class="set-row font-link-row"><span class="set-label">链接导入 CSS / TTF<div class="set-sub" id="font-url-sub">粘贴字体 CSS 地址或 TTF / OTF / WOFF 直链，自动读取并应用</div></span>
+          <div class="font-url-box">
+            <input class="set-input" id="font-url" type="url" inputmode="url" autocomplete="off" placeholder="https://… .css / .ttf" style="font-size:12px;padding:7px 8px;min-width:0;">
+            <button class="small-btn" id="btn-font-url" style="white-space:nowrap;font-size:12px;padding:6px 10px;">导入</button>
+          </div>
+        </div>
               </div>
       <div class="font-preview" id="font-preview"><span class="fp-tag">预览</span>今天也要好好生活 · Eleven×11 0123</div>
       <div class="set-group">
@@ -4870,7 +4887,7 @@ setTimeout(function(){
           <div class="mp-stat"><b id="mp-stat-following">0</b><span>关注</span></div>
         </div>
         <div class="mp-bio" id="mp-bio"></div>
-        <div class="mp-actions">
+        <div class="mp-actions" id="mp-actions">
           <button class="small-btn ghost" id="btn-mp-cover" style="font-size:12px;padding:5px 10px;">换背景</button>
           <button class="small-btn ghost" id="btn-mp-bio" style="font-size:12px;padding:5px 10px;">编辑资料</button>
         </div>
@@ -4939,7 +4956,7 @@ setTimeout(function(){
     <div class="sheet" id="cover-sheet">
       <div class="sheet-grip"></div>
       <div style="padding:4px 16px 18px;">
-        <div class="edit-sheet-title">更换主页封面</div>
+        <div class="edit-sheet-title" id="cover-sheet-title">更换主页封面</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
           <button class="small-btn" data-cover="#5AC8FA">蓝</button>
           <button class="small-btn" data-cover="#FF9500">橙</button>
@@ -4982,6 +4999,14 @@ setTimeout(function(){
           <input class="text-input" id="bio-following" type="number" min="0" placeholder="关注" style="flex:1;width:auto;">
         </div>
         <input class="text-input" id="bio-text" maxlength="120" placeholder="写几句个性签名…" style="height:60px;">
+        <div class="bio-cover-row">
+          <div class="bio-cover-thumb" id="bio-cover-thumb"></div>
+          <div class="bio-cover-meta">
+            <span class="bio-cover-name">主页封面</span>
+            <div class="set-sub" id="bio-cover-sub">和“换背景”使用同一个选择面板</div>
+          </div>
+          <button class="small-btn ghost" id="bio-cover-btn" style="white-space:nowrap;font-size:12px;padding:6px 10px;">换背景</button>
+        </div>
         <div class="edit-actions">
           <button class="small-btn ghost" id="bio-cancel">取消</button>
           <button class="small-btn" id="bio-save">保存</button>
@@ -8107,8 +8132,12 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-25",
   noticeKey:null,
-  lead:"v43-183z8：设置 → 外观新增“界面字体”，可以切换系统、苹方、宋体、楷体、圆体，也可以直接上传本机字体文件（TTF/OTF/WOFF），带实时预览；字体只存本机，不上传云端。",
+  lead:"v43-183z9：字体支持粘贴 CSS / TTF 链接导入；对方主页只保留查看，封面和资料统一到「我的 → 编辑资料」里修改；从对方主页返回先回我的主页；安卓键盘弹起时输入栏不再消失。",
   items:[
+    "字体链接导入（v43-183z9）：设置 → 外观 → 上传字体，新增“链接导入 CSS / TTF”。粘贴 Google Fonts 这类 CSS 地址或 TTF / OTF / WOFF 直链即可自动读取并应用；CSS 会解析出里面的字体文件地址。能取到文件就缓存到本机 IndexedDB，取不到时按直链在线加载。",
+    "主页编辑收口（v43-183z9）：对方主页不再显示“换背景 / 编辑资料”，封面也不能直接点换；双方封面统一到「我的 → 编辑资料 → 我的资料 / 对方资料」里，点“换背景”打开和我的封面同一个选择面板。",
+    "返回层级（v43-183z9）：聊天 → 我的主页 → 对方主页。对方主页点返回先落在我的主页，再点一次才回聊天；安卓系统返回键同样。",
+    "安卓输入栏（v43-183z9）：安卓 WebView 在部分输入法下 visualViewport 不变矮，网页算不出键盘高度。现在通过原生桥读取“未被键盘遮住的底边”，并在键盘动画的 180 / 420 / 780ms 各校准一次，聊天输入栏和发送键保持在键盘上方。另修掉启动后重复解码字体文件造成的偶发卡顿。",
     "界面字体（v43-183z8）：设置 → 外观 → 界面字体，内置系统默认、苹方黑体、宋体、楷体、圆体；选“我的字体”可上传本机 TTF / OTF / WOFF / WOFF2（最大 24MB），下方有实时预览，删除后恢复系统默认。字体文件存在本机 IndexedDB，不随云端设置上传；聊天、设置、主页会立即套用，日记和信纸仍保留原手写体。",
     "检查更新一键安装（v43-183z7）：安卓端点“检查更新”发现新版后自动开始下载，不再需要点第二次“下载更新”；下载完成自动打开系统安装器。Android 8+ 第一次会跳“允许安装未知应用”，授权后返回自动继续，聊天记录保留。网页/PWA 端点检查更新仍会清运行时缓存并直接换到新版页面。另修正版本号后缀比较：z5/z6/z7 不再被当成同一版，检查更新能真正发现新版。",
     "启动白屏（v43-183z6）：首次进入不再等 IndexedDB 读完才撤启动层，声明页/密码页画出第一帧就自己揭幕；只有无门禁的返回用户才等存档，兜底从 1 秒延到 3.2 秒，避免数据慢时露出空白主页。本地实测启动层消失从约 1.2 秒降到约 0.58 秒。",
@@ -10002,11 +10031,12 @@ function __prefSave(){
       if(_cur.avatarShape!==undefined)s.avatarShape=_cur.avatarShape;
       if(_cur.fontFamily!==undefined)s.fontFamily=_cur.fontFamily;
       if(_cur.customFontName!==undefined)s.customFontName=_cur.customFontName;
+      if(_cur.customFontUrl!==undefined)s.customFontUrl=_cur.customFontUrl;
     }
     var _obj={
       ts:Math.max(Date.now(),Number(_cur&&_cur.ts)||0),
       fontSize:_fs,avatarSize:Math.round(_av),bubbleScale:_bs,avatarShape:s.avatarShape,showChatAvatar:s.showChatAvatar!==false,
-      fontFamily:s.fontFamily||"system",customFontName:s.customFontName||"",
+      fontFamily:s.fontFamily||"system",customFontName:s.customFontName||"",customFontUrl:s.customFontUrl||"",
       cp2Layout:(state&&state.cp2Layout)||null
     };
     var _lsOk=false;
@@ -10023,7 +10053,7 @@ function __prefApplyObject(p){
     var __curTs=Number(state&&state.settings&&state.settings.__ts)||0;
     if(Number(p.ts||0)<__curTs)return false;
     state.settings=state.settings||{};
-    ["fontSize","avatarSize","bubbleScale","avatarShape","showChatAvatar","fontFamily","customFontName"].forEach(function(k){
+    ["fontSize","avatarSize","bubbleScale","avatarShape","showChatAvatar","fontFamily","customFontName","customFontUrl"].forEach(function(k){
       if(p[k]!==undefined&&p[k]!==null)state.settings[k]=p[k];
     });
     if(Number(p.ts)>0)state.settings.__ts=Number(p.ts);
@@ -10060,7 +10090,7 @@ function __userLookRestore(){
     try{if(_keepPwd!==undefined)state.settings.entryPwd=_keepPwd;if(_keepUnl!==undefined)state.settings.unlocked=_keepUnl;}catch(_eULKeepPwd){}
     if(p.skin)state.skin=Object.assign({},state.skin||{},p.skin);
     if(p.prefs&&typeof p.prefs==="object"){
-      ["fontSize","avatarSize","bubbleScale","avatarShape","showChatAvatar","fontFamily","customFontName"].forEach(function(k){if(p.prefs[k]!==undefined&&p.prefs[k]!==null)state.settings[k]=p.prefs[k];});
+      ["fontSize","avatarSize","bubbleScale","avatarShape","showChatAvatar","fontFamily","customFontName","customFontUrl"].forEach(function(k){if(p.prefs[k]!==undefined&&p.prefs[k]!==null)state.settings[k]=p.prefs[k];});
       if(p.prefs.cp2Layout&&typeof p.prefs.cp2Layout==="object")state.cp2Layout=p.prefs.cp2Layout;
       /* 云端 extras 会带旧的 uiPrefs；这里把本机外观档里的偏好写回去，后续任何 __prefApply 都覆盖不了。 */
       try{
@@ -10202,7 +10232,7 @@ function __prefApply(){
     var __curTs=Number(state&&state.settings&&state.settings.__ts)||0;
     if(Number(p.ts||0)<__curTs)return;
     state.settings=state.settings||{};
-    ["fontSize","avatarSize","bubbleScale","avatarShape","showChatAvatar","fontFamily","customFontName"].forEach(function(k){
+    ["fontSize","avatarSize","bubbleScale","avatarShape","showChatAvatar","fontFamily","customFontName","customFontUrl"].forEach(function(k){
       if(p[k]!==undefined&&p[k]!==null)state.settings[k]=p[k];
     });
     state.settings.__ts=Number(p.ts)||0;
@@ -11597,7 +11627,15 @@ function initKeyboardFix(){
       const stable=__e11StableViewH();
       /* 只认可视区高度，不再把 offsetTop 算进来。页面被浏览器顶起时 offsetTop
          会把“键盘高度”算没，输入栏就正好藏到键盘后面。 */
-      const visH=Math.max(0,Math.min(innerH||stable||0,(vv&&vv.height)||innerH||stable||0));
+      let visH=Math.max(0,Math.min(innerH||stable||0,(vv&&vv.height)||innerH||stable||0));
+      /* v43-183z9：安卓 WebView 有时只把窗口缩了，visualViewport 仍是整屏。
+         原生桥直接给出“未被键盘遮住的底边”，两者取更小的一个。 */
+      try{
+        if(window.AndroidUI&&typeof AndroidUI.getVisibleBottomDp==="function"){
+          var _nb=Number(AndroidUI.getVisibleBottomDp())||0;
+          if(_nb>120&&_nb<stable-20)visH=Math.min(visH||_nb,_nb);
+        }
+      }catch(_){}
       const kbH=Math.max(0,stable-visH);
       const kbOpen=!!(stable&&visH&&kbH>40);
       if(!kbOpen||visH<180){_clear();return;}
@@ -11786,7 +11824,13 @@ function initKeyboardFix(){
     var t=e.target;
     if(t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.isContentEditable))__setKbTyping(true);
     try{fitKeyboardPanels();}catch(_){}
-    if(t&&t.id==="msg-input")scheduleKbFit();
+    if(t&&t.id==="msg-input"){
+      scheduleKbFit();
+      /* 键盘动画各机型 150~600ms 不等；多补几拍，输入栏不靠一次 resize 事件。 */
+      setTimeout(function(){try{fitChatToKeyboard();__chatPinNow();}catch(_){}},180);
+      setTimeout(function(){try{fitChatToKeyboard();__chatPinNow();}catch(_){}},420);
+      setTimeout(function(){try{fitChatToKeyboard();__chatPinNow();}catch(_){}},780);
+    }
   },true);
   document.addEventListener("focusout",function(e){
     var t=e.target;
@@ -21174,11 +21218,12 @@ window.__applyChatSizes=applyChatSizes;
       var sub=document.getElementById("font-file-sub");
       if(sub){
         if(window.__e11CustomLoaded){
-          sub.textContent=(nm?("已载入："+nm):"已载入自定义字体")+" · 只存本机";
+          var src=(state&&state.settings&&state.settings.customFontUrl)||window.__e11CustomSource||"";
+          sub.textContent=(nm?("已载入："+nm):"已载入自定义字体")+(src?" · 来自链接":" · 只存本机");
         }else if(nm){
-          sub.textContent="自定义字体未载入，请重新上传";
+          sub.textContent="自定义字体未载入，请重新上传或粘贴链接";
         }else{
-          sub.textContent="支持 TTF / OTF / WOFF / WOFF2，最大 24MB；只存本机";
+          sub.textContent="支持 TTF / OTF / WOFF / WOFF2，最大 24MB；也可粘贴 CSS / 字体直链";
         }
       }
     }catch(e){}
@@ -21187,11 +21232,15 @@ window.__applyChatSizes=applyChatSizes;
   function registerFace(rec){
     return new Promise(function(res,rej){
       try{
-        if(window.__e11CustomFace){try{document.fonts.delete(window.__e11CustomFace);}catch(_){}} 
-        var face=new FontFace("E11CustomFont",rec.buf);
+        if(window.__e11CustomFace){try{document.fonts.delete(window.__e11CustomFace);}catch(_){}}
+        var src=rec&&rec.buf;
+        if(!src&&rec&&rec.url)src='url("'+String(rec.url).replace(/"/g,'%22')+'")';
+        if(!src){rej(new Error("no-font-source"));return;}
+        var face=new FontFace("E11CustomFont",src);
         face.load().then(function(){
           document.fonts.add(face);
           window.__e11CustomFace=face;
+          window.__e11CustomSource=(rec&&rec.url)||"";
           window.__e11CustomLoaded=true;window.__e11FontMissing=false;
           res(true);
         },function(err){rej(err||new Error("font-load"));});
@@ -21201,11 +21250,13 @@ window.__applyChatSizes=applyChatSizes;
   function loadCustomFont(force){
     if(window.__e11FontLoading)return window.__e11FontLoading;
     if(!force&&curKey()!=="custom"){return Promise.resolve(false);}
+    /* 已经载入且没要求重载时直接复用，避免启动后多次定时器重复解码几十 MB 字体造成卡顿。 */
+    if(!force&&window.__e11CustomLoaded&&window.__e11CustomFace)return Promise.resolve(true);
     window.__e11FontLoading=(async function(){
       try{
         if(!db)await openDB();
         var rec=await dbGet(FONT_KEY);
-        if(!rec||!rec.buf){window.__e11CustomLoaded=false;window.__e11FontMissing=true;applyFontFamily();return false;}
+        if(!rec||!(rec.buf||rec.url)){window.__e11CustomLoaded=false;window.__e11FontMissing=true;applyFontFamily();return false;}
         await registerFace(rec);
         applyFontFamily();
         return true;
@@ -21237,7 +21288,7 @@ window.__applyChatSizes=applyChatSizes;
     try{
       var buf=await file.arrayBuffer();
       var nm=String(file.name||"自定义字体").replace(/\.[^.]+$/,"").replace(/[\\/:*?"<>|]/g,"").trim().slice(0,40)||"自定义字体";
-      var rec={name:nm,type:file.type||"",buf:buf,ts:Date.now()};
+      var rec={name:nm,type:file.type||"",buf:buf,url:"",ts:Date.now()};
       await registerFace(rec);
       var saved=true;
       try{
@@ -21247,6 +21298,7 @@ window.__applyChatSizes=applyChatSizes;
       state.settings=state.settings||{};
       state.settings.fontFamily="custom";
       state.settings.customFontName=nm;
+      state.settings.customFontUrl="";
       state.settings.__ts=Date.now();
       try{__prefSave();}catch(e){}
       applyFontFamily();
@@ -21257,6 +21309,97 @@ window.__applyChatSizes=applyChatSizes;
       toast("这个字体无法识别，换一个 TTF / OTF / WOFF 文件试试");
     }
   }
+  function __fontNameFromUrl(u){
+    try{
+      var last=decodeURIComponent((u.split("#")[0].split("?")[0].split("/").pop()||"").replace(/[\\/:*?"<>|]/g,""));
+      last=last.replace(/\.(ttf|otf|woff2?|css)$/i,"").trim();
+      return last.slice(0,40)||"链接字体";
+    }catch(_){return "链接字体";}
+  }
+  async function __resolveFontLink(raw){
+    var u=new URL(String(raw||"").trim(),location.href);
+    if(!/^https?:/i.test(u.href))throw new Error("bad-protocol");
+    var isCss=/\.css(?:$|[/?#])/i.test(u.href);
+    var isFont=/\.(woff2?|ttf|otf)(?:$|[/?#])/i.test(u.href);
+    if(isFont)return {fontUrl:u.href,name:__fontNameFromUrl(u.href),source:u.href};
+    /* Google Fonts 这类链接路径是 /css2，不带 .css；先取一次看 content-type。 */
+    var resp=await fetch(u.href,{mode:"cors",credentials:"omit",cache:"no-store"});
+    if(!resp.ok)throw new Error("css-http-"+resp.status);
+    var ct=resp.headers.get("content-type")||"";
+    if(!isCss&&!/text\/css/i.test(ct))return {fontUrl:u.href,name:__fontNameFromUrl(u.href),source:u.href};
+    var txt=await resp.text();
+    if(!/@font-face/i.test(txt))throw new Error("css-no-font-url");
+    var fam="";
+    var fm=txt.match(/font-family\s*:\s*(['"]?)([^'";}]+)\1/i);
+    if(fm)fam=fm[2].trim().replace(/^['"]|['"]$/g,"").slice(0,40);
+    var found=[];
+    var re=/url\(\s*(['"]?)([^'")]+)\1\s*\)/gi,m;
+    while((m=re.exec(txt))){
+      var cand=m[2].trim();
+      if(!cand||/^data:/i.test(cand))continue;
+      found.push(new URL(cand,u.href).href);
+    }
+    var pick=found.find(function(x){return /\.(woff2?|ttf|otf)(?:$|[/?#])/i.test(x);})||found[0];
+    if(!pick)throw new Error("css-no-font-url");
+    return {fontUrl:pick,name:fam||__fontNameFromUrl(pick),source:u.href};
+  }
+  async function __readFontBuffer(url){
+    var resp=await fetch(url,{mode:"cors",credentials:"omit",cache:"force-cache"});
+    if(!resp.ok)throw new Error("font-http-"+resp.status);
+    var len=Number(resp.headers.get("content-length")||0);
+    if(len&&len>MAX_FONT)throw new Error("font-too-large");
+    var buf=await resp.arrayBuffer();
+    if(buf.byteLength>MAX_FONT)throw new Error("font-too-large");
+    return {buf:buf,type:resp.headers.get("content-type")||""};
+  }
+  async function handleFontUrl(raw){
+    raw=String(raw||"").trim();
+    if(!raw){toast("先粘贴一个 CSS 或 TTF / OTF / WOFF 链接");return;}
+    if(window.__e11FontLinkBusy)return;
+    window.__e11FontLinkBusy=true;
+    var sub=document.getElementById("font-url-sub");
+    if(sub)sub.textContent="正在读取字体链接…";
+    try{
+      var info=await __resolveFontLink(raw);
+      var buf=null,type="";
+      try{var got=await __readFontBuffer(info.fontUrl);buf=got.buf;type=got.type;}
+      catch(fetchErr){
+        /* CDN 没开 CORS 时取不到二进制，但 FontFace 直连 URL 往往仍能显示；只是不能离线缓存。
+           只有文件过大必须中止。 */
+        if(/font-too-large/.test(String(fetchErr&&fetchErr.message||fetchErr)))throw fetchErr;
+      }
+      var rec={name:info.name,type:type,buf:buf,url:info.fontUrl,source:info.source,ts:Date.now()};
+      await registerFace(rec);
+      var saved=true;
+      try{
+        if(!db)await openDB();
+        await dbSet(FONT_KEY,rec);
+      }catch(e){saved=false;}
+      state.settings=state.settings||{};
+      state.settings.fontFamily="custom";
+      state.settings.customFontName=info.name;
+      state.settings.customFontUrl=info.source;
+      state.settings.__ts=Date.now();
+      try{__prefSave();}catch(e){}
+      applyFontFamily();
+      try{save();}catch(e){}
+      try{if(window.__flushSave)window.__flushSave();}catch(e){}
+      var inp=document.getElementById("font-url");if(inp)inp.value="";
+      if(sub)sub.textContent="已应用链接字体："+info.name+(buf?" · 已缓存本机":" · 需联网加载");
+      toast(saved?"已应用字体："+info.name:"字体已应用，但本机保存失败，下次需重新导入");
+    }catch(e){
+      var msg="这个链接读不出字体，请确认是 CSS 或 TTF / OTF / WOFF 直链";
+      var em=String(e&&e.message||e);
+      if(em.indexOf("font-too-large")>=0)msg="字体文件超过 24MB，换个小一点的字体";
+      else if(em.indexOf("css-no-font-url")>=0)msg="这个 CSS 里没有找到字体文件地址";
+      else if(em.indexOf("bad-protocol")>=0)msg="只支持 http(s) 字体链接";
+      if(sub)sub.textContent=msg;
+      toast(msg);
+    }finally{
+      window.__e11FontLinkBusy=false;
+    }
+  }
+  window.__e11HandleFontUrl=handleFontUrl;
   function bindFontUI(){
     var sel=document.getElementById("set-font-family");
     if(sel&&!sel._fb){
@@ -21306,6 +21449,16 @@ window.__applyChatSizes=applyChatSizes;
         try{this.value="";}catch(_){}
       });
     }
+    var ul=document.getElementById("btn-font-url");
+    if(ul&&!ul._fb){
+      ul._fb=1;
+      ul.addEventListener("click",function(){handleFontUrl(document.getElementById("font-url").value);});
+    }
+    var uin=document.getElementById("font-url");
+    if(uin&&!uin._fb){
+      uin._fb=1;
+      uin.addEventListener("keydown",function(e){if(e.key==="Enter"||e.keyCode===13){e.preventDefault();handleFontUrl(this.value);}});
+    }
     var rb=document.getElementById("btn-font-remove");
     if(rb&&!rb._fb){
       rb._fb=1;
@@ -21317,6 +21470,7 @@ window.__applyChatSizes=applyChatSizes;
         state.settings=state.settings||{};
         state.settings.fontFamily="system";
         state.settings.customFontName="";
+        state.settings.customFontUrl="";
         state.settings.__ts=Date.now();
         try{__prefSave();}catch(e){}
         applyFontFamily();
@@ -23015,6 +23169,12 @@ window.__androidBack=function(){
     }catch(_){}
     var po=document.getElementById("plus-overlay");
     if(po&&po.classList.contains("show")){if(typeof closePlus==="function")closePlus();return true;}
+    /* 系统返回也按「聊天 → 我的主页 → 对方主页」：对方主页先回我的主页。 */
+    try{
+      if((window.__curView==="view-moments"||document.getElementById("view-moments")?.classList.contains("open"))&&typeof mpSide!=="undefined"&&mpSide==="partner"){
+        openMyProfile();return true;
+      }
+    }catch(_){}
     var cur=window.__curView||"";
     if(cur&&cur!=="view-chat"&&cur!=="view-me"){
       if(typeof showView==="function")showView("view-chat");
@@ -26905,8 +27065,10 @@ try{$("btn-settings-back").addEventListener("pointerdown",function(e){try{e.prev
 $("btn-settings-back").addEventListener("click",function(e){try{e.preventDefault();}catch(_){}__settingsGoBack();});
 $("btn-guestbook-back").addEventListener("click",()=>showView("view-chat"));
 $("btn-moments-back").addEventListener("click",function(){
+  /* v43-183z9：返回层级固定为「聊天 → 我的主页 → 对方主页」。
+     从对方主页返回先落到我的主页，再点一次才回聊天。 */
   if(mpSide==="partner"){
-    showView("view-chat");return;
+    openMyProfile();return;
   }
   showView("view-chat");
 });
@@ -28657,10 +28819,9 @@ function renderMomentProfile(){
   if($("mom-view-title"))$("mom-view-title").textContent=isP?"对方主页":"主页";
 
   if($("btn-moment-post"))$("btn-moment-post").style.display=isP?"none":"";
-  /* 对方主页也要能换封面/头像/资料：以前把这两个按钮对 partner 隐藏，用户点封面
-     只能弹系统文件框，且头像走的是聊天头像字段，主页看起来完全没变。 */
-  if($("btn-mp-cover")){$("btn-mp-cover").style.visibility="";$("btn-mp-cover").textContent=isP?"换背景":"换背景";}
-  if($("btn-mp-bio"))$("btn-mp-bio").style.visibility="";
+  /* v43-183z9：对方主页只用于查看，不再出现“换背景 / 编辑资料”。
+     双方封面和资料统一转到「我的 → 编辑资料」里切换“我的资料 / 对方资料”修改。 */
+  if($("mp-actions"))$("mp-actions").style.display=isP?"none":"";
 }
 function authorName(f){return f==="me"?(state.profile.mpName||state.me.name):(state.profile.partnerMpName||state.partner.name);}
 function authorAvatar(f){return f==="me"?state.me.avatar:state.partner.avatar;}
@@ -29408,9 +29569,56 @@ $("post-send").addEventListener("click",()=>{
 });
 
 /* ===== 仿INS主页：换背景 / 编辑资料 ===== */
+/* v43-183z9：封面编辑统一收口到这里。我的主页和编辑资料弹层都用同一个面板，
+   只是 __coverTarget 指向自己的 cover 或对方的 partnerCover。 */
+var __coverTarget="me";
+function __coverField(){return __coverTarget==="partner"?"partnerCover":"cover";}
+function __coverLabel(){return __coverTarget==="partner"?"对方":"我的";}
+function __paintCover(el,c,def){
+  if(!el)return;
+  var bg=def||"linear-gradient(135deg,#5AC8FA,#3478F6)";
+  if(!c){el.style.background=bg;el.style.backgroundSize="auto";return;}
+  if(c.indexOf("data:")===0||/^https?:/i.test(c)){el.style.background='url("'+c+'") center/cover no-repeat';el.style.backgroundSize="cover";return;}
+  if(/^url\(/i.test(c)){el.style.background=c;el.style.backgroundSize="cover";el.style.backgroundPosition="center";return;}
+  el.style.background=c;el.style.backgroundSize="auto";
+}
+function __refreshBioCover(){
+  try{
+    if(!state.profile)state.profile={};
+    var me=bioSeg!=="partner";
+    var c=me?(state.profile.cover||""):(state.profile.partnerCover||"");
+    __paintCover($("bio-cover-thumb"),c);
+    var sub=$("bio-cover-sub");
+    if(sub)sub.textContent=me?"修改我的主页背景":"修改对方主页背景（对方主页本身不再显示按钮）";
+  }catch(_){}
+}
+function openCoverSheet(t){
+  __coverTarget=t==="partner"?"partner":"me";
+  var title=$("cover-sheet-title");
+  if(title)title.textContent="更换"+__coverLabel()+"主页封面";
+  var ov=$("cover-overlay");
+  try{
+    if($("bio-overlay")&&$("bio-overlay").classList.contains("show"))ov.classList.add("from-bio");
+    else ov.classList.remove("from-bio");
+  }catch(_){}
+  renderMomBgSwatches();
+  var cur=(state.profile&&state.profile[__coverField()])||"";
+  var cc=$("cover-color");
+  if(cc)cc.value=/^#[0-9a-f]{6}$/i.test(cur)?cur:(cc.value||"#5AC8FA");
+  ov.classList.add("show");
+}
+function closeCoverSheet(){
+  var ov=$("cover-overlay");if(!ov)return;
+  ov.classList.remove("show");ov.classList.remove("from-bio");
+  __refreshBioCover();
+}
 $("mp-cover").addEventListener("click",function(){
-  if(mpSide==="partner"){window.__nativePick("file-partner-cover");return;}
-  renderMomBgSwatches();$("cover-overlay").classList.add("show");
+  if(mpSide==="partner"){
+    /* 对方主页不再直接换封面；从我的编辑资料里切换“对方资料”修改。 */
+    toast("对方主页封面请到「我的 → 编辑资料 → 对方资料」里更换");
+    return;
+  }
+  openCoverSheet("me");
 });
 $("file-partner-cover").addEventListener("change",function(e){
   const f=e.target.files[0];if(!f)return;
@@ -29423,27 +29631,45 @@ $("file-partner-cover").addEventListener("change",function(e){
   r.readAsDataURL(f);e.target.value="";
 });
 $("btn-mp-cover").addEventListener("click",function(){
-  if(mpSide==="partner"){window.__nativePick("file-partner-cover");return;}
-  renderMomBgSwatches();$("cover-overlay").classList.add("show");
+  if(mpSide==="partner")return;
+  openCoverSheet("me");
 });
-$("cover-overlay").addEventListener("click",e=>{if(e.target.id==="cover-overlay")$("cover-overlay").classList.remove("show");});
+$("cover-overlay").addEventListener("click",e=>{if(e.target.id==="cover-overlay")closeCoverSheet();});
 document.querySelectorAll("#cover-sheet [data-cover]").forEach(b=>b.addEventListener("click",()=>{
-  state.profile.cover=b.dataset.cover;save();renderMoments();$("cover-overlay").classList.remove("show");toast("主页背景已更新");
+  if(!state.profile)state.profile={};
+  state.profile[__coverField()]=b.dataset.cover;
+  save();try{if(window.__e11BgLocalSync)window.__e11BgLocalSync();}catch(_){}
+  renderMoments();try{renderMomentProfile();}catch(_){}
+  closeCoverSheet();toast(__coverLabel()+"主页背景已更新");
 }));
-$("cover-color").addEventListener("input",e=>{state.profile.cover=e.target.value;save();renderMoments();});
+$("cover-color").addEventListener("input",e=>{
+  if(!state.profile)state.profile={};
+  state.profile[__coverField()]=e.target.value;
+  save();try{window.__e11BgLocalSync&&window.__e11BgLocalSync();}catch(_){}
+  renderMoments();try{renderMomentProfile();}catch(_){}
+});
 (function(){
   $("btn-cover-img").addEventListener("click",function(){
     window.__pickLocalFile("image/*",function(files){
       var f=files&&files[0];if(!f)return;
+      var target=__coverField();
       var r=new FileReader();r.onload=function(){
-        var _raw=String(r.result||"");state.profile.cover=_raw;save();renderMoments();toast("背景图已上传");$("cover-overlay").classList.remove("show");
-        try{__shrinkImg(_raw,1000,0.8).then(function(c){if(!c||c===_raw||state.profile.cover!==_raw)return;state.profile.cover=c;save();renderMoments();});}catch(_){}
+        if(!state.profile)state.profile={};
+        var _raw=String(r.result||"");state.profile[target]=_raw;save();renderMoments();try{renderMomentProfile();}catch(_){}toast(__coverLabel()+"主页背景已上传");
+        try{__shrinkImg(_raw,1000,0.8).then(function(c){if(!c||c===_raw||state.profile[target]!==_raw)return;state.profile[target]=c;save();renderMoments();try{renderMomentProfile();}catch(_){}__refreshBioCover();});}catch(_){}
+        closeCoverSheet();
       };
       r.readAsDataURL(f);
     });
   });
 })();
-$("btn-cover-clear").addEventListener("click",()=>{state.profile.cover="";save();renderMoments();$("cover-overlay").classList.remove("show");toast("已恢复默认背景");});
+$("btn-cover-clear").addEventListener("click",()=>{
+  if(!state.profile)state.profile={};
+  state.profile[__coverField()]="";
+  save();try{window.__e11BgLocalSync&&window.__e11BgLocalSync();}catch(_){}
+  renderMoments();try{renderMomentProfile();}catch(_){}
+  closeCoverSheet();toast("已恢复"+__coverLabel()+"默认背景");
+});
 /* 主页全局背景（独立于封面栏，液态玻璃渐变/图片） */
 function renderMomBgSwatches(){
   const w=$("mom-bg-swatches");if(!w)return;
@@ -29474,6 +29700,7 @@ function fillBioForm(){
   $("bio-following").value=me?(p.following||0):(p.partnerFollowing||0);
   $("bio-text").value=me?(p.bio||""):(p.partnerBio||"");
   document.querySelectorAll("#bio-seg .seg-btn").forEach(function(b){b.classList.toggle("on",b.dataset.bseg===bioSeg);});
+  __refreshBioCover();
 }
 function flushBioForm(){
   if(!state.profile)state.profile={};
@@ -29487,6 +29714,11 @@ function flushBioForm(){
   else{if(nm)p.partnerMpName=nm;p.partnerHandle=hd;p.partnerFollowers=fl;p.partnerFollowing=fg;p.partnerBio=bio;}
 }
 $("btn-mp-bio").addEventListener("click",function(){bioSeg=mpSide==="partner"?"partner":"me";fillBioForm();$("bio-overlay").classList.add("show");setTimeout(function(){$("bio-name").focus();},150);});
+$("bio-cover-btn").addEventListener("click",function(){flushBioForm();openCoverSheet(bioSeg);});
+try{
+  var _bbe=document.getElementById("bio-cover-thumb");
+  if(_bbe)_bbe.addEventListener("click",function(){flushBioForm();openCoverSheet(bioSeg);});
+}catch(_){}
 document.querySelectorAll("#bio-seg .seg-btn").forEach(function(b){b.addEventListener("click",function(){flushBioForm();bioSeg=b.dataset.bseg;fillBioForm();});});
 $("bio-cancel").addEventListener("click",()=>$("bio-overlay").classList.remove("show"));
 $("bio-overlay").addEventListener("click",e=>{if(e.target.id==="bio-overlay")$("bio-overlay").classList.remove("show");});
@@ -29494,6 +29726,7 @@ $("bio-save").addEventListener("click",()=>{
   flushBioForm();
   save();try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_){}renderMoments();renderTopStatus();bindSetting();
   if(typeof renderGuestbook==="function")renderGuestbook();
+  closeCoverSheet();
   $("bio-overlay").classList.remove("show");toast("资料已更新");
 });
 
