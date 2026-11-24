@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183z33f";
+window.__E11_BUILD="2026-11-24v43-184z33";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2353,12 +2353,12 @@ body.msgsel-on #view-chat .bottombar{display:none;}
 #notify-prompt .np-t{padding-right:28px;}
 #notify-on{background:#007aff;color:#fff;}
 #notify-later{background:rgba(0,0,0,.06);color:#333;}
-#survey-create-overlay,#survey-answer-overlay{background:var(--bg,#fff);}
-#survey-create-overlay.show,#survey-answer-overlay.show{background:var(--bg,#fff);}
-/* v43-183z33f：问卷两层用整块主题底色，键盘弹起时不再透出下面的聊天页。 */
+/* v43-184z33：问卷两层固定铺满、整块不透明；键盘弹起时上下都只看到问卷，不透出聊天页。 */
+#survey-create-overlay,#survey-answer-overlay{position:fixed;inset:0;width:100%;height:100%;background:#fff;isolation:isolate;}
+#survey-create-overlay.show,#survey-answer-overlay.show{background:#fff;}
 body.ui-dark #survey-create-overlay,body.ui-dark #survey-answer-overlay{background:#000;}
 
-#survey-create-sheet,#survey-answer-sheet{position:relative;display:flex;flex-direction:column;}
+#survey-create-sheet,#survey-answer-sheet{position:relative;display:flex;flex-direction:column;background:var(--field,#fff);}
 #survey-create-sheet{max-height:min(calc(100% - 8px),84vh);}
 #survey-answer-sheet{max-height:min(calc(100% - 8px),82vh);}
 /* 键盘弹起时整个缩放舞台会变矮（根舞台=可视区）；弹层必须按根舞台的 100% 限高，
@@ -2747,7 +2747,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183z33f">
+<meta name="app-build" content="2026-11-24v43-184z33">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -7671,7 +7671,9 @@ setTimeout(function(){
       /* v43-75：正常重新进入网站只认“上次退出时”的本机档，不再自动把云端档拉下来覆盖。
          这台设备以前同步过、本机又有内容时，只有用户主动点「从云端恢复」才拉取（force=1）。 */
       var _hasLocal=__e11LocalHasArchive();
-      if(!force&&_hasLocal&&meta0&&Number(meta0.savedAt)>0)return 0;
+      /* v43-184z33：本机只要有任何聊天/日记/字卡/信件/留言，自动检查就绝不拉云端覆盖。
+         只有用户主动点「从云端恢复」(force=1) 才允许合并。更新前后都不会用云档顶掉本机。 */
+      if(!force&&_hasLocal)return 0;
       return cloudGet({fresh:!_hasLocal}).then(function(cloud){
         if(!cloud)return false;
         var meta=meta0;
@@ -8404,16 +8406,16 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-183z33f",
+  date:"v43-184z33",
   time:"2026-11-24 22:24",
   noticeKey:null,
-  lead:"2026-11-24 22:24 修改（v43-183z33f）：在 z33 原版上只修五项——麦克风权限、问卷键盘透出、字卡分组归位、离站数据原样、自动备份不吞聊天。",
+  lead:"2026-11-24 22:24 修改（v43-184z33）：在 z33 原版上只修五项——麦克风权限、问卷键盘透出、字卡分组归位、离站数据原样、自动备份不吞聊天。",
   items:[
-    "麦克风点了没反应（v43-183z33f）：录音前先查系统录音权限，没有权限就先弹系统授权；网页版仍然直接走浏览器授权。授权结果会回传页面，5 秒没等到才提示去系统设置允许录音。",
-    "问卷打字透出聊天（v43-183z33f）：创建问卷、回答问卷两层改成整块不透明主题底色，深色模式变黑，键盘再高也只看到问卷本身。",
-    "字卡分组乱跑（v43-183z33f）：启动、合并存档、每次渲染前按「类别+组名」合并同名重复组，卡片改到保留组；孤儿卡按分组名接回，找不到接回默认组或同类第一个组，不再堆进「未分组」。",
-    "离开数据原样（v43-183z33f）：切后台、锁屏、关闭、返回、页面冻结都会立刻写离站快照；一直开着被直接杀进程时最多每 30 秒补一次，下次进入只认最近这份快照。",
-    "自动备份不吞聊天（v43-183z33f）：离站快照签名加入保存时间，内容没变不重复写；快照和备份只补不删，删除墓碑仍优先挡住恢复。",
+    "麦克风点了没反应（v43-184z33）：录音前先查系统录音权限，没有权限就先弹系统授权；网页版仍然直接走浏览器授权。授权结果会回传页面，5 秒没等到才提示去系统设置允许录音。",
+    "问卷打字透出聊天（v43-184z33）：创建问卷、回答问卷两层改成整块不透明主题底色，深色模式变黑，键盘再高也只看到问卷本身。",
+    "字卡分组乱跑（v43-184z33）：启动、合并存档、每次渲染前按「类别+组名」合并同名重复组，卡片改到保留组；孤儿卡按分组名接回，找不到接回默认组或同类第一个组，不再堆进「未分组」。",
+    "离开数据原样（v43-184z33）：切后台、锁屏、关闭、返回、页面冻结都会立刻写离站快照；一直开着被直接杀进程时最多每 30 秒补一次，下次进入只认最近这份快照。",
+    "自动备份不吞聊天（v43-184z33）：离站快照签名加入保存时间，内容没变不重复写；快照和备份只补不删，删除墓碑仍优先挡住恢复。",
     "背景设置完又变（v43-183z33）：聊天背景、我的全局背景、卡片背景、留言板、信件、画画、动态主页、情侣空间、信纸、信封、一起听、通话这些背景，现在统一先写一份只记「最后一次选择」的小备份。纯色/渐变预设和信纸、信封预设以前只靠设置小备份，会被旧存档整份盖掉；现在启动时在旧档恢复之后，再无条件按这份选择恢复。",
     "信纸/信封换图会把本地撑满（v43-183z33）：信纸背景图以前整张塞进设置小备份，一张图就可能把 localStorage 顶满，后面的背景设置全都写不进去，刷新又回旧图。现在大图从设置小备份里剔除，单独走图片备份；信纸、信封的预设和换图也在点完立即强制落盘。",
     "删除的字卡分组又回来（v43-183z32）：删分组以前只走 260ms 防抖保存，马上退出时删除墓碑还没进主档；旧备份/离站快照一并就把整个分组和里面的字卡带回来。现在删分组立刻强制写本机、推云端，并在合并后再按「内存 + 本机同步墓碑」清一遍。",
@@ -10894,11 +10896,11 @@ window.__e11PersistNow=function(){
   try{document.addEventListener("visibilitychange",function(){if(document.visibilityState==="hidden")flushAll();});}catch(e){}
   try{window.addEventListener("pagehide",flushAll);}catch(e){}
   try{window.addEventListener("beforeunload",flushAll);}catch(e){}
-  /* v43-183z33f：安卓/Chrome 冻结前也写一次离站快照。 */
+  /* v43-184z33：安卓/Chrome 冻结前也写一次离站快照。 */
   try{document.addEventListener("freeze",flushAll);}catch(e){}
   /* 回到前台后允许下一次切后台/退出再写一次离站快照。 */
   try{document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")window.__e11FlushDone=0;});}catch(e){}
-  /* v43-183z33f：应用一直开着被直接杀进程时，最多丢 30 秒改动；数据没变就不写。 */
+  /* v43-184z33：应用一直开着被直接杀进程时，最多丢 30 秒改动；数据没变就不写。 */
   try{
     setInterval(function(){
       try{
@@ -11062,8 +11064,55 @@ function __e11NormalizeMessages(s){
     if(_mx>=Number(s.seq)||!isFinite(Number(s.seq)))s.seq=_mx+1;
   }catch(_eSeqNorm){}
 }
+window.__E11_CHAT_LOG_KEY="e11.chatlog.v1";
+window.__e11ChatLogRead=function(){
+  try{
+    var raw=localStorage.getItem(window.__E11_CHAT_LOG_KEY);if(!raw)return [];
+    var a=JSON.parse(raw);return Array.isArray(a)?a:[];
+  }catch(_eLogRead){return [];}
+};
+window.__e11ChatLogPut=function(m){
+  try{
+    if(!m||!m.id||m.type==="sys"||m.type==="poke")return false;
+    var a=window.__e11ChatLogRead();
+    var item={id:String(m.id),from:m.from==="me"?"me":"partner",type:String(m.type||"text"),text:String(m.text!==""&&m.text!==undefined?m.text:"").slice(0,4000),time:Number(m.time)||Date.now(),kind:String(m.kind||""),quoteId:m.quoteId||null,src:(typeof m.src==="string"&&m.src.length<=2000)?m.src:""};
+    var k=item.id+"|"+item.time+"|"+item.text;
+    a=a.filter(function(x){return x&&(String(x.id)+"|"+String(Number(x.time)||0)+"|"+String(x.text||""))!==k;});
+    a.push(item);a=a.slice(-300);
+    var raw=JSON.stringify(a);
+    try{localStorage.setItem(window.__E11_CHAT_LOG_KEY,raw);}
+    catch(_eLogFull){try{window.__e11QuotaRescue&&window.__e11QuotaRescue(2);localStorage.setItem(window.__E11_CHAT_LOG_KEY,raw);}catch(_eLogFull2){return false;}}
+    return true;
+  }catch(_eLogPut){return false;}
+};
+window.__e11ChatLogRestore=function(s){
+  try{
+    if(!s||!Array.isArray(s.messages))return 0;
+    var a=window.__e11ChatLogRead();if(!a.length)return 0;
+    var clr=Number(s.__chatClearedAt)||0;
+    var exists={};s.messages.forEach(function(m){
+      if(m&&m.id)exists[String(m.id)+"|"+String(Number(m.time)||0)+"|"+String(m.text!==undefined?m.text:"")]=1;
+    });
+    var n=0;
+    a.forEach(function(x){
+      if(!x||!x.id)return;
+      var t=Number(x.time)||0;
+      if(!t||t<Date.now()-30*24*3600*1000)return;
+      if(clr&&t<=clr)return;
+      try{if(window.__e11IsDeleted&&window.__e11IsDeleted("messages",String(x.id)))return;}catch(_eLogDel){}
+      var k=String(x.id)+"|"+String(t)+"|"+String(x.text!==undefined?x.text:"");
+      if(exists[k])return;
+      var _xt=String(x.type||"text"),_xsrc=String(x.src||"");
+      if(_xt==="image"&&!_xsrc)return;
+      s.messages.push({id:String(x.id),from:x.from==="me"?"me":"partner",type:_xt,text:String(x.text!==undefined?x.text:""),src:_xsrc,time:t,read:x.from!=="me",kind:String(x.kind||""),quoteId:x.quoteId||null});
+      exists[k]=1;n++;
+    });
+    return n;
+  }catch(_eLogRestore){return 0;}
+};
 function migrate(s){
   try{__e11NormalizeMessages(s);}catch(_eMsgNorm){}
+  try{window.__e11ChatLogRestore&&window.__e11ChatLogRestore(s);}catch(_eLogMig){}
   /* v43-107：删掉内置的“开启私密聊天”欢迎语，老存档也一起清掉。 */
   try{
     if(s&&Array.isArray(s.messages)){
@@ -16218,6 +16267,7 @@ function pushMsg(from,type,text,opts){
   if(_msgTime<_maxPrevT)_msgTime=_maxPrevT;
   const m={id:id,from:from,type:type,text:text,src:opts.src||"",w:Number(opts.w)||0,h:Number(opts.h)||0,dur:opts.dur||0,sched:!!opts.sched,time:_msgTime,quoteId:opts.quoteId||null,kind:opts.kind||"",active:!!opts.active,catchup:!!opts.catchup,read:from!=="me",recalled:false,momentId:opts.momentId||"",commentId:opts.commentId||"",ttsText:opts.ttsText||"",sttText:opts.sttText||"",voice:opts.voice||"",inv:opts.inv||""};
   state.messages.push(m);
+  try{window.__e11ChatLogPut&&window.__e11ChatLogPut(m);}catch(_eChatLog){}
   try{
     if(from==="me"&&(type==="text"||type==="image")&&!opts.catchup&&!opts.quiet&&!opts.sched){
       window.maybePartnerTapback&&window.maybePartnerTapback(id);
@@ -19751,7 +19801,7 @@ function groupsOfKind(k){return (state.groups||[]).filter(function(g){return gro
 function cardsOfKind(k){return (state.cards||[]).filter(function(c){return cardKindOf(c)===k;});}
 /* v43-155：卡片有 groupId，但对应分组已经不在了（云端旧档/导入后分组被重建）。
    这些卡以前只在「全部」里能看到，点任何分组都是 0 条，像“没放进我设置的分组”。 */
-/* v43-183z33f：云端合并/导入会偶尔把同名分组带成两个不同 id，或者分组的 id 被重建，
+/* v43-184z33：云端合并/导入会偶尔把同名分组带成两个不同 id，或者分组的 id 被重建，
    卡片就掉进「未分组」。这里按「类别 + 分组名」把同名重复组合并成一个，卡片跟着改到
    唯一的分组 id；没有分组的卡先按 groupName 找，仍找不到且该类别只有一个组就归进去。 */
 window.__e11NormalizeCardGroups=function(st){
@@ -19790,7 +19840,7 @@ window.__e11NormalizeCardGroups=function(st){
       if(!target){
         var sameKind=keep.filter(function(x){return ((x.kind==="letter"||x.kind==="moment")?x.kind:"chat")===ck;});
         if(sameKind.length){
-          /* v43-183z33f：找不到归属的孤儿卡不再留在「未分组」：
+          /* v43-184z33：找不到归属的孤儿卡不再留在「未分组」：
              优先接回默认分组，没有再接当前类别的第一个分组。 */
           target=sameKind.filter(function(x){return /^(默认|默认分组|导入分组)$/.test(String(x.name||"").trim());})[0]||sameKind[0];
         }
@@ -19887,7 +19937,7 @@ function bindCardKindTabs(){
   }
 }
 function renderCards(){
-  /* v43-183z33f：渲染前先合并同名分组、把孤儿卡接回分组，避免显示成「未分组」。 */
+  /* v43-184z33：渲染前先合并同名分组、把孤儿卡接回分组，避免显示成「未分组」。 */
   try{if(window.__e11NormalizeCardGroups&&window.__e11NormalizeCardGroups(state)){save();}}catch(_eNgRender){}
   /* v43-184：每次进字卡页先自动清一次跨分组重复，保证整份字卡只留一条。 */
   try{var _autoDup=dedupeCards(cardKindView);if(_autoDup){try{save();}catch(_){}}}catch(_eAutoDup){}
@@ -19895,6 +19945,8 @@ function renderCards(){
   if(!groupsOfKind(K).length){
     try{state.groups.push({id:uid(),name:"默认分组",kind:K});save();}catch(e){}
   }
+  /* v43-184z33：先补默认分组，再归一化一次；否则没有任何分组时孤儿卡会直接落到「未分组」。 */
+  try{if(window.__e11NormalizeCardGroups&&window.__e11NormalizeCardGroups(state)){save();}}catch(_eNgAfterDefault){}
   activeGroupId=activeGidOfKind(K);
   var groups=groupsOfKind(K);
   if(!cardSelMode)cardSel.clear();
@@ -34716,7 +34768,7 @@ try{
       return false;
     }
   }
-  /* v43-183z33f：录音前先让原生层确认系统麦克风权限。
+  /* v43-184z33：录音前先让原生层确认系统麦克风权限。
      以前直接 getUserMedia，WebView 的系统权限没开就会静默失败，表现为点了没反应。 */
   var __micWaiters=[],__micTimer=null;
   function __micFlush(ok){
@@ -34759,6 +34811,8 @@ try{
     showRec(true);try{var _vh=document.getElementById("vrec-hint");if(_vh)_vh.textContent="正在准备麦克风…";}catch(_){}
     __ensureMic(function(ok){
     if(!ok){rec.active=false;rec.streamReady=false;stopStream();showRec(false);return;}
+    /* v43-184z33：拿到系统权限后音频上下文可能还挂着；先恢复再录音，避免“权限有了但仍然没声”。 */
+    try{if(ctx.state==="suspended")ctx.resume();}catch(_eMicResume){}
     navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
       if(my!==rec.gen||!rec.active){try{stream.getTracks().forEach(function(t){t.stop();});}catch(e){}return;}
       rec.stream=stream;rec.streamReady=true;rec.audioStart=Date.now();
@@ -34788,7 +34842,7 @@ try{
       }catch(e){rec.active=false;stopStream();showRec(false);toast("录音启动失败，再试一次");}
     }).catch(function(){
       rec.active=false;rec.streamReady=false;stopStream();showRec(false);
-      toast("没拿到麦克风权限，去浏览器设置里允许录音");
+      toast("没拿到麦克风权限：网页请点地址栏允许录音；安卓请到系统设置 → 应用 → Eleven×11 → 权限里打开麦克风后重试");
     });
     });
     return true;
