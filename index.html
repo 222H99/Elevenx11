@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183z40";
+window.__E11_BUILD="2026-11-24v43-183z33";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -1348,7 +1348,7 @@ body:not(.app-ready) #view-chat{visibility:hidden !important;}
 @keyframes viewFade{from{opacity:0}to{opacity:1}}
 .v-head{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:10px 8px;background:var(--topbar);color:var(--ttext);border-bottom:1px solid var(--line);padding-top:calc(10px + var(--safe-top, env(safe-area-inset-top)));}
 .v-title{font-size:17px;font-weight:600;flex:1;}
-.v-body{flex:1;overflow-y:auto;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch;contain:layout style paint;overscroll-behavior:contain;}
+.v-body{flex:1;overflow-y:auto;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch;}
 .back-btn{min-width:44px;min-height:44px;width:36px;height:36px;border:none;background:transparent;color:var(--accent);display:flex;align-items:center;justify-content:center;border-radius:10px;cursor:pointer;}
 /* ===== 字卡板块 ===== */
 .ck-tabs{display:flex;gap:6px;padding:10px 14px 10px;background:var(--bg,#fff);border-bottom:1px solid rgba(0,0,0,.06);flex:0 0 auto;}
@@ -1632,7 +1632,7 @@ body.ui-dark #overlay #sheet{background:rgba(38,38,42,.95);box-shadow:0 12px 34p
 #view-letters .v-head{position:relative;z-index:3;background:transparent;border-bottom:none;}
 #view-letters .v-body{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;padding:0 0 12px;overflow:hidden;}
 .lt-bg{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:var(--lt-bg,linear-gradient(180deg,var(--bg),var(--bg)));}
-.lt-list{position:relative;z-index:1;flex:1;min-height:0;overflow-y:auto;padding:12px 14px 4px;-webkit-overflow-scrolling:touch;contain:layout style paint;overscroll-behavior:contain;}
+.lt-list{position:relative;z-index:1;flex:1;min-height:0;overflow-y:auto;padding:12px 14px 4px;-webkit-overflow-scrolling:touch;}
 #view-letters .empty-hint{position:relative;z-index:1;flex:1;display:flex;align-items:center;justify-content:center;text-align:center;min-height:180px;}
 .lt-card{position:relative;margin:0 0 12px;border-radius:22px;padding:14px;
   background:var(--glass,rgba(255,255,255,.22));-webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%);
@@ -1979,7 +1979,7 @@ o{opacity:1;transform:translateY(0);}}
   border:1px solid var(--glassborder,rgba(255,255,255,.3));}
 .gb-input .text-input{flex:1;width:100%;min-width:0;box-sizing:border-box;border:none;background:var(--field,#fff);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-radius:16px;padding:10px 12px;font-size:14px;color:var(--ttext);}
 .gb-input .text-input::placeholder{color:var(--sub,#9AA0A6);}
-.note-list{position:relative;z-index:1;flex:1;min-height:0;overflow-y:auto;padding:12px 14px 4px;-webkit-overflow-scrolling:touch;contain:layout style paint;overscroll-behavior:contain;}
+.note-list{position:relative;z-index:1;flex:1;min-height:0;overflow-y:auto;padding:12px 14px 4px;-webkit-overflow-scrolling:touch;}
 .qa-card{position:relative;margin:0 0 12px;border-radius:22px;padding:14px;
   background:var(--glass,rgba(255,255,255,.22));-webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%);
   border:1px solid var(--glassborder,rgba(255,255,255,.22));box-shadow:0 10px 28px rgba(0,0,0,.06);}
@@ -2354,11 +2354,6 @@ body.msgsel-on #view-chat .bottombar{display:none;}
 #notify-on{background:#007aff;color:#fff;}
 #notify-later{background:rgba(0,0,0,.06);color:#333;}
 
-#survey-create-overlay,#survey-answer-overlay{background:var(--bg,#fff);}
-#survey-create-overlay.show,#survey-answer-overlay.show{background:var(--bg,#fff);}
-/* 问卷弹层不透明：键盘弹起时弹层下方以前是半透明遮罩，会透出聊天页。
-   现在整个问卷层用当前主题底色铺满，键盘下方也只看到问卷底色。 */
-body.ui-dark #survey-create-overlay,body.ui-dark #survey-answer-overlay{background:#000;}
 #survey-create-sheet,#survey-answer-sheet{position:relative;display:flex;flex-direction:column;}
 #survey-create-sheet{max-height:min(calc(100% - 8px),84vh);}
 #survey-answer-sheet{max-height:min(calc(100% - 8px),82vh);}
@@ -2748,7 +2743,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183z40">
+<meta name="app-build" content="2026-11-24v43-183z33">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -6336,45 +6331,17 @@ setTimeout(function(){
   /* 本机删除墓碑小键：删除动作同步写 localStorage，刷新/退出/云端旧档合并都先认它。
      解决“删了东西，重开又被旧快照/自动备份补回来”的核心兜底。 */
   window.__E11_DEL_KEY="e11.deleted.v1";
-  /* v43-183z37：删除表在过滤循环里会被反复读取。以前每次调用都 JSON.parse 一遍，
-     几千条档案时一次合并就要解析上百次。这里按原始字符串缓存，值没变就不重复解析。 */
-  window.__e11DelCacheRaw=null;window.__e11DelCacheObj=null;
   function __e11DelLocalRead(){
-    try{
-      var raw=localStorage.getItem(window.__E11_DEL_KEY)||"{}";
-      if(raw===window.__e11DelCacheRaw&&window.__e11DelCacheObj)return window.__e11DelCacheObj;
-      var o=JSON.parse(raw);if(!o||typeof o!=="object")o={};
-      window.__e11DelCacheRaw=raw;window.__e11DelCacheObj=o;return o;
-    }catch(_){return {};}
+    try{var o=JSON.parse(localStorage.getItem(window.__E11_DEL_KEY)||"{}");return (o&&typeof o==="object")?o:{};}catch(_){return {};}
   }
-  function __e11DelLocalWrite(o){
-    try{
-      var raw=JSON.stringify(o||{});
-      localStorage.setItem(window.__E11_DEL_KEY,raw);
-      window.__e11DelCacheRaw=raw;window.__e11DelCacheObj=o||{};
-    }catch(_){}
-  }
+  function __e11DelLocalWrite(o){try{localStorage.setItem(window.__E11_DEL_KEY,JSON.stringify(o||{}));}catch(_){}}
   window.__e11DelLocalRead=__e11DelLocalRead;  /* v43-183z21：删除意图除了按 id 记，再按「内容指纹」记一层。
      云端旧档/跨作用域合并/导入备份时，同一条内容偶尔会换 id 回来（尤其信件和动态），
      只按 id 过滤就会“删了更新后又恢复”。指纹按 90 天有效期，避免把以后新发的同句也永久挡住。 */
   window.__E11_DEL_FP_KEY="e11.deleted.fp.v2";
   window.__E11_DEL_TTL=90*24*3600*1000;
-  window.__e11FpCacheRaw=null;window.__e11FpCacheObj=null;
-  function __e11FpRead(){
-    try{
-      var raw=localStorage.getItem(window.__E11_DEL_FP_KEY)||"{}";
-      if(raw===window.__e11FpCacheRaw&&window.__e11FpCacheObj)return window.__e11FpCacheObj;
-      var o=JSON.parse(raw);if(!o||typeof o!=="object")o={};
-      window.__e11FpCacheRaw=raw;window.__e11FpCacheObj=o;return o;
-    }catch(_){return {};}
-  }
-  function __e11FpWrite(o){
-    try{
-      var raw=JSON.stringify(o||{});
-      localStorage.setItem(window.__E11_DEL_FP_KEY,raw);
-      window.__e11FpCacheRaw=raw;window.__e11FpCacheObj=o||{};
-    }catch(_){}
-  }
+  function __e11FpRead(){try{var o=JSON.parse(localStorage.getItem(window.__E11_DEL_FP_KEY)||"{}");return (o&&typeof o==="object")?o:{};}catch(_){return {};}}
+  function __e11FpWrite(o){try{localStorage.setItem(window.__E11_DEL_FP_KEY,JSON.stringify(o||{}));}catch(_){}}
   function __e11FpStr(v){try{if(v===undefined||v===null)return "";if(typeof v==="string")return v;return JSON.stringify(v);}catch(_){return "";}}
   function __e11FpHash(raw){
     try{
@@ -6478,16 +6445,6 @@ setTimeout(function(){
       if(window.__e11TombstoneMute)return;
       var st=window.__e11StateGet?window.__e11StateGet():null;if(!st)return;
       st.deletedIds=st.deletedIds||{};
-      /* v43-183z37：每次 save 都为所有板块重建 id 集合，几千条档案时纯属重复劳动。
-         先算一个很便宜的“长度 + 头尾 id”指纹；没变化就直接跳过，真正删除/导入才会变。 */
-      var _scanSig="";try{
-        _scanSig=__e11DeleteKinds.map(function(k){
-          var a=st[k];if(!Array.isArray(a))return k+":0";
-          return k+":"+a.length+":"+String(__e11IdOf(a[0])||"")+":"+String(__e11IdOf(a[a.length-1])||"");
-        }).join("|");
-      }catch(_eScanSig){}
-      if(!init&&_scanSig&&_scanSig===window.__e11TombScanSig)return;
-      window.__e11TombScanSig=_scanSig;
       var known=window.__e11KnownIds;
       if(!known){known={};window.__e11KnownIds=known;}
       __e11DeleteKinds.forEach(function(k){
@@ -6568,23 +6525,6 @@ setTimeout(function(){
     return st;
   }
   try{window.__e11ApplyDeleted=__e11ApplyDeleted;}catch(_eApplyExp){}
-  /* v43-183z37：save() 每次都会调用删除过滤，但绝大多数时候删除表没变、列表也没变。
-     用“板块长度 + 末条 id + 墓碑数量”做指纹，没变化就不再全量 filter 一遍。 */
-  window.__e11ApplyDeletedIfNeeded=function(st){
-    try{
-      if(!st)return 0;
-      var d=(st.deletedIds||{}),loc={};try{loc=__e11DelLocalRead()||{};}catch(_eLoc2){}
-      var sig=__e11DeleteKinds.map(function(k){
-        var a=Array.isArray(st[k])?st[k]:[];
-        var dn=Object.keys((d[k]||{})).length+Object.keys((loc[k]||{})).length;
-        return k+":"+a.length+":"+String(__e11IdOf(a[a.length-1])||"")+":"+dn;
-      }).join("|");
-      if(sig===window.__e11ApplyDelSig)return 0;
-      window.__e11ApplyDelSig=sig;
-      __e11ApplyDeleted(st);
-      return 1;
-    }catch(_eApplyGate){try{__e11ApplyDeleted(st);}catch(_){}return 0;}
-  };
   /* v43-183z21：动态/信件/留言的本机滚动备份。
      以前这类内容只存在于“当前 state + 三份自动备份 + 云端”，
      任意一份旧档把数组覆盖成空、或版本切换时读档失败，就会真的看起来“全没了”。
@@ -7169,7 +7109,6 @@ setTimeout(function(){
         var _tags=[];((st.favTags||[]).concat((localState&&localState.favTags)||[])).forEach(function(x){if(x&&_tags.indexOf(x)<0)_tags.push(x);});
         if(_tags.length)st.favTags=_tags;
       }catch(_eFav){}
-      try{if(window.__e11NormalizeCardGroups)window.__e11NormalizeCardGroups(st);}catch(_eNgMerge){}
     }catch(_){}
   }
   function __e11RecoverToast(st){
@@ -7727,10 +7666,7 @@ setTimeout(function(){
       /* v43-75：正常重新进入网站只认“上次退出时”的本机档，不再自动把云端档拉下来覆盖。
          这台设备以前同步过、本机又有内容时，只有用户主动点「从云端恢复」才拉取（force=1）。 */
       var _hasLocal=__e11LocalHasArchive();
-      /* v43-183z35：只要本机还有任何聊天/动态/信件/留言/字卡/日记，就绝不自动拿云端旧档覆盖。
-         以前还要求 e11.cloudMeta 存在；更新或清缓存后这个 meta 丢了，就会把账号空间里另一段
-         时间的旧聊天拉下来，表现就是“更新后数据变成不知道什么时候的”。只有手动「恢复云端」才拉。 */
-      if(!force&&_hasLocal)return 0;
+      if(!force&&_hasLocal&&meta0&&Number(meta0.savedAt)>0)return 0;
       return cloudGet({fresh:!_hasLocal}).then(function(cloud){
         if(!cloud)return false;
         var meta=meta0;
@@ -8135,42 +8071,40 @@ setTimeout(function(){
   }
 
   async function logout(){
-    if(!(await __iosConfirm("退出后，本机数据不会删除，云端存档也保留。确定退出云端？",{okText:"退出"})))return;
+    if(!(await __iosConfirm("退出后，本机会清空这个账号的本地缓存；云端存档保留。确定退出？",{okText:"退出"})))return;
     window.__e11CloudPause=1;
     var finished=false;
-    function finish(){
+    var finish=function(){
       if(finished)return;finished=true;
-      try{clearSession();}catch(e){}
+      clearSession();
       try{localStorage.removeItem(LS_OWNER);}catch(e){}
-      /* v43-183z35：退出只断开登录，不再清空本机数据。
-         以前 finish 会 clearLocalApp()，把 localStorage 里的最近档、离站快照一起删掉，
-         网络一慢又卡在云端核对，看起来就是“退不出去，数据也没了”。 */
-      try{window.__e11AuthOk=false;window.__e11SkipLock=0;window.__e11CloudStatus="未登录";window.__cloudLoginOpen=0;}catch(e){}
-      try{window.__restoring=0;window.__e11CloudPause=0;}catch(e){}
-      try{if(typeof renderAccountRow==="function")renderAccountRow();}catch(e){}
-      try{if(typeof setChip==="function")setChip("未登录");}catch(e){}
-      try{if(typeof chipSync==="function")chipSync();}catch(e){}
-      try{setMsg("auth-msg","已退出登录，本机数据保留");}catch(e){}
-      try{window.__cloudLoginExplicit=1;showLoginCard();}catch(e){}
-      try{toast("已退出云端，本机数据保留");}catch(e){}
-    }
-    if(!(window.__e11AuthCheck?!!window.__e11AuthCheck():!!authOk())){finish();return;}
-    /* 退出不能让网络卡住：最多等 4.5 秒，时间一到先断开登录。
-       云端最后一次上传在后台继续，成功与否都不影响本机退出。 */
-    var _hard=setTimeout(function(){
-      try{toast("云端没响应，已先退出登录；本机数据保留");}catch(_){}
-      finish();
-    },4500);
-    try{
-      var _local=null;try{_local=window.__e11StateGet?window.__e11StateGet():null;}catch(_){}
-      var _lts=Number(_local&&_local.__savedAt)||0;
-      var cloud=null;try{cloud=await window.__e11CloudGet();}catch(_eCloudGet){cloud=null;}
-      if(cloud&&__e11CloudWins(cloud,_local,Number(cloud.savedAt)||0,_lts)){clearTimeout(_hard);finish();return;}
-      var _up=null;try{_up=window.__E11Cloud&&window.__E11Cloud.uploadNow?window.__E11Cloud.uploadNow():null;}catch(_eUp){_up=null;}
-      if(_up&&_up.catch)_up.catch(function(){});
-    }catch(e){}
-    clearTimeout(_hard);
-    finish();
+      /* 不再 location.reload()：iOS 主屏幕/PWA 退出后 reload 会先黑一下再白一下。
+         这里直接把内存状态清成默认、停掉音乐、原地把登录卡铺回来。 */
+      try{var au=musicAudio();au.pause();au.removeAttribute("src");au.load();}catch(_){}
+      var _wasDark=false;try{_wasDark=(document.documentElement.getAttribute("data-boot")==="dark")||document.body.classList.contains("ui-dark");}catch(_){}
+      try{state=defaultState();if(_wasDark){state.skin.dark=true;state.skin.themeMode="manual";}state.musicCur=-1;state.musicPlaylist=[];state.miniPos=null;window.__curView="";refreshMiniPlayer();}catch(_){}
+      clearLocalApp().then(function(){
+        try{window.__restoring=0;window.__e11CloudPause=0;}catch(_){}
+        try{renderAll();}catch(_){}
+        try{showLoginCard();}catch(_){}
+        try{setMsg("auth-msg","已退出登录");}catch(_){}
+      }).catch(function(){
+        try{window.__restoring=0;window.__e11CloudPause=0;showLoginCard();}catch(_){}
+      });
+    };
+    if(!(window.__e11AuthCheck?!!window.__e11AuthCheck():!!authOk())){window.__cloudLoginExplicit=1;finish();return;}
+    /* 退出前先核对云端：云端消息更完整时绝不能把本机旧档传上去覆盖。
+       确认本机更新才做最后一次上传。 */
+    var _local=null;try{_local=window.__e11StateGet?window.__e11StateGet():null;}catch(_){}
+    var _lts=Number(_local&&_local.__savedAt)||0;
+    window.__e11CloudGet().then(function(cloud){
+      if(cloud&&__e11CloudWins(cloud,_local,Number(cloud.savedAt)||0,_lts)){finish();return;}
+      return window.__E11Cloud.uploadNow().then(finish).catch(async function(){
+        if(await __iosConfirm("云端保存失败，继续退出可能丢掉最后一次改动。仍然退出？",{okText:"仍然退出"}))finish();
+      });
+    }).catch(async function(){
+      if(await __iosConfirm("还没核对云端，退出前上传失败。仍然退出？",{okText:"仍然退出"}))finish();
+    });
   }
 
   document.addEventListener("click",function(e){
@@ -8465,31 +8399,11 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-183z40",
-  time:"2026-11-24 22:10",
+  date:"v43-183z33",
+  time:"2026-11-24 20:09",
   noticeKey:null,
-  lead:"2026-11-24 22:10 修改（v43-183z40）：发完后点返回、从动态/信件/留言/设置/通知再回聊天，整段消息空白。现在每次离开聊天都先同步写离站快照，每次从别的页面进聊天都强制重画；另外加了一份最多 300 条的独立聊天流水，主存档/离站快照没写上时也能按条补回来。删除和清空仍然优先。",
+  lead:"2026-11-24 20:09 修改（v43-183z33）：背景换完就按本机最后一次选择保存，退出、刷新、更新网站后不再被旧存档或旧备份改回去。",
   items:[
-    "返回或切窗口后聊天整段空白（v43-183z40）：以前重新进聊天只看“签名有没有变”，签名没变就复用页面上的旧列表；别的入口把列表清掉、或者进程被回收后，就只剩空白。现在只要是从主页/动态/信件/留言/设置/通知进聊天，一律按当前存档强制重画，签名相同也画。",
-    "消息没存档、系统提示有但聊天没有（v43-183z40）：新增最多 300 条的独立聊天流水，每条文字消息发出时同步写，不依赖 10 条发件箱和离站快照。启动、重进聊天都会按 id+时间补回；删除墓碑和清空时刻先过滤，删掉的、清空前的一条都不会复活。",
-    "主站显示旧版、预览正常（v43-183z39）：同一份 z38 部署到两边，线上 HTML 完全一致；差异来自主站浏览器/WebView 里的旧 Service Worker。旧逻辑导航时只等网络 450ms，2MB 的页面没下完就直接返回上一版缓存，主站就一直像没更新；预览是新缓存或没有旧缓存，所以正常。现在在线时先等 2.5 秒，没下完再等 4 秒，只有真断网才回旧缓存，主站下次打开一定拿新版。",
-    "主站消息没存档、预览正常（v43-183z39）：主站用久了，localStorage 可能被十几张背景大图占满；写离站快照或发件箱时 setItem 静默失败，消息就真的没留下。预览是新环境、空间充足所以正常。现在写不进去会先清可再生缓存，再按时间只保留最近几张背景备份；还不行就写 sessionStorage 应急副本，启动时一起读回来，至少保证聊天和设置这份快照落盘。",
-    "点返回消息就消失、没存档（v43-183z38）：聊天页的左上角返回和安卓系统返回，现在都会先把当前消息强制同步写进离站快照，再离开；不会再等 260ms 防抖或 IndexedDB 异步写完。每条文字消息发出时还会同步写一份最多 10 条的“发件箱”，即使进程被系统回收、主库没写进去，下次启动也会按 id+时间补回来；删除墓碑和清空时刻仍然优先，删掉的不会复活。",
-    "聊天页按系统返回直接退出 App（v43-183z38）：以前聊天页的系统返回直接交回安卓，安卓就退出 Activity，用户感觉像被踢出去。现在聊天页先回主页，主页再按一次才退出；键盘打开时只收键盘，不切页。",
-    "性能：删除过滤不再反复解析（v43-183z37）：删除表、内容指纹表以前在每次合并/过滤循环里都重新 JSON.parse 一遍，几千条档案时一次启动要解析上百次。现在按原始字符串缓存，值没变就直接复用。删除过滤和墓碑扫描也加了指纹，列表没变化就跳过整轮全量扫描。",
-    "性能：背景不再每次重写（v43-183z37）：改字卡、改资料都会触发背景小备份，以前每次都把 20 多个背景（可能十几 MB 的 base64）同步重写一遍。现在逐个比对上一次写进去的值，只有真的换了背景才写；退出时也不会再重复刷新所有 ts。",
-    "性能：大存档恢复不再卡 O(n²)（v43-183z37）：消息去重合并以前用 out.indexOf 找上一条的位置，重复消息一多就变成平方级。现在直接记下每个 id 在输出数组里的下标，大备份恢复少卡好几秒。",
-    "退出前 2.5 秒改资料会丢（v43-183z37）：离站快照的重复调用判断没算资料修改时间，改完昵称/签名马上切后台，可能被判成「刚写过」直接跳过。现在资料时间也进签名，最后一次修改一定写进离站快照。",
-    "对方和我的消息看不见（v43-183z36）：上一版清空聊天后，启动/合并时会拿清空时刻过滤当前主档；设备时钟回拨或清空时刻偏大时，清空之后新发的消息也被当成旧消息删掉，表现就是双方消息都不见了、像被吞。现在清空时刻只用来挡旧离站快照和 3 份旧备份，当前主档一条都不按它删；超过当前时间的清空时刻直接作废。",
-    "更新后数据变成别的时段（v43-183z35）：以前启动时只要 e11.cloudMeta 丢了，就会把账号云端里另一段旧聊天拉下来覆盖本机；更新、清缓存后最容易触发。现在只要本机还有聊天、动态、信件、留言、字卡或日记中的任何一项，就绝不自动拉云端，只有手动点「从云端恢复」才会拉。",
-    "更新后动态信件留言不见了（v43-183z35）：刚更新完这一轮，如果动态、信件、留言、字卡明显缺失，会在首屏后强制读本机 3 份自动备份按 id 补一次，只补不删，仍按删除墓碑和清空时刻过滤；同时把其它登录状态的 IndexedDB 数据合并回当前页面，不再只写进库不刷新。",
-    "清空聊天后退出又回来（v43-183z35）：清空时会写 __chatClearedAt 清空时刻，离站快照和自动备份里早于这个时刻的消息全部丢弃；就算个别机型墓碑键没写成功，也不会再恢复到清空前的聊天。",
-    "云端空间退出不了（v43-183z35）：退出要等云端核对和最后一次上传，网络一慢就一直卡在「退出」上。现在最多等 4.5 秒，超时先断开登录并弹登录卡；退出不再清空本机 localStorage/离站快照，本机数据保留，云端存档也保留。",
-    "麦克风点了没反应（v43-183z34）：录音前先查系统录音权限，没有权限就先弹系统授权；网页版和小程序仍然直接走浏览器授权。以前只靠网页弹窗，Android WebView 里系统权限没开就会静默失败。现在授权结果会回传页面，5 秒没等到才提示去系统设置允许录音，不再一直卡在录音浮层。",
-    "问卷打字时透出聊天（v43-183z34）：创建问卷、回答问卷这两层以前是半透明黑底，键盘一弹，下面聊天内容就从弹层底下透出来。现在两层改成整块不透明，深色模式跟着变黑，键盘再高也只看到问卷本身。",
-    "字卡分组乱跑、掉未分组（v43-183z34）：启动、合并本机/云端存档、每次渲染前都会把同名同类的重复分组并成一个，原来指向重复组的字卡改到保留组；指向已不存在分组的孤儿卡，按 groupName / 分组名找同名组，找不到就接回默认分组或同类第一个分组，不再堆进「未分组」。批量导入、复制分组建卡时也把分组名一起写进去。",
-    "离开就自动备份（v43-183z34）：切后台、锁屏、关闭标签、返回键退出、页面被系统冻结都会立刻写一份离站快照；一直开着被直接杀进程时，最多每 30 秒补一次，只在这期间真的存过新数据才写，避免空转。下次进入仍然只认最近这份离站快照，旧备份不会把删掉的东西补回来。",
-    "性能（v43-183z34）：背景小备份从每次聊天保存的热路径里移走，只在真正换背景和离站时写；聊天、字卡、信件、动态这些长列表加上 contain 和 overscroll 限制，滚动时布局和重绘范围更小。离站补写也先比对内容签名，没变就不重复序列化整份数据。",
     "背景设置完又变（v43-183z33）：聊天背景、我的全局背景、卡片背景、留言板、信件、画画、动态主页、情侣空间、信纸、信封、一起听、通话这些背景，现在统一先写一份只记「最后一次选择」的小备份。纯色/渐变预设和信纸、信封预设以前只靠设置小备份，会被旧存档整份盖掉；现在启动时在旧档恢复之后，再无条件按这份选择恢复。",
     "信纸/信封换图会把本地撑满（v43-183z33）：信纸背景图以前整张塞进设置小备份，一张图就可能把 localStorage 顶满，后面的背景设置全都写不进去，刷新又回旧图。现在大图从设置小备份里剔除，单独走图片备份；信纸、信封的预设和换图也在点完立即强制落盘。",
     "删除的字卡分组又回来（v43-183z32）：删分组以前只走 260ms 防抖保存，马上退出时删除墓碑还没进主档；旧备份/离站快照一并就把整个分组和里面的字卡带回来。现在删分组立刻强制写本机、推云端，并在合并后再按「内存 + 本机同步墓碑」清一遍。",
@@ -9321,15 +9235,12 @@ window.__e11MergeDbScopes=async function(){
           keys.forEach(function(k){
             var cur=Array.isArray(live[k])?live[k]:[],src=Array.isArray(base[k])?base[k]:[];
             var ids={},del=(live.deletedIds&&live.deletedIds[k])||{};
-            var added=0;
             cur.forEach(function(x){if(x&&x.id)ids[x.id]=1;});
             src.forEach(function(x){if(!x||!x.id||del[x.id])return;var old=ids[x.id]?cur.filter(function(y){return y&&y.id===x.id;})[0]:null;
-              if(!old){cur.push(x);ids[x.id]=1;added++;}
-              else if(x.src&&!old.src){old.src=x.src;old.emojiId=old.emojiId||x.emojiId;added++;}
+              if(!old){cur.push(x);ids[x.id]=1;add++;}
+              else if(x.src&&!old.src){old.src=x.src;old.emojiId=old.emojiId||x.emojiId;add++;}
             });
-            /* v43-183z35：added 必须按每个板块记；以前 add 是外层变量，循环里加完又判断 add，
-               后台合并补到的数据不会刷新到当前页面，看起来像“合并了还是空”。 */
-            if(added){live[k]=cur;add+=added;}
+            if(add)live[k]=cur;
           });
           try{if(__e11PickCfg(live,base))changed++;}catch(_){}
           if(add>0||changed){live.__savedAt=Date.now();window.__e11SetState(live);try{save();}catch(_){};try{if(window.__e11RefreshAllViews)window.__e11RefreshAllViews();else renderAll();}catch(_){};try{var vc=document.getElementById("view-chat");if(vc&&vc.classList.contains("open"))renderChat(true);}catch(_){};changed+=add;}
@@ -9613,11 +9524,6 @@ window.__bkMergeNewest=function(force){
         src.forEach(function(x){
           var kk=__e11MsgKey(x);
           if(kk&&seenKey[kk])return;
-          /* v43-183z35：清空聊天后，自动备份里比清空时刻更早的消息不能再补回来。 */
-          if(k==="messages"){
-            var _bc=Number(state.__chatClearedAt)||0;
-            if(_bc&&!(Number(x&&(x.time||x.ts))>_bc))return;
-          }
           var id=x&&(x.id!==undefined?x.id:x.key);
           /* v43-183z31：除内存墓碑外还要查本机墓碑键。
              启动合并可能早于 state.deletedIds 读回，只看内存会把刚删的动态从自动备份里补回来。 */
@@ -10135,7 +10041,7 @@ function __e11ExitSave(st,force){
     var _dk=Object.keys(_dg),_dlast=0;
     try{_dk.forEach(function(k){var p=_dg[k]||{};_dlast=Math.max(_dlast,Number(p.writtenAt)||0,Number(p.mine&&p.mine.time)||0,Number(p.partner&&p.partner.time)||0);});}catch(_eDSig){}
     var _dcov=_sigst&&_sigst.diary&&_sigst.diary.cover?_sigst.diary.cover:null;
-    var _sig=[Number(window.__chatRev)||0,Number(_sigst&&_sigst.__savedAt)||0,Number(_sigst&&_sigst.profile&&_sigst.profile.__ts)||0,(_sigst&&_sigst.messages&&_sigst.messages.length)||0,(_sigst&&_sigst.messages&&_sigst.messages.length?_sigst.messages[_sigst.messages.length-1].id:""),Number(_sigst&&_sigst.settings&&_sigst.settings.__ts)||0,Number(_sigst&&_sigst.skin&&_sigst.skin.__ts)||0,_dk.length,_dlast,_dcov?((_dcov.title||"")+"|"+(_dcov.img||"").length+"|"+(_dcov.done?1:0)):""].join("|");
+    var _sig=[Number(window.__chatRev)||0,(_sigst&&_sigst.messages&&_sigst.messages.length)||0,(_sigst&&_sigst.messages&&_sigst.messages.length?_sigst.messages[_sigst.messages.length-1].id:""),Number(_sigst&&_sigst.settings&&_sigst.settings.__ts)||0,Number(_sigst&&_sigst.skin&&_sigst.skin.__ts)||0,_dk.length,_dlast,_dcov?((_dcov.title||"")+"|"+(_dcov.img||"").length+"|"+(_dcov.done?1:0)):""].join("|");
     if(!force&&_sig===window.__e11ExitSavedSig&&Date.now()-(Number(window.__e11ExitSavedAt)||0)<2500)return true;
     window.__e11ExitSavedSig=_sig;
     try{__e11DiarySnapshot(st||state);}catch(_eDiaryExit){}
@@ -10190,14 +10096,7 @@ function __e11ExitSave(st,force){
     }
     try{localStorage.setItem(__E11_EXIT_KEY,txt);}catch(_e1){
       try{localStorage.removeItem("bigPending");}catch(_){}
-      try{localStorage.removeItem(__E11_EXIT_KEY);}catch(_){}
-      /* v43-183z39：先清可再生缓存、只留最近 3 张背景备份；还写不进去就只留 1 张。
-         主站老数据把配额占满时，至少保证聊天/设置这份离站快照能落盘。 */
-      var _okExit=false;
-      try{window.__e11QuotaRescue&&window.__e11QuotaRescue(3);localStorage.setItem(__E11_EXIT_KEY,txt);_okExit=true;}catch(_e2){}
-      if(!_okExit){try{window.__e11QuotaRescue&&window.__e11QuotaRescue(1);localStorage.setItem(__E11_EXIT_KEY,txt);_okExit=true;}catch(_e3){}}
-      if(!_okExit){try{sessionStorage.setItem(__E11_EXIT_KEY+"__emergency",txt);}catch(_eSessExit){}}
-      if(!_okExit)return false;
+      try{localStorage.removeItem(__E11_EXIT_KEY);localStorage.setItem(__E11_EXIT_KEY,txt);}catch(_e2){return false;}
     }
     try{localStorage.setItem("e11.exit.meta.v1",JSON.stringify({ts:_exitTs,len:txt.length}));}catch(_eMeta){}
     try{window.__e11ExitSavedAt=_exitTs;}catch(_){}
@@ -10206,9 +10105,7 @@ function __e11ExitSave(st,force){
 }
 function __e11ExitRead(){
   try{
-    var raw=localStorage.getItem(__E11_EXIT_KEY);
-    if(!raw){try{raw=sessionStorage.getItem(__E11_EXIT_KEY+"__emergency");}catch(_eExitSessRead){}}
-    if(!raw)return null;
+    var raw=localStorage.getItem(__E11_EXIT_KEY);if(!raw)return null;
     var o=JSON.parse(raw);if(!o||!o.state)return null;
     return {ts:Number(o.ts||o.state.__savedAt)||0,state:o.state,globals:o.globals||{}};
   }catch(e){return null;}
@@ -10267,18 +10164,6 @@ function __e11MergeExitState(s,e){
       });
       s[k]=a;
     });
-    /* v43-183z35：清空聊天会写 __chatClearedAt。即使某些机型上墓碑键写失败、或墓碑被更新清掉，
-       比清空时刻更早的离站消息也不能再回来。没有 time 的旧消息一律视为清空前。 */
-    try{
-      var _chatClr=Math.max(Number(s.__chatClearedAt)||0,Number(ex.__chatClearedAt)||0);
-      if(_chatClr){
-        if(Array.isArray(ex.messages))ex.messages=ex.messages.filter(function(m){return Number(m&&(m.time||m.ts))>_chatClr;});
-        /* v43-183z36：只过滤旧离站快照/旧备份，绝不再过滤当前主档。
-           设备时钟回拨或清空时刻偏大时，当前新消息会被这条规则直接吞掉，双方都看不见。 */
-        if(!s.__chatClearedAt||s.__chatClearedAt<_chatClr){s.__chatClearedAt=_chatClr;ch=true;}
-        if(!(Number(ex.__chatClearedAt)||0)&&(Number(s.__chatClearedAt)||0))ex.__chatClearedAt=s.__chatClearedAt;
-      }
-    }catch(_eChatClr){}
     if(Array.isArray(s.messages)){
       var byM={};s.messages.forEach(function(m){if(m)byM[(window.__e11MsgKey?window.__e11MsgKey(m):m.id)||m.id]=m;});
       (ex.messages||[]).forEach(function(m){
@@ -10764,7 +10649,7 @@ function __prefReapplyAll(){
 function save(){
   try{window.__e11Dirty=1;}catch(_eDirty){}
   /* v43-183z32：任何写盘前先按墓碑清一遍所有板块，删掉的条目不会被这份存档再写回去。 */
-  try{if(window.__e11ApplyDeletedIfNeeded)window.__e11ApplyDeletedIfNeeded(state);else if(window.__e11ApplyDeleted)window.__e11ApplyDeleted(state);}catch(_eSaveDel){}
+  try{if(window.__e11ApplyDeleted)window.__e11ApplyDeleted(state);}catch(_eSaveDel){}
   /* v43-183z21：社交内容一变就同步落一份独立小备份，保证“更新/旧档覆盖”后还能接回来。 */
   try{
     var _socArr=(typeof state!=="undefined"&&state)||{};
@@ -10880,28 +10765,6 @@ function __backupPendingBig(pending){
   }catch(e){}
 }
 window.__backupPendingBig=__backupPendingBig;
-/* v43-183z39：主站用久了，localStorage 可能被十几张背景大图占满，写离站快照/发件箱时
-   会静默失败——预览是干净环境所以正常，主站就表现成“消息没存档”。
-   只有真的写不进去时才清：先清可再生的缓存，再按修改时间保留最近几张背景备份。 */
-window.__e11QuotaRescue=function(keepBg){
-  try{
-    ["bigPending","privateChat","cpPhotoBak","callSave","me1OrigIcons","me1Sizes","cp2Layout","cpPhotoSize"].forEach(function(k){try{localStorage.removeItem(k);}catch(_){}});
-    try{sessionStorage.removeItem("bigPending__emergency");}catch(_){}
-    var _bg=[];try{
-      for(var i=0;i<localStorage.length;i++){
-        var k=localStorage.key(i);if(!k||!k.indexOf||k.indexOf("e11.bg.v2.")!==0)continue;
-        if(k.indexOf("e11.bg.v2.ts.")===0||k.indexOf("e11.bg.pick.")===0)continue;
-        var _path=k.slice("e11.bg.v2.".length);
-        var ts=0;try{ts=Number(localStorage.getItem("e11.bg.v2.ts."+_path))||0;}catch(_){}
-        _bg.push({k:k,ts:ts});
-      }
-    }catch(_eBgList){}
-    _bg.sort(function(a,b){return a.ts-b.ts;});
-    var _drop=Math.max(0,_bg.length-Math.max(0,Number(keepBg)||0));
-    for(var j=0;j<_drop;j++){try{localStorage.removeItem(_bg[j].k);}catch(_){}}
-    return true;
-  }catch(_eQuota){return false;}
-};
 function __emergencySnapshot(){
   if(window.__restoring||!window.__stateReady)return;
   try{
@@ -11008,7 +10871,6 @@ window.__e11PersistNow=function(){
       /* v43-183z31：离开桌面/切后台这一刻，同步把头像、主页封面、桌面背景写进本机小备份；
          美化图库再强制写一次。以前这里不写，刚换完头像就滑掉 App，回来会变默认。 */
       try{if(window.__e11BgLocalSync)window.__e11BgLocalSync();}catch(_eBgExitSync){}
-      try{if(window.__e11BgPrefSync)window.__e11BgPrefSync();}catch(_eBgPrefExit){}
       try{if(window.__cardFaceSyncNow)window.__cardFaceSyncNow();}catch(_eCfExit){}
       try{if(window.__e11BeautySave)window.__e11BeautySave(state,true);}catch(_eBeautyExit){}
       try{if(window.__e11SyncProfileBackup)window.__e11SyncProfileBackup();}catch(_eProfExit){}
@@ -11021,27 +10883,8 @@ window.__e11PersistNow=function(){
   try{document.addEventListener("visibilitychange",function(){if(document.visibilityState==="hidden")flushAll();});}catch(e){}
   try{window.addEventListener("pagehide",flushAll);}catch(e){}
   try{window.addEventListener("beforeunload",flushAll);}catch(e){}
-  /* v43-183z34：安卓/Chrome 的 page freeze 不一定会走 pagehide，冻结前也写一次，
-     保证下次进来就是离开那一刻的数据。 */
-  try{document.addEventListener("freeze",flushAll);}catch(e){}
   /* 回到前台后允许下一次切后台/退出再写一次离站快照。 */
   try{document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")window.__e11FlushDone=0;});}catch(e){}
-  /* v43-183z34：应用一直开着、用户直接杀进程时，最多只丢 30 秒改动。
-     只在数据真变过时写，不空转序列化，避免拖慢前台。 */
-  try{
-    setInterval(function(){
-      try{
-        if(document.hidden||window.__restoring||!window.__stateReady)return;
-        if(Number(window.__e11ExitFast||0))return;
-        var _at=Number(state&&state.__savedAt)||0;
-        if(!_at||_at<=Number(window.__e11BgSnapAt||0))return;
-        if(Date.now()-Number(window.__e11BgSnapTick||0)<30000)return;
-        window.__e11BgSnapTick=Date.now();
-        var ok=window.__e11ExitSave?window.__e11ExitSave(state):false;
-        if(ok!==false)window.__e11BgSnapAt=_at;
-      }catch(_eAutoSnap){}
-    },10000);
-  }catch(_eAutoSnapTimer){}
   try{window.addEventListener("pageshow",function(){window.__e11FlushDone=0;});}catch(e){}
 })();
 
@@ -11093,107 +10936,9 @@ function trimSocial(){
   if(Array.isArray(state.moments))state.moments=_keepAll(state.moments);
 }
 
-/* v43-183z37：最后几条文字消息额外同步留一份很小的“发件箱”。
-   安卓返回键/系统回收可能来不及等 IndexedDB 和离站快照，消息就真的没了；
-   这里每条消息发出时立刻同步写 localStorage（最多 10 条文字），下次启动按 id+时间补回。
-   删除墓碑和清空时刻仍然优先，删掉的消息不会被它复活。 */
-window.__E11_MSG_OUTBOX_KEY="e11.msgout.v1";
-/* v43-183z40：发件箱只有 10 条，而且是按“最后一次启动”补；用户点返回/切窗口/被系统回收后
-   整段聊天消失时，10 条救不回全部。这里再加一份最多 300 条的独立聊天流水，只存文字和关键字段，
-   每次 pushMsg 同步写。启动和进聊天前都按 id+时间合并，删除墓碑和清空时刻仍然优先。 */
-window.__E11_CHAT_LOG_KEY="e11.chatlog.v1";
-window.__e11ChatLogRead=function(){
-  try{
-    var raw=localStorage.getItem(window.__E11_CHAT_LOG_KEY);if(!raw)return [];
-    var a=JSON.parse(raw);return Array.isArray(a)?a:[];
-  }catch(_eLogRead){return [];}
-};
-window.__e11ChatLogPut=function(m){
-  try{
-    if(!m||!m.id||m.type==="sys"||m.type==="poke")return false;
-    var a=window.__e11ChatLogRead();
-    var item={id:String(m.id),from:m.from==="me"?"me":"partner",type:String(m.type||"text"),text:String(m.text!==""&&m.text!==undefined?m.text:"").slice(0,4000),time:Number(m.time)||Date.now(),kind:String(m.kind||""),quoteId:m.quoteId||null,src:(typeof m.src==="string"&&m.src.length<=2000)?m.src:""};
-    var k=item.id+"|"+item.time+"|"+item.text;
-    a=a.filter(function(x){return x&&(String(x.id)+"|"+String(Number(x.time)||0)+"|"+String(x.text||""))!==k;});
-    a.push(item);a=a.slice(-300);
-    var raw=JSON.stringify(a);
-    try{localStorage.setItem(window.__E11_CHAT_LOG_KEY,raw);}
-    catch(_eLogFull){try{window.__e11QuotaRescue&&window.__e11QuotaRescue(2);localStorage.setItem(window.__E11_CHAT_LOG_KEY,raw);}catch(_eLogFull2){return false;}}
-    return true;
-  }catch(_eLogPut){return false;}
-};
-window.__e11ChatLogRestore=function(s){
-  try{
-    if(!s||!Array.isArray(s.messages))return 0;
-    var a=window.__e11ChatLogRead();if(!a.length)return 0;
-    var clr=Number(s.__chatClearedAt)||0;
-    var exists={};s.messages.forEach(function(m){
-      if(m&&m.id)exists[String(m.id)+"|"+String(Number(m.time)||0)+"|"+String(m.text!==undefined?m.text:"")]=1;
-    });
-    var n=0;
-    a.forEach(function(x){
-      if(!x||!x.id)return;
-      var t=Number(x.time)||0;
-      if(!t||t<Date.now()-30*24*3600*1000)return;
-      if(clr&&t<=clr)return;
-      try{if(window.__e11IsDeleted&&window.__e11IsDeleted("messages",String(x.id)))return;}catch(_eLogDel){}
-      var k=String(x.id)+"|"+String(t)+"|"+String(x.text!==undefined?x.text:"");
-      if(exists[k])return;
-      var _xt=String(x.type||"text"),_xsrc=String(x.src||"");
-      if(_xt==="image"&&!_xsrc)return;
-      s.messages.push({id:String(x.id),from:x.from==="me"?"me":"partner",type:_xt,text:String(x.text!==undefined?x.text:""),src:_xsrc,time:t,read:x.from!=="me",kind:String(x.kind||""),quoteId:x.quoteId||null});
-      exists[k]=1;n++;
-    });
-    return n;
-  }catch(_eLogRestore){return 0;}
-};
-window.__e11MsgOutboxPut=function(m){
-  try{
-    if(!m||!m.id||m.type!=="text")return false;
-    var key=window.__E11_MSG_OUTBOX_KEY;
-    var o=[];try{o=JSON.parse(localStorage.getItem(key)||"[]");}catch(_){o=[];}
-    if(!Array.isArray(o))o=[];
-    var item={id:String(m.id),from:m.from||"",type:"text",text:String(m.text||"").slice(0,4000),time:Number(m.time)||Date.now()};
-    o=o.filter(function(x){return x&&!(String(x.id)===item.id&&Number(x.time)===item.time);});
-    o.push(item);
-    o=o.slice(-10);
-    var _raw=JSON.stringify(o);
-    try{localStorage.setItem(key,_raw);}
-    catch(_eOutFull){
-      /* 空间被旧背景占满时，先腾出可再生缓存，再保留最近两张背景，确保最后一句还能留档 */
-      try{window.__e11QuotaRescue&&window.__e11QuotaRescue(2);localStorage.setItem(key,_raw);}
-      catch(_eOutFull2){try{sessionStorage.setItem(key+"__emergency",_raw);}catch(_eOutSess){}}
-    }
-    return true;
-  }catch(_eOut){return false;}
-};
-window.__e11MsgOutboxRestore=function(s){
-  try{
-    if(!s||!Array.isArray(s.messages))return 0;
-    var raw=localStorage.getItem(window.__E11_MSG_OUTBOX_KEY);
-    if(!raw){try{raw=sessionStorage.getItem(window.__E11_MSG_OUTBOX_KEY+"__emergency");}catch(_eOutSessRead){}}
-    if(!raw)return 0;
-    var o=JSON.parse(raw);if(!Array.isArray(o))return 0;
-    var clr=Number(s.__chatClearedAt)||0;
-    var exists={};s.messages.forEach(function(m){
-      if(m&&m.id)exists[String(m.id)+"|"+String(Number(m.time)||0)+"|"+String(m.text||"").slice(0,4000)]=1;
-    });
-    var n=0;
-    o.forEach(function(x){
-      if(!x||!x.id)return;
-      var t=Number(x.time)||0;
-      if(!t||t<Date.now()-7*24*3600*1000)return;
-      if(clr&&t<=clr)return;
-      try{if(window.__e11IsDeleted&&window.__e11IsDeleted("messages",String(x.id)))return;}catch(_eOdel){}
-      var k=String(x.id)+"|"+String(t)+"|"+String(x.text||"").slice(0,4000);
-      if(exists[k])return;
-      s.messages.push({id:String(x.id),from:x.from==="me"?"me":"partner",type:"text",text:String(x.text||""),time:t,read:x.from!=="me"});
-      exists[k]=1;n++;
-    });
-    return n;
-  }catch(_eOutRestore){return 0;}
-};
-
+/* v43-108：统一修消息字段。老备份/别家模板可能把发送方写成 side/role/sender、
+   把时间写成字符串，或干脆没有 id；以前这些行要么画不出来，要么 time 相减成 NaN，
+   聊天页整块空白。这里统一成本站认识的 from/type/time/id/text，坏行也能显示。 */
 function __e11TimeMs(t){
   if(typeof t==="string"){
     var d=Date.parse(t);
@@ -11236,7 +10981,7 @@ function __e11NormalizeMessages(s){
   if(!Array.isArray(s.messages)){
     try{s.messages=Object.keys(s.messages).map(function(k){return s.messages[k];});}catch(_){s.messages=[];}
   }
-  var out=[],seen={},seenPos={};
+  var out=[],seen={};
   s.messages.forEach(function(m,i){
     if(!m){return;}
     if(typeof m==="string")m={type:"text",text:m};
@@ -11268,7 +11013,7 @@ function __e11NormalizeMessages(s){
       var _same=(Number(m.time)||0)===(Number(prev.time)||0)&&String(m.type||"")===(String(prev.type||""))&&String(m.from||"")===(String(prev.from||""))&&String(m.text!==undefined?m.text:(m.src||""))===(String(prev.text!==undefined?prev.text:(prev.src||"")));
       if(!_same){
         var _newId=id+"_"+__e11FpHash([m.type,m.from,m.time,m.text!==undefined?m.text:(m.src||"")].join("|"));
-        if(!seen[_newId]){m.id=_newId;seen[_newId]=m;seenPos[_newId]=out.length;out.push(m);return;}
+        if(!seen[_newId]){m.id=_newId;seen[_newId]=m;out.push(m);return;}
         prev=seen[_newId];id=_newId;
       }
       /* 真正重复：以时间更新的那条为准，同时保留旧记录里还有的图片 src。 */
@@ -11276,15 +11021,10 @@ function __e11NormalizeMessages(s){
       var keep=takeNew?m:prev,other=takeNew?prev:m;
       if(!keep.src&&other.src)keep.src=other.src;
       if(other.kind&&!keep.kind)keep.kind=other.kind;
-      /* v43-183z37：以前用 out.indexOf(prev) 找位置，重复消息一多就是 O(n²)，
-         大存档恢复能卡好几秒。直接记住每个 id 在 out 里的下标。 */
-      var _pi=Number(seenPos[id]);
-      if(isFinite(_pi)&&_pi>=0&&_pi<out.length&&out[_pi]===prev)out[_pi]=keep;
-      else{var _oi=out.indexOf(prev);if(_oi>=0)out[_oi]=keep;}
-      seen[id]=keep;seenPos[id]=_pi>=0?_pi:out.indexOf(keep);
+      out[out.indexOf(prev)]=keep;seen[id]=keep;
       return;
     }
-    seen[id]=m;seenPos[id]=out.length;out.push(m);
+    seen[id]=m;out.push(m);
   });
   out.sort(__e11MsgOrder);
   s.messages=out;
@@ -11295,15 +11035,7 @@ function __e11NormalizeMessages(s){
   }catch(_eSeqNorm){}
 }
 function migrate(s){
-  /* v43-183z37：主库/离站快照都没赶上时，把最后几条同步发件箱里的文字消息补回来。 */
-  try{window.__e11MsgOutboxRestore&&window.__e11MsgOutboxRestore(s);}catch(_eOutMig){}
-  try{window.__e11ChatLogRestore&&window.__e11ChatLogRestore(s);}catch(_eLogMig){}
   try{__e11NormalizeMessages(s);}catch(_eMsgNorm){}
-  /* v43-183z36：清空时刻不可能晚于现在。设备时钟回拨/存档带未来时间时，
-     这个值会把之后的新消息当成“清空前的旧消息”吞掉；超过当前时间就作废。 */
-  try{
-    if(s&&s.__chatClearedAt&&Number(s.__chatClearedAt)>Date.now()+60000)s.__chatClearedAt=0;
-  }catch(_eClearFuture){}
   /* v43-107：删掉内置的“开启私密聊天”欢迎语，老存档也一起清掉。 */
   try{
     if(s&&Array.isArray(s.messages)){
@@ -11583,7 +11315,6 @@ function migrate(s){
         g.kind=best;
       }
     });
-    try{if(window.__e11NormalizeCardGroups)window.__e11NormalizeCardGroups(s);}catch(_eNgMigrate){}
     var _gk={};s.groups.forEach(function(g){if(g&&g.id)_gk[String(g.id)]=g.kind||"chat";});
     /* v43-155：有些卡片的 groupId 指向一个已经被重建/删除的分组，于是一直只出现在「全部」里。
        如果卡片自己带了分组名（group/groupName/分组），按同类别同名分组把它接回去；
@@ -11843,20 +11574,6 @@ async function init(){
       if(_dn){try{save();__flushSave(true);}catch(_){}try{window.__e11RefreshAllViews?window.__e11RefreshAllViews():renderAll();}catch(_){}try{toast("已找回之前丢失的日记历史");}catch(_){}}
     }catch(_){}
     try{window.__bkMergeNewest&&window.__bkMergeNewest();}catch(_){}
-    /* v43-183z35：刚更新完的这一轮，如果动态/信件/留言/字卡明显缺失，
-       强制把 3 份本机自动备份按 id 补一次（只补不删，仍按墓碑和清空时刻过滤）。
-       以前严格模式只认离站快照，云端旧档把本机覆盖后就再也不看本机备份，表现就是更新后全没了。 */
-    try{
-      if(window.__e11BuildChanged){
-        setTimeout(function(){
-          try{
-            /* 刚更新这一轮无条件并一次本机 3 份备份：只补当前缺的 id，
-               不会覆盖现有内容；删除过的仍按墓碑过滤，清空聊天仍按清空时刻过滤。 */
-            if(window.__bkMergeNewest)window.__bkMergeNewest(true);
-          }catch(_eUpRecover){}
-        },900);
-      }
-    }catch(_eUpRecoverOuter){}
     /* v43-141：上一次导出后如果数据被异常清空，进页面先用导出前自动备份补回 */
     try{window.__e11ExportGuardCheck&&window.__e11ExportGuardCheck();}catch(_){}
   },2500);}catch(_){}
@@ -12774,7 +12491,6 @@ function setSkinImg(key,raw,after){
       }
     }catch(e){}
     try{if(window.__e11BgLocalSync)window.__e11BgLocalSync();}catch(_eBgSetSync){}
-    try{if(window.__e11BgPrefSync)window.__e11BgPrefSync();}catch(_eBgSetPref){}
     try{__flushSave(true);}catch(e){} /* v43-39：导入背景后立即落盘，切后台/马上关掉也不会退回旧背景 */
     /* 云端也立刻推一次：只存本机时，重装/换端仍可能读回旧背景 */
     try{window.__E11Cloud&&window.__E11Cloud.flush&&window.__E11Cloud.flush();}catch(e){}
@@ -12816,33 +12532,24 @@ window.__e11BgPathGet=function(path){
 window.__e11BgLocalSync=function(){
   try{
     if(typeof state==="undefined"||!state)return;
-    window.__e11BgSyncSig=window.__e11BgSyncSig||{};
     window.__E11_BG_PATHS.forEach(function(path){
       var v=window.__e11BgPathGet(path),k=window.__E11_BG_KEY(path);
       var pk=window.__E11_BG_PICK_KEY(path),pt=window.__E11_BG_PICK_TS(path);
-      var _sigk=path.join("_"),_prev=window.__e11BgSyncSig[_sigk];
-      /* v43-183z37：__e11PersistNow 每改一次字卡/资料都会调这里，
-         以前不管有没有变都把 20 多张背景（可能十几 MB 的 base64）全同步重写一遍。
-         值没变就直接跳过，退出/编辑不再反复写 localStorage。 */
-      if(_prev&&_prev.v===v&&_prev.ok)return;
       try{
         if(!v){
           /* 空值不是“没有记录”，而是一个明确的“已清空”墓碑：
              否则刷新时主库/美化库里的旧图又会把刚清掉的背景补回来。 */
-          var _ts0=String(Date.now());
-          try{localStorage.setItem(k,"__empty__");localStorage.setItem(window.__E11_BG_TS(path),_ts0);
-            localStorage.setItem(pk,"__empty__");localStorage.setItem(pt,_ts0);}catch(_){ }
-          window.__e11BgSyncSig[_sigk]={v:v,ok:1};
+          try{localStorage.setItem(k,"__empty__");localStorage.setItem(window.__E11_BG_TS(path),String(Date.now()));
+            localStorage.setItem(pk,"__empty__");localStorage.setItem(pt,String(Date.now()));}catch(_){ }
           return;
         }
         if(v.indexOf("data:")!==0){
           /* 外链背景（一起听 URL 等）很短，直接记成“最后一次选择”，重开无条件用它。 */
           try{localStorage.setItem(pk,v);localStorage.setItem(pt,String(Date.now()));localStorage.removeItem(k);localStorage.removeItem(window.__E11_BG_TS(path));}catch(_){ }
-          window.__e11BgSyncSig[_sigk]={v:v,ok:1};
           return;
         }
         if(v.length>1200000)return;
-        try{localStorage.setItem(pk,"__data__");localStorage.setItem(pt,String(Date.now()));localStorage.setItem(k,v);localStorage.setItem(window.__E11_BG_TS(path),String(Date.now()));window.__e11BgSyncSig[_sigk]={v:v,ok:1};}
+        try{localStorage.setItem(pk,"__data__");localStorage.setItem(pt,String(Date.now()));localStorage.setItem(k,v);localStorage.setItem(window.__E11_BG_TS(path),String(Date.now()));}
         catch(_eq){
           /* 空间紧：先清掉同一批里最旧的背景备份，再试当前这张 */
           try{
@@ -12850,11 +12557,11 @@ window.__e11BgLocalSync=function(){
               var k2=window.__E11_BG_KEY(p2);if(k2!==k){try{localStorage.removeItem(k2);localStorage.removeItem(window.__E11_BG_TS(p2));}catch(_){}}
             });
             localStorage.setItem(k,v);localStorage.setItem(window.__E11_BG_TS(path),String(Date.now()));
-            window.__e11BgSyncSig[_sigk]={v:v,ok:1};
           }catch(_e2){}
         }
       }catch(_ePath){}
     });
+    try{if(window.__e11BgPrefSync)window.__e11BgPrefSync();}catch(_eBgPrefSync){}
   }catch(_eBgSync){}
 };
 /* v43-183z33：背景图片之外，纯色/渐变预设和信纸、信封预设原来只靠设置小备份。
@@ -12885,14 +12592,7 @@ window.__e11BgPrefSync=function(){
       });
       se[k]=o;
     });
-    /* v43-183z37：同样先做内容指纹，没换背景就不重写这份 JSON、也不反复刷新 ts。 */
-    var _sig=JSON.stringify({skin:sk,settings:se,musicBg:Number(state.musicBg)||0});
-    if(_sig===window.__e11BgPrefSig){
-      try{if(localStorage.getItem(window.__E11_BG_PREF_KEY))return true;}catch(_eBpChk){}
-    }
-    var _payload={ts:Date.now(),skin:sk,settings:se,musicBg:Number(state.musicBg)||0};
-    localStorage.setItem(window.__E11_BG_PREF_KEY,JSON.stringify(_payload));
-    window.__e11BgPrefSig=_sig;
+    localStorage.setItem(window.__E11_BG_PREF_KEY,JSON.stringify({ts:Date.now(),skin:sk,settings:se,musicBg:Number(state.musicBg)||0}));
     return true;
   }catch(_eBgs){return false;}
 };
@@ -13100,7 +12800,6 @@ function __bgPersistNow(){
   /* 先同步小备份，再做异步主库/云端落盘：刷新/退出时至少这一份在 */
   try{window.__e11ForceUntil=Date.now()+2600;}catch(_eForceSet){}
   try{window.__e11BgLocalSync&&window.__e11BgLocalSync();}catch(_eBgPre){}
-  try{window.__e11BgPrefSync&&window.__e11BgPrefSync();}catch(_eBgPref){}
   /* v43-183z：背景改动先同步写设置/美化小备份和皮肤时间戳。
      以前只等异步主库/云端，遇到 cloudPause/restore 直接 return，刷新就回旧背景。 */
   try{
@@ -16490,9 +16189,6 @@ function pushMsg(from,type,text,opts){
   if(_msgTime<_maxPrevT)_msgTime=_maxPrevT;
   const m={id:id,from:from,type:type,text:text,src:opts.src||"",w:Number(opts.w)||0,h:Number(opts.h)||0,dur:opts.dur||0,sched:!!opts.sched,time:_msgTime,quoteId:opts.quoteId||null,kind:opts.kind||"",active:!!opts.active,catchup:!!opts.catchup,read:from!=="me",recalled:false,momentId:opts.momentId||"",commentId:opts.commentId||"",ttsText:opts.ttsText||"",sttText:opts.sttText||"",voice:opts.voice||"",inv:opts.inv||""};
   state.messages.push(m);
-  /* v43-183z37：同步留一份很小的文字发件箱，返回键/进程被回收也不会连最后一句都没存档 */
-  try{window.__e11MsgOutboxPut&&window.__e11MsgOutboxPut(m);}catch(_eOutbox){}
-  try{window.__e11ChatLogPut&&window.__e11ChatLogPut(m);}catch(_eChatLog){}
   try{
     if(from==="me"&&(type==="text"||type==="image")&&!opts.catchup&&!opts.quiet&&!opts.sched){
       window.maybePartnerTapback&&window.maybePartnerTapback(id);
@@ -20026,55 +19722,6 @@ function groupsOfKind(k){return (state.groups||[]).filter(function(g){return gro
 function cardsOfKind(k){return (state.cards||[]).filter(function(c){return cardKindOf(c)===k;});}
 /* v43-155：卡片有 groupId，但对应分组已经不在了（云端旧档/导入后分组被重建）。
    这些卡以前只在「全部」里能看到，点任何分组都是 0 条，像“没放进我设置的分组”。 */
-/* v43-183z34：云端合并/导入会偶尔把同名分组带成两个不同 id，或者分组的 id 被重建，
-   卡片就掉进「未分组」。这里按「类别 + 分组名」把同名重复组合并成一个，卡片跟着改到
-   唯一的分组 id；没有分组的卡先按 groupName 找，仍找不到且该类别只有一个组就归进去。 */
-window.__e11NormalizeCardGroups=function(st){
-  try{
-    st=st||state;if(!st)return false;
-    var groups=Array.isArray(st.groups)?st.groups:[],cards=Array.isArray(st.cards)?st.cards:[];
-    var keep=[],canon={},idMap={},changed=false;
-    groups.forEach(function(g){
-      if(!g||!g.id){changed=true;return;}
-      var kind=(g.kind==="letter"||g.kind==="moment")?g.kind:"chat";
-      var name=String(g.name||"").trim()||"未命名";
-      var key=kind+"|"+name.toLowerCase();
-      if(canon[key]){idMap[String(g.id)]=canon[key].id;changed=true;return;}
-      canon[key]=g;keep.push(g);
-    });
-    if(keep.length!==groups.length)st.groups=keep;
-    var byId={};keep.forEach(function(g){byId[String(g.id)]=g;});
-    cards.forEach(function(c){
-      if(!c)return;
-      var ck=(c.kind==="letter"||c.kind==="moment")?c.kind:"chat";
-      var gid=String(c.groupId||"");
-      if(gid&&idMap[gid]){
-        c.groupId=idMap[gid];var g0=byId[String(c.groupId)];
-        if(g0){c.groupName=g0.name;c.kind=(g0.kind==="letter"||g0.kind==="moment")?g0.kind:"chat";}
-        changed=true;gid=String(c.groupId);
-      }
-      var g=byId[gid];
-      if(g){
-        var gk=(g.kind==="letter"||g.kind==="moment")?g.kind:"chat";
-        if(c.kind!==gk){c.kind=gk;changed=true;}
-        if(!c.groupName){c.groupName=g.name;changed=true;}
-        return;
-      }
-      var hint=String(c.group||c.groupName||c.category||c["分组"]||c["分组名"]||c["分类"]||"").trim();
-      var target=hint?canon[ck+"|"+hint.toLowerCase()]:null;
-      if(!target){
-        var sameKind=keep.filter(function(x){return ((x.kind==="letter"||x.kind==="moment")?x.kind:"chat")===ck;});
-        if(sameKind.length){
-          /* v43-183z34：找不到归属的孤儿卡不再留在「未分组」：
-             优先接回默认分组，没有再接当前类别的第一个分组。 */
-          target=sameKind.filter(function(x){return /^(默认|默认分组|导入分组)$/.test(String(x.name||"").trim());})[0]||sameKind[0];
-        }
-      }
-      if(target){c.groupId=target.id;c.groupName=target.name;c.kind=ck;changed=true;}
-    });
-    return changed;
-  }catch(_eNg){return false;}
-};
 function isOrphanCard(c,k){
   if(cardKindOf(c)!==k)return false;
   var gid=String((c&&c.groupId)||"");
@@ -20162,8 +19809,6 @@ function bindCardKindTabs(){
   }
 }
 function renderCards(){
-  /* v43-183z34：渲染前先把同名分组合并、把掉队的卡接回分组，避免显示成“未分组”。 */
-  try{if(window.__e11NormalizeCardGroups&&window.__e11NormalizeCardGroups(state)){save();}}catch(_eNgRender){}
   /* v43-184：每次进字卡页先自动清一次跨分组重复，保证整份字卡只留一条。 */
   try{var _autoDup=dedupeCards(cardKindView);if(_autoDup){try{save();}catch(_){}}}catch(_eAutoDup){}
   const K=cardKindView;
@@ -20648,7 +20293,7 @@ function importCardJSON(data,kindArg){
     })[0];
     if(_mov){_mov.groupId=g.id;_mov.kind=groupKind(g)||kind;_mov.__ts=Date.now();moved++;return;}
     if(_all.length)return;
-    state.cards.push({id:uid(),groupId:g.id,groupName:g.name,text:text,kind:groupKind(g)||kind});added++;
+    state.cards.push({id:uid(),groupId:g.id,text:text,kind:groupKind(g)||kind});added++;
   }
   function textOf(o){
     if(typeof o==="string")return o;
@@ -20971,7 +20616,7 @@ function batchImport(){
   let added=0,skip=0;
   items.forEach(t=>{
     if(exist.indexOf(t)>-1){skip++;return;}
-    exist.push(t);state.cards.push({id:uid(),groupId:activeGroupId,groupName:(groupById(activeGroupId)||{}).name||"",text:t,kind:cardKindView});added++;
+    exist.push(t);state.cards.push({id:uid(),groupId:activeGroupId,text:t,kind:cardKindView});added++;
   });
   $("batch-cards").value="";save();renderCards();
   try{$("batch-overlay").classList.remove("show");}catch(e){}
@@ -23897,13 +23542,7 @@ function showView(id){
       if(window.__chatReleaseTimer)clearTimeout(window.__chatReleaseTimer);
       var _vc0=document.getElementById("view-chat");
       var _mlNow=document.getElementById("msglist");
-      /* v43-183z40：只要不是“本来就在聊天页”，每次从主页/动态/信件/留言/设置/通知进来都强制重画，
-         不再依赖缓存签名。签名相同但 DOM 被别的窗口路径清掉时，用户看到的就是整页空白。 */
-      var _fromOtherView=!!(window.__curView&&window.__curView!=="view-chat");
-      /* 每次进聊天都先把独立聊天流水并回 state；这样即使主档/快照这次没写上，
-         人也不会看到“整段聊天没了”。删除墓碑和清空时刻在恢复函数里优先过滤。 */
-      try{window.__e11ChatLogRestore&&window.__e11ChatLogRestore(state);__e11NormalizeMessages&&__e11NormalizeMessages(state);}catch(_eLogEntry){}
-      var _need=_fromOtherView||!_vc0||!window.__chatPrewarmed||window.__chatDirty||!_mlNow||!_mlNow.children.length||(typeof _chatSigNow==="function"&&_chatSigNow()!==_chatSig);
+      var _need=!_vc0||!window.__chatPrewarmed||window.__chatDirty||!_mlNow||!_mlNow.children.length||(typeof _chatSigNow==="function"&&_chatSigNow()!==_chatSig);
       if(_need){
         window.__chatDirty=false;renderChat(true);setTimeout(function(){try{window.__chatForceVisible&&window.__chatForceVisible();}catch(_){}},80);window.__chatPrewarmed=1;window.__chatDirty=false;
       }
@@ -23950,11 +23589,6 @@ function showView(id){
     var _was=window.__curView;
     var _fadeFrom=null;
     if(_was&&_was!==id&&$(_was))_fadeFrom=$(_was);
-    /* v43-183z40：不只左上角返回，从聊天页去动态/信件/留言/设置/字卡或系统通知跳走时，
-       也先同步写一份离站快照，避免“从别的窗口回来整段聊天不见了”。 */
-    if(_was==="view-chat"&&id!=="view-chat"){
-      try{window.__e11Dirty=1;window.__e11ExitSave&&window.__e11ExitSave(state,true);}catch(_eLeaveChatSave){}
-    }
     if(!window.__viewInit){window.__viewInit=1;["view-chat","view-me","view-cards","view-settings","view-letters","view-guestbook","view-moments","view-redpacket","view-game","view-music","view-couple"].forEach(function(v){if(v!==id&&$(v))$(v).classList.remove("open");});}
     $(id).classList.add("open");window.__curView=id;
     try{
@@ -24243,24 +23877,7 @@ window.__androidBack=function(){
         openMyProfile();return true;
       }
     }catch(_){}
-    /* 键盘打开时，返回键先收键盘，不要把用户直接退回桌面或退出 App。 */
-    try{
-      var _ae=document.activeElement;
-      if(_ae&&(_ae.tagName==="INPUT"||_ae.tagName==="TEXTAREA"||_ae.isContentEditable)){
-        _ae.blur();window.__resetKbShift&&window.__resetKbShift();
-        return true;
-      }
-    }catch(_eBackKb){}
     var cur=window.__curView||"";
-    if(cur==="view-chat"){
-      /* v43-183z37：以前聊天页按系统返回直接落到 Activity 退出，进程一回收，
-         最后发的一两句就会“没存档”。现在先强制同步写离站快照，再回主页；
-         主页再按一次才退出 App。 */
-      try{window.__e11Dirty=1;window.__e11ExitSave&&window.__e11ExitSave(state,true);}catch(_eBackSave){}
-      if(typeof showView==="function")showView("view-me");
-      window.__e11BackLock=Date.now();
-      return true;
-    }
     if(cur&&cur!=="view-chat"&&cur!=="view-me"){
       if(typeof showView==="function")showView("view-chat");
       return true;
@@ -24350,8 +23967,6 @@ $("top-back").addEventListener("click",function(e){
     if(Date.now()<(window.__chatBackGuardUntil||0)){e.preventDefault();e.stopImmediatePropagation();return;}
     if(window.__e11BackLock&&Date.now()-window.__e11BackLock<600){e.preventDefault();e.stopImmediatePropagation();return;}
   }catch(_){}
-  /* v43-183z37：点左上角返回同样先把当前消息强制写进离站快照，避免连点返回时最后一条没落盘。 */
-  try{window.__e11Dirty=1;window.__e11ExitSave&&window.__e11ExitSave(state,true);}catch(_eTopBackSave){}
   showView("view-me");
 });
 /* 聊天页顶部「对方名字 ›」以前没有事件，点了没反应：点它/头像直接进对方主页，返回回聊天 */
@@ -35021,38 +34636,6 @@ try{
       return false;
     }
   }
-  /* v43-183z34：录音前先让原生层确认系统麦克风权限。
-     以前直接 getUserMedia，WebView 的 onPermissionRequest 和系统权限弹窗
-     偶尔互相等待，用户看到的就是“点了麦克风没反应”。 */
-  var __micWaiters=[],__micTimer=null;
-  function __micFlush(ok){
-    if(__micTimer){clearInterval(__micTimer);__micTimer=null;}
-    var ws=__micWaiters||[];__micWaiters=[];
-    ws.forEach(function(cb){try{cb(ok!==false);}catch(e){}});
-  }
-  window.__nativeMicGranted=function(ok){
-    if(ok===false){toast("麦克风权限被拒绝，去系统设置里允许后重试");__micFlush(false);return;}
-    __micFlush(true);
-  };
-  function __ensureMic(cb){
-    try{
-      if(window.AndroidUI&&typeof AndroidUI.hasMicPermission==="function"){
-        if(AndroidUI.hasMicPermission()){cb(true);return;}
-        __micWaiters.push(cb);
-        try{AndroidUI.requestMicPermission&&AndroidUI.requestMicPermission();}catch(_eMicReq){}
-        if(!__micTimer){
-          var tries=0;
-          __micTimer=setInterval(function(){
-            tries++;
-            try{if(AndroidUI.hasMicPermission()){__micFlush(true);return;}}catch(_eMicPoll){}
-            if(tries>=25){toast("麦克风权限还没打开，去系统设置里允许录音");__micFlush(false);}
-          },200);
-        }
-        return;
-      }
-    }catch(_eMicNative){}
-    cb(true);
-  }
   function startRec(tap){
     if(rec.active)return false;
     if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){toast("这个环境不支持录音");return false;}
@@ -35063,8 +34646,6 @@ try{
     rec.tapMode=!!tap;rec.tapStartedAt=Date.now();rec.streamReady=false;
     /* 先让录音浮层出现，别等权限弹窗回来才看到“按住了”；拿不到权限再收起。 */
     showRec(true);try{var _vh=document.getElementById("vrec-hint");if(_vh)_vh.textContent="正在准备麦克风…";}catch(_){}
-    __ensureMic(function(ok){
-    if(!ok){rec.active=false;rec.streamReady=false;stopStream();showRec(false);return;}
     navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
       if(my!==rec.gen||!rec.active){try{stream.getTracks().forEach(function(t){t.stop();});}catch(e){}return;}
       rec.stream=stream;rec.streamReady=true;rec.audioStart=Date.now();
@@ -35095,7 +34676,6 @@ try{
     }).catch(function(){
       rec.active=false;rec.streamReady=false;stopStream();showRec(false);
       toast("没拿到麦克风权限，去浏览器设置里允许录音");
-    });
     });
     return true;
   }
@@ -35584,13 +35164,7 @@ try{
         if(r&&r.active)r.active.postMessage({type:"query-build"});
       }).catch(function(){});}catch(e){}
     };
-    document.addEventListener("visibilitychange",function(){
-      if(!document.hidden){
-        __swAsk();
-        /* v43-183z40：从后台/别的 App 回到聊天页，按状态强制重画一次；防止 DOM 丢了但签名没变导致空白。 */
-        try{if(window.__curView==="view-chat")setTimeout(function(){try{renderChat(true);}catch(_){}},120);}catch(_){}
-      }
-    });
+    document.addEventListener("visibilitychange",function(){if(!document.hidden)__swAsk();});
     window.addEventListener("pageshow",__swAsk);
     /* 后台发现新版本：记下来，等切到后台时静默重载成新版（下次点开就是最新） */
     /* 新 sw 接管后不再无条件 reload：新 SW 可能只是先接住旧整页，
