@@ -264,7 +264,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183z15";
+window.__E11_BUILD="2026-11-24v43-183z16";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2712,7 +2712,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183z15">
+<meta name="app-build" content="2026-11-24v43-183z16">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -8192,11 +8192,12 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-183z15",
-  time:"2026-11-24 17:58",
+  date:"v43-183z16",
+  time:"2026-11-24 18:03",
   noticeKey:null,
-  lead:"2026-11-24 17:58 修改（v43-183z15）：留言页键盘弹起时也保持整屏，只在底部留出可滚空间，输入框和发送键停在键盘上方，键盘下面不再露出聊天界面；写信点“取消”不会再因为同一次触摸落到“写信”上而误打开。",
+  lead:"2026-11-24 18:03 修改（v43-183z16）：部分安卓屏幕布局宽度被系统报小，整站只铺到左边、右边留一条白；现在按真正可见宽度铺满。留言页键盘保持整屏、写信取消不误触两项沿用上一版。",
   items:[
+    "安卓右边白条修掉（v43-183z16）：有些安卓 WebView 在系统显示大小/页面轻微缩放下，布局宽度只报 349，真正可见宽度是 393，整站就只铺到左边 89%，右边留一条白。现在舞台宽度取布局宽度、窗口宽度和 visualViewport 宽度的最大值，按真正可见宽度铺满；正常屏幕仍按原宽度，不会放大。",
     "留言页键盘保持整屏（v43-183z15）：和动态回复同一套处理。键盘弹起时留言页仍铺满整屏，不把页面截到键盘上沿；只给留言列表底部加键盘高度的可滚余量，最后几条也能滚到键盘上方。输入框和发送键始终留在键盘上方，键盘下面看到的是留言页自己的底色，不会再漏出底层聊天界面。键盘收起、离开留言页立即还原。",
     "取消不再误触写信（v43-183z15）：取消按钮和右上角“写信”在同一位置。以前取消时弹层先关掉，同一次触摸的 click 会落到底下的“写信”上，看起来就是“点取消又打开写信”。现在关闭后的 600 毫秒内拒绝重开写信，等这一下触摸彻底结束；随后再点“写信”或“回信”都正常。",
     "日记封面不再被旧档顶掉（v43-183z14）：封面保存时写入自己的修改时间，云端合并、自动备份、深度恢复都按新者优先。以前云端只要存着一份默认封面（标题、英文名、底色都非空），本机换过的封面就合并不进来，重开像没保存。",
@@ -36127,7 +36128,11 @@ body{margin:0;background:var(--bg,#fafafa);}
   function sync(){
     try{
       var vv=window.visualViewport;
-      var w=document.documentElement.clientWidth||window.innerWidth||390;
+      /* v43-183z16：有些安卓 WebView 会把布局宽度报小（系统显示大小/页面被轻微缩放），
+         clientWidth 只有 349 而真正可见宽度是 393，舞台就只铺到左边 89%，右边留一条白。
+         这里取布局宽度、窗口宽度和 visualViewport 宽度的最大值；页面被放大时不会取小值，
+         被缩小/显示大小放大时则能补到真正可见宽度。 */
+      var w=Math.max(document.documentElement.clientWidth||0,window.innerWidth||0,(vv&&vv.width)||0)||390;
       var _vvH=(vv&&vv.height)||0;
       var _innerH=window.innerHeight||0;
       var _clientH=document.documentElement.clientHeight||0;
