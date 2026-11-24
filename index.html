@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183z35";
+window.__E11_BUILD="2026-11-24v43-183z36";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2748,7 +2748,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183z35">
+<meta name="app-build" content="2026-11-24v43-183z36">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -8410,11 +8410,12 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-183z35",
-  time:"2026-11-24 20:35",
+  date:"v43-183z36",
+  time:"2026-11-24 20:44",
   noticeKey:null,
-  lead:"2026-11-24 20:35 修改（v43-183z35）：本机已有聊天/动态/信件/留言时，启动不再自动拉云端旧档覆盖；更新后缺失内容会从本机 3 份自动备份补一次；清空聊天写清空时刻，旧离站快照不能把聊天补回来；退出云端最多等 4.5 秒，且不再清空本机数据。",
+  lead:"2026-11-24 20:44 修改（v43-183z36）：清空聊天时刻只过滤旧离站快照和旧备份，不再过滤当前主档；设备时钟回拨产生的未来清空时刻自动作废，两侧新消息不会再被吞掉。",
   items:[
+    "对方和我的消息看不见（v43-183z36）：上一版清空聊天后，启动/合并时会拿清空时刻过滤当前主档；设备时钟回拨或清空时刻偏大时，清空之后新发的消息也被当成旧消息删掉，表现就是双方消息都不见了、像被吞。现在清空时刻只用来挡旧离站快照和 3 份旧备份，当前主档一条都不按它删；超过当前时间的清空时刻直接作废。",
     "更新后数据变成别的时段（v43-183z35）：以前启动时只要 e11.cloudMeta 丢了，就会把账号云端里另一段旧聊天拉下来覆盖本机；更新、清缓存后最容易触发。现在只要本机还有聊天、动态、信件、留言、字卡或日记中的任何一项，就绝不自动拉云端，只有手动点「从云端恢复」才会拉。",
     "更新后动态信件留言不见了（v43-183z35）：刚更新完这一轮，如果动态、信件、留言、字卡明显缺失，会在首屏后强制读本机 3 份自动备份按 id 补一次，只补不删，仍按删除墓碑和清空时刻过滤；同时把其它登录状态的 IndexedDB 数据合并回当前页面，不再只写进库不刷新。",
     "清空聊天后退出又回来（v43-183z35）：清空时会写 __chatClearedAt 清空时刻，离站快照和自动备份里早于这个时刻的消息全部丢弃；就算个别机型墓碑键没写成功，也不会再恢复到清空前的聊天。",
@@ -10198,7 +10199,8 @@ function __e11MergeExitState(s,e){
       var _chatClr=Math.max(Number(s.__chatClearedAt)||0,Number(ex.__chatClearedAt)||0);
       if(_chatClr){
         if(Array.isArray(ex.messages))ex.messages=ex.messages.filter(function(m){return Number(m&&(m.time||m.ts))>_chatClr;});
-        if(Array.isArray(s.messages))s.messages=s.messages.filter(function(m){if(!m)return true;var t=Number(m.time||m.ts);return !isFinite(t)||t>_chatClr;});
+        /* v43-183z36：只过滤旧离站快照/旧备份，绝不再过滤当前主档。
+           设备时钟回拨或清空时刻偏大时，当前新消息会被这条规则直接吞掉，双方都看不见。 */
         if(!s.__chatClearedAt||s.__chatClearedAt<_chatClr){s.__chatClearedAt=_chatClr;ch=true;}
         if(!(Number(ex.__chatClearedAt)||0)&&(Number(s.__chatClearedAt)||0))ex.__chatClearedAt=s.__chatClearedAt;
       }
@@ -11095,6 +11097,11 @@ function __e11NormalizeMessages(s){
 }
 function migrate(s){
   try{__e11NormalizeMessages(s);}catch(_eMsgNorm){}
+  /* v43-183z36：清空时刻不可能晚于现在。设备时钟回拨/存档带未来时间时，
+     这个值会把之后的新消息当成“清空前的旧消息”吞掉；超过当前时间就作废。 */
+  try{
+    if(s&&s.__chatClearedAt&&Number(s.__chatClearedAt)>Date.now()+60000)s.__chatClearedAt=0;
+  }catch(_eClearFuture){}
   /* v43-107：删掉内置的“开启私密聊天”欢迎语，老存档也一起清掉。 */
   try{
     if(s&&Array.isArray(s.messages)){
