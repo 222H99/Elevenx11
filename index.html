@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183z37";
+window.__E11_BUILD="2026-11-24v43-183z38";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2748,7 +2748,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183z37">
+<meta name="app-build" content="2026-11-24v43-183z38">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -8465,11 +8465,13 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-183z37",
-  time:"2026-11-24 21:12",
+  date:"v43-183z38",
+  time:"2026-11-24 21:19",
   noticeKey:null,
-  lead:"2026-11-24 21:12 修改（v43-183z37）：这一版主要清性能热点——删除表/指纹只解析一次、删除过滤和墓碑扫描没变就跳过、背景备份不重复重写，同时修了退出后 2.5 秒内改资料可能不落盘的问题。",
+  lead:"2026-11-24 21:19 修改（v43-183z38）：针对“点返回消息就没了、也没存档”，聊天页返回前强制写离站快照，每条文字消息发出时再同步留一份 10 条的小发件箱；同时系统返回键在聊天页改为回主页，并先收键盘。",
   items:[
+    "点返回消息就消失、没存档（v43-183z38）：聊天页的左上角返回和安卓系统返回，现在都会先把当前消息强制同步写进离站快照，再离开；不会再等 260ms 防抖或 IndexedDB 异步写完。每条文字消息发出时还会同步写一份最多 10 条的“发件箱”，即使进程被系统回收、主库没写进去，下次启动也会按 id+时间补回来；删除墓碑和清空时刻仍然优先，删掉的不会复活。",
+    "聊天页按系统返回直接退出 App（v43-183z38）：以前聊天页的系统返回直接交回安卓，安卓就退出 Activity，用户感觉像被踢出去。现在聊天页先回主页，主页再按一次才退出；键盘打开时只收键盘，不切页。",
     "性能：删除过滤不再反复解析（v43-183z37）：删除表、内容指纹表以前在每次合并/过滤循环里都重新 JSON.parse 一遍，几千条档案时一次启动要解析上百次。现在按原始字符串缓存，值没变就直接复用。删除过滤和墓碑扫描也加了指纹，列表没变化就跳过整轮全量扫描。",
     "性能：背景不再每次重写（v43-183z37）：改字卡、改资料都会触发背景小备份，以前每次都把 20 多个背景（可能十几 MB 的 base64）同步重写一遍。现在逐个比对上一次写进去的值，只有真的换了背景才写；退出时也不会再重复刷新所有 ts。",
     "性能：大存档恢复不再卡 O(n²)（v43-183z37）：消息去重合并以前用 out.indexOf 找上一条的位置，重复消息一多就变成平方级。现在直接记下每个 id 在输出数组里的下标，大备份恢复少卡好几秒。",
@@ -11056,9 +11058,50 @@ function trimSocial(){
   if(Array.isArray(state.moments))state.moments=_keepAll(state.moments);
 }
 
-/* v43-108：统一修消息字段。老备份/别家模板可能把发送方写成 side/role/sender、
-   把时间写成字符串，或干脆没有 id；以前这些行要么画不出来，要么 time 相减成 NaN，
-   聊天页整块空白。这里统一成本站认识的 from/type/time/id/text，坏行也能显示。 */
+/* v43-183z37：最后几条文字消息额外同步留一份很小的“发件箱”。
+   安卓返回键/系统回收可能来不及等 IndexedDB 和离站快照，消息就真的没了；
+   这里每条消息发出时立刻同步写 localStorage（最多 10 条文字），下次启动按 id+时间补回。
+   删除墓碑和清空时刻仍然优先，删掉的消息不会被它复活。 */
+window.__E11_MSG_OUTBOX_KEY="e11.msgout.v1";
+window.__e11MsgOutboxPut=function(m){
+  try{
+    if(!m||!m.id||m.type!=="text")return false;
+    var key=window.__E11_MSG_OUTBOX_KEY;
+    var o=[];try{o=JSON.parse(localStorage.getItem(key)||"[]");}catch(_){o=[];}
+    if(!Array.isArray(o))o=[];
+    var item={id:String(m.id),from:m.from||"",type:"text",text:String(m.text||"").slice(0,4000),time:Number(m.time)||Date.now()};
+    o=o.filter(function(x){return x&&!(String(x.id)===item.id&&Number(x.time)===item.time);});
+    o.push(item);
+    o=o.slice(-10);
+    localStorage.setItem(key,JSON.stringify(o));
+    return true;
+  }catch(_eOut){return false;}
+};
+window.__e11MsgOutboxRestore=function(s){
+  try{
+    if(!s||!Array.isArray(s.messages))return 0;
+    var raw=localStorage.getItem(window.__E11_MSG_OUTBOX_KEY);if(!raw)return 0;
+    var o=JSON.parse(raw);if(!Array.isArray(o))return 0;
+    var clr=Number(s.__chatClearedAt)||0;
+    var exists={};s.messages.forEach(function(m){
+      if(m&&m.id)exists[String(m.id)+"|"+String(Number(m.time)||0)+"|"+String(m.text||"").slice(0,4000)]=1;
+    });
+    var n=0;
+    o.forEach(function(x){
+      if(!x||!x.id)return;
+      var t=Number(x.time)||0;
+      if(!t||t<Date.now()-7*24*3600*1000)return;
+      if(clr&&t<=clr)return;
+      try{if(window.__e11IsDeleted&&window.__e11IsDeleted("messages",String(x.id)))return;}catch(_eOdel){}
+      var k=String(x.id)+"|"+String(t)+"|"+String(x.text||"").slice(0,4000);
+      if(exists[k])return;
+      s.messages.push({id:String(x.id),from:x.from==="me"?"me":"partner",type:"text",text:String(x.text||""),time:t,read:x.from!=="me"});
+      exists[k]=1;n++;
+    });
+    return n;
+  }catch(_eOutRestore){return 0;}
+};
+
 function __e11TimeMs(t){
   if(typeof t==="string"){
     var d=Date.parse(t);
@@ -11160,6 +11203,8 @@ function __e11NormalizeMessages(s){
   }catch(_eSeqNorm){}
 }
 function migrate(s){
+  /* v43-183z37：主库/离站快照都没赶上时，把最后几条同步发件箱里的文字消息补回来。 */
+  try{window.__e11MsgOutboxRestore&&window.__e11MsgOutboxRestore(s);}catch(_eOutMig){}
   try{__e11NormalizeMessages(s);}catch(_eMsgNorm){}
   /* v43-183z36：清空时刻不可能晚于现在。设备时钟回拨/存档带未来时间时，
      这个值会把之后的新消息当成“清空前的旧消息”吞掉；超过当前时间就作废。 */
@@ -16352,6 +16397,8 @@ function pushMsg(from,type,text,opts){
   if(_msgTime<_maxPrevT)_msgTime=_maxPrevT;
   const m={id:id,from:from,type:type,text:text,src:opts.src||"",w:Number(opts.w)||0,h:Number(opts.h)||0,dur:opts.dur||0,sched:!!opts.sched,time:_msgTime,quoteId:opts.quoteId||null,kind:opts.kind||"",active:!!opts.active,catchup:!!opts.catchup,read:from!=="me",recalled:false,momentId:opts.momentId||"",commentId:opts.commentId||"",ttsText:opts.ttsText||"",sttText:opts.sttText||"",voice:opts.voice||"",inv:opts.inv||""};
   state.messages.push(m);
+  /* v43-183z37：同步留一份很小的文字发件箱，返回键/进程被回收也不会连最后一句都没存档 */
+  try{window.__e11MsgOutboxPut&&window.__e11MsgOutboxPut(m);}catch(_eOutbox){}
   try{
     if(from==="me"&&(type==="text"||type==="image")&&!opts.catchup&&!opts.quiet&&!opts.sched){
       window.maybePartnerTapback&&window.maybePartnerTapback(id);
@@ -24091,7 +24138,24 @@ window.__androidBack=function(){
         openMyProfile();return true;
       }
     }catch(_){}
+    /* 键盘打开时，返回键先收键盘，不要把用户直接退回桌面或退出 App。 */
+    try{
+      var _ae=document.activeElement;
+      if(_ae&&(_ae.tagName==="INPUT"||_ae.tagName==="TEXTAREA"||_ae.isContentEditable)){
+        _ae.blur();window.__resetKbShift&&window.__resetKbShift();
+        return true;
+      }
+    }catch(_eBackKb){}
     var cur=window.__curView||"";
+    if(cur==="view-chat"){
+      /* v43-183z37：以前聊天页按系统返回直接落到 Activity 退出，进程一回收，
+         最后发的一两句就会“没存档”。现在先强制同步写离站快照，再回主页；
+         主页再按一次才退出 App。 */
+      try{window.__e11Dirty=1;window.__e11ExitSave&&window.__e11ExitSave(state,true);}catch(_eBackSave){}
+      if(typeof showView==="function")showView("view-me");
+      window.__e11BackLock=Date.now();
+      return true;
+    }
     if(cur&&cur!=="view-chat"&&cur!=="view-me"){
       if(typeof showView==="function")showView("view-chat");
       return true;
@@ -24181,6 +24245,8 @@ $("top-back").addEventListener("click",function(e){
     if(Date.now()<(window.__chatBackGuardUntil||0)){e.preventDefault();e.stopImmediatePropagation();return;}
     if(window.__e11BackLock&&Date.now()-window.__e11BackLock<600){e.preventDefault();e.stopImmediatePropagation();return;}
   }catch(_){}
+  /* v43-183z37：点左上角返回同样先把当前消息强制写进离站快照，避免连点返回时最后一条没落盘。 */
+  try{window.__e11Dirty=1;window.__e11ExitSave&&window.__e11ExitSave(state,true);}catch(_eTopBackSave){}
   showView("view-me");
 });
 /* 聊天页顶部「对方名字 ›」以前没有事件，点了没反应：点它/头像直接进对方主页，返回回聊天 */
