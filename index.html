@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-194z33f";
+window.__E11_BUILD="2026-11-25v43-195z33f";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2747,7 +2747,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-194z33f">
+<meta name="app-build" content="2026-11-25v43-195z33f">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4461,6 +4461,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">麦克风权限<div class="set-sub" id="mic-perm-sub">检查系统或浏览器是否已允许录音</div></span><button class="small-btn ghost" id="btn-mic-check" style="font-size:12px;padding:6px 12px;">检查权限</button></div>
         <div class="set-row"><span class="set-label">深度恢复（本机旧库 + 云端）<div class="set-sub">扫描本机所有旧库、7 份备份、聊天流水、社交备份和云端；只补未删除内容，删除记录继续生效</div></span><button class="small-btn ghost" id="btn-deep-restore" style="font-size:12px;padding:6px 12px;">深度恢复</button><span class="set-sub" id="deep-restore-sub" style="margin-left:10px;flex:1;"></span></div>
         <div class="set-row"><span class="set-label">全部恢复（含误删聊天）<div class="set-sub">聊天少了 20 多条、被旧版误记成删除时用这个；会强制把聊天流水、永久最大档、7 份备份和云端里的消息并回来，只对“聊天”放开删除记录，字卡、信件、留言、动态仍按删除生效</div></span><button class="small-btn ghost" id="btn-recover-all" style="font-size:12px;padding:6px 12px;">全部恢复</button></div>
+        <div class="set-row"><span class="set-label">云端强制恢复（覆盖本机）<div class="set-sub">先从云端拉最新档和完整档，取最全的一份直接铺回本机；日记、留言、信件、动态、字卡一起回来。会跳过本机删除记录，以前删掉的云端内容也会重现</div></span><button class="small-btn ghost" id="btn-cloud-replace" style="font-size:12px;padding:6px 12px;">云端还原</button><span class="set-sub" id="cloud-replace-sub" style="margin-left:10px;flex:1;"></span></div>
         <div class="set-row"><span class="set-label">保存并切换<div class="set-sub">会清掉本机登录态，聊天记录保留；切换后需要重新登录</div></span><button class="small-btn" id="btn-cloud-save" style="font-size:12px;padding:6px 12px;">保存并重启</button></div>
         <div class="set-row"><span class="set-label">恢复官方云端<div class="set-sub">回到内置 Supabase，登录态会清掉</div></span><button class="small-btn ghost" id="btn-cloud-reset" style="font-size:12px;padding:6px 12px;">恢复官方</button></div>
       </div>
@@ -7628,11 +7629,24 @@ setTimeout(function(){
       }
     }catch(_eScopeScan){}
     var cloudP=Promise.resolve(null);
+    var cloudInfo={ok:0,reason:"",msgs:0,social:0,diary:0};
     if(typeof authOk==="function"&&authOk()&&typeof session!=="undefined"&&session&&session.user){
       _paint("正在读取云端完整档…");
-      var _latestP=api(cloudUrl(),{token:session.access_token,timeout:12000}).catch(function(){return null;});
+      var _latestP=api(cloudUrl(),{token:session.access_token,timeout:25000}).catch(function(){return null;});
       var _fullP=(typeof cloudBackupGet==="function")?cloudBackupGet().catch(function(){return null;}):Promise.resolve(null);
-      cloudP=Promise.all([_latestP,_fullP]).then(function(pair){return {latest:pair[0],full:pair[1]};});
+      cloudP=Promise.all([_latestP,_fullP]).then(function(pair){
+        var d=pair[0],f=pair[1];
+        var st=(f&&f.state)||(d&&d.state)||null;
+        if(st){
+          cloudInfo.ok=1;
+          cloudInfo.msgs=Array.isArray(st.messages)?st.messages.length:0;
+          cloudInfo.social=(Array.isArray(st.letters)?st.letters.length:0)+(Array.isArray(st.guestbook)?st.guestbook.length:0)+(Array.isArray(st.moments)?st.moments.length:0);
+          try{cloudInfo.diary=st.diary&&st.diary.pages?Object.keys(st.diary.pages).length:0;}catch(_){}
+        }else{cloudInfo.reason="云端没有存档或读取超时";}
+        return {latest:d,full:f};
+      }).catch(function(e){cloudInfo.reason=String(e&&e.message||e).slice(0,60)||"读取失败";return {latest:null,full:null};});
+    }else{
+      cloudInfo.reason="未登录云端，只恢复了本机";
     }
     return Promise.all([localP,cloudP,scopeP]).then(function(res){
       var backs=res[0]||[],cloudWrap=res[1]||{},scopes=res[2]||[];
@@ -7780,11 +7794,53 @@ setTimeout(function(){
         try{setTimeout(function(){window.__e11TryMediaRepair&&window.__e11TryMediaRepair();},250);}catch(_){}
         var _ms=Date.now()-_deepT0;
         try{var el=document.getElementById("deep-restore-sub");if(el)el.textContent="已恢复（"+(Math.round(_ms/100)/10)+" 秒）";}catch(_eMs){}
-        return {before:before,after:after,src:cands.map(function(c){return c.name;}),ms:_ms};
+        return {before:before,after:after,src:cands.map(function(c){return c.name;}),ms:_ms,cloud:cloudInfo};
       });
     });
   };
 
+  /* v43-195：云端强制恢复。用户明确点这个按钮时，以云端最全的一份为主，
+     不再被本机删除墓碑/清空时间挡住；用于“云端有 55 条，本机只剩 30 条”的救档。 */
+  window.__E11CloudReplace=function(){
+    if(!authOk()||!session||!session.user)return Promise.reject(new Error("未登录云端，请先登录账号"));
+    function _sc(st){
+      if(!st)return -1;
+      var n=0;try{n+=(st.messages||[]).length*10;}catch(_){}
+      ["letters","guestbook","moments","cards","redpackets","musicPlaylist"].forEach(function(k){try{n+=(st[k]||[]).length*3;}catch(_){}});
+      try{n+=st.diary&&st.diary.pages?Object.keys(st.diary.pages).length*8:0;}catch(_){}
+      return n;
+    }
+    function _latest(retry){
+      return api(cloudUrl(),{token:session.access_token,timeout:30000}).catch(function(e){
+        if(retry>0)return new Promise(function(r){setTimeout(r,1200);}).then(function(){return _latest(retry-1);});
+        throw e;
+      });
+    }
+    return Promise.all([
+      _latest(2).catch(function(){return null;}),
+      (typeof cloudBackupGet==="function")?cloudBackupGet().catch(function(){return null;}):Promise.resolve(null)
+    ]).then(function(pair){
+      var d=pair[0],f=pair[1];
+      var best=null,bs=-1,src="";
+      [[d,"云端最新档"],[f,"云端完整档"]].forEach(function(x){
+        var st=x[0]&&x[0].state;if(!st)return;
+        var sc=_sc(st);if(sc>bs){bs=sc;best=st;src=x[1];}
+      });
+      if(!best)throw new Error("云端没有找到可用存档");
+      return applySnapshot({state:best,extras:{},coreOnly:0,deep:1},{reloading:false,restoreAll:true}).then(function(){
+        try{
+          if(window.__e11DelLocalWrite){
+            var m=__e11DelLocalRead();
+            ["messages","letters","guestbook","moments","cards","emojis","partnerEmojis","redpackets","musicRoomMsgs","groups","favorites","surveyHistory"].forEach(function(k){delete m[k];});
+            __e11DelLocalWrite(m);
+          }
+          state.__chatClearedAt=0;state.__savedAt=Date.now();save();
+        }catch(_eCRFix){}
+        var st=window.__e11StateGet?window.__e11StateGet():state;
+        return {src:src,msgs:(st.messages||[]).length,cards:(st.cards||[]).length,letters:(st.letters||[]).length,guestbook:(st.guestbook||[]).length,moments:(st.moments||[]).length,diary:(st.diary&&st.diary.pages?Object.keys(st.diary.pages).length:0)};
+      });
+    });
+  };
   window.__E11Cloud={schedule:cloudSchedule,flush:function(){clearTimeout(cloudTimer);cloudSchedule();},recoveryGet:cloudGetRecovery,fullGet:cloudBackupGet,uploadNow:function(){
     if(window.__e11NoCloud)return Promise.reject(new Error("已关闭云端同步"));
     if(!authOk())return Promise.reject(new Error("未登录"));
@@ -38312,6 +38368,20 @@ body{margin:0;background:var(--bg,#fafafa);}
       }catch(e){
         if(st)st.textContent="没有可恢复的内容";
         toast("深度恢复失败："+String(e&&e.message||e).slice(0,100));
+      }
+      b.disabled=false;
+    });
+    if($("btn-cloud-replace"))$("btn-cloud-replace").addEventListener("click",async function(){
+      if(!(await __iosConfirm("会用云端最全的存档覆盖本机：聊天、日记、留言、信件、动态、字卡都按云端来，本机删除记录不再生效，以前删掉的内容可能重现。继续？",{okText:"云端还原"})))return;
+      var b=this,st=$("cloud-replace-sub");b.disabled=true;if(st)st.textContent="正在读取云端最新档和完整档…";
+      try{
+        var r=await window.__E11CloudReplace();
+        if(st)st.textContent="已从云端还原";
+        toast("云端还原完成（"+r.src+"）：聊天 "+r.msgs+" 条 · 日记 "+r.diary+" 页 · 留言 "+r.guestbook+" 条 · 信件 "+r.letters+" 封 · 动态 "+r.moments+" 条 · 字卡 "+r.cards+" 张");
+        setTimeout(function(){location.reload();},900);
+      }catch(e){
+        if(st)st.textContent="云端还原失败";
+        toast("云端还原失败："+String(e&&e.message||e).slice(0,100));
       }
       b.disabled=false;
     });
