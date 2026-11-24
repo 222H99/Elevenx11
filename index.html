@@ -11641,8 +11641,9 @@ async function init(){
       if(window.__e11BuildChanged){
         setTimeout(function(){
           try{
-            var _miss=["moments","letters","guestbook","cards"].some(function(k){return !Array.isArray(state[k])||state[k].length===0;});
-            if(_miss&&window.__bkMergeNewest)window.__bkMergeNewest(true);
+            /* 刚更新这一轮无条件并一次本机 3 份备份：只补当前缺的 id，
+               不会覆盖现有内容；删除过的仍按墓碑过滤，清空聊天仍按清空时刻过滤。 */
+            if(window.__bkMergeNewest)window.__bkMergeNewest(true);
           }catch(_eUpRecover){}
         },900);
       }
