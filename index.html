@@ -264,7 +264,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-183z10";
+window.__E11_BUILD="2026-11-24v43-183z11";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2129,7 +2129,9 @@ body.ui-dark .invite-btn.no{background:rgba(255,255,255,.10);color:rgba(255,255,
   background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,.04) 62%,rgba(255,255,255,0));
   box-shadow:inset 0 -1px 0 rgba(255,255,255,.25);}
 .mp-head{display:flex;align-items:flex-end;gap:12px;padding:0 14px;}
-.mp-avatar{width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid var(--field);margin-top:-30px;position:relative;z-index:2;background:var(--panel);box-shadow:0 1px 4px rgba(0,0,0,.15);}
+.mp-avatar-wrap{width:72px;height:72px;flex:0 0 auto;position:relative;margin-top:-30px;z-index:2;}
+.mp-avatar{width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid var(--field);position:relative;z-index:2;background:var(--panel);box-shadow:0 1px 4px rgba(0,0,0,.15);cursor:pointer;}
+.mp-avatar-edit{position:absolute;right:-1px;bottom:2px;z-index:3;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;line-height:1;color:#fff;background:rgba(0,0,0,.58);border:1px solid rgba(255,255,255,.55);pointer-events:none;}
 .mp-head-r{flex:1;min-width:0;padding-bottom:2px;}
 .mp-name{font-size:19px;font-weight:700;color:var(--ttext);}
 .mp-handle{font-size:13px;color:#8E8E93;margin-top:2px;}
@@ -2137,7 +2139,8 @@ body.ui-dark .invite-btn.no{background:rgba(255,255,255,.10);color:rgba(255,255,
 .mp-stat{display:flex;flex-direction:column;align-items:center;}
 .mp-stat b{font-size:16px;font-weight:700;color:var(--ttext);}
 .mp-stat span{font-size:12px;color:#8E8E93;margin-top:1px;}
-.mp-bio{font-size:13px;color:var(--ttext);padding:8px 18px 4px;word-break:break-word;line-height:1.55;white-space:pre-line;}
+.mp-bio{font-size:13px;color:var(--ttext);padding:8px 18px 4px;word-break:break-word;line-height:1.55;white-space:pre-line;height:53px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.mp-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .mp-actions{display:flex;gap:8px;padding:10px 18px 14px;}
 .moment-card{background:var(--glass,rgba(255,255,255,.45));-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);border:1px solid var(--glassborder,rgba(255,255,255,.6));box-shadow:inset 0 1px 0 var(--glassinner,rgba(255,255,255,.5)),0 8px 24px rgba(0,0,0,.08);border-radius:20px;overflow:hidden;}
 .moment-head{display:flex;align-items:center;gap:10px;padding:12px 14px;}
@@ -2710,7 +2713,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-183z10">
+<meta name="app-build" content="2026-11-24v43-183z11">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4458,7 +4461,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-25v43-183z10</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-24 16:35 · v43-183z11</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -4884,7 +4887,7 @@ setTimeout(function(){
       <div class="mom-profile">
         <div class="mp-cover" id="mp-cover"></div>
         <div class="mp-head">
-          <img class="mp-avatar" id="mp-avatar" alt="">
+          <div class="mp-avatar-wrap"><img class="mp-avatar" id="mp-avatar" alt=""><span class="mp-avatar-edit" aria-hidden="true">✎</span></div>
           <div class="mp-head-r">
             <div class="mp-name" id="mom-name"></div>
             <div class="mp-handle" id="mp-handle"></div>
@@ -4965,7 +4968,11 @@ setTimeout(function(){
     <div class="sheet" id="cover-sheet">
       <div class="sheet-grip"></div>
       <div style="padding:4px 16px 18px;">
-        <div class="edit-sheet-title" id="cover-sheet-title">更换主页封面</div>
+        <div class="edit-sheet-title" id="cover-sheet-title">更换主页背景</div>
+        <div class="seg" id="cover-seg" style="margin-bottom:12px;touch-action:pan-y;">
+          <button class="seg-btn on" data-cseg="me">我的背景</button>
+          <button class="seg-btn" data-cseg="partner">他的背景</button>
+        </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
           <button class="small-btn" data-cover="#5AC8FA">蓝</button>
           <button class="small-btn" data-cover="#FF9500">橙</button>
@@ -5030,14 +5037,6 @@ setTimeout(function(){
           <input class="text-input" id="bio-following" type="number" min="0" placeholder="关注" style="flex:1;width:auto;">
         </div>
         <input class="text-input" id="bio-text" maxlength="120" placeholder="写几句个性签名…" style="height:60px;">
-        <div class="bio-cover-row">
-          <div class="bio-cover-thumb" id="bio-cover-thumb"></div>
-          <div class="bio-cover-meta">
-            <span class="bio-cover-name">主页封面</span>
-            <div class="set-sub" id="bio-cover-sub">和“换背景”使用同一个选择面板</div>
-          </div>
-          <button class="small-btn ghost" id="bio-cover-btn" style="white-space:nowrap;font-size:12px;padding:6px 10px;">换背景</button>
-        </div>
         <div class="edit-actions">
           <button class="small-btn ghost" id="bio-cancel">取消</button>
           <button class="small-btn" id="bio-save">保存</button>
@@ -8180,10 +8179,16 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"2026-11-25",
+  date:"v43-183z11",
+  time:"2026-11-24 16:35",
   noticeKey:null,
-  lead:"v43-183z10：动态里历史评论的表情包恢复显示；动态、留言、信件删除时可选择“删除此条 / 多选删除 / 删除全部”；删掉的内容不会再被深度恢复或自动备份补回来。",
+  lead:"2026-11-24 16:35 修改（v43-183z11）：对方主页恢复直接换头像、换背景、编辑资料；主页背景面板可在“我的背景 / 他的背景”之间滑动切换；双方主页卡片改为同一高度；每次进入网站优先加载最新版，检查更新点了立即有反馈；公告版本号改为实际修改时间。",
   items:[
+    "对方主页直接编辑（v43-183z11）：对方主页不再隐藏操作按钮，头像点一下就能换，底部直接有“换他的背景 / 编辑他的资料”。双方主页保留同一组按钮，封面、头像、数据、个签、按钮高度全部对齐，两张主页卡片一样高。",
+    "背景滑动切换（v43-183z11）：点我的封面默认改“我的背景”，点对方封面默认改“他的背景”；选择面板顶部新增“我的背景 / 他的背景”分段开关，点一下或左右滑动都能切换，颜色、图片、清空只作用于当前选中的一方，不会误改另一方。",
+    "编辑资料去掉换背景（v43-183z11）：编辑资料里的“主页封面 / 换背景”整行已删除，背景统一从主页封面或“换背景”按钮进入，不再出现两个入口互相打架。",
+    "每次进入都是最新版（v43-183z11）：Service Worker 从“缓存优先、下次生效”改成“网络优先”：每次进入先拿线上最新 HTML，最多等 3 秒，拿到就直接显示；弱网或断网才用缓存兜底，同时在后台继续更新。请求额外带时间戳，绕过 CDN 和浏览器可能残留的旧页面，不再出现“更新了但打开还是上一版”。",
+    "检查更新不迟钝（v43-183z11）：点“检查更新”按钮先变“检查中…”并禁用，立即发请求；如果启动时的自动检查正在跑，会把这次点击排队，等它结束马上再查一次，不会点了没反应。请求超时从 8 秒缩到 5 秒，失败会明确提示。",
     "历史表情恢复（v43-183z10）：动态评论和回复里的表情以前会被拆成图片编号存起来，刷新后编号找不到原图，历史表情就变空白。现在启动时会连动态里的评论一起还原，旧评论的表情也能重新显示；新发的评论表情直接随存档保存，不再拆开。",
     "删除三选项（v43-183z10）：动态、留言、信件的删除按钮改成底部菜单，可选“删除此条”“多选删除”“删除全部”。多选时点整张卡片勾选，底部显示已选数量，再点“删除所选”；删除前会再确认一次。",
     "删除不复活（v43-183z10）：删除时逐条写入本机墓碑，并同步到云端合并、自动备份、深度恢复和社交对账的所有入口。即使删到列表为空，也不会再从旧备份把内容补回来；深度恢复也会先按墓碑过滤。",
@@ -8291,14 +8296,15 @@ function __syncBuildLabel(){
     var m=document.querySelector('meta[name="app-build"]');
     var v=window.__buildId||(m&&m.content)||ANNOUNCE.ver;
     var el=document.getElementById("build-txt");
-    if(el)el.textContent=v;
+    /* 设置页显示实际修改时间，后面括注代码版本，便于和更新公告对上。 */
+    if(el)el.textContent=(ANNOUNCE.time?ANNOUNCE.time+" · ":"")+(/v43-/.test(v)?v.replace(/^[0-9-]+/,""):v);
   }catch(e){}
 }
 window.__syncBuildLabel=__syncBuildLabel;
 function renderAnnounce(){
   __syncBuildLabel();
   var v=document.getElementById("an-ver"),b=document.getElementById("an-body");
-  if(v)v.textContent="版本 "+ANNOUNCE.ver+" · "+ANNOUNCE.date;
+  if(v)v.textContent="版本 "+(ANNOUNCE.time||ANNOUNCE.ver)+" · "+ANNOUNCE.date;
   if(b)b.innerHTML=(ANNOUNCE.lead?'<div class="an-lead">'+ANNOUNCE.lead+'</div>':"")
     +ANNOUNCE.items.map(function(t){return '<div class="an-item">'+t+'</div>';}).join("")
     +(ANNOUNCE.foot?'<div class="an-foot-note">'+ANNOUNCE.foot+'</div>':"");
@@ -20886,8 +20892,11 @@ function __cmpBuild(a,b){
 }
 window.__cmpBuild=__cmpBuild;
 if($("btn-check-update"))$("btn-check-update").addEventListener("click",function(){
-  try{toast("正在检查…");}catch(e){}
+  /* 先给按钮即时反馈，再发请求；自动检查正在跑时排一次手动检查，不再直接吞掉点击。 */
+  try{this.disabled=true;this.textContent="检查中…";}catch(e){}
+  try{toast("正在检查更新…");}catch(e){}
   if(window.__e11CheckVersion)window.__e11CheckVersion(true);
+  else try{this.disabled=false;this.textContent="检查更新";}catch(e){}
 });
 
 /* v43-128：站内刷新。
@@ -29062,9 +29071,12 @@ function renderMomentProfile(){
   if($("mom-view-title"))$("mom-view-title").textContent=isP?"对方主页":"主页";
 
   if($("btn-moment-post"))$("btn-moment-post").style.display=isP?"none":"";
-  /* v43-183z9：对方主页只用于查看，不再出现“换背景 / 编辑资料”。
-     双方封面和资料统一转到「我的 → 编辑资料」里切换“我的资料 / 对方资料”修改。 */
-  if($("mp-actions"))$("mp-actions").style.display=isP?"none":"";
+  /* v43-183z11：双方主页都保留同一组操作，卡片高度一致；
+     对方主页也能直接改头像、改背景和编辑资料。 */
+  if($("mp-actions"))$("mp-actions").style.display="";
+  if($("btn-mp-cover"))$("btn-mp-cover").textContent=isP?"换他的背景":"换背景";
+  if($("btn-mp-bio"))$("btn-mp-bio").textContent=isP?"编辑他的资料":"编辑资料";
+  if($("mp-avatar"))$("mp-avatar").title=isP?"点击更换他的头像":"点击更换我的头像";
 }
 function authorName(f){return f==="me"?(state.profile.mpName||state.me.name):(state.profile.partnerMpName||state.partner.name);}
 function authorAvatar(f){return f==="me"?state.me.avatar:state.partner.avatar;}
@@ -29813,7 +29825,7 @@ $("post-send").addEventListener("click",()=>{
    只是 __coverTarget 指向自己的 cover 或对方的 partnerCover。 */
 var __coverTarget="me";
 function __coverField(){return __coverTarget==="partner"?"partnerCover":"cover";}
-function __coverLabel(){return __coverTarget==="partner"?"对方":"我的";}
+function __coverLabel(){return __coverTarget==="partner"?"他的":"我的";}
 function __paintCover(el,c,def){
   if(!el)return;
   var bg=def||"linear-gradient(135deg,#5AC8FA,#3478F6)";
@@ -29825,17 +29837,29 @@ function __paintCover(el,c,def){
 function __refreshBioCover(){
   try{
     if(!state.profile)state.profile={};
+    /* 编辑资料里已移除“换背景”入口，这里只负责把当前目标同步到封面浮层的分段开关。 */
     var me=bioSeg!=="partner";
-    var c=me?(state.profile.cover||""):(state.profile.partnerCover||"");
-    __paintCover($("bio-cover-thumb"),c);
-    var sub=$("bio-cover-sub");
-    if(sub)sub.textContent=me?"修改我的主页背景":"修改对方主页背景（对方主页本身不再显示按钮）";
+    var seg=document.getElementById("cover-seg");
+    if(seg)seg.querySelectorAll(".seg-btn").forEach(function(b){b.classList.toggle("on",b.dataset.cseg===(me?"me":"partner"));});
   }catch(_){}
+}
+function __paintCoverSeg(){
+  var seg=document.getElementById("cover-seg");if(!seg)return;
+  seg.querySelectorAll(".seg-btn").forEach(function(b){b.classList.toggle("on",b.dataset.cseg===__coverTarget);});
+}
+function __setCoverTarget(t){
+  __coverTarget=t==="partner"?"partner":"me";
+  __paintCoverSeg();
+  var title=$("cover-sheet-title");
+  if(title)title.textContent="更换"+__coverLabel()+"主页背景";
+  var cur=(state.profile&&state.profile[__coverField()])||"";
+  var cc=$("cover-color");if(cc)cc.value=/^#[0-9a-f]{6}$/i.test(cur)?cur:(cc.value||"#5AC8FA");
 }
 function openCoverSheet(t){
   __coverTarget=t==="partner"?"partner":"me";
+  __paintCoverSeg();
   var title=$("cover-sheet-title");
-  if(title)title.textContent="更换"+__coverLabel()+"主页封面";
+  if(title)title.textContent="更换"+__coverLabel()+"主页背景";
   var ov=$("cover-overlay");
   try{
     if($("bio-overlay")&&$("bio-overlay").classList.contains("show"))ov.classList.add("from-bio");
@@ -29853,12 +29877,8 @@ function closeCoverSheet(){
   __refreshBioCover();
 }
 $("mp-cover").addEventListener("click",function(){
-  if(mpSide==="partner"){
-    /* 对方主页不再直接换封面；从我的编辑资料里切换“对方资料”修改。 */
-    toast("对方主页封面请到「我的 → 编辑资料 → 对方资料」里更换");
-    return;
-  }
-  openCoverSheet("me");
+  /* 点谁的主页背景就默认改谁；浮层里仍可滑动切到另一方 */
+  openCoverSheet(mpSide==="partner"?"partner":"me");
 });
 $("file-partner-cover").addEventListener("change",function(e){
   const f=e.target.files[0];if(!f)return;
@@ -29871,8 +29891,7 @@ $("file-partner-cover").addEventListener("change",function(e){
   r.readAsDataURL(f);e.target.value="";
 });
 $("btn-mp-cover").addEventListener("click",function(){
-  if(mpSide==="partner")return;
-  openCoverSheet("me");
+  openCoverSheet(mpSide==="partner"?"partner":"me");
 });
 $("cover-overlay").addEventListener("click",e=>{if(e.target.id==="cover-overlay")closeCoverSheet();});
 document.querySelectorAll("#cover-sheet [data-cover]").forEach(b=>b.addEventListener("click",()=>{
@@ -29902,6 +29921,24 @@ $("cover-color").addEventListener("input",e=>{
       r.readAsDataURL(f);
     });
   });
+})();
+document.querySelectorAll("#cover-seg .seg-btn").forEach(b=>b.addEventListener("click",function(){
+  __setCoverTarget(b.dataset.cseg==="partner"?"partner":"me");
+}));
+/* 左右滑动也能换目标：右滑回“我的背景”，左滑到“他的背景”。 */
+(function(){
+  var sx=0,sy=0;
+  var seg=document.getElementById("cover-seg");if(!seg)return;
+  seg.addEventListener("touchstart",function(e){
+    if(!e.touches||e.touches.length!==1)return;
+    sx=e.touches[0].clientX;sy=e.touches[0].clientY;
+  },{passive:true});
+  seg.addEventListener("touchend",function(e){
+    var t=(e.changedTouches&&e.changedTouches[0])||null;if(!t)return;
+    var dx=t.clientX-sx,dy=t.clientY-sy;
+    if(Math.abs(dx)<55||Math.abs(dx)<Math.abs(dy)*1.4)return;
+    __setCoverTarget(dx<0?"partner":"me");
+  },{passive:true});
 })();
 $("btn-cover-clear").addEventListener("click",()=>{
   if(!state.profile)state.profile={};
@@ -29954,11 +29991,7 @@ function flushBioForm(){
   else{if(nm)p.partnerMpName=nm;p.partnerHandle=hd;p.partnerFollowers=fl;p.partnerFollowing=fg;p.partnerBio=bio;}
 }
 $("btn-mp-bio").addEventListener("click",function(){bioSeg=mpSide==="partner"?"partner":"me";fillBioForm();$("bio-overlay").classList.add("show");setTimeout(function(){$("bio-name").focus();},150);});
-$("bio-cover-btn").addEventListener("click",function(){flushBioForm();openCoverSheet(bioSeg);});
-try{
-  var _bbe=document.getElementById("bio-cover-thumb");
-  if(_bbe)_bbe.addEventListener("click",function(){flushBioForm();openCoverSheet(bioSeg);});
-}catch(_){}
+/* v43-183z11：编辑资料内的“换背景”行已删除，背景统一从主页封面/换背景按钮进入。 */
 document.querySelectorAll("#bio-seg .seg-btn").forEach(function(b){b.addEventListener("click",function(){flushBioForm();bioSeg=b.dataset.bseg;fillBioForm();});});
 $("bio-cancel").addEventListener("click",()=>$("bio-overlay").classList.remove("show"));
 $("bio-overlay").addEventListener("click",e=>{if(e.target.id==="bio-overlay")$("bio-overlay").classList.remove("show");});
@@ -34278,7 +34311,15 @@ try{
   var REMOTE_BASE="https://4mhd000knq3sz.doubao.link/app/app_17j7cuqfra0/";
   var REMOTE_VER=REMOTE_BASE+"version.json";
   var running=false;
+  var manualQueued=false;
   var lastCheckAt=0;
+  function checkBtn(state){
+    try{
+      var b=document.getElementById("btn-check-update");if(!b)return;
+      if(state==="busy"){b.disabled=true;b.textContent="检查中…";}
+      else{b.disabled=false;b.textContent="检查更新";}
+    }catch(_){}
+  }
   var pendingBuild="";
   var FORCE_KEY="__e11ForceAt";
   var TRY_KEY="__e11UpdateTry";
@@ -34418,7 +34459,8 @@ try{
     var url=(apkMode()?REMOTE_VER:"./version.json")+"?__v="+Date.now().toString(36);
     var ctrl=null,to=null;
     try{
-      if(typeof AbortController!=="undefined"){ctrl=new AbortController();to=setTimeout(function(){try{ctrl.abort();}catch(_){}},8000);}
+      /* 5 秒足够拿到一个几十字节的 version.json；超时就给明确提示，不让按钮一直“检查中”。 */
+      if(typeof AbortController!=="undefined"){ctrl=new AbortController();to=setTimeout(function(){try{ctrl.abort();}catch(_){}},5000);}
       var r=await fetch(url,{cache:"no-store",credentials:"omit",signal:ctrl?ctrl.signal:undefined});
       if(!r||!r.ok)throw new Error("HTTP "+(r&&r.status));
       var j=await r.json();
@@ -34448,12 +34490,17 @@ try{
     }
   }
   async function check(manual){
-    if(running)return;
+    if(running){
+      /* 手动点击时不丢弃：等当前请求结束立刻再查一次，避免“点了没反应”。 */
+      if(manual)manualQueued=true;
+      return;
+    }
     /* 启动时 pageshow / 800ms / 5s 三道检查会叠成 3 次请求。
        非手动检查做 30 秒节流，启动阶段只发一次。 */
     if(!manual&&Date.now()-lastCheckAt<30000)return;
     lastCheckAt=Date.now();
     running=true;
+    if(manual)checkBtn("busy");
     try{
       var info=await remoteInfo();
       var local=build();
@@ -34492,6 +34539,8 @@ try{
       if(manual)try{toast("检查失败："+((e&&e.name==="AbortError")?"请求超时":((e&&e.message)||e)));}catch(_){}
     }finally{
       running=false;
+      checkBtn("idle");
+      if(manualQueued){manualQueued=false;setTimeout(function(){check(true);},0);}
     }
   }
   window.__e11CheckVersion=check;

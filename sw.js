@@ -2,10 +2,10 @@
    作用一：缓存主页面，第二次打开时不再重新下载 2MB HTML，直接出首屏（黑屏时间大幅缩短）。
    作用二：提供通知点击回到 App 的最小能力。
    策略：有缓存立即返回，同时在后台抓取新版并写回缓存；首次无缓存才等网络。 */
-const E11_VERSION = "2026-11-25v43-183z10";
+const E11_VERSION = "2026-11-24v43-183z11";
 const E11_CACHE = "e11-shell-" + E11_VERSION;
 const E11_INDEX = "./index.html";
-const E11_TIMEOUT = 2600;
+const E11_TIMEOUT = 3000;
 
 self.addEventListener("install", (e) => {
   e.waitUntil((async () => {
@@ -41,7 +41,15 @@ function e11Timeout(ms) {
 async function e11Navigate(request, event) {
   const cache = await caches.open(E11_CACHE);
   const cached = await cache.match(E11_INDEX);
-  const network = fetch(request, { cache: "no-store" }).then(async (r) => {
+  /* v43-183z11：给每次进入加一个时间戳参数，绕过 CDN / 浏览器可能残留的旧 HTML，
+     保证拿到的就是线上最新版；缓存仍按 E11_INDEX 存，不产生一堆副本。 */
+  let netUrl = request.url;
+  try {
+    const u = new URL(request.url);
+    u.searchParams.set("__e11entry", Date.now().toString(36));
+    netUrl = u.href;
+  } catch (_) {}
+  const network = fetch(netUrl, { cache: "no-store" }).then(async (r) => {
     if (r && r.ok) {
       try { await cache.put(E11_INDEX, r.clone()); } catch (_) {}
     }
@@ -58,8 +66,11 @@ async function e11Navigate(request, event) {
       { headers: { "Content-Type": "text/html; charset=utf-8" } }
     );
   }
-  /* 有缓存就立刻返回，不再等网络 2.6 秒：以前每次点进网站都要先等一次新请求，
-     慢网/弱网就是几秒白屏。新版在后台抓取并写回缓存，下次启动直接命中。 */
+  /* v43-183z11：每次进入都优先用刚抓到的线上 HTML，最多等 3 秒；
+     网络慢或断网才退回缓存，并继续在后台把新版写进缓存。
+     不再“缓存优先、下次生效”，避免用户每次打开都还是上一版。 */
+  const quick = await Promise.race([network, e11Timeout(E11_TIMEOUT)]);
+  if (quick && quick.ok) return quick;
   try { event.waitUntil(network.catch(() => null)); } catch (_) {}
   return cached;
 }
