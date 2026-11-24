@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183z24";
+window.__E11_BUILD="2026-11-24v43-183z25";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2716,7 +2716,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183z24">
+<meta name="app-build" content="2026-11-24v43-183z25">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -8357,12 +8357,13 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-183z24",
-  time:"2026-11-24 19:10",
+  date:"v43-183z25",
+  time:"2026-11-24 20:35",
   noticeKey:null,
-  lead:"2026-11-24 19:10 修改（v43-183z24）：留言页「找回旧留言 / 重新载入」两个按钮真正跑完整恢复流程，有查找中状态和结果提示；普通查找没有时再走云端完整档 + 3 份自动备份的深度恢复。",
+  lead:"2026-11-24 20:35 修改（v43-183z25）：动态评论楼中楼按截图恢复 2/3 格交替缩进，第 4 层以后不再挤平；每条回复仍挂回它真正回复的那一条。",
   items:[
-    "找回留言按钮无效（v43-183z24）：「找回旧留言」以前只是调几个恢复函数，旧版还会被“恢复过一次”的标记挡住，恢复时又按演示文案过滤，点了看起来没反应。「重新载入」也只重画同一个空列表。现在两个按钮都走强制恢复：绕过恢复标记、清掉云端 15 秒缓存、重新读本机备份/离站快照/自动备份/云端；普通来源没有时再自动走一次深度恢复（云端完整档 + 3 份自动备份）。查找期间按钮显示「正在查找…」和进度，结束明确提示恢复了几条，或者明确说明没有更多副本。",
+    "动态评论楼层错位（v43-183z25）：回复的回复从第 4 层起被夹在同一个缩进，截图里 2、3、4、5、6 楼看起来像堆平。现在按截图走「首评 → 第 2 格 → 第 3 格 → 第 2 格 → 第 3 格…」，每一层仍按真实 replyTo/replies 挂回被回复的那一条，不再串到别的评论下面。",
+    "留言找回（v43-183z24）：「找回旧留言 / 重新载入」两个按钮走完整恢复，有查找中状态和结果提示；普通来源没有时再走云端完整档 + 3 份自动备份的深度恢复。",
     "页内提示条停留太久（v43-183z23）：顶部来消息提示条以前只负责显示，没有自动收起，除非点 X 或切页就一直压在界面上。现在显示 3 秒自动收起；新消息进来会重新计时，点提示条仍然直达聊天。普通 toast 也缩短为短句 1.2 秒、长句 2 秒。",
     "留言页白屏（v43-183z22）：两个原因都收掉了。上一版删除指纹只按 from+文案，删一句常见话会把它所有同句留言一起挡掉；现在指纹加上原条目的 time，只挡“同一条换了 id”，并清掉旧版指纹键，被误伤的同句留言会回来。另一个是留言列表可能已经渲染成空壳但签名没变，再次进入就直接跳过绘制；现在只有列表里真的有卡片或空态才复用，否则强制重画，最后再加一层兜底，绝不留整片空白。",
     "留言数据丢失与找回（v43-183z21）：以前留言只存在当前存档、自动备份和云端，任意一份旧档把数组盖空就看起来全没了。现在动态/信件/留言每次变化都同步写一份独立小备份，启动先按 id 接回来；留言页空的时候可以直接点「找回旧留言」，会依次查本机备份、离站快照、自动备份和云端。另外移除了按“演示文案”删真实留言的旧逻辑——那几句和自动生成的字卡高度重合，是数据被误删的一个来源。",
@@ -13581,7 +13582,7 @@ function __recoverSocialFromBackups(force){
         return (arr||[]).filter(function(x){
           if(!x)return false;
           if(x.id&&window.__e11IsDeleted&&window.__e11IsDeleted(k,x.id))return false;
-          /* v43-183z24：恢复时不再按演示文案过滤，真实内容优先。 */
+          /* v43-183z25：恢复时不再按演示文案过滤，真实内容优先。 */
           return true;
         });
       }
@@ -29847,7 +29848,13 @@ function renderComments(m){
     const cls=isRep?"mc-row rep":"mc-row";
     /* 按真实层级缩进：旧代码只看「奇偶层」交替缩进，回复的回复（第 3 层）
        会被当成第 1 层显示，看起来就像对方回错了评论。 */
-    const d=Math.max(0,Math.min(3,Number(depth)||0));
+    /* v43-183z25：楼层按用户给的截图走「首评最左 → 第 2 格 → 第 3 格 → 第 2 格 → 第 3 格…」，
+       不再把第 4 层以后全部夹在 3 格（那会让后面几条回复看起来都堆在同一层）。
+       数据仍按 replyTo/replies 的真实父子关系递归，只有“视觉格数”做 2/3 交替。 */
+    let d=Math.max(0,Number(depth)||0);
+    /* 第 1 条回复本来就在 .mc-replies 的第 2 格；它下面的回复按 3 格、2 格交替，
+       正好复刻截图：2、3、2、3… 不再随层级一直向右堆。 */
+    if(d>=1)d=(d%2===1?2:1);
     const dep=d>1?' data-depth="'+d+'"':'';
     const delBtn=item.from==="me"?'<button class="mc-del" data-mdelc="'+item.id+'">删除</button>':'';
     const repBtn='<div class="mc-sub"><button class="mc-reply" data-mreply="'+item.id+'" data-mname="'+esc(authorName(item.from))+'">回复</button>'+delBtn+'</div>';
