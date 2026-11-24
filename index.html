@@ -38147,7 +38147,7 @@ body{margin:0;background:var(--bg,#fafafa);}
 /* v43-186z33f：更新后只弹一次「恢复全部历史」。走深度恢复，合并本机3份备份+云端；
    已删除的条目和清空聊天之前的消息会被墓碑/清空时间挡住，不会复活。 */
 (function(){
-  var KEY="e11.recover185.z33f";
+  var KEY="e11.recover186.z33f";
   try{if(localStorage.getItem(KEY)==="done"||localStorage.getItem(KEY)==="asked")return;}catch(_){}
   var tries=0;
   var timer=setInterval(function(){
@@ -38157,7 +38157,7 @@ body{margin:0;background:var(--bg,#fafafa);}
       if(!(window.__aboutDone&&window.__stateReady&&window.__E11DeepRestore))return;
       clearInterval(timer);
       localStorage.setItem(KEY,"asked");
-      __iosConfirm("这次更新后，可以从本机 3 份自动备份和云端把之前没删的数据合并回来。已经删除的聊天、字卡、信件、留言不会恢复。现在恢复吗？",{okText:"恢复全部",cancelText:"稍后"}).then(function(ok){
+      __iosConfirm("这次更新后，会扫描本机所有旧库、3 份自动备份、聊天流水和云端，把之前没删的数据合并回来。已经删除的聊天、字卡、信件、留言不会恢复。现在恢复吗？",{okText:"恢复全部",cancelText:"稍后"}).then(function(ok){
         if(!ok)return;
         localStorage.setItem(KEY,"running");
         try{toast("正在合并本机备份和云端…");}catch(_){}
