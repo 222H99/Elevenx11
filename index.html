@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183z36";
+window.__E11_BUILD="2026-11-24v43-183z37";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2748,7 +2748,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183z36">
+<meta name="app-build" content="2026-11-24v43-183z37">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -6336,17 +6336,45 @@ setTimeout(function(){
   /* 本机删除墓碑小键：删除动作同步写 localStorage，刷新/退出/云端旧档合并都先认它。
      解决“删了东西，重开又被旧快照/自动备份补回来”的核心兜底。 */
   window.__E11_DEL_KEY="e11.deleted.v1";
+  /* v43-183z37：删除表在过滤循环里会被反复读取。以前每次调用都 JSON.parse 一遍，
+     几千条档案时一次合并就要解析上百次。这里按原始字符串缓存，值没变就不重复解析。 */
+  window.__e11DelCacheRaw=null;window.__e11DelCacheObj=null;
   function __e11DelLocalRead(){
-    try{var o=JSON.parse(localStorage.getItem(window.__E11_DEL_KEY)||"{}");return (o&&typeof o==="object")?o:{};}catch(_){return {};}
+    try{
+      var raw=localStorage.getItem(window.__E11_DEL_KEY)||"{}";
+      if(raw===window.__e11DelCacheRaw&&window.__e11DelCacheObj)return window.__e11DelCacheObj;
+      var o=JSON.parse(raw);if(!o||typeof o!=="object")o={};
+      window.__e11DelCacheRaw=raw;window.__e11DelCacheObj=o;return o;
+    }catch(_){return {};}
   }
-  function __e11DelLocalWrite(o){try{localStorage.setItem(window.__E11_DEL_KEY,JSON.stringify(o||{}));}catch(_){}}
+  function __e11DelLocalWrite(o){
+    try{
+      var raw=JSON.stringify(o||{});
+      localStorage.setItem(window.__E11_DEL_KEY,raw);
+      window.__e11DelCacheRaw=raw;window.__e11DelCacheObj=o||{};
+    }catch(_){}
+  }
   window.__e11DelLocalRead=__e11DelLocalRead;  /* v43-183z21：删除意图除了按 id 记，再按「内容指纹」记一层。
      云端旧档/跨作用域合并/导入备份时，同一条内容偶尔会换 id 回来（尤其信件和动态），
      只按 id 过滤就会“删了更新后又恢复”。指纹按 90 天有效期，避免把以后新发的同句也永久挡住。 */
   window.__E11_DEL_FP_KEY="e11.deleted.fp.v2";
   window.__E11_DEL_TTL=90*24*3600*1000;
-  function __e11FpRead(){try{var o=JSON.parse(localStorage.getItem(window.__E11_DEL_FP_KEY)||"{}");return (o&&typeof o==="object")?o:{};}catch(_){return {};}}
-  function __e11FpWrite(o){try{localStorage.setItem(window.__E11_DEL_FP_KEY,JSON.stringify(o||{}));}catch(_){}}
+  window.__e11FpCacheRaw=null;window.__e11FpCacheObj=null;
+  function __e11FpRead(){
+    try{
+      var raw=localStorage.getItem(window.__E11_DEL_FP_KEY)||"{}";
+      if(raw===window.__e11FpCacheRaw&&window.__e11FpCacheObj)return window.__e11FpCacheObj;
+      var o=JSON.parse(raw);if(!o||typeof o!=="object")o={};
+      window.__e11FpCacheRaw=raw;window.__e11FpCacheObj=o;return o;
+    }catch(_){return {};}
+  }
+  function __e11FpWrite(o){
+    try{
+      var raw=JSON.stringify(o||{});
+      localStorage.setItem(window.__E11_DEL_FP_KEY,raw);
+      window.__e11FpCacheRaw=raw;window.__e11FpCacheObj=o||{};
+    }catch(_){}
+  }
   function __e11FpStr(v){try{if(v===undefined||v===null)return "";if(typeof v==="string")return v;return JSON.stringify(v);}catch(_){return "";}}
   function __e11FpHash(raw){
     try{
@@ -6450,6 +6478,16 @@ setTimeout(function(){
       if(window.__e11TombstoneMute)return;
       var st=window.__e11StateGet?window.__e11StateGet():null;if(!st)return;
       st.deletedIds=st.deletedIds||{};
+      /* v43-183z37：每次 save 都为所有板块重建 id 集合，几千条档案时纯属重复劳动。
+         先算一个很便宜的“长度 + 头尾 id”指纹；没变化就直接跳过，真正删除/导入才会变。 */
+      var _scanSig="";try{
+        _scanSig=__e11DeleteKinds.map(function(k){
+          var a=st[k];if(!Array.isArray(a))return k+":0";
+          return k+":"+a.length+":"+String(__e11IdOf(a[0])||"")+":"+String(__e11IdOf(a[a.length-1])||"");
+        }).join("|");
+      }catch(_eScanSig){}
+      if(!init&&_scanSig&&_scanSig===window.__e11TombScanSig)return;
+      window.__e11TombScanSig=_scanSig;
       var known=window.__e11KnownIds;
       if(!known){known={};window.__e11KnownIds=known;}
       __e11DeleteKinds.forEach(function(k){
@@ -6530,6 +6568,23 @@ setTimeout(function(){
     return st;
   }
   try{window.__e11ApplyDeleted=__e11ApplyDeleted;}catch(_eApplyExp){}
+  /* v43-183z37：save() 每次都会调用删除过滤，但绝大多数时候删除表没变、列表也没变。
+     用“板块长度 + 末条 id + 墓碑数量”做指纹，没变化就不再全量 filter 一遍。 */
+  window.__e11ApplyDeletedIfNeeded=function(st){
+    try{
+      if(!st)return 0;
+      var d=(st.deletedIds||{}),loc={};try{loc=__e11DelLocalRead()||{};}catch(_eLoc2){}
+      var sig=__e11DeleteKinds.map(function(k){
+        var a=Array.isArray(st[k])?st[k]:[];
+        var dn=Object.keys((d[k]||{})).length+Object.keys((loc[k]||{})).length;
+        return k+":"+a.length+":"+String(__e11IdOf(a[a.length-1])||"")+":"+dn;
+      }).join("|");
+      if(sig===window.__e11ApplyDelSig)return 0;
+      window.__e11ApplyDelSig=sig;
+      __e11ApplyDeleted(st);
+      return 1;
+    }catch(_eApplyGate){try{__e11ApplyDeleted(st);}catch(_){}return 0;}
+  };
   /* v43-183z21：动态/信件/留言的本机滚动备份。
      以前这类内容只存在于“当前 state + 三份自动备份 + 云端”，
      任意一份旧档把数组覆盖成空、或版本切换时读档失败，就会真的看起来“全没了”。
@@ -8410,11 +8465,15 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-183z36",
-  time:"2026-11-24 20:44",
+  date:"v43-183z37",
+  time:"2026-11-24 21:12",
   noticeKey:null,
-  lead:"2026-11-24 20:44 修改（v43-183z36）：清空聊天时刻只过滤旧离站快照和旧备份，不再过滤当前主档；设备时钟回拨产生的未来清空时刻自动作废，两侧新消息不会再被吞掉。",
+  lead:"2026-11-24 21:12 修改（v43-183z37）：这一版主要清性能热点——删除表/指纹只解析一次、删除过滤和墓碑扫描没变就跳过、背景备份不重复重写，同时修了退出后 2.5 秒内改资料可能不落盘的问题。",
   items:[
+    "性能：删除过滤不再反复解析（v43-183z37）：删除表、内容指纹表以前在每次合并/过滤循环里都重新 JSON.parse 一遍，几千条档案时一次启动要解析上百次。现在按原始字符串缓存，值没变就直接复用。删除过滤和墓碑扫描也加了指纹，列表没变化就跳过整轮全量扫描。",
+    "性能：背景不再每次重写（v43-183z37）：改字卡、改资料都会触发背景小备份，以前每次都把 20 多个背景（可能十几 MB 的 base64）同步重写一遍。现在逐个比对上一次写进去的值，只有真的换了背景才写；退出时也不会再重复刷新所有 ts。",
+    "性能：大存档恢复不再卡 O(n²)（v43-183z37）：消息去重合并以前用 out.indexOf 找上一条的位置，重复消息一多就变成平方级。现在直接记下每个 id 在输出数组里的下标，大备份恢复少卡好几秒。",
+    "退出前 2.5 秒改资料会丢（v43-183z37）：离站快照的重复调用判断没算资料修改时间，改完昵称/签名马上切后台，可能被判成「刚写过」直接跳过。现在资料时间也进签名，最后一次修改一定写进离站快照。",
     "对方和我的消息看不见（v43-183z36）：上一版清空聊天后，启动/合并时会拿清空时刻过滤当前主档；设备时钟回拨或清空时刻偏大时，清空之后新发的消息也被当成旧消息删掉，表现就是双方消息都不见了、像被吞。现在清空时刻只用来挡旧离站快照和 3 份旧备份，当前主档一条都不按它删；超过当前时间的清空时刻直接作废。",
     "更新后数据变成别的时段（v43-183z35）：以前启动时只要 e11.cloudMeta 丢了，就会把账号云端里另一段旧聊天拉下来覆盖本机；更新、清缓存后最容易触发。现在只要本机还有聊天、动态、信件、留言、字卡或日记中的任何一项，就绝不自动拉云端，只有手动点「从云端恢复」才会拉。",
     "更新后动态信件留言不见了（v43-183z35）：刚更新完这一轮，如果动态、信件、留言、字卡明显缺失，会在首屏后强制读本机 3 份自动备份按 id 补一次，只补不删，仍按删除墓碑和清空时刻过滤；同时把其它登录状态的 IndexedDB 数据合并回当前页面，不再只写进库不刷新。",
@@ -10070,7 +10129,7 @@ function __e11ExitSave(st,force){
     var _dk=Object.keys(_dg),_dlast=0;
     try{_dk.forEach(function(k){var p=_dg[k]||{};_dlast=Math.max(_dlast,Number(p.writtenAt)||0,Number(p.mine&&p.mine.time)||0,Number(p.partner&&p.partner.time)||0);});}catch(_eDSig){}
     var _dcov=_sigst&&_sigst.diary&&_sigst.diary.cover?_sigst.diary.cover:null;
-    var _sig=[Number(window.__chatRev)||0,Number(_sigst&&_sigst.__savedAt)||0,(_sigst&&_sigst.messages&&_sigst.messages.length)||0,(_sigst&&_sigst.messages&&_sigst.messages.length?_sigst.messages[_sigst.messages.length-1].id:""),Number(_sigst&&_sigst.settings&&_sigst.settings.__ts)||0,Number(_sigst&&_sigst.skin&&_sigst.skin.__ts)||0,_dk.length,_dlast,_dcov?((_dcov.title||"")+"|"+(_dcov.img||"").length+"|"+(_dcov.done?1:0)):""].join("|");
+    var _sig=[Number(window.__chatRev)||0,Number(_sigst&&_sigst.__savedAt)||0,Number(_sigst&&_sigst.profile&&_sigst.profile.__ts)||0,(_sigst&&_sigst.messages&&_sigst.messages.length)||0,(_sigst&&_sigst.messages&&_sigst.messages.length?_sigst.messages[_sigst.messages.length-1].id:""),Number(_sigst&&_sigst.settings&&_sigst.settings.__ts)||0,Number(_sigst&&_sigst.skin&&_sigst.skin.__ts)||0,_dk.length,_dlast,_dcov?((_dcov.title||"")+"|"+(_dcov.img||"").length+"|"+(_dcov.done?1:0)):""].join("|");
     if(!force&&_sig===window.__e11ExitSavedSig&&Date.now()-(Number(window.__e11ExitSavedAt)||0)<2500)return true;
     window.__e11ExitSavedSig=_sig;
     try{__e11DiarySnapshot(st||state);}catch(_eDiaryExit){}
@@ -10690,7 +10749,7 @@ function __prefReapplyAll(){
 function save(){
   try{window.__e11Dirty=1;}catch(_eDirty){}
   /* v43-183z32：任何写盘前先按墓碑清一遍所有板块，删掉的条目不会被这份存档再写回去。 */
-  try{if(window.__e11ApplyDeleted)window.__e11ApplyDeleted(state);}catch(_eSaveDel){}
+  try{if(window.__e11ApplyDeletedIfNeeded)window.__e11ApplyDeletedIfNeeded(state);else if(window.__e11ApplyDeleted)window.__e11ApplyDeleted(state);}catch(_eSaveDel){}
   /* v43-183z21：社交内容一变就同步落一份独立小备份，保证“更新/旧档覆盖”后还能接回来。 */
   try{
     var _socArr=(typeof state!=="undefined"&&state)||{};
@@ -11042,7 +11101,7 @@ function __e11NormalizeMessages(s){
   if(!Array.isArray(s.messages)){
     try{s.messages=Object.keys(s.messages).map(function(k){return s.messages[k];});}catch(_){s.messages=[];}
   }
-  var out=[],seen={};
+  var out=[],seen={},seenPos={};
   s.messages.forEach(function(m,i){
     if(!m){return;}
     if(typeof m==="string")m={type:"text",text:m};
@@ -11074,7 +11133,7 @@ function __e11NormalizeMessages(s){
       var _same=(Number(m.time)||0)===(Number(prev.time)||0)&&String(m.type||"")===(String(prev.type||""))&&String(m.from||"")===(String(prev.from||""))&&String(m.text!==undefined?m.text:(m.src||""))===(String(prev.text!==undefined?prev.text:(prev.src||"")));
       if(!_same){
         var _newId=id+"_"+__e11FpHash([m.type,m.from,m.time,m.text!==undefined?m.text:(m.src||"")].join("|"));
-        if(!seen[_newId]){m.id=_newId;seen[_newId]=m;out.push(m);return;}
+        if(!seen[_newId]){m.id=_newId;seen[_newId]=m;seenPos[_newId]=out.length;out.push(m);return;}
         prev=seen[_newId];id=_newId;
       }
       /* 真正重复：以时间更新的那条为准，同时保留旧记录里还有的图片 src。 */
@@ -11082,10 +11141,15 @@ function __e11NormalizeMessages(s){
       var keep=takeNew?m:prev,other=takeNew?prev:m;
       if(!keep.src&&other.src)keep.src=other.src;
       if(other.kind&&!keep.kind)keep.kind=other.kind;
-      out[out.indexOf(prev)]=keep;seen[id]=keep;
+      /* v43-183z37：以前用 out.indexOf(prev) 找位置，重复消息一多就是 O(n²)，
+         大存档恢复能卡好几秒。直接记住每个 id 在 out 里的下标。 */
+      var _pi=Number(seenPos[id]);
+      if(isFinite(_pi)&&_pi>=0&&_pi<out.length&&out[_pi]===prev)out[_pi]=keep;
+      else{var _oi=out.indexOf(prev);if(_oi>=0)out[_oi]=keep;}
+      seen[id]=keep;seenPos[id]=_pi>=0?_pi:out.indexOf(keep);
       return;
     }
-    seen[id]=m;out.push(m);
+    seen[id]=m;seenPos[id]=out.length;out.push(m);
   });
   out.sort(__e11MsgOrder);
   s.messages=out;
@@ -12614,24 +12678,33 @@ window.__e11BgPathGet=function(path){
 window.__e11BgLocalSync=function(){
   try{
     if(typeof state==="undefined"||!state)return;
+    window.__e11BgSyncSig=window.__e11BgSyncSig||{};
     window.__E11_BG_PATHS.forEach(function(path){
       var v=window.__e11BgPathGet(path),k=window.__E11_BG_KEY(path);
       var pk=window.__E11_BG_PICK_KEY(path),pt=window.__E11_BG_PICK_TS(path);
+      var _sigk=path.join("_"),_prev=window.__e11BgSyncSig[_sigk];
+      /* v43-183z37：__e11PersistNow 每改一次字卡/资料都会调这里，
+         以前不管有没有变都把 20 多张背景（可能十几 MB 的 base64）全同步重写一遍。
+         值没变就直接跳过，退出/编辑不再反复写 localStorage。 */
+      if(_prev&&_prev.v===v&&_prev.ok)return;
       try{
         if(!v){
           /* 空值不是“没有记录”，而是一个明确的“已清空”墓碑：
              否则刷新时主库/美化库里的旧图又会把刚清掉的背景补回来。 */
-          try{localStorage.setItem(k,"__empty__");localStorage.setItem(window.__E11_BG_TS(path),String(Date.now()));
-            localStorage.setItem(pk,"__empty__");localStorage.setItem(pt,String(Date.now()));}catch(_){ }
+          var _ts0=String(Date.now());
+          try{localStorage.setItem(k,"__empty__");localStorage.setItem(window.__E11_BG_TS(path),_ts0);
+            localStorage.setItem(pk,"__empty__");localStorage.setItem(pt,_ts0);}catch(_){ }
+          window.__e11BgSyncSig[_sigk]={v:v,ok:1};
           return;
         }
         if(v.indexOf("data:")!==0){
           /* 外链背景（一起听 URL 等）很短，直接记成“最后一次选择”，重开无条件用它。 */
           try{localStorage.setItem(pk,v);localStorage.setItem(pt,String(Date.now()));localStorage.removeItem(k);localStorage.removeItem(window.__E11_BG_TS(path));}catch(_){ }
+          window.__e11BgSyncSig[_sigk]={v:v,ok:1};
           return;
         }
         if(v.length>1200000)return;
-        try{localStorage.setItem(pk,"__data__");localStorage.setItem(pt,String(Date.now()));localStorage.setItem(k,v);localStorage.setItem(window.__E11_BG_TS(path),String(Date.now()));}
+        try{localStorage.setItem(pk,"__data__");localStorage.setItem(pt,String(Date.now()));localStorage.setItem(k,v);localStorage.setItem(window.__E11_BG_TS(path),String(Date.now()));window.__e11BgSyncSig[_sigk]={v:v,ok:1};}
         catch(_eq){
           /* 空间紧：先清掉同一批里最旧的背景备份，再试当前这张 */
           try{
@@ -12639,6 +12712,7 @@ window.__e11BgLocalSync=function(){
               var k2=window.__E11_BG_KEY(p2);if(k2!==k){try{localStorage.removeItem(k2);localStorage.removeItem(window.__E11_BG_TS(p2));}catch(_){}}
             });
             localStorage.setItem(k,v);localStorage.setItem(window.__E11_BG_TS(path),String(Date.now()));
+            window.__e11BgSyncSig[_sigk]={v:v,ok:1};
           }catch(_e2){}
         }
       }catch(_ePath){}
@@ -12673,7 +12747,14 @@ window.__e11BgPrefSync=function(){
       });
       se[k]=o;
     });
-    localStorage.setItem(window.__E11_BG_PREF_KEY,JSON.stringify({ts:Date.now(),skin:sk,settings:se,musicBg:Number(state.musicBg)||0}));
+    /* v43-183z37：同样先做内容指纹，没换背景就不重写这份 JSON、也不反复刷新 ts。 */
+    var _sig=JSON.stringify({skin:sk,settings:se,musicBg:Number(state.musicBg)||0});
+    if(_sig===window.__e11BgPrefSig){
+      try{if(localStorage.getItem(window.__E11_BG_PREF_KEY))return true;}catch(_eBpChk){}
+    }
+    var _payload={ts:Date.now(),skin:sk,settings:se,musicBg:Number(state.musicBg)||0};
+    localStorage.setItem(window.__E11_BG_PREF_KEY,JSON.stringify(_payload));
+    window.__e11BgPrefSig=_sig;
     return true;
   }catch(_eBgs){return false;}
 };
