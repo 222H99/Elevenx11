@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-205z34";
+window.__E11_BUILD="2026-11-25v43-206z34";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2747,7 +2747,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-205z34">
+<meta name="app-build" content="2026-11-25v43-206z34">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3691,6 +3691,24 @@ html.kb-typing #rotate-guard,html.kb-typing body #rotate-guard{display:none!impo
 #view-guestbook .note-list{display:flex!important;flex-direction:column!important;flex:1 1 0%!important;min-height:0!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch;}
 #view-guestbook .qa-list{flex:none!important;}
 </style>
+<style id="__data_ui_style">
+.data-panel{padding:12px;display:flex;flex-direction:column;gap:9px;}
+.data-block-title{font-size:16px;font-weight:700;color:var(--ttext);margin:2px 0 0;}
+.data-block-sub{font-size:12px;color:var(--sub,#8E8E93);margin:-4px 0 3px;line-height:1.55;}
+.data-main-btn{width:100%;min-height:50px;border-radius:14px;font-size:15.5px;font-weight:700;border:1px solid var(--line,#E5E5EA);background:var(--panel,#F2F2F7);color:var(--ttext);}
+.data-main-btn.danger{color:var(--danger,#FF3B30);border-color:rgba(255,59,48,.35);background:rgba(255,59,48,.08);}
+.data-sub-btn{width:100%;min-height:44px;border-radius:12px;font-size:14px;border:1px solid var(--line,#E5E5EA);background:var(--panel,#F2F2F7);color:var(--ttext);}
+.data-more summary{list-style:none;display:flex;align-items:center;justify-content:space-between;min-height:42px;padding:0 12px;border-radius:12px;background:var(--panel,#F2F2F7);color:var(--sub,#8E8E93);font-size:13px;}
+.data-more summary::-webkit-details-marker{display:none;}
+.data-more summary span{transition:transform .2s;font-size:12px;}
+.data-more[open] summary span{transform:rotate(180deg);}
+.data-more-body{display:flex;flex-direction:column;gap:8px;margin-top:8px;}
+.data-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.data-grid .data-sub-btn:last-child:nth-child(odd){grid-column:1/3;}
+.data-danger{margin-top:4px;padding-top:12px;border-top:1px solid rgba(255,69,58,.2);display:flex;flex-direction:column;gap:8px;}
+.data-danger .data-block-title{color:#FF6B63;font-size:14px;}
+.data-danger .data-sub-btn{color:var(--danger,#FF3B30);border-color:rgba(255,59,48,.28);}
+</style>
 </head>
 <body>
 <!-- v43-121：静态首屏。HTML 一解析到这里就先显示品牌，不再等 2MB 脚本执行完才出画面。 -->
@@ -4620,41 +4638,60 @@ setTimeout(function(){
       <!-- 数据 -->
       <div class="set-sec-title">数据管理</div>
       <div class="set-group">
-        <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;">
-          <div class="set-label" style="font-size:14px;">恢复数据</div>
-          <button class="small-btn ghost" style="width:100%;font-size:15px;padding:13px 12px;font-weight:700;color:var(--danger);" id="btn-recover-everything">恢复全部数据（含已删除）</button>
-          <button class="small-btn ghost" style="width:100%;font-size:14px;padding:11px 12px;" id="btn-recover-30d">只恢复近 30 天（含已删除）</button>
-          <button class="small-btn ghost" style="width:100%;font-size:14px;padding:11px 12px;" id="btn-quick-restore">快速恢复（最近一份备份）</button>
+        <div class="data-panel">
+          <div class="data-block-title">恢复数据</div>
+          <div class="data-block-sub">优先从本机备份恢复，云端空白也能用；删除过的内容选第一项</div>
+          <button class="data-main-btn danger" id="btn-recover-everything">恢复全部数据（含已删除）</button>
+          <button class="data-main-btn" id="btn-recover-30d">只恢复近 30 天（含已删除）</button>
+          <details class="data-more">
+            <summary>更多恢复方式<span>▾</span></summary>
+            <div class="data-more-body">
+              <button class="data-sub-btn" id="btn-quick-restore">快速恢复（最近一份备份）</button>
+              <button class="data-sub-btn" id="btn-recover-all2">恢复全部数据（保留删除）</button>
+              <button class="data-sub-btn" id="btn-cloud-replace2">云端还原（用云端覆盖本机）</button>
+              <button class="data-sub-btn" id="btn-deep-restore2">深度恢复（本机旧库 + 云端）</button>
+              <button class="data-sub-btn" id="btn-tomb-clean">清理批量误删标记（不动逐条删除）</button>
+            </div>
+          </details>
+          <div class="set-sub" id="restore-status" style="display:none;margin:0;line-height:1.5;">正在恢复…</div>
+          <div class="set-sub" id="restore-debug" style="display:none;margin:0;white-space:pre-wrap;line-height:1.6;"></div>
         </div>
-        <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;">
-          <button class="small-btn ghost" style="width:100%;font-size:14px;padding:11px 12px;" id="btn-recover-all2">恢复全部数据（保留删除）</button>
+      </div>
+
+      <div class="set-sec-title">备份与导出</div>
+      <div class="set-group">
+        <div class="data-panel">
+          <button class="data-main-btn" id="btn-snapshots">自动备份（最近 7 次）</button>
+          <div class="set-sub" id="snap-sub" style="margin:-2px 0 2px;line-height:1.5;">每天自动存一份，点开可查看或单独恢复</div>
+          <button class="data-main-btn" id="btn-export">全量导出全部数据</button>
+          <div class="data-grid">
+            <button class="data-sub-btn" id="btn-export-chat">只导出聊天</button>
+            <button class="data-sub-btn" id="btn-export-social">只导出信件动态留言</button>
+            <button class="data-sub-btn" id="btn-export-emoji">只导出表情包</button>
+          </div>
         </div>
-        <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;">
-          <button class="small-btn ghost" style="width:100%;font-size:14px;padding:11px 12px;" id="btn-cloud-replace2">云端还原（用云端覆盖本机）</button>
+      </div>
+
+      <div class="set-sec-title">导入</div>
+      <div class="set-group">
+        <div class="data-panel">
+          <label class="data-main-btn" for="file-import" style="display:flex;align-items:center;justify-content:center;cursor:pointer;text-align:center;">导入数据（全量/分类自动识别）</label>
         </div>
-        <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;">
-          <button class="small-btn ghost" style="width:100%;font-size:14px;padding:11px 12px;" id="btn-deep-restore2">深度恢复（本机旧库 + 云端）</button>
+      </div>
+
+      <div class="set-sec-title">清空与危险操作</div>
+      <div class="set-group">
+        <div class="data-panel data-danger">
+          <div class="data-block-title">只清内容</div>
+          <button class="data-sub-btn" id="btn-clear-msgs">清空聊天记录（含一起听房间聊天）</button>
+          <button class="data-sub-btn" id="btn-clear-music-room">清空一起听聊天记录（保留歌单）</button>
+          <div class="set-sub" style="margin:-2px 0 0;line-height:1.5;">只清歌词页房间里的聊天；歌单、当前歌曲和背景都不动</div>
+          <div class="data-block-title" style="margin-top:6px;">清除整机</div>
+          <button class="data-sub-btn" id="btn-reset-all">一键清除本机（云端保留）</button>
+          <div class="set-sub" style="margin:-2px 0 0;line-height:1.5;">只清这台设备，云端存档保留；之后可用「云端还原」拉回</div>
+          <button class="data-sub-btn" id="btn-reset-all-cloud" style="font-weight:700;">一键清除全部（本机 + 云端）</button>
+          <div class="set-sub" style="margin:-2px 0 0;line-height:1.5;">本机和云端一起清空，清完不可恢复；确定两边都不要了再用</div>
         </div>
-        <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;">
-          <button class="small-btn ghost" style="width:100%;font-size:14px;padding:11px 12px;" id="btn-tomb-clean">清理批量误删标记（不动逐条删除）</button>
-        </div>
-        <div class="set-row"><div class="set-sub" id="restore-status" style="display:none;margin:0;">正在恢复…</div></div>
-        <div class="set-row"><div class="set-sub" id="restore-debug" style="display:none;margin:0;white-space:pre-wrap;line-height:1.6;"></div></div>
-        <div class="set-row"><button class="small-btn ghost" style="width:100%;" id="btn-export">全量导出（聊天 / 信件 / 动态 / 字卡 / 表情 / 设置）</button></div>
-        <div class="set-row" style="gap:8px;">
-          <button class="small-btn ghost" style="flex:1;font-size:13px;" id="btn-export-chat">只导出聊天</button>
-          <button class="small-btn ghost" style="flex:1;font-size:13px;" id="btn-export-social">只导出信件动态留言</button>
-          <button class="small-btn ghost" style="flex:1;font-size:13px;" id="btn-export-emoji">只导出表情包</button>
-        </div>
-        <div class="set-row" style="flex-direction:column;align-items:stretch;">
-          <button class="small-btn ghost" style="width:100%;" id="btn-snapshots">自动备份（最近 7 次）</button>
-          <div class="set-sub" id="snap-sub" style="margin-top:6px;">每天自动存一份，点开可一键恢复</div>
-        </div>
-        <div class="set-row"><label class="small-btn ghost" for="file-import" style="width:100%;display:flex;align-items:center;justify-content:center;cursor:pointer;text-align:center;">导入数据（全量/分类自动识别）</label></div>
-        <div class="set-row"><button class="small-btn ghost" style="width:100%;" id="btn-clear-msgs">清空聊天记录（含一起听房间聊天）</button></div>
-        <div class="set-row" style="flex-direction:column;align-items:stretch;"><button class="small-btn ghost" style="width:100%;" id="btn-clear-music-room">清空一起听聊天记录（保留歌单）</button><div class="set-sub" style="margin-top:6px;">只清空歌词页房间里的聊天；一起听的歌单、当前歌曲和背景都不动</div></div>
-        <div class="set-row" style="flex-direction:column;align-items:stretch;"><button class="small-btn ghost" style="width:100%;color:var(--danger);" id="btn-reset-all">一键清除本机（云端保留）</button><div class="set-sub" style="margin-top:6px;">只清这台设备的聊天、字卡、动态和设置；云端存档保留，之后可点「云端还原」拉回</div></div>
-        <div class="set-row" style="flex-direction:column;align-items:stretch;"><button class="small-btn ghost" style="width:100%;color:var(--danger);font-weight:700;" id="btn-reset-all-cloud">一键清除全部（本机 + 云端）</button><div class="set-sub" style="margin-top:6px;">本机和云端一起清空，清完不可恢复；只在你确定两边都不要了时用</div></div>
       </div>
       <div class="set-sec-title">存储空间</div>
       <div class="set-group">
@@ -21781,7 +21818,7 @@ $("set-letter-max-sec").addEventListener("change",e=>{state.settings.letterMaxSe
     if(t==="问卷"||t==="红包"||t==="听歌"||t==="画画"||t==="电话"||t==="拍一拍"||t==="网易云账号")return 3;
     if(t==="自己的 AI 接口"||t.indexOf("自己的云端接口")===0||t.indexOf("语音配置")===0||t.indexOf("语音转文字")===0)return 4;
     if(t==="外观")return 5;
-    if(t==="数据管理"||t==="存储空间")return 6;
+    if(t==="数据管理"||t==="存储空间"||t==="备份与导出"||t==="导入"||t==="清空与危险操作")return 6;
     return 2;
   }
   var leads=["账号、资料、进站密码、安装与版本","聊天回复、提示音、撤回、通知与免打扰","主页动态、评论、留言与信件","问卷、红包、听歌、画画与电话","AI 接口、云端存档、语音合成与转文字","字体、头像、气泡、主题与透明度","导入导出、自动备份与存储空间"];
