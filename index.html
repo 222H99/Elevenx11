@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183z23";
+window.__E11_BUILD="2026-11-24v43-183z24";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2716,7 +2716,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183z23">
+<meta name="app-build" content="2026-11-24v43-183z24">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -6540,21 +6540,55 @@ setTimeout(function(){
       return n;
     }catch(_){return 0;}
   };
-  window.__e11RecoverGuestbook=function(){
+  window.__e11RecoverGuestbook=function(force){
+    force=force===true;
+    function _busy(on,msg){
+      try{
+        ["gb-recover","gb-reload"].forEach(function(id){var b=document.getElementById(id);if(b){b.disabled=!!on;b.style.opacity=on?".55":"";}});
+        var st=document.getElementById("gb-recovery-status");
+        if(st){st.textContent=msg||"";st.style.display=msg?"block":"none";}
+        if(on){var rb=document.getElementById("gb-recover");if(rb)rb.textContent="正在查找…";}
+        else{var rb2=document.getElementById("gb-recover");if(rb2)rb2.textContent="找回旧留言";}
+      }catch(_){}
+    }
+    var before=0;try{before=(state.guestbook||[]).length;}catch(_){}
+    _busy(true,"正在查本机备份、离站快照、自动备份和云端…");
     var n=0;try{n=window.__e11SocialLocalMerge?window.__e11SocialLocalMerge(state):0;}catch(_){}
     try{if(window.__e11ApplyDeleted)window.__e11ApplyDeleted(state,["guestbook"]);}catch(_){}
     if(n){try{save();__flushSave(true);renderGuestbook(true);updateNewBadge();}catch(_){}}
     var p=Promise.resolve(n);
     try{if(window.__e11SocialAudit)p=p.then(function(){return window.__e11SocialAudit();});}catch(_){}
-    p=p.then(function(){try{return window.__recoverSocialFromBackups?__recoverSocialFromBackups():0;}catch(_){return 0;}});
-    p=p.then(function(){try{return window.__recoverMediaFromCloud?__recoverMediaFromCloud():0;}catch(_){return 0;}});
-    return p.then(function(){
-      var before=n,total=Array.isArray(state.guestbook)?state.guestbook.length:0;
-      try{if(window.__e11ApplyDeleted)window.__e11ApplyDeleted(state,["guestbook"]);}catch(_){}
-      try{renderGuestbook(true);updateNewBadge();if(total)save();}catch(_){}
-      try{toast(total>before?("已找回留言，共 "+total+" 条"):(n?("已找回 "+n+" 条留言"):"暂时没找到可恢复的留言"));}catch(_){}
-      return total;
+    p=p.then(function(){try{return window.__recoverSocialFromBackups?__recoverSocialFromBackups(force):0;}catch(_){return 0;}});
+    p=p.then(function(){
+      try{
+        /* 手动找回必须重新向云端要一次，不能吃 15 秒缓存。 */
+        window.__e11CloudCache=null;window.__e11CloudGetPending=null;
+      }catch(_){}
+      try{return window.__recoverMediaFromCloud?__recoverMediaFromCloud():0;}catch(_){return 0;}
     });
+    p=p.then(function(){
+      var total=0;try{if(window.__e11ApplyDeleted)window.__e11ApplyDeleted(state,["guestbook"]);total=(state.guestbook||[]).length;}catch(_){}
+      if(total>0||!force||!window.__E11DeepRestore)return total;
+      /* 普通备份和最新云档都没有时，手动“找回旧留言”再走一次深度恢复：
+         它会同时读云端完整档 + 3 份自动备份，按 id 合并，仍按墓碑过滤。 */
+      _busy(true,"备份里没有，正在读云端完整档和 3 份自动备份…");
+      return window.__E11DeepRestore().then(function(){
+        try{if(window.__e11ApplyDeleted)window.__e11ApplyDeleted(state,["guestbook"]);}catch(_){}
+        return (state.guestbook||[]).length;
+      }).catch(function(){return 0;});
+    }).then(function(total){
+      try{renderGuestbook(true);updateNewBadge();if(total)save();}catch(_){}
+      try{if(document.getElementById("view-guestbook")&&!document.getElementById("view-guestbook").classList.contains("open"))showView("view-guestbook");}catch(_){}
+      _busy(false,"");
+      var got=total-before;
+      try{toast(total?("留言已恢复，现在共 "+total+" 条"+(got>0?"（新增 "+got+" 条）":"")):"没找到可恢复的留言：这台设备和当前云端都没有更多副本");}catch(_){}
+      if(!total){try{var st=document.getElementById("gb-recovery-status");if(st){st.style.display="block";st.textContent="没有找到更多副本。可以登录云端账号后再点一次，或在设置里用「深度恢复」。";}}catch(_){}}
+      return total;
+    }).catch(function(e){
+      _busy(false,"");try{toast("查找失败："+String(e&&e.message||e).slice(0,80));}catch(_){}
+      return before;
+    });
+    return p;
   };
   function __e11MergeCloudFull(full,latest){
     if(!full||!full.state)return latest;
@@ -8323,11 +8357,12 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-183z23",
-  time:"2026-11-24 19:00",
+  date:"v43-183z24",
+  time:"2026-11-24 19:10",
   noticeKey:null,
-  lead:"2026-11-24 19:00 修改（v43-183z23）：页内来消息提示条改成 3 秒自动收起，不再一直压在界面顶部；短提示也缩短到 1.2 / 2 秒。",
+  lead:"2026-11-24 19:10 修改（v43-183z24）：留言页「找回旧留言 / 重新载入」两个按钮真正跑完整恢复流程，有查找中状态和结果提示；普通查找没有时再走云端完整档 + 3 份自动备份的深度恢复。",
   items:[
+    "找回留言按钮无效（v43-183z24）：「找回旧留言」以前只是调几个恢复函数，旧版还会被“恢复过一次”的标记挡住，恢复时又按演示文案过滤，点了看起来没反应。「重新载入」也只重画同一个空列表。现在两个按钮都走强制恢复：绕过恢复标记、清掉云端 15 秒缓存、重新读本机备份/离站快照/自动备份/云端；普通来源没有时再自动走一次深度恢复（云端完整档 + 3 份自动备份）。查找期间按钮显示「正在查找…」和进度，结束明确提示恢复了几条，或者明确说明没有更多副本。",
     "页内提示条停留太久（v43-183z23）：顶部来消息提示条以前只负责显示，没有自动收起，除非点 X 或切页就一直压在界面上。现在显示 3 秒自动收起；新消息进来会重新计时，点提示条仍然直达聊天。普通 toast 也缩短为短句 1.2 秒、长句 2 秒。",
     "留言页白屏（v43-183z22）：两个原因都收掉了。上一版删除指纹只按 from+文案，删一句常见话会把它所有同句留言一起挡掉；现在指纹加上原条目的 time，只挡“同一条换了 id”，并清掉旧版指纹键，被误伤的同句留言会回来。另一个是留言列表可能已经渲染成空壳但签名没变，再次进入就直接跳过绘制；现在只有列表里真的有卡片或空态才复用，否则强制重画，最后再加一层兜底，绝不留整片空白。",
     "留言数据丢失与找回（v43-183z21）：以前留言只存在当前存档、自动备份和云端，任意一份旧档把数组盖空就看起来全没了。现在动态/信件/留言每次变化都同步写一份独立小备份，启动先按 id 接回来；留言页空的时候可以直接点「找回旧留言」，会依次查本机备份、离站快照、自动备份和云端。另外移除了按“演示文案”删真实留言的旧逻辑——那几句和自动生成的字卡高度重合，是数据被误删的一个来源。",
@@ -13527,7 +13562,8 @@ window.__e11SocialAudit=function(){
 window.__e11SocialAudit=window.__e11SocialAudit;
 /* 动态 / 信箱 / 留言被清空时（云端旧档、配额写入、版本切换都可能造成），
    从三份自动备份里把内容按 id 接回来；只补空列表，不覆盖现有内容。 */
-function __recoverSocialFromBackups(){
+function __recoverSocialFromBackups(force){
+  force=force===true;
   try{
     if(window.__socialBkRecovering||typeof __bkMeta!=="function"||typeof dbGet!=="function")return Promise.resolve(false);
     var needL=!Array.isArray(state.letters)||state.letters.length===0;
@@ -13535,7 +13571,7 @@ function __recoverSocialFromBackups(){
     var needG=!Array.isArray(state.guestbook)||state.guestbook.length===0;
     if(!needL&&!needM&&!needG)return Promise.resolve(false);
     var mark="e11.socialBkRestored.";
-    function can(k){try{return localStorage.getItem(mark+k)!=="1";}catch(_){return true;}}
+    function can(k){try{return force||localStorage.getItem(mark+k)!=="1";}catch(_){return true;}}
     needL=needL&&can("letters");needM=needM&&can("moments");needG=needG&&can("guestbook");
     if(!needL&&!needM&&!needG)return Promise.resolve(false);
     window.__socialBkRecovering=1;
@@ -13545,9 +13581,7 @@ function __recoverSocialFromBackups(){
         return (arr||[]).filter(function(x){
           if(!x)return false;
           if(x.id&&window.__e11IsDeleted&&window.__e11IsDeleted(k,x.id))return false;
-          var t=String(x.text||""),s=String(x.subject||""),b=String(x.body||"");
-          try{if(typeof DEMO_MOMENT!=="undefined"&&DEMO_MOMENT.indexOf(t)>=0)return false;}catch(_){}
-          try{if(typeof DEMO_LETTER!=="undefined"&&DEMO_LETTER.subject&&DEMO_LETTER.subject.indexOf(s)>=0&&DEMO_LETTER.body&&DEMO_LETTER.body.indexOf(b)>=0)return false;}catch(_){}
+          /* v43-183z24：恢复时不再按演示文案过滤，真实内容优先。 */
           return true;
         });
       }
@@ -13572,7 +13606,7 @@ function __recoverSocialFromBackups(){
     }).then(function(changed){
       window.__socialBkRecovering=0;
       if(changed){
-        try{if(!needL)localStorage.setItem(mark+"letters","1");if(!needM)localStorage.setItem(mark+"moments","1");if(!needG)localStorage.setItem(mark+"guestbook","1");}catch(_){}
+        try{if(!force){if(!needL)localStorage.setItem(mark+"letters","1");if(!needM)localStorage.setItem(mark+"moments","1");if(!needG)localStorage.setItem(mark+"guestbook","1");}}catch(_){}
         try{renderMoments();}catch(_){}
         try{renderLetters(true);}catch(_){}
         try{renderGuestbook(true);}catch(_){}
@@ -28941,7 +28975,7 @@ function renderGuestbook(force){
     });
     try{__bindStarButtons(root);}catch(_){}
   }
-  const empty=notes.length===0?'<div class="empty-hint" style="flex-direction:column;gap:12px;color:var(--ttext,#111);"><span>还没有留言，留一句吧。</span><button class="small-btn ghost" id="gb-recover" style="font-size:12px;padding:6px 12px;">找回旧留言</button><button class="small-btn ghost" id="gb-reload" style="font-size:12px;padding:6px 12px;">重新载入</button></div>':'';
+  const empty=notes.length===0?'<div class="empty-hint" style="flex-direction:column;gap:12px;color:var(--ttext,#111);"><span>还没有留言，留一句吧。</span><button class="small-btn ghost" id="gb-recover" style="font-size:12px;padding:6px 12px;">找回旧留言</button><button class="small-btn ghost" id="gb-reload" style="font-size:12px;padding:6px 12px;">重新载入</button><div id="gb-recovery-status" style="display:none;font-size:12px;line-height:1.5;max-width:280px;opacity:.75;"></div></div>':'';
   const unreadIds=gbUnread.filter(id=>notes.some(n=>n.id===id));
   const bar=unreadIds.length?'<div class="gb-newbar" id="gb-newbar">🔔 有新留言/回复（'+unreadIds.length+'）· 点击查看</div>':'';
   list.innerHTML=bar+empty+'<div class="qa-list"></div>';
@@ -28949,7 +28983,7 @@ function renderGuestbook(force){
     var _rb=document.getElementById("gb-recover");
     if(_rb)_rb.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();try{window.__e11RecoverGuestbook&&window.__e11RecoverGuestbook();}catch(_){}});
     var _rl=document.getElementById("gb-reload");
-    if(_rl)_rl.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();try{window.__rSig&&(window.__rSig["guest"]=null);renderGuestbook(true);}catch(_){}});
+    if(_rl)_rl.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();try{window.__rSig&&(window.__rSig["guest"]=null);window.__e11RecoverGuestbook?window.__e11RecoverGuestbook(true):renderGuestbook(true);}catch(_){}});
   }catch(_){}
   const qaList=list.querySelector('.qa-list');
   let gbShown=0;
@@ -28966,7 +29000,7 @@ function renderGuestbook(force){
   window.__gbMore=function(){return gbAppend(GB_CHUNK);};
   gbAppend(allCards.length<=GB_CHUNK?allCards.length:GB_CHUNK);
   /* v43-183z22：无论数据多畸形，进来至少要有一张卡或空态，绝不能留整片空白。 */
-  try{if(!list.querySelector(".qa-card,.empty-hint")){list.innerHTML='<div class="empty-hint" style="flex-direction:column;gap:12px;color:var(--ttext,#111);"><span>留言暂时没能画出来</span><button class="small-btn ghost" id="gb-reload" style="font-size:12px;padding:6px 12px;">重新载入</button></div>';var _rl2=document.getElementById("gb-reload");if(_rl2)_rl2.onclick=function(){window.__rSig&&(window.__rSig["guest"]=null);renderGuestbook(true);};}}catch(_eGbFallback){}
+  try{if(!list.querySelector(".qa-card,.empty-hint")){list.innerHTML='<div class="empty-hint" style="flex-direction:column;gap:12px;color:var(--ttext,#111);"><span>留言暂时没能画出来</span><button class="small-btn ghost" id="gb-reload" style="font-size:12px;padding:6px 12px;">重新载入</button></div>';var _rl2=document.getElementById("gb-reload");if(_rl2)_rl2.onclick=function(){window.__rSig&&(window.__rSig["guest"]=null);try{window.__e11RecoverGuestbook?window.__e11RecoverGuestbook(true):renderGuestbook(true);}catch(_){}};}}catch(_eGbFallback){}
   /* v43-183z20：留言页真正滚动的是 #note-list，不是 .v-body。
      以前监听错了对象，超过首屏 20 条的旧留言永远不再 append，
      用户看到的就是“历史记录没有了”。两个都挂上，哪个在滚都能续。 */
