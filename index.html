@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183z21";
+window.__E11_BUILD="2026-11-24v43-183z22";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -1934,6 +1934,7 @@ body.e11-kb-on .auth-gate{align-items:flex-start;padding-top:14px;padding-bottom
 body.e11-kb-on .auth-card{margin-top:0;}
 /* ===== 开幕动画（水玻璃雨滴·宿命感） ===== */
 o{opacity:1;transform:translateY(0);}}
+#view-guestbook{background:var(--bg,#fff);}
 #view-guestbook .v-body{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;padding:0 0 12px;overflow:hidden;overflow-anchor:none;}
 .gb-bg{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:var(--gb-bg,linear-gradient(180deg,var(--bg),var(--bg)));}
 .gb-hero{position:relative;z-index:1;display:flex;flex-direction:column;align-items:stretch;margin:14px 14px 0;padding:16px;border-radius:22px;
@@ -2715,7 +2716,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183z21">
+<meta name="app-build" content="2026-11-24v43-183z22">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -6310,7 +6311,7 @@ setTimeout(function(){
   window.__e11DelLocalRead=__e11DelLocalRead;  /* v43-183z21：删除意图除了按 id 记，再按「内容指纹」记一层。
      云端旧档/跨作用域合并/导入备份时，同一条内容偶尔会换 id 回来（尤其信件和动态），
      只按 id 过滤就会“删了更新后又恢复”。指纹按 90 天有效期，避免把以后新发的同句也永久挡住。 */
-  window.__E11_DEL_FP_KEY="e11.deleted.fp.v1";
+  window.__E11_DEL_FP_KEY="e11.deleted.fp.v2";
   window.__E11_DEL_TTL=90*24*3600*1000;
   function __e11FpRead(){try{var o=JSON.parse(localStorage.getItem(window.__E11_DEL_FP_KEY)||"{}");return (o&&typeof o==="object")?o:{};}catch(_){return {};}}
   function __e11FpWrite(o){try{localStorage.setItem(window.__E11_DEL_FP_KEY,JSON.stringify(o||{}));}catch(_){}}
@@ -6326,10 +6327,14 @@ setTimeout(function(){
     try{
       if(!kind||!x||typeof x!=="object")return "";
       var raw;
-      if(kind==="letters")raw=[x.from||"",x.subject||"",x.body||x.text||""].join("\u0001");
-      else if(kind==="moments")raw=[x.from||"",x.text||"",x.repostOf||"",x.img?"img":""].join("\u0001");
-      else if(kind==="guestbook")raw=[x.from||"",x.text||x.ans&&x.ans.text||""].join("\u0001");
-      else raw=[x.from||"",x.text||"",x.title||""].join("\u0001");
+      /* v43-183z22：指纹必须带原条目的 time。
+         上一版只按 from+text 记，删掉一句常见文案后，会把它所有同句留言/动态一起挡掉；
+         time 相同才是“同一条被云端换了 id”，新发的同句不会被误杀。 */
+      var _t=String(Number(x.time)||0);
+      if(kind==="letters")raw=[x.from||"",x.subject||"",x.body||x.text||"",_t].join("\u0001");
+      else if(kind==="moments")raw=[x.from||"",x.text||"",x.repostOf||"",x.img?"img":"",_t].join("\u0001");
+      else if(kind==="guestbook")raw=[x.from||"",x.text||x.ans&&x.ans.text||"",_t].join("\u0001");
+      else raw=[x.from||"",x.text||"",x.title||"",_t].join("\u0001");
       var fp=__e11FpHash(raw);return fp?(kind+":"+fp):"";
     }catch(_){return "";}
   };
@@ -8318,11 +8323,12 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-183z21",
-  time:"2026-11-24 18:42",
+  date:"v43-183z22",
+  time:"2026-11-24 18:52",
   noticeKey:null,
-  lead:"2026-11-24 18:42 修改（v43-183z21）：留言数据独立备份，丢了能找回；删除的动态/信件/留言加了内容指纹墓碑，更新后不再复活；屏幕按原生真实宽度铺满，右边白条再兜一层。",
+  lead:"2026-11-24 18:52 修改（v43-183z22）：修留言页白屏；上一版的内容指纹会误伤同句留言，这版改成带 time 的指纹并清掉旧键；留言页无论数据怎样都至少显示卡片或空态。",
   items:[
+    "留言页白屏（v43-183z22）：两个原因都收掉了。上一版删除指纹只按 from+文案，删一句常见话会把它所有同句留言一起挡掉；现在指纹加上原条目的 time，只挡“同一条换了 id”，并清掉旧版指纹键，被误伤的同句留言会回来。另一个是留言列表可能已经渲染成空壳但签名没变，再次进入就直接跳过绘制；现在只有列表里真的有卡片或空态才复用，否则强制重画，最后再加一层兜底，绝不留整片空白。",
     "留言数据丢失与找回（v43-183z21）：以前留言只存在当前存档、自动备份和云端，任意一份旧档把数组盖空就看起来全没了。现在动态/信件/留言每次变化都同步写一份独立小备份，启动先按 id 接回来；留言页空的时候可以直接点「找回旧留言」，会依次查本机备份、离站快照、自动备份和云端。另外移除了按“演示文案”删真实留言的旧逻辑——那几句和自动生成的字卡高度重合，是数据被误删的一个来源。",
     "删除后更新又复活（v43-183z21）：以前只按 id 记墓碑，云端旧档或跨作用域合并偶尔会换 id 把同一条内容带回来。现在删除时同时记内容指纹（动态/信件/留言，90 天有效），加载、云端合并、备份恢复、每次渲染都按 id + 指纹双重过滤；删信件会连同下面所有回复一起删；删除后立刻强制落盘并推云端，不等 1.8 秒排程。",
     "屏幕还是不适配（v43-183z21）：手机端舞台原来封顶 440，480dp 或系统显示大小放大后的机型会被截成 440，右边留白。现在手机端按真实可见宽度铺满，上限放到 600；APK 新增原生 getScreenWidthDp，网页里的 screen.width 报小时直接拿物理宽/density 的真实 dp 宽兜底。",
@@ -28736,6 +28742,14 @@ var _lsBtn=$("letter-send");if(_lsBtn)_lsBtn.addEventListener("click",function()
 
 /* ===== 留言板 ===== */
 function renderGuestbook(force){
+  try{
+    if(!window.__stateReady||!state||!Array.isArray(state.guestbook)||!document.getElementById("note-list")){
+      setTimeout(function(){try{renderGuestbook(true);}catch(_){}},260);return;
+    }
+  }catch(_eGbNotReady){return;}
+  /* v43-183z22：旧指纹键（只按文案）会把同句留言成批挡掉，升级时清掉一次；
+     新指纹带 time，只挡“同一条内容换了 id”，不会再误杀同句新留言。 */
+  try{if(!window.__e11FpV1Cleared){window.__e11FpV1Cleared=1;localStorage.removeItem("e11.deleted.fp.v1");}}catch(_){}
   /* v43-183z21：渲染前先按墓碑清一次，并用独立备份补回被旧档覆盖掉的留言。
      这样即使云端恢复晚到、或当前数组被写成空，页面也不会直接空白。 */
   try{
@@ -28750,7 +28764,7 @@ function renderGuestbook(force){
   var _s="guest|";
   try{_s+=__sigOfList(state.guestbook);}catch(e){_s+="raw"+(state.guestbook?state.guestbook.length:0);}
   if(!window.__rSig)window.__rSig={};
-  if(!force&&window.__rSig["guest"]===_s&&$("note-list")&&$("note-list").innerHTML)return;
+  if(!force&&window.__rSig["guest"]===_s&&$("note-list")&&$("note-list").querySelector(".qa-card,.empty-hint"))return;
   window.__rSig["guest"]=_s;
 
   try{
@@ -28920,13 +28934,15 @@ function renderGuestbook(force){
     });
     try{__bindStarButtons(root);}catch(_){}
   }
-  const empty=notes.length===0?'<div class="empty-hint" style="flex-direction:column;gap:12px;"><span>还没有留言，留一句吧。</span><button class="small-btn ghost" id="gb-recover" style="font-size:12px;padding:6px 12px;">找回旧留言</button></div>':'';
+  const empty=notes.length===0?'<div class="empty-hint" style="flex-direction:column;gap:12px;color:var(--ttext,#111);"><span>还没有留言，留一句吧。</span><button class="small-btn ghost" id="gb-recover" style="font-size:12px;padding:6px 12px;">找回旧留言</button><button class="small-btn ghost" id="gb-reload" style="font-size:12px;padding:6px 12px;">重新载入</button></div>':'';
   const unreadIds=gbUnread.filter(id=>notes.some(n=>n.id===id));
   const bar=unreadIds.length?'<div class="gb-newbar" id="gb-newbar">🔔 有新留言/回复（'+unreadIds.length+'）· 点击查看</div>':'';
   list.innerHTML=bar+empty+'<div class="qa-list"></div>';
   try{
     var _rb=document.getElementById("gb-recover");
     if(_rb)_rb.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();try{window.__e11RecoverGuestbook&&window.__e11RecoverGuestbook();}catch(_){}});
+    var _rl=document.getElementById("gb-reload");
+    if(_rl)_rl.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();try{window.__rSig&&(window.__rSig["guest"]=null);renderGuestbook(true);}catch(_){}});
   }catch(_){}
   const qaList=list.querySelector('.qa-list');
   let gbShown=0;
@@ -28942,6 +28958,8 @@ function renderGuestbook(force){
   }
   window.__gbMore=function(){return gbAppend(GB_CHUNK);};
   gbAppend(allCards.length<=GB_CHUNK?allCards.length:GB_CHUNK);
+  /* v43-183z22：无论数据多畸形，进来至少要有一张卡或空态，绝不能留整片空白。 */
+  try{if(!list.querySelector(".qa-card,.empty-hint")){list.innerHTML='<div class="empty-hint" style="flex-direction:column;gap:12px;color:var(--ttext,#111);"><span>留言暂时没能画出来</span><button class="small-btn ghost" id="gb-reload" style="font-size:12px;padding:6px 12px;">重新载入</button></div>';var _rl2=document.getElementById("gb-reload");if(_rl2)_rl2.onclick=function(){window.__rSig&&(window.__rSig["guest"]=null);renderGuestbook(true);};}}catch(_eGbFallback){}
   /* v43-183z20：留言页真正滚动的是 #note-list，不是 .v-body。
      以前监听错了对象，超过首屏 20 条的旧留言永远不再 append，
      用户看到的就是“历史记录没有了”。两个都挂上，哪个在滚都能续。 */
