@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183z22";
+window.__E11_BUILD="2026-11-24v43-183z23";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2716,7 +2716,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183z22">
+<meta name="app-build" content="2026-11-24v43-183z23">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -8127,7 +8127,7 @@ function dayLabel(ts){
 function toast(msg){
   const t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(t._t);
   /* 页内提示不再统一停 2.2 秒：短提示 1.4 秒就收，长一点的错误/说明最多 2.4 秒。 */
-  const _ms=String(msg==null?"":msg).length>20?2400:1400;
+  const _ms=String(msg==null?"":msg).length>20?2000:1200;
   t._t=setTimeout(()=>t.classList.remove("show"),_ms);
 }
 /* ===== 来消息浮动弹窗 ===== */
@@ -8323,11 +8323,12 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-183z22",
-  time:"2026-11-24 18:52",
+  date:"v43-183z23",
+  time:"2026-11-24 19:00",
   noticeKey:null,
-  lead:"2026-11-24 18:52 修改（v43-183z22）：修留言页白屏；上一版的内容指纹会误伤同句留言，这版改成带 time 的指纹并清掉旧键；留言页无论数据怎样都至少显示卡片或空态。",
+  lead:"2026-11-24 19:00 修改（v43-183z23）：页内来消息提示条改成 3 秒自动收起，不再一直压在界面顶部；短提示也缩短到 1.2 / 2 秒。",
   items:[
+    "页内提示条停留太久（v43-183z23）：顶部来消息提示条以前只负责显示，没有自动收起，除非点 X 或切页就一直压在界面上。现在显示 3 秒自动收起；新消息进来会重新计时，点提示条仍然直达聊天。普通 toast 也缩短为短句 1.2 秒、长句 2 秒。",
     "留言页白屏（v43-183z22）：两个原因都收掉了。上一版删除指纹只按 from+文案，删一句常见话会把它所有同句留言一起挡掉；现在指纹加上原条目的 time，只挡“同一条换了 id”，并清掉旧版指纹键，被误伤的同句留言会回来。另一个是留言列表可能已经渲染成空壳但签名没变，再次进入就直接跳过绘制；现在只有列表里真的有卡片或空态才复用，否则强制重画，最后再加一层兜底，绝不留整片空白。",
     "留言数据丢失与找回（v43-183z21）：以前留言只存在当前存档、自动备份和云端，任意一份旧档把数组盖空就看起来全没了。现在动态/信件/留言每次变化都同步写一份独立小备份，启动先按 id 接回来；留言页空的时候可以直接点「找回旧留言」，会依次查本机备份、离站快照、自动备份和云端。另外移除了按“演示文案”删真实留言的旧逻辑——那几句和自动生成的字卡高度重合，是数据被误删的一个来源。",
     "删除后更新又复活（v43-183z21）：以前只按 id 记墓碑，云端旧档或跨作用域合并偶尔会换 id 把同一条内容带回来。现在删除时同时记内容指纹（动态/信件/留言，90 天有效），加载、云端合并、备份恢复、每次渲染都按 id + 指纹双重过滤；删信件会连同下面所有回复一起删；删除后立刻强制落盘并推云端，不等 1.8 秒排程。",
@@ -8851,7 +8852,13 @@ function maybeShowIncomingPop(m,force,test){
   const p=$("incoming-pop");
   if(p){
     try{if(!test&&typeof window.__msgPopOn==="function"&&window.__msgPopOn()===false){p.classList.remove("show");return;}}catch(_){}
-    p.classList.add("show");clearTimeout(incomingPopTimer);incomingPopTimer=null;
+    p.classList.add("show");clearTimeout(incomingPopTimer);
+    /* v43-183z23：页内来消息提示条以前只显示、不收，除非点 X 或切页，
+       会一直压在界面顶部。现在 3 秒自动收起；新消息来了就重新计时。 */
+    incomingPopTimer=setTimeout(function(){
+      try{var _pp=document.getElementById("incoming-pop");if(_pp)_pp.classList.remove("show");}catch(_){}
+      incomingPopTimer=null;
+    },3000);
   }
 }
 $("incoming-pop").addEventListener("click",()=>{
