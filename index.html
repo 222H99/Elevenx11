@@ -264,7 +264,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183z11";
+window.__E11_BUILD="2026-11-24v43-183z12";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2131,7 +2131,6 @@ body.ui-dark .invite-btn.no{background:rgba(255,255,255,.10);color:rgba(255,255,
 .mp-head{display:flex;align-items:flex-end;gap:12px;padding:0 14px;}
 .mp-avatar-wrap{width:72px;height:72px;flex:0 0 auto;position:relative;margin-top:-30px;z-index:2;}
 .mp-avatar{width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid var(--field);position:relative;z-index:2;background:var(--panel);box-shadow:0 1px 4px rgba(0,0,0,.15);cursor:pointer;}
-.mp-avatar-edit{position:absolute;right:-1px;bottom:2px;z-index:3;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;line-height:1;color:#fff;background:rgba(0,0,0,.58);border:1px solid rgba(255,255,255,.55);pointer-events:none;}
 .mp-head-r{flex:1;min-width:0;padding-bottom:2px;}
 .mp-name{font-size:19px;font-weight:700;color:var(--ttext);}
 .mp-handle{font-size:13px;color:#8E8E93;margin-top:2px;}
@@ -2142,6 +2141,8 @@ body.ui-dark .invite-btn.no{background:rgba(255,255,255,.10);color:rgba(255,255,
 .mp-bio{font-size:13px;color:var(--ttext);padding:8px 18px 4px;word-break:break-word;line-height:1.55;white-space:pre-line;height:53px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
 .mp-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .mp-actions{display:flex;gap:8px;padding:10px 18px 14px;}
+.mp-direct-tip{display:none;align-items:center;justify-content:center;height:51px;font-size:12px;color:#8E8E93;letter-spacing:.2px;}
+.mom-profile.partner-view .mp-direct-tip{display:flex;}
 .moment-card{background:var(--glass,rgba(255,255,255,.45));-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);border:1px solid var(--glassborder,rgba(255,255,255,.6));box-shadow:inset 0 1px 0 var(--glassinner,rgba(255,255,255,.5)),0 8px 24px rgba(0,0,0,.08);border-radius:20px;overflow:hidden;}
 .moment-head{display:flex;align-items:center;gap:10px;padding:12px 14px;}
 .moment-head .mh-av{width:40px;height:40px;border-radius:50%;object-fit:cover;flex:0 0 auto;background:var(--panel);}
@@ -2713,7 +2714,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183z11">
+<meta name="app-build" content="2026-11-24v43-183z12">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4461,7 +4462,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-24 16:35 · v43-183z11</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-24 16:45 · v43-183z12</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -4884,10 +4885,10 @@ setTimeout(function(){
     </div>
     <div class="v-body">
       <!-- 仿INS主页：封面 / 头像+昵称+账号 / 帖子·粉丝·关注 / 个签 -->
-      <div class="mom-profile">
+      <div class="mom-profile" id="mom-profile">
         <div class="mp-cover" id="mp-cover"></div>
         <div class="mp-head">
-          <div class="mp-avatar-wrap"><img class="mp-avatar" id="mp-avatar" alt=""><span class="mp-avatar-edit" aria-hidden="true">✎</span></div>
+          <div class="mp-avatar-wrap"><img class="mp-avatar" id="mp-avatar" alt=""></div>
           <div class="mp-head-r">
             <div class="mp-name" id="mom-name"></div>
             <div class="mp-handle" id="mp-handle"></div>
@@ -4903,6 +4904,7 @@ setTimeout(function(){
           <button class="small-btn ghost" id="btn-mp-cover" style="font-size:12px;padding:5px 10px;">换背景</button>
           <button class="small-btn ghost" id="btn-mp-bio" style="font-size:12px;padding:5px 10px;">编辑资料</button>
         </div>
+        <div class="mp-direct-tip" id="mp-direct-tip">点封面或头像即可更换</div>
       </div>
       <div class="mom-unread hidden" id="mom-unread"></div>
       <div class="moment-feed" id="moment-feed"></div>
@@ -8179,12 +8181,13 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-183z11",
-  time:"2026-11-24 16:35",
+  date:"v43-183z12",
+  time:"2026-11-24 16:45",
   noticeKey:null,
-  lead:"2026-11-24 16:35 修改（v43-183z11）：对方主页恢复直接换头像、换背景、编辑资料；主页背景面板可在“我的背景 / 他的背景”之间滑动切换；双方主页卡片改为同一高度；每次进入网站优先加载最新版，检查更新点了立即有反馈；公告版本号改为实际修改时间。",
+  lead:"2026-11-24 16:45 修改（v43-183z12）：对方主页去掉底部“换他的背景 / 编辑他的资料”，改成直接点封面换背景、点头像换头像；封面面板仍可在“我的背景 / 他的背景”之间点击或滑动切换；双方主页卡片保持同一高度。",
   items:[
-    "对方主页直接编辑（v43-183z11）：对方主页不再隐藏操作按钮，头像点一下就能换，底部直接有“换他的背景 / 编辑他的资料”。双方主页保留同一组按钮，封面、头像、数据、个签、按钮高度全部对齐，两张主页卡片一样高。",
+    "对方主页只留直接操作（v43-183z12）：对方主页底部不再出现“换他的背景 / 编辑他的资料”两个按钮。点封面直接打开背景面板，并默认选中“他的背景”；点头像直接打开选图换他的头像。底部只留一行很轻的提示“点封面或头像即可更换”，占住原按钮高度，卡片仍和我的主页一样大。头像右下角的小铅笔角标已去掉，头像本身照常可点。",
+    "我的主页保持原样（v43-183z12）：我的主页底部仍有“换背景 / 编辑资料”，点我的封面默认改“我的背景”，在背景面板里仍可滑到“他的背景”。头像点击也照旧直接换图，两边互不误改。",
     "背景滑动切换（v43-183z11）：点我的封面默认改“我的背景”，点对方封面默认改“他的背景”；选择面板顶部新增“我的背景 / 他的背景”分段开关，点一下或左右滑动都能切换，颜色、图片、清空只作用于当前选中的一方，不会误改另一方。",
     "编辑资料去掉换背景（v43-183z11）：编辑资料里的“主页封面 / 换背景”整行已删除，背景统一从主页封面或“换背景”按钮进入，不再出现两个入口互相打架。",
     "每次进入都是最新版（v43-183z11）：Service Worker 从“缓存优先、下次生效”改成“网络优先”：每次进入先拿线上最新 HTML，最多等 3 秒，拿到就直接显示；弱网或断网才用缓存兜底，同时在后台继续更新。请求额外带时间戳，绕过 CDN 和浏览器可能残留的旧页面，不再出现“更新了但打开还是上一版”。",
@@ -29071,11 +29074,14 @@ function renderMomentProfile(){
   if($("mom-view-title"))$("mom-view-title").textContent=isP?"对方主页":"主页";
 
   if($("btn-moment-post"))$("btn-moment-post").style.display=isP?"none":"";
-  /* v43-183z11：双方主页都保留同一组操作，卡片高度一致；
-     对方主页也能直接改头像、改背景和编辑资料。 */
-  if($("mp-actions"))$("mp-actions").style.display="";
-  if($("btn-mp-cover"))$("btn-mp-cover").textContent=isP?"换他的背景":"换背景";
-  if($("btn-mp-bio"))$("btn-mp-bio").textContent=isP?"编辑他的资料":"编辑资料";
+  /* v43-183z12：对方主页不显示底部“换他的背景 / 编辑他的资料”，
+     头像和封面本身直接可点；用一行等高的轻提示占住原来的按钮高度，卡片仍和我的主页一样大。 */
+  var _mpCard=document.getElementById("mom-profile");
+  if(_mpCard)_mpCard.classList.toggle("partner-view",isP);
+  if($("mp-actions")){
+    $("mp-actions").style.display=isP?"none":"";
+    if(isP)$("mp-actions").setAttribute("aria-hidden","true");else $("mp-actions").removeAttribute("aria-hidden");
+  }
   if($("mp-avatar"))$("mp-avatar").title=isP?"点击更换他的头像":"点击更换我的头像";
 }
 function authorName(f){return f==="me"?(state.profile.mpName||state.me.name):(state.profile.partnerMpName||state.partner.name);}
