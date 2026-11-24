@@ -140,7 +140,10 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
   window.__bootDone=function(){
     /* v43-176：启动时先让 showView 把主页打开，但不许它顺手撤启动层；
        等主页比例量完、套好之后再真正 reveal。否则第一眼看到 1.0，下一帧才缩/放。 */
-    if(window.__holdBootReveal){window.__bootDeferred=1;return;}
+    /* v43-183z20：最多按住 0.9 秒。以前一直等 IndexedDB 读完（最长 3.2 秒兜底），
+       慢机上进站先黑/白屏好几秒；现在界面先出来，比例和后台数据随后补。 */
+    if(window.__holdBootReveal&&Date.now()<(window.__bootRevealDeadline||0)){window.__bootDeferred=1;return;}
+    window.__holdBootReveal=0;
     /* v43-183z4：不要一调用就立刻把两层遮罩淡掉。等目标页真的画出一帧（两次 rAF）
        再淡，避免遮罩底下还是白底/黑底，用户看到“黑一下、白一下”。 */
     if(window.__bootRevealQueued)return;
@@ -264,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183z19";
+window.__E11_BUILD="2026-11-24v43-183z20";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2712,7 +2715,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183z19">
+<meta name="app-build" content="2026-11-24v43-183z20">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -8200,11 +8203,15 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-183z19",
-  time:"2026-11-24 18:18",
+  date:"v43-183z20",
+  time:"2026-11-24 18:24",
   noticeKey:null,
-  lead:"2026-11-24 18:18 修改（v43-183z19）：留言卡里点「回复对方」时，回复框不再压在键盘下面——留言页的列表恢复成真正可滚的一列，键盘弹起后回复框自动滚到键盘上沿以上，下面的留言也能继续滚。",
+  lead:"2026-11-24 18:24 修改（v43-183z20）：留言板旧历史能继续滚出来了；进站不再先黑好几秒；字卡分组新建/改名/屏蔽立即落盘，不会刷新后变回未分组；点「+ 分组」直接弹输入框，不会点了没反应。",
   items:[
+    "留言板历史记录（v43-183z20）：留言页真正滚的是 #note-list，以前却监听 .v-body 的滚动，超过首屏 20 条的旧留言永远不会续加载，看起来像历史全没了。现在两个滚动容器都监听，首屏先铺 30 条，往下滚会自动接上剩下的，旧留言一条不少。",
+    "进站黑屏太久（v43-183z20）：启动层原来要等 IndexedDB 全部读完，最慢 3.2 秒才撤，慢机上就是几秒黑屏/白屏。现在最多只按住 0.9 秒，主页先出来，比例和后台数据随后补；实测本机启动层 0.45 秒已露出主页。",
+    "字卡分组自动保存（v43-183z20）：新建分组只走 260ms 防抖保存，建完马上切页或杀进程，分组没落盘，组内字卡就全变成「未分组」。现在新建、改名、屏蔽、移入/复制分组都会立刻强制写本机存档，刷新后分组和归属都在。",
+    "「+ 分组」点不动（v43-183z20）：以前点它只是把焦点丢给页面下方输入框，键盘一弹输入框又被挡住，看起来完全没反应。现在点一下直接弹「新建分组」小输入框，输入名字确认就建好并切过去；下方「新建分组」空着点也会弹同样的框。",
     "留言回复框被键盘盖住（v43-183z19）：点留言卡里的「回复对方…」时，留言页的 .v-body 实际是 block 而不是 flex，.note-list 没有高度约束、整列溢出到 1176，键盘弹起时页面也没进键盘适配，回复框就停在键盘下面。现在留言页固定成「顶部卡片 + 可滚列表」，回复框聚焦也算键盘状态，列表底部加键盘高度的滚动余量，并把回复框自动滚到键盘上沿以上。",
     "更新公告被键盘盖住（v43-183z18）：锁屏密码、搜索框还聚焦时键盘没退，公告按整屏 844 居中，下半截连同按钮被键盘挡在后面。现在弹公告前先让当前输入框失焦、收起键盘；公告层按 visualViewport 的真实可见高度铺，卡片最大高度跟着缩短，正文自己滚，按钮固定在可见区域底部；键盘收起或地址栏回弹时再校准两次。MIX 4 宽度兜底沿用上一版。",
     "小米 MIX 4 右边白条（v43-183z17）：MIX 4 物理屏 1080、dpr 2.75，真正 CSS 宽约 393；有些系统显示大小下 WebView 的布局宽度和 visualViewport 都只报 349，上一版按可见宽度取最大值仍然补不回来。现在再加一层 screen.width 兜底：物理像素先除以 dpr，落在 320~600 的手机宽度区间才采用，把舞台补到 393。正常手机、平板、桌面窗口不受影响。",
@@ -11240,6 +11247,7 @@ async function init(){
     /* 声明页/锁屏自己会在第一帧后撤启动层；这里不再等 IndexedDB。 */
     }else{
       window.__holdBootReveal=1;
+      window.__bootRevealDeadline=Date.now()+900;
       try{if(typeof showView==="function")showView(_e11BootView);}catch(e){}
       /* 真正让“桌面先大后小”消失的关键不是算得更早，而是等存档读完再揭幕。
          以前这里立刻 __bootDone，此时 _dbReady 还没置位，主页还是默认内容（k=1）；
@@ -11258,7 +11266,7 @@ async function init(){
           try{window.__fitInvalidate&&window.__fitInvalidate(true);window.__fitCompute&&window.__fitCompute(true);}catch(_eBootFallbackFit){}
           window.__bootDone&&window.__bootDone();
         }catch(_eBootFallbackReveal){}
-      },3200);
+      },900);
     }
   }catch(_eBootFitReveal){try{window.__holdBootReveal=0;}catch(_x){}}
   /* v43-183g：启动层不再在这里撤，改为 _dbReady 后最终测量完成再撤。 */
@@ -19375,7 +19383,16 @@ function renderCards(){
     });
     b.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();b.click();}});
   });
-  $("grp-new").addEventListener("click",()=>{$("new-group-name").focus();});
+  $("grp-new").addEventListener("click",function(e){
+    try{e.preventDefault();e.stopPropagation();}catch(_){}
+    var typed=($("new-group-name")&&$("new-group-name").value||"").trim();
+    if(typed){addGroup();return;}
+    /* v43-183z20：以前这里只把焦点丢给页面下面的输入框，键盘一弹输入框又被挡住，
+       看起来完全点不动。改为直接弹小输入框，点一下就能建组。 */
+    if(typeof miniInput==="function"){
+      miniInput("新建分组","输入分组名称，最多 12 个字","",function(v){return createGroupNamed(v);});
+    }else{try{$("new-group-name").focus();}catch(_){}}
+  });
   try{
     var _dbtn=document.getElementById("btn-card-dedupe");
     if(_dbtn&&!_dbtn.__b){_dbtn.__b=1;_dbtn.addEventListener("click",function(){
@@ -19525,15 +19542,36 @@ function updateSelUI(){
   $("card-list").querySelectorAll(".card-item").forEach(r=>r.classList.toggle("sel",cardSel.has(r.dataset.id)));
   $("csb-info").textContent="已选 "+cardSel.size+" 条";
 }
-function addGroup(){
-  const name=$("new-group-name").value.trim();if(!name)return;
+function __cardPersistNow(){
+  /* v43-183z20：分组/归属改动必须立刻落盘。以前只 save() 走 260ms 防抖 + 空闲写库，
+     新建分组后马上切页/杀进程，下一次进来分组就没了，组内字卡全变“未分组”。 */
+  try{save();}catch(_){}
+  try{if(typeof __flushSave==="function")__flushSave(true);}catch(_){}
+  try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_){}
+}
+function createGroupNamed(name){
+  name=String(name||"").trim();if(!name)return false;
+  if(name.length>12)name=name.slice(0,12);
   var K=cardKindView;
-  if(groupsOfKind(K).some(g=>g.name===name)){toast("当前类别已有同名分组");return;}
-  const g={id:uid(),name:name,kind:K};state.groups.push(g);$("new-group-name").value="";
+  if(groupsOfKind(K).some(g=>g.name===name)){toast("当前类别已有同名分组");return false;}
+  const g={id:uid(),name:name,kind:K};state.groups.push(g);
   activeGroupId=g.id;__setCardActiveGid(K,g.id);
   /* v43-37：新建分组后，回复字卡仍默认「所有分组」，不被新分组抢走 */
   if(K==="chat"){state.settings.replyGroupId=null;state.settings.replyGroupPinned=false;try{renderSettingsSelect();}catch(_){}}
+  __cardPersistNow();
   renderCards();toast("已创建分组："+name);
+  return true;
+}
+function addGroup(){
+  const name=$("new-group-name").value.trim();
+  if(!name){
+    /* 空着点“新建分组”也要有反应：弹一个小输入框，不让人以为按钮坏了。 */
+    if(typeof miniInput==="function"){
+      miniInput("新建分组","输入分组名称，最多 12 个字","",function(v){return createGroupNamed(v);});
+    }else{try{$("new-group-name").focus();}catch(_){}}
+    return;
+  }
+  if(createGroupNamed(name)){$("new-group-name").value="";}
 }
 async function delGroup(id){
   var K=cardKindView, _gs=groupsOfKind(K);
@@ -19656,12 +19694,13 @@ function addCard(){
   if(_dups.length){
     var _dup=_dups[0],_dupG=groupById(_dup.groupId);
     if(!_dupG||["默认","默认分组","导入分组"].indexOf(String(_dupG.name||"").trim())>=0){
-      _dup.groupId=activeGroupId;_dup.kind=cardKindView;_dup.__ts=Date.now();
-      save();renderCards();toast("已把「"+(_dupG?_dupG.name:"未分组")+"」的同一句移到本组（自动去重）");return;
+      _dup.groupId=activeGroupId;_dup.groupName=(groupById(activeGroupId)||{}).name||"";_dup.kind=cardKindView;_dup.__ts=Date.now();
+      save();try{__cardPersistNow();}catch(_){}renderCards();toast("已把「"+(_dupG?_dupG.name:"未分组")+"」的同一句移到本组（自动去重）");return;
     }
     toast("整份字卡已有同一句（在「"+_dupG.name+"」，自动去重）");return;
   }
-  state.cards.push({id:uid(),groupId:activeGroupId,text:t,kind:cardKindView,__ts:Date.now()});$("new-card-text").value="";
+  var _agn=(groupById(activeGroupId)||{}).name||"";
+  state.cards.push({id:uid(),groupId:activeGroupId,groupName:_agn,text:t,kind:cardKindView,__ts:Date.now()});$("new-card-text").value="";
   save();try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_){}renderCards();
   try{ var _i=$("new-card-text"); if(_i&&!document.hidden)_i.focus(); }catch(e){}
 }
@@ -19686,7 +19725,7 @@ function toggleGroupDisabled(id){
     try{if(state.settings.replyGroupId===id)state.settings.replyGroupId=null;}catch(_){}
     try{if(activeGroupId===id)activeGroupId=null;}catch(_){}
   }
-  save();renderCards();renderSettingsSelect();
+  save();__cardPersistNow();renderCards();renderSettingsSelect();
   toast(g.disabled?"已屏蔽分组："+g.name:"已恢复分组："+g.name);
 }
 function toggleCardDisabled(id){
@@ -19700,7 +19739,11 @@ function renameGroup(id){
     v=(v||"").trim();if(!v)return false;
     if(v===g.name){miniInputClose();return true;}
     if(groupsOfKind(groupKind(g)).some(x=>x.name===v&&x.id!==id)){toast("分组名已存在");return false;}
-    g.name=v;save();renderCards();toast("分组已改名："+v);return true;
+    g.name=v;
+    /* 卡片同时记一份分组名：万一分组 id 在云端旧档里丢了，启动迁移能按名字把它接回去，
+       不会整组字卡掉进「未分组」。 */
+    try{state.cards.forEach(function(c){if(String(c.groupId)===String(g.id))c.groupName=v;});}catch(_eGn){}
+    save();__cardPersistNow();renderCards();toast("分组已改名："+v);return true;
   });
 }
 /* ===== 字卡 JSON 导入 / 多选移入分组 ===== */
@@ -19940,11 +19983,11 @@ if($("cmg-ok"))$("cmg-ok").addEventListener("click",function(){
     var copied=0;
     ids.forEach(function(id){
       var src=state.cards.filter(function(c){return c.id===id;})[0];
-      if(src&&!state.cards.some(function(x){return cardKindOf(x)===groupKind(g)&&cardKeyText(x.text)===cardKeyText(src.text);})){state.cards.push({id:uid(),groupId:g.id,text:src.text,kind:groupKind(g),disabled:!!src.disabled,__ts:Date.now()});copied++;}
+      if(src&&!state.cards.some(function(x){return cardKindOf(x)===groupKind(g)&&cardKeyText(x.text)===cardKeyText(src.text);})){state.cards.push({id:uid(),groupId:g.id,groupName:g.name,text:src.text,kind:groupKind(g),disabled:!!src.disabled,__ts:Date.now()});copied++;}
     });
     var _ddc=dedupeCards(groupKind(g));
     window.__cmgMode="move";
-    save();renderCards();
+    save();try{__cardPersistNow();}catch(_){}renderCards();
     try{$("card-move-sheet").querySelector(".mb-head").firstChild.textContent="移入分组";}catch(e){}
     cardSel.clear();cardSelMode=false;
     try{var b2=$("btn-card-multiselect");if(b2){b2.classList.remove("active");b2.style.background="";b2.style.color="";}}catch(e){}
@@ -19952,7 +19995,7 @@ if($("cmg-ok"))$("cmg-ok").addEventListener("click",function(){
     toast(copied?("已复制 "+copied+" 条到："+g.name+(_ddc?(" · 自动去重 "+_ddc+" 条"):"")):("这些字卡整份已有同一句，已自动去重"));
     return;
   }
-  state.cards.forEach(function(c){if(ids.indexOf(c.id)>=0){c.groupId=g.id;c.__ts=Date.now();}});
+  state.cards.forEach(function(c){if(ids.indexOf(c.id)>=0){c.groupId=g.id;c.groupName=g.name;c.__ts=Date.now();}});
   var _ddm=dedupeCards();
   cardSel.clear();cardSelMode=false;
   try{var b=$("btn-card-multiselect");if(b){b.classList.remove("active");b.style.background="";b.style.color="";}}catch(e){}
@@ -28611,7 +28654,7 @@ function renderGuestbook(force){
   const answered=cards.filter(c=>(c.q&&c.q.from==="partner")||(c.ans&&c.ans.from==="partner")||((c.extra||[]).some(function(x){return x&&x.from==="partner";}))).length;
   const cnt=$("gb-ans-count");if(cnt)cnt.textContent=answered;
   const allCards=cards.slice().reverse();
-  const GB_CHUNK=20;
+  const GB_CHUNK=30;
   function gbCardHTML(c){
    try{
     const answers=[];
@@ -28758,13 +28801,25 @@ function renderGuestbook(force){
   }
   window.__gbMore=function(){return gbAppend(GB_CHUNK);};
   gbAppend(allCards.length<=GB_CHUNK?allCards.length:GB_CHUNK);
+  /* v43-183z20：留言页真正滚动的是 #note-list，不是 .v-body。
+     以前监听错了对象，超过首屏 20 条的旧留言永远不再 append，
+     用户看到的就是“历史记录没有了”。两个都挂上，哪个在滚都能续。 */
+  var _gbScroll=function(){
+    try{
+      if(!document.getElementById("view-guestbook").classList.contains("open"))return;
+      var sc=document.getElementById("note-list");
+      if(sc&&sc.scrollTop+sc.clientHeight>=sc.scrollHeight-260){var f=window.__gbMore;if(f)f();}
+    }catch(_){}
+  };
   var vb=document.querySelector("#view-guestbook .v-body");
   if(vb&&!vb.__gbLazy){
     vb.__gbLazy=1;
-    vb.addEventListener("scroll",function(){
-      if(!document.getElementById("view-guestbook").classList.contains("open"))return;
-      if(vb.scrollTop+vb.clientHeight>=vb.scrollHeight-300){var f=window.__gbMore;if(f)f();}
-    },{passive:true});
+    vb.addEventListener("scroll",_gbScroll,{passive:true});
+  }
+  var _nl=document.getElementById("note-list");
+  if(_nl&&!_nl.__gbLazy){
+    _nl.__gbLazy=1;
+    _nl.addEventListener("scroll",_gbScroll,{passive:true});
   }
   if(bar){
     const nb=$("gb-newbar");
