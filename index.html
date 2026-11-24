@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-200z33f";
+window.__E11_BUILD="2026-11-25v43-201z33f";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2747,7 +2747,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-200z33f">
+<meta name="app-build" content="2026-11-25v43-201z33f">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4651,7 +4651,8 @@ setTimeout(function(){
         <div class="set-row"><label class="small-btn ghost" for="file-import" style="width:100%;display:flex;align-items:center;justify-content:center;cursor:pointer;text-align:center;">导入数据（全量/分类自动识别）</label></div>
         <div class="set-row"><button class="small-btn ghost" style="width:100%;" id="btn-clear-msgs">清空聊天记录（含一起听房间聊天）</button></div>
         <div class="set-row" style="flex-direction:column;align-items:stretch;"><button class="small-btn ghost" style="width:100%;" id="btn-clear-music-room">清空一起听聊天记录（保留歌单）</button><div class="set-sub" style="margin-top:6px;">只清空歌词页房间里的聊天；一起听的歌单、当前歌曲和背景都不动</div></div>
-        <div class="set-row" style="flex-direction:column;align-items:stretch;"><button class="small-btn ghost" style="width:100%;color:var(--danger);" id="btn-reset-all">一键重置（只清本机）</button><div class="set-sub" style="margin-top:6px;">只清这台设备的聊天、字卡、动态和设置；云端存档保留，可在上面「从云端恢复」拉回</div></div>
+        <div class="set-row" style="flex-direction:column;align-items:stretch;"><button class="small-btn ghost" style="width:100%;color:var(--danger);" id="btn-reset-all">一键清除本机（云端保留）</button><div class="set-sub" style="margin-top:6px;">只清这台设备的聊天、字卡、动态和设置；云端存档保留，之后可点「云端还原」拉回</div></div>
+        <div class="set-row" style="flex-direction:column;align-items:stretch;"><button class="small-btn ghost" style="width:100%;color:var(--danger);font-weight:700;" id="btn-reset-all-cloud">一键清除全部（本机 + 云端）</button><div class="set-sub" style="margin-top:6px;">本机和云端一起清空，清完不可恢复；只在你确定两边都不要了时用</div></div>
       </div>
       <div class="set-sec-title">存储空间</div>
       <div class="set-group">
@@ -23563,8 +23564,22 @@ $("btn-clear-music-room")&&$("btn-clear-music-room").addEventListener("click",as
   try{window.__E11Cloud&&window.__E11Cloud.flush&&window.__E11Cloud.flush();}catch(_eMrC){}
   toast("一起听房间聊天已清空，歌单保留");
 });
+$("btn-reset-all-cloud").addEventListener("click",async()=>{
+  if(!(await __iosConfirm("本机和云端会一起清空：聊天、日记、留言、信件、动态、字卡、设置全部消失，清完不可恢复。继续？",{okText:"清除全部"})))return;
+  if(!(await __iosConfirm("最后确认：云端也一起清，之后无法从云端恢复。",{okText:"确定清除"})))return;
+  try{
+    if(window.__E11Cloud&&window.__E11Cloud.resetCloud){
+      await window.__E11Cloud.resetCloud(defaultState());
+    }else if(typeof authOk==="function"&&authOk()){
+      throw new Error("云端清空接口未就绪");
+    }
+  }catch(e){toast("云端没清掉："+String(e&&e.message||e).slice(0,80)+"；已停止，本机数据未动");return;}
+  window.__skipResetConfirm=1;
+  $("btn-reset-all").click();
+});
 $("btn-reset-all").addEventListener("click",async()=>{
-  if(!(await __iosConfirm("一键重置：只清空这台设备上的聊天、动态、留言、信件、字卡、表情、问卷和设置，并恢复默认。云端存档不会清空，之后可在设置里点「恢复云端」拉回来。确认重置本机？",{okText:"重置本机"})))return;
+  if(!window.__skipResetConfirm&&!(await __iosConfirm("只清空这台设备上的聊天、动态、留言、信件、字卡、表情、问卷和设置，云端存档保留。确认清除本机？",{okText:"清除本机"})))return;
+  window.__skipResetConfirm=0;
   /* v43-106：清空前强制写一份完整自动备份。以前重置会连最后一刻的数据一起清掉，
      用户误点后“全都没了”就再也找不回来。备份槽在下面会被跳过，不会一起清。 */
   try{ if(window.__bkSaveNow){ await Promise.race([window.__bkSaveNow(),new Promise(function(r){setTimeout(r,2500);})]); } }catch(_eBkPre){}
