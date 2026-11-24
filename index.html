@@ -252,7 +252,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183n";
+window.__E11_BUILD="2026-11-24v43-183z";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -1862,6 +1862,14 @@ body.ui-dark:not(.lt-preset) #view-letters .lt-sub .lt-body{color:#F2F2F7 !impor
 .lock-input::placeholder{color:rgba(0,0,0,.45);-webkit-text-fill-color:rgba(0,0,0,.45);}
 .lock-btn{width:min(250px,78%);margin-top:14px;padding:12px 0;border:none;border-radius:16px;background:linear-gradient(135deg,#3478F6,#5AC8FA);color:#fff;font-size:15px;font-weight:600;cursor:pointer;}
 .lock-tip{font-size:12px;color:rgba(20,22,28,.66);margin:0 0 22px;text-align:center;}
+/* v43-183z：锁屏/登录整屏白底，键盘弹起只加底部内边距，内容停在键盘上方 */
+body.e11-kb-on .lock-screen{justify-content:flex-start;padding:14px 20px 12px;}
+body.e11-kb-on .lock-ico{display:none;}
+body.e11-kb-on .lock-sub{display:none;}
+body.e11-kb-on .lock-tip{display:block;font-size:11px;margin:0 0 10px;}
+body.e11-kb-on .lock-title{margin-bottom:6px;}
+body.e11-kb-on .auth-gate{align-items:flex-start;padding-top:14px;padding-bottom:12px;}
+body.e11-kb-on .auth-card{margin-top:0;}
 /* ===== 开幕动画（水玻璃雨滴·宿命感） ===== */
 o{opacity:1;transform:translateY(0);}}
 #view-guestbook .v-body{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;padding:0 0 12px;overflow:hidden;overflow-anchor:none;}
@@ -2643,7 +2651,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183n">
+<meta name="app-build" content="2026-11-24v43-183z">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4390,7 +4398,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-24v43-183n</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-24v43-183z</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -7973,8 +7981,11 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-24",
   noticeKey:null,
-  lead:"v43-183n：修复点聊天加号时系统补发的 click 误落到“设置”格子、直接进设置页的问题。菜单打开后的第一下幽灵点击会被拦截，用户真正再点设置仍可正常进入。",
+  lead:"v43-183z：以 183n 稳定版为主线，补上背景设置同步落盘和锁屏键盘避让：换完卡片/主页/一起听背景后刷新、退出、更新都不会回旧图；锁屏输密码弹键盘时，密码框和按钮停在键盘上方，不再整片空白。",
   items:[
+    "背景不再回旧图（v43-183z）：卡片背景、主页背景、一起听背景等更换后，先同步写本机设置/美化小备份和背景备份，再异步落云端。刷新、退出、更新网站后按最新选择恢复；用户明确清空的背景写墓碑，旧快照和历史媒体修复不能再补回来。",
+    "一起听背景持久化（v43-183z）：一起听的数字背景预设以前不在美化管理里，只靠异步主库，换完马上刷新会回旧值。现在和设置/美化一起本机备份，短链接和预设都能跟着恢复。",
+    "锁屏键盘避让（v43-183z）：键盘弹起时锁屏和登录页仍铺满整屏白底，只把底部内边距加到键盘高度；密码框、登录按钮、忘记密码提示都停在键盘上方，不会只留一片空白。",
     "加号误触设置修复（v43-183n）：加号在 touchend 时立即打开菜单，部分 Android WebView 之后还会补一个 click，正好落到刚出现的“设置”格子上。现在菜单打开后会先锁住幽灵点击，只有用户在新的菜单上真实按下（pointerdown）才解锁；设置入口的旧捕获兜底也加了同样的拦截，点加号不会再直接跳设置。",
     "聊天输入栏键盘避让（v43-183m）：部分 Android WebView / 输入法只缩 window.innerHeight，或只缩 visualViewport，缩放舞台可能仍停在整屏高度，底部输入栏就落到键盘下面。现在直接按聊天页顶边和真实可视底边计算，键盘占多少就把聊天页收到键盘上沿，输入栏和发送键始终可见；收起键盘后恢复。",
     "删除防复活（v43-183k）：消息、字卡、分组、信件、留言、动态、红包、收藏、歌单、问卷删除时会同时写入本机删除墓碑，并立即落盘。刷新、退出、版本更新、合并云端旧档或自动备份后，都不会再把删掉的内容补回来。",
@@ -9911,7 +9922,16 @@ function __settingsBackup(force){
       if(typeof v==="string"&&v.indexOf("data:")===0&&v.length>4000)return;
       ks[k]=v;
     });
-    var obj={ts:_ts,settings:ss,skin:ks,skinTs:_kts,local:1};
+    /* v43-183z：一起听背景的数字预设不在美化管理里，只靠异步主库时，
+       换完马上刷新就会回旧值。跟设置/美化一起写进本机小备份。 */
+    var mus={ts:Date.now(),musicBg:Number(state.musicBg)||0};
+    ["musicBgImg","musicDiscBgImg","musicDiscInnerImg","musicCoverImg"].forEach(function(k){
+      var mv=state[k];
+      if(typeof mv==="string"&&(mv.indexOf("data:")!==0||mv.length<4000))mus[k]=mv;
+      else if(typeof mv==="string")mus[k]=String(mv).slice(0,80);
+      else if(mv===undefined||mv===null)mus[k]="";
+    });
+    var obj={ts:_ts,settings:ss,skin:ks,skinTs:_kts,music:mus,local:1};
     localStorage.setItem("e11.settings.v1",JSON.stringify(obj));
     try{__userLookWrite();}catch(_eULW2){}
   }catch(_){}
@@ -9935,6 +9955,17 @@ function __settingsBackupRestore(){
       state.skin.__ts=Math.max(kts,Date.now());
       changed=true;
     }
+    /* v43-183z：恢复一起听背景的数字预设和短链接，避免刷新后回旧背景。 */
+    try{
+      if(p.music&&p.music.ts){
+        if(p.music.musicBg!==undefined)state.musicBg=Number(p.music.musicBg)||0;
+        ["musicBgImg","musicDiscBgImg","musicDiscInnerImg","musicCoverImg"].forEach(function(k){
+          if(p.music[k]!==undefined)state[k]=p.music[k];
+        });
+        state.musicRoomTs=Math.max(Number(state.musicRoomTs)||0,Number(p.music.ts)||0);
+        changed=true;
+      }
+    }catch(_eMusBack){}
     return changed;
   }catch(_){}
   return false;
@@ -11375,11 +11406,50 @@ function initKeyboardFix(){
     }catch(_){}
   }
   window.__e11KbFitChat=fitChatToKeyboard;
+  /* v43-183z：锁屏、登录层是整屏 fixed，键盘弹起时保持整屏白底，
+     只把底部内边距加到键盘高度，密码框和按钮不会被顶出屏幕只剩白片。 */
+  function fitKeyboardPanels(){
+    try{
+      if(window.__deskFixed)return;
+      const vv=window.visualViewport;
+      const ae=document.activeElement;
+      const typing=!!(ae&&(ae.tagName==="INPUT"||ae.tagName==="TEXTAREA"||ae.isContentEditable));
+      const stable=window.__uiStableH||window.innerHeight||0;
+      const vh=vv?vv.height:0;
+      const kbOpen=!!(typing&&stable&&vh&&vh<stable-60);
+      const panels=[document.getElementById("lock-screen"),document.getElementById("auth-gate")];
+      const kbH=Math.max(0,Math.round(stable-vh));
+      if(!kbOpen){
+        document.body.classList.remove("e11-kb-on");
+        panels.forEach(function(el){if(el){el.style.height="";el.style.top="";el.style.bottom="";el.style.paddingBottom="";el.style.overflowY="";}});
+        return;
+      }
+      let on=false;
+      panels.forEach(function(el){
+        if(!el)return;
+        if(el.classList.contains("show")){
+          on=true;
+          el.style.top="0px";
+          el.style.bottom="0px";
+          el.style.height="";
+          el.style.paddingBottom=(14+kbH)+"px";
+          el.style.overflowY="auto";
+        }else{
+          el.style.height="";el.style.top="";el.style.bottom="";el.style.paddingBottom="";el.style.overflowY="";
+        }
+      });
+      document.body.classList.toggle("e11-kb-on",on);
+    }catch(_){}
+  }
+  window.__e11KbFitPanels=fitKeyboardPanels;
   function scheduleKbFit(){
+    fitKeyboardPanels();
     fitChatToKeyboard();
     setTimeout(fitChatToKeyboard,80);
     setTimeout(fitChatToKeyboard,220);
     setTimeout(fitChatToKeyboard,420);
+    setTimeout(function(){try{fitKeyboardPanels();}catch(_){}},80);
+    setTimeout(function(){try{fitKeyboardPanels();}catch(_){}},300);
   }
   const sync=()=>{
     /* 全站缩放舞台已经按 visualViewport 高度整体变矮，输入栏随 app 一起上移。
@@ -11394,6 +11464,7 @@ function initKeyboardFix(){
         const ml0=document.querySelector(".view.open .msglist");
         if(ml0)ml0.style.paddingBottom="";
       }catch(_){}
+      try{fitKeyboardPanels();}catch(_){}
       try{fitChatToKeyboard();}catch(_){}
       return;
     }
@@ -11473,11 +11544,13 @@ function initKeyboardFix(){
   document.addEventListener("focusin",function(e){
     var t=e.target;
     if(t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.isContentEditable))__setKbTyping(true);
+    try{fitKeyboardPanels();}catch(_){}
     if(t&&t.id==="msg-input")scheduleKbFit();
   },true);
   document.addEventListener("focusout",function(e){
     var t=e.target;
     if(t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.isContentEditable))__setKbTyping(false);
+    try{fitKeyboardPanels();}catch(_){}
     if(t&&t.id==="msg-input")setTimeout(fitChatToKeyboard,60);
   },true);
   window.__setKbTyping=__setKbTyping;
@@ -11819,6 +11892,16 @@ function __bgPersistNow(){
   /* 先同步小备份，再做异步主库/云端落盘：刷新/退出时至少这一份在 */
   try{window.__e11ForceUntil=Date.now()+2600;}catch(_eForceSet){}
   try{window.__e11BgLocalSync&&window.__e11BgLocalSync();}catch(_eBgPre){}
+  /* v43-183z：背景改动先同步写设置/美化小备份和皮肤时间戳。
+     以前只等异步主库/云端，遇到 cloudPause/restore 直接 return，刷新就回旧背景。 */
+  try{
+    state.__savedAt=Date.now();
+    state.skin=state.skin||{};
+    state.skin.__ts=Date.now();
+    try{window.__settingsSaveSig=JSON.stringify(state.settings||{});}catch(_){}
+    try{window.__skinSaveSig=JSON.stringify(state.skin||{});}catch(_){}
+    __settingsBackup(true);
+  }catch(_eBgSyncSet){}
   try{
     if(window.__e11PersistNow){window.__e11PersistNow();return;}
     save();try{__flushSave(true);}catch(_e){}
@@ -18011,7 +18094,12 @@ function __mergeMediaSnapshots(a,b){
     copyObj(a.profile,b.profile,pk,true);copyObj(b.profile,a.profile,pk,true);
     var ik=["cpPhoto","cpPhotoCard","cpPhotoSub","cpRecord"];
     copyObj(a.profile,b.profile,ik,false);copyObj(b.profile,a.profile,ik,false);
-    copyObj(a,b,["musicBgImg","musicCoverImg","musicDiscInnerImg","callBgImg"],false);copyObj(b,a,["musicBgImg","musicCoverImg","musicDiscInnerImg","callBgImg"],false);
+    /* v43-183z：用户明确清空过的背景有本机墓碑，旧快照不能再补回来。 */
+    function bgTomb(k){try{return localStorage.getItem("e11.bg.v2."+k)==="__empty__";}catch(_){return false;}}
+    function copyBg(t,s,keys){keys.forEach(function(k){if(!bgTomb(k)&&!bad(t[k])&&!bad(s[k])){t[k]=s[k];changed=true;}});}
+    copyBg(a,b,["musicBgImg","musicCoverImg","musicDiscInnerImg","musicDiscBgImg","callBgImg"]);
+    copyBg(b,a,["musicBgImg","musicCoverImg","musicDiscInnerImg","musicDiscBgImg","callBgImg"]);
+    if(!bgTomb("profile_partnerCover")){copyObj(a.profile,b.profile,["partnerCover"],false);copyObj(b.profile,a.profile,["partnerCover"],false);}
     /* 歌曲列表封面也按 id / 网易云 id 从旧快照补：只补空封面和已确认坏掉的封面 */
     [["a","b"],["b","a"]].forEach(function(pr){
       var A=pr[0]==="a"?a:b,B=pr[0]==="a"?b:a;
@@ -18075,7 +18163,7 @@ function __mergeMediaRepair(repair){
     /* v43-39：不再从历史修复包里补桌面/卡片背景。
        用户换过新背景后，旧图一旦被补回来就会“一打开变回之前那张”。 */
     ["partnerImage"].forEach(function(k){if(src.skin&&src.skin[k]!==undefined)fix(t.skin,k,src.skin[k],false);});
-    ["musicBgImg","musicDiscInnerImg","musicDiscBgImg","musicCoverImg"].forEach(function(k){if(src[k]!==undefined)fix(t,k,src[k],false);});
+    /* v43-183z：不从历史修复包补音乐背景，避免清空/换新后被旧图复活。 */
     function mergeEmoji(list,val,dedupeName){
       if(!Array.isArray(val))return list;
       if(!Array.isArray(list))list=[];
@@ -18118,7 +18206,7 @@ function __e11NeedsMediaRepair(st){
     if(!st.me||!Array.isArray(st.me.photos)||!__e11HasImg(st.me.photos[0]))return true;
     var p=st.profile||{};
     if(!__e11HasImg(p.cpPhoto)||!__e11HasImg(p.partnerCover)||!__avatarReal(p.cpMeAvatar))return true;
-    if(!__e11HasImg(st.skin&&st.skin.meImage)||!__e11HasImg(st.musicBgImg))return true;
+    /* v43-183z：背景为空是用户主动清空，不再当成缺图触发历史修复。 */
     if((st.emojis||[]).length<10||(st.partnerEmojis||[]).length<5)return true;
     var pl=st.musicPlaylist||[];
     for(var i=0;i<pl.length;i++){if(!__e11HasImg(pl[i]&&pl[i].cover))return true;}
@@ -18142,9 +18230,7 @@ window.__e11TryMediaRepair=function(){
     var changed=window.__mergeMediaRepair(rep);
     try{
       if(window.__mergeMediaSnapshots)window.__mergeMediaSnapshots(st,rep.state);
-      ["musicBg","musicBgImg","musicCoverImg","musicDiscBgImg","musicDiscInnerImg","musicRoomNote","musicCur"].forEach(function(k){
-        if((st[k]===undefined||st[k]===null||st[k]===""||st[k]===0)&&rep.state[k]!==undefined&&rep.state[k]!==null&&rep.state[k]!==""&&rep.state[k]!==0){st[k]=rep.state[k];changed=true;}
-      });
+      /* v43-183z：音乐背景不再从历史修复包回填，避免把用户刚换/清掉的背景复活。 */
       if(rep.state.profile){var _pf=rep.state.profile;Object.keys(_pf).forEach(function(k){if((!st.profile[k]||st.profile[k]==="")&&_pf[k])st.profile[k]=_pf[k];});}
     }catch(_eMusicRepair){}
     if(!changed)return;
