@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183z30";
+window.__E11_BUILD="2026-11-24v43-183z31";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2731,7 +2731,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183z30">
+<meta name="app-build" content="2026-11-24v43-183z31">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -7306,6 +7306,7 @@ setTimeout(function(){
       try{__e11TombstoneScan(true);}catch(_eKnown){}
       /* v43-184：云端合并完成后再按本机最后一次背景选择兜一次，避免旧 skin 把图盖回去。 */
       try{if(window.__e11BgLocalRestore)window.__e11BgLocalRestore();}catch(_eBgDone){}
+      try{if(window.__cardFaceRestore)window.__cardFaceRestore();}catch(_eCfDone){}
       /* 文字档一到就并行补头像/照片/表情/封面，不再等进页面 700ms 之后。 */
       try{setTimeout(function(){window.__e11TryMediaRepair&&window.__e11TryMediaRepair();},250);}catch(_eMediaSoon){}
       /* 音乐链接不再在启动/云端恢复后预热：没进音乐页时属于纯浪费流量。
@@ -8376,11 +8377,14 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-183z30",
-  time:"2026-11-24 23:05",
+  date:"v43-183z31",
+  time:"2026-11-24 19:44",
   noticeKey:null,
-  lead:"2026-11-24 23:05 修改（v43-183z30）：听歌邀请的提示不再写成一起画画；打开网站先等缓存，启动黑屏明显缩短；检查更新超时减半，手动检查不再排队等两次网络。",
+  lead:"2026-11-24 19:44 修改（v43-183z31）：主页和桌面卡片的头像、封面不再丢；删掉的动态不会被旧备份补回来；「删除全部动态」只删当前主页这一边。",
   items:[
+    "主页头像和封面丢失（v43-183z31）：换了主页卡片/桌面卡片的头像、我的封面或他的封面，马上退出、刷新或滑掉 App，回来会变默认或上次那张。原因是只写了异步主库，离开时没等它完成。现在头像和封面单独有一份同步小备份，换完立刻写；退出/切后台再强制写一次美化图库和主库，重开优先按本机最后一次选择恢复。",
+    "删掉的动态又回来（v43-183z31）：启动时自动备份的并集合并可能早于删除墓碑读回，只看内存里的删除表，就会把刚删的动态从旧备份补回来。现在合并时同时查本机墓碑键，删过的一条都不补。",
+    "删除全部只删一边（v43-183z31）：以前「删除全部动态」直接遍历整个动态数组，会把我和对方的动态一起算进去。现在按当前主页过滤：在我的主页只删我的，在对方主页只删对方的，另一边一条不动。",
     "听歌提示修正（v43-183z30）：邀请消息以前是先建消息、后补 inv，pushMsg 里的顶部提示和系统通知先跑，读到空 inv 就按画画兜底。现在建消息时就把 music/draw 带上，未知类型也只显示「邀请」，不会再串成一起画画。",
     "打开网站黑屏久（v43-183z30）：Service Worker 以前每次进入都等线上 HTML 最多 3 秒，有缓存也要等。现在最多等 450ms，超过就直接用缓存先出首屏，同时后台继续更新；第二次以后进入不再卡在启动层。",
     "检查更新慢（v43-183z30）：请求超时从 5 秒降到 2.5 秒；15 秒内复用上一次版本结果。手动点击如果正好撞上启动自动检查，不再排第二次网络请求，拿到结果就立即提示。",
@@ -9491,7 +9495,11 @@ window.__bkMergeNewest=function(){
           var kk=__e11MsgKey(x);
           if(kk&&seenKey[kk])return;
           var id=x&&(x.id!==undefined?x.id:x.key);
-          if(id!==undefined&&del[String(id)])return; /* 尊重墓碑 */
+          /* v43-183z31：除内存墓碑外还要查本机墓碑键。
+             启动合并可能早于 state.deletedIds 读回，只看内存会把刚删的动态从自动备份里补回来。 */
+          var _isDel=!!(id!==undefined&&del[String(id)]);
+          if(!_isDel&&id!==undefined){try{_isDel=!!(window.__e11IsDeleted&&window.__e11IsDeleted(k,String(id)));}catch(_eBkDel){_isDel=false;}}
+          if(_isDel)return;
           cur.push(x);if(kk)seenKey[kk]=1;localAdd++;
         });
         if(localAdd)state[k]=cur;
@@ -10771,6 +10779,9 @@ window.__e11SyncCfgSnapshot=function(){
   }catch(_eCfgSnap){}
 };
 window.__e11PersistNow=function(){
+  /* v43-183z31：先同步写头像/封面/背景的本机小备份，异步主库还没写完也不会回默认。 */
+  try{if(window.__e11BgLocalSync)window.__e11BgLocalSync();}catch(_ePnBg){}
+  try{if(window.__cardFaceSyncNow)window.__cardFaceSyncNow();}catch(_ePnCf){}
   /* v43-128：恢复/暂停写盘期间也先落设置小备份；设置页刚改的内容不能因为 __restoring 被丢掉。 */
   try{if(state&&state.settings&&window.__settingsBackup)window.__settingsBackup(true);}catch(_ePnSet){}
   if(window.__restoring||window.__e11CloudPause)return;
@@ -10807,6 +10818,12 @@ window.__e11PersistNow=function(){
       var _dirty=!!window.__e11Dirty;
       try{if(window.__e11AutoSig&&__e11AutoSig()!==window.__e11AutoSigLast)_dirty=true;}catch(_eDirtySig){}
       if(_dirty)state.__savedAt=Date.now();
+      /* v43-183z31：离开桌面/切后台这一刻，同步把头像、主页封面、桌面背景写进本机小备份；
+         美化图库再强制写一次。以前这里不写，刚换完头像就滑掉 App，回来会变默认。 */
+      try{if(window.__e11BgLocalSync)window.__e11BgLocalSync();}catch(_eBgExitSync){}
+      try{if(window.__cardFaceSyncNow)window.__cardFaceSyncNow();}catch(_eCfExit){}
+      try{if(window.__e11BeautySave)window.__e11BeautySave(state,true);}catch(_eBeautyExit){}
+      try{if(window.__e11SyncProfileBackup)window.__e11SyncProfileBackup();}catch(_eProfExit){}
       if(window.__e11ExitSave)window.__e11ExitSave(state);
       else __e11ExitSave(state);
       try{localStorage.setItem("privateChat",JSON.stringify({__idbOnly:1,__savedAt:Number(state&&state.__savedAt)||Date.now()}));}catch(_){}
@@ -12545,6 +12562,7 @@ window.__e11BgLocalRestore=function(){
       }
       curObj[path[path.length-1]]=bak;changed=true;
     });
+    try{if(window.__cardFaceRestore&&window.__cardFaceRestore())changed=true;}catch(_eCfRestore){}
     if(changed){
       /* 不再调用 __bgPersistNow（它会再触发云端），只重绘并异步保存 */
       try{applySkin();}catch(_){ }
@@ -12553,6 +12571,102 @@ window.__e11BgLocalRestore=function(){
     }
     return changed;
   }catch(_eBgRestore){return false;}
+};
+/* v43-183z31：主页卡片/桌面卡片的头像与封面单独做一份同步小备份。
+   背景图走 __E11_BG_PATHS；头像和主页封面以前只等异步主库+美化库，
+   换完立刻退出/刷新，异步还没写完就回到默认。这里用独立键，避免和背景图抢配额时互相顶掉。 */
+window.__CARD_FACE_KEY="e11.cardface.v1";
+window.__CARD_FACE_PATHS=[
+  ["profile","meAvatar"],["profile","partnerAvatar"],
+  ["profile","cover"],["profile","partnerCover"],
+  ["profile","cpMeAvatar"],["profile","cpPartnerAvatar"],
+  ["profile","mpAv1"],["profile","mpAv2"],
+  ["me","avatar"],["partner","avatar"]
+];
+window.__cardFaceGet=function(path){
+  var cur=(typeof state!=="undefined"&&state)||null;
+  for(var i=0;i<path.length;i++){if(!cur)return "";cur=cur[path[i]];}
+  return typeof cur==="string"?cur:"";
+};
+window.__cardFaceSet=function(path,v){
+  var cur=(typeof state!=="undefined"&&state)||null;if(!cur)return;
+  for(var i=0;i<path.length-1;i++){if(!cur[path[i]]||typeof cur[path[i]]!=="object")cur[path[i]]={};cur=cur[path[i]];}
+  cur[path[path.length-1]]=v;
+};
+window.__cardFaceSyncNow=function(){
+  try{
+    if(typeof state==="undefined"||!state)return false;
+    var o={ts:Date.now(),v:{},s:{},e:[]},total=0;
+    window.__CARD_FACE_PATHS.forEach(function(path){
+      var v=window.__cardFaceGet(path),key=path.join(".");
+      /* 封面可以是纯色/预设渐变，不能只备份 dataURL，否则重开就回默认。 */
+      if(path[1]==="cover"||path[1]==="partnerCover"){
+        if(!v){o.e.push(key);return;}
+        if(v.indexOf("data:")!==0&&v.length<2000){o.s[key]=v;return;}
+      }
+      if(v.indexOf("data:")!==0||v.length>620000)return;
+      if(total+v.length>1250000)return;
+      o.v[key]=v;total+=v.length;
+    });
+    if(!Object.keys(o.v).length&&!Object.keys(o.s).length&&!o.e.length)return false;
+    var raw=JSON.stringify(o);
+    try{localStorage.setItem(window.__CARD_FACE_KEY,raw);return true;}
+    catch(_q){
+      /* 配额紧：先丢掉封面大图，只保头像，再试一次。 */
+      try{
+        Object.keys(o.v).forEach(function(k){if(k.indexOf("cover")>=0)delete o.v[k];});
+        if(Object.keys(o.v).length){localStorage.setItem(window.__CARD_FACE_KEY,JSON.stringify(o));return true;}
+      }catch(_q2){}
+    }
+  }catch(_e){}
+  return false;
+};
+window.__cardFaceRestore=function(){
+  try{
+    if(typeof state==="undefined"||!state)return false;
+    var raw=localStorage.getItem(window.__CARD_FACE_KEY);if(!raw)return false;
+    var o=JSON.parse(raw);if(!o||!o.v)return false;
+    var changed=false;
+    var _newer=Number(o.ts)>((Number(state.__savedAt)||0)+1000);
+    if(o.e&&o.e.length){
+      o.e.forEach(function(key){
+        var path=key.split("."),cur=window.__cardFaceGet(path);
+        /* 只认“明确清空”的墓碑，而且要比当前存档新，避免旧备份把云端刚恢复的封面清掉。 */
+        if(cur&&_newer&&(path[1]==="cover"||path[1]==="partnerCover")){window.__cardFaceSet(path,"");changed=true;}
+      });
+    }
+    if(o.s){
+      Object.keys(o.s).forEach(function(key){
+        var path=key.split("."),v=o.s[key],cur=window.__cardFaceGet(path);
+        if(cur!==v&&(!cur||_newer)){window.__cardFaceSet(path,v);changed=true;}
+      });
+    }
+    window.__CARD_FACE_PATHS.forEach(function(path){
+      var v=o.v[path.join(".")];if(!v||v.indexOf("data:")!==0)return;
+      var cur=window.__cardFaceGet(path);
+      if(cur===v)return;
+      var _broken=!cur||(cur.indexOf("data:")===0&&cur.length<200);
+      if(_broken||_newer){window.__cardFaceSet(path,v);changed=true;}
+    });
+    if(changed){
+      try{applySkin();}catch(_){}
+      try{renderMe();}catch(_){}
+      try{renderMoments();}catch(_){}
+      try{renderMomentProfile();}catch(_){}
+      try{renderCouple();}catch(_){}
+      try{renderChat(true);}catch(_){}
+      try{save();}catch(_){}
+    }
+    return changed;
+  }catch(_e){return false;}
+};
+window.__cardMediaPersist=function(){
+  try{if(window.__cardFaceSyncNow)window.__cardFaceSyncNow();}catch(_eCardFace){}
+  try{if(window.__e11BgLocalSync)window.__e11BgLocalSync();}catch(_eCardBg){}
+  try{if(window.__e11BeautySave)window.__e11BeautySave(state,true);}catch(_eCardBeauty){}
+  try{if(window.__e11SyncProfileBackup)window.__e11SyncProfileBackup();}catch(_eCardProf){}
+  try{if(window.__cardFaceSyncNow)window.__cardFaceSyncNow();}catch(_eCardFace2){}
+  try{if(window.__flushSave)window.__flushSave(true);}catch(_eCardFlush){}
 };
 function __bgPersistNow(){
   /* 先同步小备份，再做异步主库/云端落盘：刷新/退出时至少这一份在 */
@@ -21976,6 +22090,7 @@ $("file-avatar").addEventListener("change",e=>{
       __setAvatar(_who,_v,_surface);
       try{__mediaVaultPut("avatar:"+_who,_v);}catch(_){}
       save();try{__avatarBakSync();}catch(_){}try{__flushSave(true);}catch(_){}
+      try{window.__cardMediaPersist&&window.__cardMediaPersist();}catch(_){}
       try{bindSetting();}catch(_){}try{renderTopStatus();}catch(_){}try{renderChat(true);}catch(_){}
       try{renderMoments();renderMomentProfile();}catch(_){}
       try{window.__e11PersistNow&&window.__e11PersistNow();}catch(_){}
@@ -24061,7 +24176,8 @@ function gCompress(d,max,q){return __shrinkImg(d,max||720,q||0.72);}
         __avatarShrink(raw).then(function(c){
           if(who==="partner")state.profile.mpAv1=c||raw;else state.profile.mpAv2=c||raw;
           try{window.__e11MusicRoomTouch&&window.__e11MusicRoomTouch();}catch(_){}
-          save();renderMusicList();toast("头像已更换");
+          save();try{window.__cardMediaPersist&&window.__cardMediaPersist();}catch(_){}
+          renderMusicList();toast("头像已更换");
         });
       };
       rd.readAsDataURL(f);inp.value="";
@@ -29400,7 +29516,7 @@ try{
 
 /* ===== 动态 / 留言 / 信件：删除方式（删除此条 / 多选 / 删除全部） ===== */
 (function(){
-  var __dKind="",__dId="",__dIds=[],__mode={kind:"",groups:{},selected:{}};
+  var __dKind="",__dId="",__dIds=[],__dSide="",__mode={kind:"",groups:{},selected:{}};
   var __LABEL={moments:"动态",guestbook:"留言",letters:"信件"};
   function __list(kind){try{return Array.isArray(state[kind])?state[kind]:[];}catch(_){return [];}}
   function __card(kind,key){
@@ -29452,11 +29568,16 @@ try{
     }
     walk(rootId);return out;
   }
-  function __allGroups(kind){
+  function __allGroups(kind,side){
     var list=__list(kind),by={};list.forEach(function(x){if(x&&x.id)by[String(x.id)]=1;});
     var gs=[];
     list.forEach(function(x){
       if(!x||!x.id)return;
+      /* v43-183z31：动态“删除全部”只算当前主页这一边，不能把我和对方的动态一起删。 */
+      if(kind==="moments"){
+        var _sd=side||__dSide||(typeof mpSide==="string"?mpSide:"me");
+        if((x.from==="partner"?"partner":"me")!==_sd)return;
+      }
       if(kind!=="moments"&&x.replyTo&&by[String(x.replyTo)])return;
       gs.push({key:String(x.id),ids:kind==="moments"?[String(x.id)]:__descIds(kind,x.id)});
     });
@@ -29486,13 +29607,17 @@ try{
   }
   function __open(kind,id,ids){
     if(!__LABEL[kind])return;
-    __dKind=kind;__dId=String(id||"");
+    __dKind=kind;__dId=String(id||"");__dSide="";
+    if(kind==="moments"){
+      var _mo=(__list(kind)||[]).filter(function(x){return x&&String(x.id)===__dId;})[0];
+      __dSide=(_mo&&_mo.from==="partner")?"partner":((typeof mpSide==="string"&&mpSide)?mpSide:"me");
+    }
     __dIds=(kind==="letters")?__descIds(kind,__dId):(ids&&ids.length?ids:[__dId]).map(String);
     var title=document.getElementById("del-choice-title");
     var sub=document.getElementById("del-choice-sub");
     var n=__allGroups(kind).length;
     if(title)title.textContent="删除"+__LABEL[kind];
-    if(sub)sub.textContent="共 "+n+" 项 · 删除后不会被云端或备份恢复";
+    if(sub)sub.textContent=(kind==="moments"?"当前主页共 ":"共 ")+n+" 项 · 删除后不会被云端或备份恢复";
     var ov=document.getElementById("del-choice-overlay");
     if(ov)ov.classList.add("show");
   }
@@ -29524,7 +29649,7 @@ try{
       var kind=__dKind,gs=__allGroups(kind);
       __closeChoice();
       if(!gs.length){toast("没有可删除的"+__LABEL[kind]);return;}
-      if(!(await __iosConfirm("删除全部 "+gs.length+" 项"+__LABEL[kind]+"？删除后不会被云端或备份恢复。",{okText:"删除全部"})))return;
+      if(!(await __iosConfirm((kind==="moments"?(__dSide==="partner"?"删除对方主页全部 ":"删除我的主页全部 "):"删除全部 ")+gs.length+" 项"+__LABEL[kind]+"？删除后不会被云端或备份恢复。",{okText:"删除全部"})))return;
       var n=__deleteGroups(kind,gs);
       toast("已删除 "+n+" 条"+__LABEL[kind]);
     });
@@ -30539,8 +30664,8 @@ $("file-partner-cover").addEventListener("change",function(e){
   const r=new FileReader();
   r.onload=function(){
     if(!state.profile)state.profile={};
-    var _raw=String(r.result||"");state.profile.partnerCover=_raw;try{if(window.__e11BgLocalSync)window.__e11BgLocalSync();}catch(_){}save();__flushSave(true);renderMomentProfile();toast("对方封面已更新");
-    try{__shrinkImg(_raw,1000,0.8).then(function(c){if(!c||c===_raw||state.profile.partnerCover!==_raw)return;state.profile.partnerCover=c;try{if(window.__e11BgLocalSync)window.__e11BgLocalSync();}catch(_){}save();__flushSave(true);try{window.__e11PersistNow&&window.__e11PersistNow();}catch(_){}renderMomentProfile();});}catch(_){}
+    var _raw=String(r.result||"");state.profile.partnerCover=_raw;try{if(window.__e11BgLocalSync)window.__e11BgLocalSync();}catch(_){}save();__flushSave(true);try{window.__cardMediaPersist&&window.__cardMediaPersist();}catch(_){}renderMomentProfile();toast("对方封面已更新");
+    try{__shrinkImg(_raw,1000,0.8).then(function(c){if(!c||c===_raw||state.profile.partnerCover!==_raw)return;state.profile.partnerCover=c;try{if(window.__e11BgLocalSync)window.__e11BgLocalSync();}catch(_){}save();__flushSave(true);try{window.__cardMediaPersist&&window.__cardMediaPersist();}catch(_){}try{window.__e11PersistNow&&window.__e11PersistNow();}catch(_){}renderMomentProfile();});}catch(_){}
   };
   r.readAsDataURL(f);e.target.value="";
 });
@@ -30552,6 +30677,7 @@ document.querySelectorAll("#cover-sheet [data-cover]").forEach(b=>b.addEventList
   if(!state.profile)state.profile={};
   state.profile[__coverField()]=b.dataset.cover;
   save();try{if(window.__e11BgLocalSync)window.__e11BgLocalSync();}catch(_){}
+  try{window.__cardMediaPersist&&window.__cardMediaPersist();}catch(_){}
   renderMoments();try{renderMomentProfile();}catch(_){}
   closeCoverSheet();toast(__coverLabel()+"主页背景已更新");
 }));
@@ -30559,6 +30685,7 @@ $("cover-color").addEventListener("input",e=>{
   if(!state.profile)state.profile={};
   state.profile[__coverField()]=e.target.value;
   save();try{window.__e11BgLocalSync&&window.__e11BgLocalSync();}catch(_){}
+  try{window.__cardMediaPersist&&window.__cardMediaPersist();}catch(_){}
   renderMoments();try{renderMomentProfile();}catch(_){}
 });
 (function(){
@@ -30568,8 +30695,8 @@ $("cover-color").addEventListener("input",e=>{
       var target=__coverField();
       var r=new FileReader();r.onload=function(){
         if(!state.profile)state.profile={};
-        var _raw=String(r.result||"");state.profile[target]=_raw;save();renderMoments();try{renderMomentProfile();}catch(_){}toast(__coverLabel()+"主页背景已上传");
-        try{__shrinkImg(_raw,1000,0.8).then(function(c){if(!c||c===_raw||state.profile[target]!==_raw)return;state.profile[target]=c;save();renderMoments();try{renderMomentProfile();}catch(_){}__refreshBioCover();});}catch(_){}
+        var _raw=String(r.result||"");state.profile[target]=_raw;save();try{window.__cardMediaPersist&&window.__cardMediaPersist();}catch(_){}renderMoments();try{renderMomentProfile();}catch(_){}toast(__coverLabel()+"主页背景已上传");
+        try{__shrinkImg(_raw,1000,0.8).then(function(c){if(!c||c===_raw||state.profile[target]!==_raw)return;state.profile[target]=c;save();try{window.__cardMediaPersist&&window.__cardMediaPersist();}catch(_){}renderMoments();try{renderMomentProfile();}catch(_){}__refreshBioCover();});}catch(_){}
         closeCoverSheet();
       };
       r.readAsDataURL(f);
@@ -30598,6 +30725,7 @@ $("btn-cover-clear").addEventListener("click",()=>{
   if(!state.profile)state.profile={};
   state.profile[__coverField()]="";
   save();try{window.__e11BgLocalSync&&window.__e11BgLocalSync();}catch(_){}
+  try{window.__cardMediaPersist&&window.__cardMediaPersist();}catch(_){}
   renderMoments();try{renderMomentProfile();}catch(_){}
   closeCoverSheet();toast("已恢复"+__coverLabel()+"默认背景");
 });
@@ -33154,6 +33282,7 @@ $("file-me-av").addEventListener("change",e=>{
        只要以前设过真头像，state.me.avatar 就会一直赢，主页卡片头像看起来“换不了”。 */
     __setAvatar("me",_v,"home");
     save();try{__flushSave(true);}catch(_){}
+    try{window.__cardMediaPersist&&window.__cardMediaPersist();}catch(_){}
     try{renderMe();}catch(_){}
     try{renderMoments();}catch(_){}
     toast("卡片头像已更新");
@@ -33166,6 +33295,7 @@ $("cp-file-av-me").addEventListener("change",e=>{
     var _v=c||raw;
     __setAvatar("me",_v,"couple");
     save();try{__flushSave(true);}catch(_){}
+    try{window.__cardMediaPersist&&window.__cardMediaPersist();}catch(_){}
     try{renderCouple();}catch(_){}
     toast("情侣头像已更新");
   });};rd.readAsDataURL(f);e.target.value="";
@@ -33184,6 +33314,7 @@ $("cp-file-av-partner").addEventListener("change",e=>{
     var _v=c||raw;
     __setAvatar("partner",_v,"couple");
     save();try{__flushSave(true);}catch(_){}
+    try{window.__cardMediaPersist&&window.__cardMediaPersist();}catch(_){}
     try{renderCouple();}catch(_){}
     toast("情侣头像已更新");
   });};rd.readAsDataURL(f);e.target.value="";
