@@ -264,7 +264,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183z13";
+window.__E11_BUILD="2026-11-24v43-183z14";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2712,7 +2712,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183z13">
+<meta name="app-build" content="2026-11-24v43-183z14">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -6848,10 +6848,19 @@ setTimeout(function(){
       if(inc.cover&&typeof inc.cover==="object"){
         if(!st.diary.cover){st.diary.cover=__e11CloneJson(inc.cover);ch=true;}
         else{
-          Object.keys(inc.cover).forEach(function(k){
-            var cv=st.diary.cover[k],nv=inc.cover[k];
-            if((cv===undefined||cv===null||cv===""||(cv===false&&nv===true))&&!(nv===undefined||nv===null||nv==="")){st.diary.cover[k]=__e11CloneJson(nv);ch=true;}
-          });
+          /* v43-183z14：封面按 __ts 比新旧。以前只补空字段，云端只要存着一份默认封面
+             （color/title/sub 都非空），本机换过的封面就永远合并不进来，重开像“没保存”。 */
+          var _ct=Number(st.diary.cover.__ts)||0,_it=Number(inc.cover.__ts)||0;
+          if(_it>_ct){
+            st.diary.cover=__e11CloneJson(inc.cover);ch=true;
+          }else if(_it<_ct){
+            /* 本机封面更新，保留本机 */
+          }else{
+            Object.keys(inc.cover).forEach(function(k){
+              var cv=st.diary.cover[k],nv=inc.cover[k];
+              if((cv===undefined||cv===null||cv===""||(cv===false&&nv===true))&&!(nv===undefined||nv===null||nv==="")){st.diary.cover[k]=__e11CloneJson(nv);ch=true;}
+            });
+          }
         }
       }
       return ch;
@@ -8183,11 +8192,15 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-183z13",
-  time:"2026-11-24 17:01",
+  date:"v43-183z14",
+  time:"2026-11-24 17:23",
   noticeKey:null,
-  lead:"2026-11-24 17:01 修改（v43-183z13）：对方主页那一行“点封面或头像即可更换”字条删掉，卡片仍和我的主页同高；动态里点评论“回复”会锁定那一条，输入框被键盘顶住时自动抬到键盘上方，不再插横条、不再把页面推得乱跳。",
+  lead:"2026-11-24 17:23 修改（v43-183z14）：日记封面现在会记住自己的修改时间，换过底色、版式、英文名或照片后，云端旧封面不会再把它顶回去；写信点“取消”先收键盘再关面板，不再整页换色闪一下，也不会取消后按钮点不动。",
   items:[
+    "日记封面不再被旧档顶掉（v43-183z14）：封面保存时写入自己的修改时间，云端合并、自动备份、深度恢复都按新者优先。以前云端只要存着一份默认封面（标题、英文名、底色都非空），本机换过的封面就合并不进来，重开像没保存。",
+    "封面照片先落预览（v43-183z14）：选大照片时先把原图接上，压缩完成再换成小图；不会因为照片还在解码就点保存，结果存了个空封面。标题、英文名、底色、照片仍然在保存后立刻重绘，重开日记保持原样。",
+    "写信取消不再闪（v43-183z14）：取消时先把输入框失焦、收起键盘，再关写信面板；不再在关面板后把整页信纸从我写信的纸换成 TA 来信的纸，去掉取消瞬间的换色闪烁。",
+    "取消后按钮照常可用（v43-183z14）：取消改在 pointerdown 第一下就响应，避免键盘收起动画吃掉第一次点击；同时清空这次草稿、字数和焦点，面板不会残留遮罩，紧接着再点“写信”、返回或其它按钮都能正常响应。",
     "动态回复锁定（v43-183z13）：点某条评论的“回复”，只把这一条标成回复目标，并把回复对象锁到这条评论；输入框自动聚焦。键盘弹起时动态页按键盘上沿重排，短页面也会留出可滚余量，输入框和发送键停在键盘上方，不会出现“回复框没显示”或被键盘完全盖住。",
     "不再乱弹（v43-183z13）：回复时不再往卡片底部插入“回复 XX”横条，卡片高度不变；只保留被回复评论的浅蓝底色。发送或取消后输入行自动收回，回复仍然挂在被点的那条评论下面。",
     "键盘下面不露聊天（v43-183z13）：回复时动态页固定到键盘上沿，页面高度不再超出可见区，输入框、键盘下方不会再漏出底层的聊天界面；键盘收起或离开动态页立即还原。",
@@ -9099,7 +9112,7 @@ function __e11DiarySig(d){
     keys.forEach(function(k){
       var pg=p[k]||{};parts.push(k+":"+(Number(pg.writtenAt)||0)+":"+(String((pg.mine&&pg.mine.text)||"").length)+":"+(String((pg.partner&&pg.partner.text)||"").length));
     });
-    var cv=d.cover||{};parts.push("c:"+String(cv.title||"")+"|"+String(cv.img||"").length+"|"+(cv.done?1:0));
+    var cv=d.cover||{};parts.push("c:"+String(cv.__ts||0)+"|"+String(cv.title||"")+"|"+String(cv.img||"").length+"|"+(cv.done?1:0));
     return parts.join(",");
   }catch(_){return "";}
 }
@@ -28098,6 +28111,8 @@ function fillLetterComposer(){
 }
 window.__writeReplyTo=null;
 function openWriteModal(replyTo){
+  if(__ltCloseTimer){clearTimeout(__ltCloseTimer);__ltCloseTimer=null;}
+  __ltWriteClosing=false;
   window.__writeReplyTo=replyTo||null;
   window.__styleTarget="me";
   var tt=document.querySelector("#lt-write-modal .ltw-title");
@@ -28108,8 +28123,34 @@ function openWriteModal(replyTo){
   if(m)m.classList.add("show");
   setTimeout(function(){var b=document.getElementById("lt-write-body");if(b)b.focus();},260);
 }
-function closeWriteModal(){var m=document.getElementById("lt-write-modal");if(m)m.classList.remove("show");try{window.__writeReplyTo=null;}catch(e){}window.__styleTarget="partner";try{applyPaperBg(partnerPaperSetting());}catch(e){}}
+var __ltWriteClosing=false,__ltCloseTimer=null;
+function closeWriteModal(){
+  if(__ltWriteClosing)return;
+  __ltWriteClosing=true;
+  var m=document.getElementById("lt-write-modal");
+  /* 取消时先把键盘收掉：真机上键盘还在时点顶部“取消”，第一次点常被键盘收起动画吃掉，
+     看起来就是“按钮失效/闪一下”。这里在 pointerdown 也调用，保证第一下就关。 */
+  try{var ae=document.activeElement;if(ae&&(ae.tagName==="TEXTAREA"||ae.tagName==="INPUT"||ae.isContentEditable))ae.blur();}catch(_){}
+  try{window.__blurSoftKeyboard&&window.__blurSoftKeyboard();}catch(_){}
+  if(m)m.classList.remove("show");
+  /* 取消就是丢弃这次草稿，顺便把计数和残留焦点清干净 */
+  try{
+    var b=document.getElementById("lt-write-body");if(b)b.value="";
+    var c=document.getElementById("lt-write-count");if(c)c.textContent="0/1000";
+    var sj=document.getElementById("lt-write-subject");if(sj)sj.value="";
+  }catch(_){}
+  /* 只把下次调色的目标切回“对方来信”，不再在取消后重刷全局信纸颜色。
+     原来这里会 applyPaperBg(partnerPaperSetting())，整个信件页从“我写信的纸”换成
+     “TA 来信的纸”，真机上就是取消后闪一下。隐藏的写信层不需要这次重绘。 */
+  __ltCloseTimer=setTimeout(function(){
+    __ltCloseTimer=null;
+    try{window.__writeReplyTo=null;}catch(e){}
+    window.__styleTarget="partner";
+    __ltWriteClosing=false;
+  },180);
+}
 $("btn-letter-write").addEventListener("click",function(){openWriteModal();});
+try{document.getElementById("lt-write-cancel").addEventListener("pointerdown",function(e){try{e.preventDefault();}catch(_){}closeWriteModal();},{passive:false});}catch(_){}
 document.getElementById("lt-write-cancel").addEventListener("click",closeWriteModal);
 document.getElementById("lt-write-modal").addEventListener("click",function(e){if(e.target===this)closeWriteModal();});
 document.getElementById("lt-write-envbg").addEventListener("click",function(){openEnvBgSheet();});
@@ -34923,7 +34964,8 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
   function D(){
     if(!state.diary||typeof state.diary!=="object")state.diary={};
     var d=state.diary;
-    if(!d.cover||typeof d.cover!=="object")d.cover={color:"#F3E3C8",img:"",doodle:"",title:"我们的日记",sub:"our diary",style:"photo",done:false};
+    if(!d.cover||typeof d.cover!=="object")d.cover={color:"#F3E3C8",img:"",doodle:"",title:"我们的日记",sub:"our diary",style:"photo",done:false,__ts:0};
+    if(d.cover.__ts==null)d.cover.__ts=0;
     if(d.cover.color==null)d.cover.color="#F3E3C8";
     if(!d.pages||typeof d.pages!=="object")d.pages={};
     return d;
@@ -35867,6 +35909,9 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
       var f=e.target.files&&e.target.files[0];if(!f)return;
       var rd=new FileReader();
       rd.onload=function(){
+        /* v43-183z14：先立刻把原图当封面，避免大照片还在压缩解码时点保存，
+           封面图还是空值（看起来就是“设了封面没保存”）。压缩完成后再换成小图。 */
+        try{if(!coverImgTemp){coverImgTemp=rd.result;paintPreview();}}catch(_){}
         var im=new Image();
         im.onload=function(){
           try{
@@ -35876,6 +35921,7 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
             paintPreview();
           }catch(_){coverImgTemp=rd.result;paintPreview();}
         };
+        im.onerror=function(){try{coverImgTemp=rd.result;paintPreview();}catch(_){}};
         im.src=rd.result;
       };
       rd.readAsDataURL(f);e.target.value="";
@@ -35900,6 +35946,9 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
       d.title=(el("dce-title").value||"我们的日记").slice(0,20);
       d.sub=normSub(el("dce-sub").value).slice(0,24);
       d.style=coverStyleTemp;d.done=true;
+      /* v43-183z14：封面也要自己的修改时间。云端旧档里的默认封面字段都是非空，
+         原来的合并只补空字段，会把本机新封面当成“已有值”而丢掉。 */
+      d.__ts=Date.now();
       d.doodle="";
       save();el("diary-cover-edit").classList.remove("show");
       paintCover();
