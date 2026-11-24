@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-183z33f";
+window.__E11_BUILD="2026-11-25v43-201z34";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2353,12 +2353,12 @@ body.msgsel-on #view-chat .bottombar{display:none;}
 #notify-prompt .np-t{padding-right:28px;}
 #notify-on{background:#007aff;color:#fff;}
 #notify-later{background:rgba(0,0,0,.06);color:#333;}
-#survey-create-overlay,#survey-answer-overlay{background:var(--bg,#fff);}
-#survey-create-overlay.show,#survey-answer-overlay.show{background:var(--bg,#fff);}
-/* v43-183z33f：问卷两层用整块主题底色，键盘弹起时不再透出下面的聊天页。 */
+/* v43-190z33f：问卷两层固定铺满、整块不透明；键盘弹起时上下都只看到问卷，不透出聊天页。 */
+#survey-create-overlay,#survey-answer-overlay{position:fixed;inset:0;width:100%;height:100%;background:#fff;isolation:isolate;}
+#survey-create-overlay.show,#survey-answer-overlay.show{background:#fff;}
 body.ui-dark #survey-create-overlay,body.ui-dark #survey-answer-overlay{background:#000;}
 
-#survey-create-sheet,#survey-answer-sheet{position:relative;display:flex;flex-direction:column;}
+#survey-create-sheet,#survey-answer-sheet{position:relative;display:flex;flex-direction:column;background:var(--field,#fff);}
 #survey-create-sheet{max-height:min(calc(100% - 8px),84vh);}
 #survey-answer-sheet{max-height:min(calc(100% - 8px),82vh);}
 /* 键盘弹起时整个缩放舞台会变矮（根舞台=可视区）；弹层必须按根舞台的 100% 限高，
@@ -2747,7 +2747,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-183z33f">
+<meta name="app-build" content="2026-11-25v43-201z34">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4458,7 +4458,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">存储桶<div class="set-sub">默认 vault；后端里要先建同名私有桶</div></span><input class="set-input" id="set-cloud-bucket" type="text" placeholder="vault" autocomplete="off" spellcheck="false" style="width:100px;font-size:13px;text-align:left;"></div>
         <div class="set-row"><button class="small-btn ghost" id="btn-cloud-test" style="font-size:12px;padding:6px 12px;">测试连接</button><span class="set-sub" id="cloud-test-sub" style="margin-left:10px;flex:1;">未测试</span></div>
         <div class="set-row"><span class="set-label">从云端恢复<div class="set-sub">不会自动覆盖本机；只有点这个按钮才拉取云端存档</div></span><button class="small-btn ghost" id="btn-cloud-pull" style="font-size:12px;padding:6px 12px;">恢复云端</button><span class="set-sub" id="cloud-pull-sub" style="margin-left:10px;flex:1;"></span></div>
-        <div class="set-row"><span class="set-label">深度恢复（云端 + 本机备份）<div class="set-sub">聊天、字卡、信件、留言、动态逐类找最多的一份合并；某项在云端被清零时，从本机自动备份补回</div></span><button class="small-btn ghost" id="btn-deep-restore" style="font-size:12px;padding:6px 12px;">深度恢复</button><span class="set-sub" id="deep-restore-sub" style="margin-left:10px;flex:1;"></span></div>
+        <div class="set-row"><span class="set-label">麦克风权限<div class="set-sub" id="mic-perm-sub">检查系统或浏览器是否已允许录音</div></span><button class="small-btn ghost" id="btn-mic-check" style="font-size:12px;padding:6px 12px;">检查权限</button></div>
         <div class="set-row"><span class="set-label">保存并切换<div class="set-sub">会清掉本机登录态，聊天记录保留；切换后需要重新登录</div></span><button class="small-btn" id="btn-cloud-save" style="font-size:12px;padding:6px 12px;">保存并重启</button></div>
         <div class="set-row"><span class="set-label">恢复官方云端<div class="set-sub">回到内置 Supabase，登录态会清掉</div></span><button class="small-btn ghost" id="btn-cloud-reset" style="font-size:12px;padding:6px 12px;">恢复官方</button></div>
       </div>
@@ -4620,6 +4620,24 @@ setTimeout(function(){
       <!-- 数据 -->
       <div class="set-sec-title">数据管理</div>
       <div class="set-group">
+        <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;">
+          <div class="set-label" style="font-size:14px;">恢复数据</div>
+          <button class="small-btn ghost" style="width:100%;font-size:14px;padding:11px 12px;" id="btn-quick-restore">快速恢复（最近一份备份）</button>
+        </div>
+        <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;">
+          <button class="small-btn ghost" style="width:100%;font-size:14px;padding:11px 12px;" id="btn-recover-all2">恢复全部数据（本机 7 份 + 云端）</button>
+        </div>
+        <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;">
+          <button class="small-btn ghost" style="width:100%;font-size:14px;padding:11px 12px;" id="btn-cloud-replace2">云端还原（用云端覆盖本机）</button>
+        </div>
+        <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;">
+          <button class="small-btn ghost" style="width:100%;font-size:14px;padding:11px 12px;" id="btn-deep-restore2">深度恢复（本机旧库 + 云端）</button>
+        </div>
+        <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;">
+          <button class="small-btn ghost" style="width:100%;font-size:14px;padding:11px 12px;" id="btn-tomb-clean">清理批量误删标记（不动逐条删除）</button>
+        </div>
+        <div class="set-row"><div class="set-sub" id="restore-status" style="display:none;margin:0;">正在恢复…</div></div>
+        <div class="set-row"><div class="set-sub" id="restore-debug" style="display:none;margin:0;white-space:pre-wrap;line-height:1.6;"></div></div>
         <div class="set-row"><button class="small-btn ghost" style="width:100%;" id="btn-export">全量导出（聊天 / 信件 / 动态 / 字卡 / 表情 / 设置）</button></div>
         <div class="set-row" style="gap:8px;">
           <button class="small-btn ghost" style="flex:1;font-size:13px;" id="btn-export-chat">只导出聊天</button>
@@ -4627,13 +4645,14 @@ setTimeout(function(){
           <button class="small-btn ghost" style="flex:1;font-size:13px;" id="btn-export-emoji">只导出表情包</button>
         </div>
         <div class="set-row" style="flex-direction:column;align-items:stretch;">
-          <button class="small-btn ghost" style="width:100%;" id="btn-snapshots">自动备份（最近 3 次）</button>
+          <button class="small-btn ghost" style="width:100%;" id="btn-snapshots">自动备份（最近 7 次）</button>
           <div class="set-sub" id="snap-sub" style="margin-top:6px;">每天自动存一份，点开可一键恢复</div>
         </div>
         <div class="set-row"><label class="small-btn ghost" for="file-import" style="width:100%;display:flex;align-items:center;justify-content:center;cursor:pointer;text-align:center;">导入数据（全量/分类自动识别）</label></div>
         <div class="set-row"><button class="small-btn ghost" style="width:100%;" id="btn-clear-msgs">清空聊天记录（含一起听房间聊天）</button></div>
         <div class="set-row" style="flex-direction:column;align-items:stretch;"><button class="small-btn ghost" style="width:100%;" id="btn-clear-music-room">清空一起听聊天记录（保留歌单）</button><div class="set-sub" style="margin-top:6px;">只清空歌词页房间里的聊天；一起听的歌单、当前歌曲和背景都不动</div></div>
-        <div class="set-row" style="flex-direction:column;align-items:stretch;"><button class="small-btn ghost" style="width:100%;color:var(--danger);" id="btn-reset-all">一键重置（只清本机）</button><div class="set-sub" style="margin-top:6px;">只清这台设备的聊天、字卡、动态和设置；云端存档保留，可在上面「从云端恢复」拉回</div></div>
+        <div class="set-row" style="flex-direction:column;align-items:stretch;"><button class="small-btn ghost" style="width:100%;color:var(--danger);" id="btn-reset-all">一键清除本机（云端保留）</button><div class="set-sub" style="margin-top:6px;">只清这台设备的聊天、字卡、动态和设置；云端存档保留，之后可点「云端还原」拉回</div></div>
+        <div class="set-row" style="flex-direction:column;align-items:stretch;"><button class="small-btn ghost" style="width:100%;color:var(--danger);font-weight:700;" id="btn-reset-all-cloud">一键清除全部（本机 + 云端）</button><div class="set-sub" style="margin-top:6px;">本机和云端一起清空，清完不可恢复；只在你确定两边都不要了时用</div></div>
       </div>
       <div class="set-sec-title">存储空间</div>
       <div class="set-group">
@@ -4765,7 +4784,7 @@ setTimeout(function(){
       <div class="sheet-grip"></div>
       <div style="padding:6px 16px 18px;">
         <div class="edit-sheet-title">自动备份</div>
-        <div class="set-sub" id="bk-sub" style="margin:6px 0 10px;">每天自动存一份，保留最近 3 次</div>
+        <div class="set-sub" id="bk-sub" style="margin:6px 0 10px;">每次离开网站自动存一份，保留最近 7 次；进入时直接取最新一份</div>
         <div id="bk-list"></div>
         <button class="small-btn ghost" style="width:100%;margin-top:12px;" id="bk-now">立即备份一次</button>
       </div>
@@ -6051,9 +6070,20 @@ setTimeout(function(){
     a=String(a||"").trim();if(!a)return "";
     return a.indexOf("@")>=0?a:(a+"@"+cfg.domain);
   }
-  function loadSession(){try{var s=JSON.parse(localStorage.getItem(LS_AUTH)||"null");return (s&&s.access_token)?s:null;}catch(e){return null;}}
-  function saveSession(s){session=s;try{localStorage.setItem(LS_AUTH,JSON.stringify(s));}catch(e){}}
-  function clearSession(){session=null;try{localStorage.removeItem(LS_AUTH);}catch(e){}}
+  function loadSession(){
+    try{
+      var s=JSON.parse(localStorage.getItem(LS_AUTH)||"null");
+      if(s&&s.access_token)return s;
+    }catch(e){}
+    /* v43-190：更新/离开站点后主登录键偶尔没写成，读独立备份补登录，不再直接弹登录页。 */
+    try{
+      var b=JSON.parse(localStorage.getItem("e11.auth.bak.v1")||"null");
+      if(b&&b.access_token){try{localStorage.setItem(LS_AUTH,JSON.stringify(b));}catch(_){ }return b;}
+    }catch(_eAuthBak){}
+    return null;
+  }
+  function saveSession(s){session=s;try{localStorage.setItem(LS_AUTH,JSON.stringify(s));localStorage.setItem("e11.auth.bak.v1",JSON.stringify(s));}catch(e){}}
+  function clearSession(){session=null;try{localStorage.removeItem(LS_AUTH);localStorage.removeItem("e11.auth.bak.v1");}catch(e){}}
   function action(){try{var a=JSON.parse(sessionStorage.getItem(SS_ACTION)||"null");return a&&a.uid?a:null;}catch(e){return null;}}
   function setAction(a){try{if(a)sessionStorage.setItem(SS_ACTION,JSON.stringify(a));else sessionStorage.removeItem(SS_ACTION);}catch(e){}}
   function authOk(){return !!(session&&session.user&&session.user.id);}
@@ -6386,6 +6416,28 @@ setTimeout(function(){
   }
   window.__e11MarkFp=__e11MarkFp;
 
+  /* 用户要求删除的不恢复：删除暂存停用，不再占空间。 */
+  window.__E11_TRASH_KEY="e11.trash.v1";
+  window.__e11TrashPut=function(){return false;};window.__e11TrashPutOld=function(kind,x){
+    try{
+      if(!kind||!x||typeof x!=="object")return false;
+      var id=String(x.id||"");if(!id)return false;
+      var o=JSON.parse(localStorage.getItem(window.__E11_TRASH_KEY)||"{}");
+      if(!o||typeof o!=="object"||Array.isArray(o))o={};
+      var arr=Array.isArray(o[kind])?o[kind]:[];
+      var item=Object.assign({},x);
+      if(item.src&&String(item.src).length>180000)item.src=String(item.src).slice(0,180000);
+      arr=arr.filter(function(y){return String(y&&y.id||"")!==id;});
+      arr.push(item);o[kind]=arr.slice(-800);
+      var txt=JSON.stringify(o);
+      if(txt.length>2200000){
+        Object.keys(o).forEach(function(k){if(Array.isArray(o[k]))o[k]=o[k].slice(-Math.max(20,Math.floor(o[k].length/2)));});
+        txt=JSON.stringify(o);
+      }
+      if(txt.length>2600000)return false;
+      localStorage.setItem(window.__E11_TRASH_KEY,txt);return true;
+    }catch(_eTrashPut){return false;}
+  };
   window.__e11MarkDeleted=function(kind,id){
     try{
       id=String(id);if(!kind||!id)return false;
@@ -6398,7 +6450,7 @@ setTimeout(function(){
       __e11DelLocalWrite(m);
       try{
         var _hit=null;((st[kind]||[]).some(function(x){if(x&&String(x.id)===id){_hit=x;return true;}return false;}));
-        if(_hit)__e11MarkFp(kind,_hit);
+        if(_hit){__e11MarkFp(kind,_hit);try{window.__e11TrashPut(kind,_hit);}catch(_eTrash){}}
       }catch(_eFpMark){}
       try{window.__e11Dirty=1;}catch(_){}
       return true;
@@ -6406,7 +6458,9 @@ setTimeout(function(){
   };
   window.__e11IsDeleted=function(kind,id){
     try{
-      if(!kind||!id)return false;id=String(id);
+      if(!kind||!id)return false;
+      if(kind==="messages"&&window.__e11IgnoreMsgDel)return false;
+      id=String(id);
       var st=(typeof state!=="undefined"&&state)||{};
       if(st.deletedIds&&st.deletedIds[kind]&&st.deletedIds[kind][id])return true;
       var m=__e11DelLocalRead();return !!(m&&m[kind]&&m[kind][id]);
@@ -6472,6 +6526,9 @@ setTimeout(function(){
      这里只修一次：墓碑数量明显大于现存消息（>40 条且超过现存 2 倍）时，
      清掉 messages 这一类误伤墓碑；用户主动清空聊天会写 __chatClearedAt，不在此列。 */
   function __e11RepairBulkTombs(st){
+    /* v43-190：用户明确要求删除的不恢复；不再为了“多恢复”批量清墓碑。 */
+    return false;
+    /* eslint-disable no-unreachable */
     try{
       if(!st||st.chatTombstoneRepairV1)return false;
       if(st.__chatClearedAt)return false;
@@ -6491,6 +6548,36 @@ setTimeout(function(){
     }catch(_){return false;}
   }
   window.__e11RepairBulkTombs=__e11RepairBulkTombs;
+  /* v43-200：只清“同一秒批量写入”的误删标记，用来救被旧版整批误标成删除、
+     但用户其实没删的内容。逐条删除的时间分散，不会被清掉。 */
+  window.__E11CleanBulkTombs=function(){
+    try{
+      var kinds=["messages","letters","guestbook","moments","cards","groups","musicPlaylist","musicRoomMsgs","favorites","emojis","partnerEmojis","redpackets","surveyHistory"];
+      var st=(typeof state!=="undefined"&&state)||{};st.deletedIds=st.deletedIds||{};
+      var loc=(typeof __e11DelLocalRead==="function")?__e11DelLocalRead():{};
+      var removed=0,detail=[];
+      kinds.forEach(function(k){
+        var ids=Object.assign({},st.deletedIds[k]||{},loc[k]||{});
+        var pairs=Object.keys(ids).map(function(id){return [id,Number(ids[id])||0];}).filter(function(x){return x[1]>0;});
+        if(pairs.length<4)return;
+        pairs.sort(function(a,b){return a[1]-b[1];});
+        var groups=[],cur=[];
+        pairs.forEach(function(x){if(cur.length&&x[1]-cur[cur.length-1][1]>4000){groups.push(cur);cur=[];}cur.push(x);});
+        if(cur.length)groups.push(cur);
+        var drop=[];
+        groups.forEach(function(g){if(g.length>=4)drop=drop.concat(g.map(function(x){return x[0];}));});
+        if(!drop.length)return;
+        drop.forEach(function(id){if(st.deletedIds[k]&&st.deletedIds[k][id])delete st.deletedIds[k][id];if(loc[k]&&loc[k][id])delete loc[k][id];});
+        removed+=drop.length;detail.push(k+" "+drop.length);
+      });
+      if(removed){
+        if(typeof __e11DelLocalWrite==="function")__e11DelLocalWrite(loc);
+        if(typeof __e11DelMirrorState==="function")__e11DelMirrorState(st);
+        try{state.__savedAt=Date.now();save();}catch(_){}
+      }
+      return {removed:removed,detail:detail};
+    }catch(_){return {removed:0,detail:[]};}
+  };
   try{window.__e11DeleteKinds=__e11DeleteKinds;}catch(_eKindsExp){}
   /* 没有 id 的导入歌曲用内容算一个稳定 id：删除墓碑按这个 id 写，
      云端/历史快照里同一首无 id 的歌也会算出同一个 id，才不会被旧档补回来。 */
@@ -6520,7 +6607,8 @@ setTimeout(function(){
         if(!has)return;
         if(k==="musicPlaylist")st[k].forEach(function(x){if(x&&!x.id){var _sid=__e11SongStableId(x);if(_sid)x.id=_sid;}});
         st[k]=st[k].filter(function(x){
-          var id=__e11IdOf(x);if(id&&ids[id])return false;
+          var id=__e11IdOf(x);
+          if(id&&ids[id]){try{if(window.__e11TrashPut)window.__e11TrashPut(k,x);}catch(_eTrashCap){}return false;}
           try{if(k==="letters"||k==="guestbook"||k==="moments"){var _fp=window.__e11ContentFp(k,x);if(_fp&&__e11FpLive(k,_fp))return false;}}catch(_eFp){}
           return true;
         });
@@ -7144,6 +7232,9 @@ setTimeout(function(){
     }catch(_eCoreApply){}
     if(!snap||!snap.state)throw new Error("云端存档格式不对");
     var __reloading=!!(opt&&opt.reloading);
+    var __restoreAll=!!(opt&&opt.restoreAll);
+    /* v43-194：“全部恢复”只对聊天放开删除，其它类别继续按墓碑过滤。 */
+    var __msgRestoreAll=!!(opt&&opt.msgRestoreAll);
     var st=snap.state;
     try{__e11NormalizeMessages(st);}catch(_eNormSnap){}
     var localState=null;try{localState=window.__e11StateGet?window.__e11StateGet():null;}catch(_){}
@@ -7207,8 +7298,15 @@ setTimeout(function(){
         st.settings=Object.assign({},st.settings||{},_lset);
       }
     }catch(_eSetMerge){}
-    /* 本机删掉的东西必须继续算删掉：即使这次是云端赢，也要把本机墓碑带进合并结果。 */
-    try{st.deletedIds=__e11MergeDeleted(st.deletedIds,localState&&localState.deletedIds);}catch(_eDel){}
+    /* 本机删掉的东西必须继续算删掉：即使这次是云端赢，也要把本机墓碑带进合并结果。
+       只有 opt.restoreAll 才跳过（当前不再使用）。 */
+    if(!__restoreAll){try{st.deletedIds=__e11MergeDeleted(st.deletedIds,localState&&localState.deletedIds);}catch(_eDel){}}
+    else{st.deletedIds={};st.__chatClearedAt=0;}
+    if(__msgRestoreAll){
+      try{if(st.deletedIds)delete st.deletedIds.messages;}catch(_){}
+      try{if(localState&&localState.deletedIds)delete localState.deletedIds.messages;}catch(_){}
+      st.__chatClearedAt=0;
+    }
     /* v43-88：云端做过“信件/留言/动态修复”时，本机重置时留下的一批旧墓碑不能再把它们删掉。
        之前深度恢复看似合并成功，但 applySnapshot 又按本机墓碑过滤，所以界面上还是 0。 */
     try{
@@ -7237,7 +7335,13 @@ setTimeout(function(){
       /* v43-184：删除是永久意图。以前这里一旦看到 socialRestored 就把信件/留言/动态/表情的
          本机墓碑整批删掉，旧云端档一合并，用户删过的表情和内容立刻复活。现在墓碑永不批量清除。 */
     }catch(_eSocialFlag){}
-    try{__e11ApplyDeleted(st);}catch(_eApply){}try{applyTplDeleted(st);}catch(_eApplyTpl){}try{__e11FilterQuizBank(st);}catch(_eApplyQB){}
+    if(!__restoreAll){
+      try{window.__e11IgnoreMsgDel=__msgRestoreAll?1:0;}catch(_){}
+      try{__e11ApplyDeleted(st,__msgRestoreAll?(window.__e11DeleteKinds||[]).filter(function(k){return k!=="messages";}):undefined);}catch(_eApply){}
+      try{applyTplDeleted(st);}catch(_eApplyTpl){}
+    }
+    else{st.deletedIds={};st.__chatClearedAt=0;}
+    try{__e11FilterQuizBank(st);}catch(_eApplyQB){}
     try{__syncAvatarMirrors();}catch(_eApplyAv){}
 
     try{st.__savedAt=Date.now();}catch(e){}
@@ -7482,49 +7586,143 @@ setTimeout(function(){
   /* v43-87：云端某项被旧版重置清零后，单靠「恢复云端」救不回来。
      这里把云端、本机当前档、核心档、离站档、3 份自动备份一起枚举，
      按 id 合并每一类内容，取并集而不是让空数组覆盖。 */
-  window.__E11DeepRestore=function(){
+  window.__E11DeepRestore=function(opts){
+    var _deepT0=Date.now();
+    /* v43-194：all=1 是用户在设置里明确点“全部恢复（含误删聊天）”。
+       只放开 messages 这一类的删除墓碑和清空时间，其它内容的删除仍然生效。 */
+    var _recAll=!!(opts&&opts.all);
+    /* v43-198：快速模式只读“永久最大档 + 最新一份备份 + 聊天流水 + 云端最新档”，
+       不扫 7 份大档、不扫旧库、不拉 4MB 完整档，几秒内先恢复大部分内容。 */
+    var _quick=!!(opts&&opts.quick);
     try{var _curFix=window.__e11StateGet&&window.__e11StateGet();if(_curFix)window.__e11RepairBulkTombs&&window.__e11RepairBulkTombs(_curFix);}catch(_eDeepTombFix){}
     var cands=[];
     function add(name,st){
       if(!st||typeof st!=="object"||Array.isArray(st))return;
-      try{__e11NormalizeMessages(st);}catch(_eDeepNorm){}
       cands.push({name:name,st:st});
     }
     try{var cur=window.__e11StateGet&&window.__e11StateGet();add("本机当前",cur);}catch(_){}
     try{var c=JSON.parse(localStorage.getItem("e11.core.v1")||"null");if(c&&c.state)add("文字核心档",c.state);}catch(_){}
     try{var e=JSON.parse(localStorage.getItem("e11.exit.v1")||"null");if(e&&e.state)add("离站快照",e.state);}catch(_){}
-    function _paint(t){try{var el=document.getElementById("deep-restore-sub");if(el)el.textContent=t;}catch(_){}}
-    _paint("正在读取本机自动备份…");
+    /* 全量恢复：独立社交小备份、日记备份、设置备份也都算来源。 */
+    try{var so=JSON.parse(localStorage.getItem("e11.socialBak.v1")||"null");if(so)add("社交独立备份",so);}catch(_){}
+    try{var dbk=JSON.parse(localStorage.getItem("e11.diaryBak.v1")||"null");if(dbk&&dbk.diary)add("日记备份",{diary:dbk.diary});}catch(_){}
+    try{var cfg=JSON.parse(localStorage.getItem("e11.cfgBak.v1")||"null");if(cfg)add("设置备份",cfg);}catch(_){}
+    /* 旧版 privateChat 可能是整份存档；删除暂存里也有正文。 */
+    try{var pc=JSON.parse(localStorage.getItem("privateChat")||"null");if(pc&&(pc.state||Array.isArray(pc.messages)||Array.isArray(pc.cards)))add("旧 privateChat 档",pc.state||pc);}catch(_){}
+    /* 兜底扫其它可能存整份存档的 localStorage 键；只认有内容数组的对象，避免把配置当档。 */
+    try{
+      var _skipKey=/^(e11\.auth|e11\.session|e11\.owner|e11\.cloud|e11\.pwd|e11\.pwPass|e11\.lock|e11\.userLook|e11\.theme|e11\.fit|e11\.buildSeen|e11\.updateGuard|e11\.knownDb|e11\.lastAccount|e11\.tombRepair|e11\.deleted|e11\.chatlog|e11\.settings|e11\.profile|e11\.musicRoom|e11\.call|e11\.storage|e11\.boot|e11\.diaryBak|e11\.socialBak|e11\.cfgBak|e11\.core|e11\.exit|e11\.reset|e11\.forceLock|e11\.pwdPending|e11\.trash)/i;
+      Object.keys(localStorage).forEach(function(k){
+        if(_skipKey.test(k))return;
+        if(!/(chat|backup|snap|core|exit|social|diary|state|import)/i.test(k))return;
+        var raw=localStorage.getItem(k);if(!raw||raw.length<60||raw.length>8000000)return;
+        var o=JSON.parse(raw);var st=o&&o.state&&typeof o.state==="object"?o.state:o;
+        if(!st||typeof st!=="object")return;
+        if(Array.isArray(st.messages)||Array.isArray(st.cards)||Array.isArray(st.letters)||Array.isArray(st.guestbook)||Array.isArray(st.moments))add("键 "+k,st);
+      });
+    }catch(_eKeyScan){}
+    function _paint(t){
+      try{var el=document.getElementById("deep-restore-sub");if(el)el.textContent=t;}catch(_){}
+      try{var rs=document.getElementById("restore-status");if(rs){rs.style.display="block";rs.textContent=t;}}catch(_){}
+    }
+    /* 并发读取：以前 3 份备份、多个旧库一份一份排队，手机端慢到像卡死。 */
+    function runPool(items,limit,fn){
+      return new Promise(function(res){
+        var out=[],next=0,active=0,closed=false;
+        function kick(){
+          while(active<limit&&next<items.length){
+            (function(idx){
+              active++;
+              Promise.resolve().then(function(){return fn(items[idx],idx);}).then(function(v){out[idx]=v;},function(){out[idx]=null;}).then(function(){
+                active--;if(!closed)kick();
+              });
+            })(next++);
+          }
+          if(active===0&&(next>=items.length||!items.length)){closed=true;res(out);}
+        }
+        if(!items.length){res([]);return;}
+        kick();
+      });
+    }
+    _paint("正在快速读取本机备份…");
     var localP=Promise.resolve([]);
     try{
       if(typeof __bkSlots==="function"&&typeof dbGet==="function"){
         /* v43-114：完整备份里有图片/表情，手机端读一份就可能超过 2 秒。
            旧逻辑 1.8 秒就判失败，3 份历史备份全被当成“读不出来”，深度恢复自然恢复不了历史消息。
            v43-115：改成分批顺序读，避免 3 份大档同时进内存把手机顶卡。 */
-        var _backs=[],_chain=Promise.resolve();
-        __bkSlots().forEach(function(k,i){
-          _chain=_chain.then(function(){
-            _paint("正在读取本机备份 "+(i+1)+"/3…");
-            return __e11DbGetTimed(k,12000).then(function(v){_backs.push(v&&v.state?v.state:null);}).catch(function(){_backs.push(null);});
+        if(_quick){
+          localP=__bkMeta().then(function(m){
+            var _keys=[BK_BEST];if(m&&m[0]&&m[0].slot!==undefined)_keys.push("bk_slot_"+m[0].slot);
+            _paint("正在读取最近一份备份…");
+            return runPool(_keys,2,function(k){return __e11DbGetTimed(k,8000).then(function(v){return v&&v.state?v.state:null;});});
           });
-        });
-        localP=_chain.then(function(){return _backs;});
+        }else{
+          var _keys=__bkSlots().concat([BK_BEST]);
+          localP=runPool(_keys,3,function(k,i){
+            _paint("正在快速读取本机备份 "+(i+1)+"/"+_keys.length+"…");
+            return __e11DbGetTimed(k,5000).then(function(v){return v&&v.state?v.state:null;});
+          });
+        }
       }
     }catch(_){}
     /* v43-105：深度恢复必须同时拿 latest.json 和 latest.full.json。
        只读文字档会恢复聊天条数，却没有头像/照片/表情原图/一起听封面，用户看到的就是“恢复不全”。 */
+    /* v43-190z33f：深度恢复以前只读当前登录作用域的 3 个备份槽。
+       退出登录/换账号/更新后旧库可能留在 privateChatDB_v1_xxx 里，必须一起扫。 */
+    var scopeP=Promise.resolve([]);
+    try{
+      if(!_quick&&indexedDB.databases&&typeof __e11ReadScopeDb==="function"){
+        scopeP=indexedDB.databases().then(function(dbs){
+          var names=(dbs||[]).map(function(x){return x&&x.name;}).filter(function(n){return n&&n.indexOf("privateChatDB_v1")===0&&n!==DB_NAME;});
+          /* 已知库优先，最多 10 个；4 路并发，避免旧库多时逐个开库拖几十秒。 */
+          try{
+            var _kn=JSON.parse(localStorage.getItem("e11.knownDbNames.v1")||"[]");
+            if(Array.isArray(_kn))names.sort(function(a,b){var ai=_kn.indexOf(a),bi=_kn.indexOf(b);if(ai>=0||bi>=0)return (bi>=0?bi:99)-(ai>=0?ai:99);return 0;});
+          }catch(_eKnSort){}
+          names=names.slice(0,10);
+          _paint("正在并行扫描本机旧库…");
+          return runPool(names,4,function(n){
+            return __e11ReadScopeDb(n).then(function(db){return db?{name:n,db:db}:null;});
+          }).then(function(out){return (out||[]).filter(Boolean);});
+        }).catch(function(){return [];});
+      }
+    }catch(_eScopeScan){}
     var cloudP=Promise.resolve(null);
+    var cloudInfo={ok:0,reason:"",msgs:0,social:0,diary:0};
     if(typeof authOk==="function"&&authOk()&&typeof session!=="undefined"&&session&&session.user){
       _paint("正在读取云端完整档…");
-      var _latestP=api(cloudUrl(),{token:session.access_token,timeout:12000}).catch(function(){return null;});
-      var _fullP=(typeof cloudBackupGet==="function")?cloudBackupGet().catch(function(){return null;}):Promise.resolve(null);
-      cloudP=Promise.all([_latestP,_fullP]).then(function(pair){return {latest:pair[0],full:pair[1]};});
+      var _latestP=api(cloudUrl(),{token:session.access_token,timeout:_quick?15000:25000}).catch(function(){return null;});
+      var _fullP=_quick?Promise.resolve(null):((typeof cloudBackupGet==="function")?cloudBackupGet().catch(function(){return null;}):Promise.resolve(null));
+      cloudP=Promise.all([_latestP,_fullP]).then(function(pair){
+        var d=pair[0],f=pair[1];
+        var st=(f&&f.state)||(d&&d.state)||null;
+        if(st){
+          cloudInfo.ok=1;
+          cloudInfo.msgs=Array.isArray(st.messages)?st.messages.length:0;
+          cloudInfo.social=(Array.isArray(st.letters)?st.letters.length:0)+(Array.isArray(st.guestbook)?st.guestbook.length:0)+(Array.isArray(st.moments)?st.moments.length:0);
+          try{cloudInfo.diary=st.diary&&st.diary.pages?Object.keys(st.diary.pages).length:0;}catch(_){}
+        }else{cloudInfo.reason="云端没有存档或读取超时";}
+        return {latest:d,full:f};
+      }).catch(function(e){cloudInfo.reason=String(e&&e.message||e).slice(0,60)||"读取失败";return {latest:null,full:null};});
+    }else{
+      cloudInfo.reason="未登录云端，只恢复了本机";
     }
-    return Promise.all([localP,cloudP]).then(function(res){
-      var backs=res[0]||[],cloudWrap=res[1]||{};
+    return Promise.all([localP,cloudP,scopeP]).then(function(res){
+      var backs=res[0]||[],cloudWrap=res[1]||{},scopes=res[2]||[];
       var cloud=cloudWrap.latest||null,cloudFull=cloudWrap.full||null;
       _paint("正在合并内容…");
       backs.forEach(function(st,i){add("自动备份"+(i+1),st);});
+      /* 其它登录作用域的主档和 3 个备份槽一起进候选。 */
+      try{
+        scopes.forEach(function(o){
+          var label=(o.name||"旧库").replace("privateChatDB_v1","本机库");
+          if(o.db&&o.db.state)add(label+" 主档",o.db.state);
+          try{
+            __bkSlots().forEach(function(k,i){if(o.db&&o.db[k]&&o.db[k].state)add(label+" 备份"+(i+1),o.db[k].state);});
+          }catch(_eScopeBk){}
+        });
+      }catch(_eScopeAdd){}
       if(cloudFull&&cloudFull.state)add("云端完整档",cloudFull.state);
       if(cloud&&cloud.state)add("云端文字档",cloud.state);
       var cats=["messages","cards","letters","guestbook","moments","redpackets","musicPlaylist","emojis","partnerEmojis","groups","favorites"];
@@ -7539,7 +7737,16 @@ setTimeout(function(){
       var base=null,best=-1;
       cands.forEach(function(c){var sc=score(c.st);if(sc>best){best=sc;base=c.st;}});
       if(!base)throw new Error("没有找到可恢复的存档");
-      try{base=JSON.parse(JSON.stringify(base));}catch(_){}
+      /* 旧代码整份 JSON 深拷贝，大图/表情档会被复制一遍，手机上明显拖时间。
+         这里只复制顶层和数组；字符串图片共享，不再复制几 MB。 */
+      try{
+        var _base0=base;
+        base=Object.assign({},_base0);
+        cats.forEach(function(k){base[k]=Array.isArray(_base0[k])?_base0[k].slice():[];});
+        if(_base0.diary)base.diary=JSON.parse(JSON.stringify(_base0.diary));
+      }catch(_eShallowBase){base=JSON.parse(JSON.stringify(base));}
+      /* 聊天流水独立于备份，先并进来；后面统一按删除墓碑和清空时间过滤。 */
+      try{if(window.__e11ChatLogRestore&&window.__e11ChatLogRestore(base,_recAll?true:undefined))_paint("已并入聊天流水…");}catch(_eDeepLog){}
       cands.forEach(function(c){
         cats.forEach(function(k){
           var a=Array.isArray(base[k])?base[k]:[],b=Array.isArray(c.st[k])?c.st[k]:[];
@@ -7547,6 +7754,7 @@ setTimeout(function(){
         });
         try{if(window.__e11MergeDiary)window.__e11MergeDiary(base,c.st);}catch(_eDeepDiary){}
       });
+      try{__e11NormalizeMessages(base);}catch(_eDeepNormFinal){}
       /* v43-107：设置、美化皮肤、主页资料不能只补“空字段”。
          默认档里每个字段都有默认值，旧逻辑会认为不是空，于是云端的自定义颜色、
          背景、字号、昵称、签名永远进不来（换设备就是“设置/美化/资料没同步”）。
@@ -7591,30 +7799,103 @@ setTimeout(function(){
       try{before.diary=((window.__e11StateGet&&window.__e11StateGet()||{}).diary&&Object.keys(((window.__e11StateGet&&window.__e11StateGet()||{}).diary.pages)||{}).length)||0;}catch(_bD){}
       var after={};cats.forEach(function(k){after[k]=Array.isArray(base[k])?base[k].length:0;});
       try{after.diary=base.diary&&base.diary.pages?Object.keys(base.diary.pages).length:0;}catch(_aD){}
-      /* v43-183z10：深度恢复以前只在 applySnapshot 里认本机墓碑，
-         如果合并基准恰好选中了旧备份、而本机墓碑键又没读全，删掉的内容仍会回来。
-         这里把当前档、每一份备份、云端两档的墓碑全部并进 base，再统一过滤一遍。 */
+      /* v43-190z33f：只恢复未删除的内容。墓碑和清空时间优先于任何备份。 */
       try{
         var _deepDel=base.deletedIds||{};
         cands.forEach(function(c){_deepDel=__e11MergeDeleted(_deepDel,c.st&&c.st.deletedIds);});
         _deepDel=__e11MergeDeleted(_deepDel,__e11DelLocalRead());
         base.deletedIds=_deepDel;
-        __e11ApplyDeleted(base);
+        if(_recAll){try{window.__e11IgnoreMsgDel=1;}catch(_igd){}}
+        if(!_recAll)__e11ApplyDeleted(base);
       }catch(_eDeepDelFix){}
+      try{
+        var _chatClr=0;
+        cands.forEach(function(c){var v=Number(c.st&&c.st.__chatClearedAt)||0;if(v>_chatClr)_chatClr=v;});
+        if(_chatClr&&!_recAll){
+          base.__chatClearedAt=Math.max(Number(base.__chatClearedAt)||0,_chatClr);
+          if(Array.isArray(base.messages))base.messages=base.messages.filter(function(m){return (Number(m&&m.time)||0)>_chatClr;});
+        }
+        if(_recAll){
+          base.__chatClearedAt=0;
+          if(base.deletedIds)delete base.deletedIds.messages;
+          try{
+            var _lm=__e11DelLocalRead();if(_lm&&_lm.messages){delete _lm.messages;__e11DelLocalWrite(_lm);}
+          }catch(_eRecDelLocal){}
+        }
+      }catch(_eDeepChatClr){}
+
       after={};cats.forEach(function(k){after[k]=Array.isArray(base[k])?base[k].length:0;});
       try{after.diary=base.diary&&base.diary.pages?Object.keys(base.diary.pages).length:0;}catch(_aD2){}
       var total=after.messages+after.cards+after.letters+after.guestbook+after.moments+(after.diary||0);
       if(!total)throw new Error("云端和本机备份里都没有内容");
       base.__savedAt=Date.now();
-      try{localStorage.removeItem("e11.resetLocalOnly.v1");localStorage.removeItem("__e11HardReset");}catch(_){}
+      /* v43-190z33f：深度恢复不清「只重置本机 / 一键清除」标记，
+         否则清空后点恢复会把已经删掉的整库又拉回来。 */
       var _socialFlag=0;try{_socialFlag=(cloud&&cloud.socialRestored)||0;}catch(_){}
-      return applySnapshot({state:base,extras:{},coreOnly:0,deep:1,socialRestored:_socialFlag},{reloading:false}).then(function(){
+      return applySnapshot({state:base,extras:{},coreOnly:0,deep:1,socialRestored:_socialFlag},{reloading:false,msgRestoreAll:_recAll,restoreAll:_recAll}).then(function(){
+        if(_recAll){
+          try{
+            state.deletedIds={};state.__chatClearedAt=0;state.musicRoomClearedAt=0;
+            var _lm2=__e11DelLocalRead();
+            ["messages","letters","guestbook","moments","cards","emojis","partnerEmojis","redpackets","musicRoomMsgs","groups","favorites","surveyHistory"].forEach(function(k){delete _lm2[k];});
+            __e11DelLocalWrite(_lm2);
+            try{
+              var _seen={},_out=[];
+              (state.messages||[]).forEach(function(m){
+                var _id=String((m&&m.id)||"");if(!_id){_out.push(m);return;}
+                if(_seen[_id]){var _i=_seen[_id]-1;if(_out[_i]&&JSON.stringify(m).length>JSON.stringify(_out[_i]).length)_out[_i]=m;return;}
+                _seen[_id]=_out.push(m);
+              });
+              state.messages=_out;
+            }catch(_eRecDedup){}
+            state.__savedAt=Date.now();save();
+          }catch(_eRecAllFix){}
+          try{window.__e11IgnoreMsgDel=0;}catch(_eRecAllFlag){}
+        }
         try{setTimeout(function(){window.__e11TryMediaRepair&&window.__e11TryMediaRepair();},250);}catch(_){}
-        return {before:before,after:after,src:cands.map(function(c){return c.name;})};
+        var _ms=Date.now()-_deepT0;
+        try{var el=document.getElementById("deep-restore-sub");if(el)el.textContent="已恢复（"+(Math.round(_ms/100)/10)+" 秒）";}catch(_eMs){}
+        var _dbg=cands.map(function(c){var q=c.st||{};return c.name+"：聊天 "+(q.messages||[]).length+" · 信 "+(q.letters||[]).length+" · 留言 "+(q.guestbook||[]).length+" · 动态 "+(q.moments||[]).length+" · 日记 "+((q.diary&&q.diary.pages)?Object.keys(q.diary.pages).length:0);});
+        return {before:before,after:after,src:cands.map(function(c){return c.name;}),ms:_ms,cloud:cloudInfo,debug:_dbg};
       });
     });
   };
 
+  /* v43-195：云端强制恢复。用户明确点这个按钮时，以云端最全的一份为主，
+     不再被本机删除墓碑/清空时间挡住；用于“云端有 55 条，本机只剩 30 条”的救档。 */
+  window.__E11CloudReplace=function(){
+    if(!authOk()||!session||!session.user)return Promise.reject(new Error("未登录云端，请先登录账号"));
+    function _sc(st){
+      if(!st)return -1;
+      var n=0;try{n+=(st.messages||[]).length*10;}catch(_){}
+      ["letters","guestbook","moments","cards","redpackets","musicPlaylist"].forEach(function(k){try{n+=(st[k]||[]).length*3;}catch(_){}});
+      try{n+=st.diary&&st.diary.pages?Object.keys(st.diary.pages).length*8:0;}catch(_){}
+      return n;
+    }
+    function _latest(retry){
+      return api(cloudUrl(),{token:session.access_token,timeout:30000}).catch(function(e){
+        if(retry>0)return new Promise(function(r){setTimeout(r,1200);}).then(function(){return _latest(retry-1);});
+        throw e;
+      });
+    }
+    return Promise.all([
+      _latest(2).catch(function(){return null;}),
+      (typeof cloudBackupGet==="function")?cloudBackupGet().catch(function(){return null;}):Promise.resolve(null)
+    ]).then(function(pair){
+      var d=pair[0],f=pair[1];
+      var best=null,bs=-1,src="";
+      [[d,"云端最新档"],[f,"云端完整档"]].forEach(function(x){
+        var st=x[0]&&x[0].state;if(!st)return;
+        var sc=_sc(st);if(sc>bs){bs=sc;best=st;src=x[1];}
+      });
+      if(!best)throw new Error("云端没有找到可用存档");
+      return applySnapshot({state:best,extras:{},coreOnly:0,deep:1},{reloading:false}).then(function(){
+        try{state.__savedAt=Date.now();save();}catch(_eCRFix){}
+        var st=window.__e11StateGet?window.__e11StateGet():state;
+        return {src:src,msgs:(st.messages||[]).length,cards:(st.cards||[]).length,letters:(st.letters||[]).length,guestbook:(st.guestbook||[]).length,moments:(st.moments||[]).length,diary:(st.diary&&st.diary.pages?Object.keys(st.diary.pages).length:0)};
+      });
+    });
+  };
   window.__E11Cloud={schedule:cloudSchedule,flush:function(){clearTimeout(cloudTimer);cloudSchedule();},recoveryGet:cloudGetRecovery,fullGet:cloudBackupGet,uploadNow:function(){
     if(window.__e11NoCloud)return Promise.reject(new Error("已关闭云端同步"));
     if(!authOk())return Promise.reject(new Error("未登录"));
@@ -7671,7 +7952,9 @@ setTimeout(function(){
       /* v43-75：正常重新进入网站只认“上次退出时”的本机档，不再自动把云端档拉下来覆盖。
          这台设备以前同步过、本机又有内容时，只有用户主动点「从云端恢复」才拉取（force=1）。 */
       var _hasLocal=__e11LocalHasArchive();
-      if(!force&&_hasLocal&&meta0&&Number(meta0.savedAt)>0)return 0;
+      /* v43-190z33f：本机只要有任何聊天/日记/字卡/信件/留言，自动检查就绝不拉云端覆盖。
+         只有用户主动点「从云端恢复」(force=1) 才允许合并。更新前后都不会用云档顶掉本机。 */
+      if(!force&&_hasLocal)return 0;
       return cloudGet({fresh:!_hasLocal}).then(function(cloud){
         if(!cloud)return false;
         var meta=meta0;
@@ -8404,16 +8687,20 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-183z33f",
-  time:"2026-11-24 22:24",
+  date:"v43-193z33f",
+  time:"2026-11-25 21:30",
   noticeKey:null,
-  lead:"2026-11-24 22:24 修改（v43-183z33f）：在 z33 原版上只修五项——麦克风权限、问卷键盘透出、字卡分组归位、离站数据原样、自动备份不吞聊天。",
+  lead:"2026-11-25 修改（v43-193z33f）：最近 7 份完整备份保留，进入网站时全部合并；离开网站自动写一份全量备份，配额不足自动退成文字核心档，备份不再自己消失。",
   items:[
-    "麦克风点了没反应（v43-183z33f）：录音前先查系统录音权限，没有权限就先弹系统授权；网页版仍然直接走浏览器授权。授权结果会回传页面，5 秒没等到才提示去系统设置允许录音。",
-    "问卷打字透出聊天（v43-183z33f）：创建问卷、回答问卷两层改成整块不透明主题底色，深色模式变黑，键盘再高也只看到问卷本身。",
-    "字卡分组乱跑（v43-183z33f）：启动、合并存档、每次渲染前按「类别+组名」合并同名重复组，卡片改到保留组；孤儿卡按分组名接回，找不到接回默认组或同类第一个组，不再堆进「未分组」。",
-    "离开数据原样（v43-183z33f）：切后台、锁屏、关闭、返回、页面冻结都会立刻写离站快照；一直开着被直接杀进程时最多每 30 秒补一次，下次进入只认最近这份快照。",
-    "自动备份不吞聊天（v43-183z33f）：离站快照签名加入保存时间，内容没变不重复写；快照和备份只补不删，删除墓碑仍优先挡住恢复。",
+    "备份自己丢失（v43-193z33f）：配额满时旧代码删的是 meta 里第一份（最新那份），备份会一份接一份消失；完整档写失败也没有文字兜底。现在只删最旧一份，保留 6 份；完整档失败自动改存文字核心档。进入网站时最近 7 份备份全部按 id 合并，离开网站再自动写一份全量档。",
+    "更新后一起听被关掉（v43-192z33f）：页面末尾有一段“新页面第一次打开就强制 musicSession=false 并 save()”的旧逻辑。更新/退出后 sessionStorage 被清空，一起听会被判成没开始；而且 save 发生在启动读库前，还会把默认空档写回主库。现在启动阶段不再重置会话、不再写盘，只有点「关闭」才会把 miniClosed 置真，下一次才需要重新邀请。",
+    "更新退出后数据没保存（v43-191z33f）：离站快照以前把聊天和 2.6MB 全局外观拼成一个键，手机配额一满整份写失败。现在按体积逐级降级，先写完整、再写不带外观、最后至少保留最近 40 条聊天，保证退出时有一份能落盘。",
+    "自动恢复卡住（v43-191z33f）：上次自动恢复如果中途退出或失败，会留下 running/failed 标记，旧逻辑以后永久跳过。现在只把 done 当作成功，失败或中断下次进入自动重试；旧离站快照也不再按 7 天/24 小时丢弃。",
+    "麦克风点了没反应（v43-190z33f）：录音前先查系统录音权限，没有权限就先弹系统授权；网页版仍然直接走浏览器授权。授权结果会回传页面，5 秒没等到才提示去系统设置允许录音。",
+    "问卷打字透出聊天（v43-190z33f）：创建问卷、回答问卷两层改成整块不透明主题底色，深色模式变黑，键盘再高也只看到问卷本身。",
+    "字卡分组乱跑（v43-190z33f）：启动、合并存档、每次渲染前按「类别+组名」合并同名重复组，卡片改到保留组；孤儿卡按分组名接回，找不到接回默认组或同类第一个组，不再堆进「未分组」。",
+    "离开数据原样（v43-190z33f）：切后台、锁屏、关闭、返回、页面冻结都会立刻写离站快照；一直开着被直接杀进程时最多每 30 秒补一次，下次进入只认最近这份快照。",
+    "自动备份不吞聊天（v43-190z33f）：离站快照签名加入保存时间，内容没变不重复写；快照和备份只补不删，删除墓碑仍优先挡住恢复。",
     "背景设置完又变（v43-183z33）：聊天背景、我的全局背景、卡片背景、留言板、信件、画画、动态主页、情侣空间、信纸、信封、一起听、通话这些背景，现在统一先写一份只记「最后一次选择」的小备份。纯色/渐变预设和信纸、信封预设以前只靠设置小备份，会被旧存档整份盖掉；现在启动时在旧档恢复之后，再无条件按这份选择恢复。",
     "信纸/信封换图会把本地撑满（v43-183z33）：信纸背景图以前整张塞进设置小备份，一张图就可能把 localStorage 顶满，后面的背景设置全都写不进去，刷新又回旧图。现在大图从设置小备份里剔除，单独走图片备份；信纸、信封的预设和换图也在点完立即强制落盘。",
     "删除的字卡分组又回来（v43-183z32）：删分组以前只走 260ms 防抖保存，马上退出时删除墓碑还没进主档；旧备份/离站快照一并就把整个分组和里面的字卡带回来。现在删分组立刻强制写本机、推云端，并在合并后再按「内存 + 本机同步墓碑」清一遍。",
@@ -9129,7 +9416,7 @@ function __e11ReadScopeDb(name){
           if(!odb.objectStoreNames.contains(STORE)){try{odb.close();}catch(_){}finish(null);return;}
           var tx=odb.transaction(STORE,"readonly"),st=tx.objectStore(STORE);
           var out={};
-          var keys=["state","bk_snap_meta","bk_slot_0","bk_slot_1","bk_slot_2"];
+          var keys=["state","bk_snap_meta","bk_slot_0","bk_slot_1","bk_slot_2","bk_slot_3","bk_slot_4","bk_slot_5","bk_slot_6","bk_best"];
           var pending=keys.length;
           keys.forEach(function(k){
             var g=st.get(k);
@@ -9215,7 +9502,7 @@ window.__e11MergeDbScopes=async function(){
       }
       if(Array.isArray(other[BK_META])&&other[BK_META].length){
         if(!baseMeta.length){
-          baseMeta=other[BK_META].slice(0,3);
+          baseMeta=other[BK_META].slice(0,7);
           for(var bi=0;bi<baseMeta.length;bi++){var os=baseMeta[bi].slot;if(other["bk_slot_"+os])await dbSet("bk_slot_"+os,other["bk_slot_"+os]);}
           await dbSet(BK_META,baseMeta);gotBackup=true;
         }else{
@@ -9225,7 +9512,7 @@ window.__e11MergeDbScopes=async function(){
           var newest=baseMeta.slice().sort(function(a,b){return (Number(b.ts)||0)-(Number(a.ts)||0);})[0];
           if(om&&Number(om.ts||0)>Number(newest&&newest.ts||0)+1000&&other["bk_slot_"+om.slot]){
             var oldest=baseMeta.slice().sort(function(a,b){return (Number(a.ts)||0)-(Number(b.ts)||0);})[0];
-            if(oldest){var tgt=oldest.slot;await dbSet("bk_slot_"+tgt,other["bk_slot_"+om.slot]);baseMeta=baseMeta.filter(function(x){return x!==oldest;});baseMeta.push({slot:tgt,ts:om.ts,msgs:om.msgs,cards:om.cards,letters:om.letters,moments:om.moments,globals:om.globals});baseMeta=baseMeta.sort(function(a,b){return (Number(b.ts)||0)-(Number(a.ts)||0);}).slice(0,3);await dbSet(BK_META,baseMeta);gotBackup=true;}
+            if(oldest){var tgt=oldest.slot;await dbSet("bk_slot_"+tgt,other["bk_slot_"+om.slot]);baseMeta=baseMeta.filter(function(x){return x!==oldest;});baseMeta.push({slot:tgt,ts:om.ts,msgs:om.msgs,cards:om.cards,letters:om.letters,moments:om.moments,globals:om.globals});baseMeta=baseMeta.sort(function(a,b){return (Number(b.ts)||0)-(Number(a.ts)||0);}).slice(0,7);await dbSet(BK_META,baseMeta);gotBackup=true;}
           }
         }
       }
@@ -9315,7 +9602,29 @@ try{
 
 /* —— 自动备份：快照存 IndexedDB，轮换 3 个槽位，不占 localStorage —— */
 const BK_META="bk_snap_meta";
-function __bkSlots(){return ["bk_slot_0","bk_slot_1","bk_slot_2"];}
+const BK_BEST="bk_best";
+/* v43-194：再留一份“永久最大档”。7 份轮换只覆盖最近 7 次进出，
+   频繁进出时 55 条的好档很快被写坏的 30 条档挤掉。最大档只在内容更多时替换，
+   历史永远有一份最全的副本，不会被轮换冲掉。 */
+function __bkScore(st){
+  if(!st||typeof st!=="object")return -1;
+  var n=0;
+  ["messages","cards","letters","guestbook","moments","redpackets","musicPlaylist","emojis","partnerEmojis","groups","favorites"].forEach(function(k){if(Array.isArray(st[k]))n+=st[k].length;});
+  try{if(st.diary&&st.diary.pages)n+=Object.keys(st.diary.pages).length*2;}catch(_){}
+  return n;
+}
+function __bkBestConsider(snap){
+  try{
+    if(!snap||!snap.state||!db)return;
+    var sc=__bkScore(snap.state);
+    dbGet(BK_BEST).catch(function(){return null;}).then(function(old){
+      if(old&&__bkScore(old.state)>=sc)return;
+      return dbSet(BK_BEST,{ts:snap.ts||Date.now(),full:1,state:snap.state,globals:snap.globals||{}}).catch(function(){});
+    });
+  }catch(_){}
+}
+window.__bkScore=__bkScore;window.__bkBestConsider=__bkBestConsider;
+function __bkSlots(){return ["bk_slot_0","bk_slot_1","bk_slot_2","bk_slot_3","bk_slot_4","bk_slot_5","bk_slot_6"];}
 function __bkMeta(){return __e11DbGetTimed(BK_META,6000).then(function(m){return Array.isArray(m)?m:[];}).catch(function(){return [];});}
 /* 全局备份：聊天/动态/信件/字卡/日记这些都在 state 里；设置、一起听、偏好、
    头像副本等只存在 localStorage，单独收进来，恢复时才不会再被本机旧键盖回去。
@@ -9447,20 +9756,38 @@ function __bkSave(force,opts){
        退出会越来越久，手机端看起来就是黑屏卡住。 */
     if(force&&opts&&opts.onlyIfDirty&&newest&&Number(state.__savedAt||0)<=Number(newest.ts||0)+1000)return "skip";
     var used={};meta.forEach(function(x){used[x.slot]=1;});
-    var slot=0;for(var i=0;i<3;i++){if(!used[i]){slot=i;break;}}
+    /* v43-193：7 个完整槽位。先用空槽；7 个都满了就覆盖最旧的一份，
+       不再像旧逻辑那样永远覆盖 slot 0（那样实际只有 3 份，最新那份还会被写两次）。 */
+    var slot=-1;for(var i=0;i<7;i++){if(!used[i]){slot=i;break;}}
+    if(slot<0){
+      var _oldest=meta.slice().sort(function(a,b){return (Number(a.ts)||0)-(Number(b.ts)||0);})[0];
+      slot=_oldest&&_oldest.slot!==undefined?Number(_oldest.slot):0;
+      if(!(slot>=0&&slot<7))slot=0;
+    }
     var globals=__bkCollectGlobals();
     /* v43-105：自动备份改为完整状态（含图片/表情/一起听），恢复时才能真正恢复全部。
        IndexedDB 容量足够；每个槽仍只在自动备份时写，不参与每次编辑。 */
     /* v43-111：不再每次备份都 JSON 深拷贝整份存档（几 MB 会卡退出）。
        IndexedDB 的 put 本身会做结构化克隆，直接放入当前 state 即可。 */
     var _bkState=state;
-    var snap={ts:Date.now(),full:1,state:_bkState,globals:globals};
-    return dbSet("bk_slot_"+slot,snap).then(function(){
+    var _bkTs=Date.now();
+    var snap={ts:_bkTs,full:1,state:_bkState,globals:globals};
+    function _finish(coreOnly){
       var _dp=state.diary&&state.diary.pages&&typeof state.diary.pages==="object"?Object.keys(state.diary.pages).length:0;
-      var m={slot:slot,ts:snap.ts,msgs:(state.messages||[]).length,cards:(state.cards||[]).length,letters:(state.letters||[]).length,moments:(state.moments||[]).length,diary:_dp,diarySig:__e11DiarySig(state.diary),skinTs:Number(state.skin&&state.skin.__ts)||0,setTs:Number(state.settings&&state.settings.__ts)||0,globals:Object.keys(globals).length};
+      var m={slot:slot,ts:_bkTs,msgs:(state.messages||[]).length,cards:(state.cards||[]).length,letters:(state.letters||[]).length,moments:(state.moments||[]).length,diary:_dp,diarySig:__e11DiarySig(state.diary),skinTs:Number(state.skin&&state.skin.__ts)||0,setTs:Number(state.settings&&state.settings.__ts)||0,globals:Object.keys(globals).length,core:coreOnly?1:0};
       var list=meta.filter(function(x){return x.slot!==slot;});
-      list.unshift(m);list=list.slice(0,3);
-      return dbSet(BK_META,list).then(function(){return "ok";});
+      list.unshift(m);list=list.slice(0,7);
+      return dbSet(BK_META,list).then(function(){return coreOnly?"core":"ok";});
+    }
+    /* v43-193：先写完整档；配额不足时自动退成“文字核心档”，绝不因为图片太大就让整份备份消失。
+       以前完整档写失败后，上层会删掉最新槽位，用户看起来就是备份自己丢了。 */
+    return dbSet("bk_slot_"+slot,snap).then(function(){try{__bkBestConsider(snap);}catch(_eBest){}return _finish(false);}).catch(function(_eFull){
+      try{
+        var core=__e11CorePack(state);
+        core.__bkCore=1;
+        var small={ts:_bkTs,core:1,state:core,globals:globals};
+        return dbSet("bk_slot_"+slot,small).then(function(){return _finish(true);});
+      }catch(_eSmall){return Promise.reject(_eFull);}
     });
   });
 }
@@ -9554,19 +9881,18 @@ window.__bkMergeNewest=function(force){
       var curD=state.diary&&state.diary.pages&&typeof state.diary.pages==="object"?Object.keys(state.diary.pages).length:0;
       var curDS=__e11DiarySig(state.diary);
       var curST=Number(state.skin&&state.skin.__ts)||0,curSeT=Number(state.settings&&state.settings.__ts)||0;
-      var slots=(meta||[]).slice(0,3).filter(function(m){
-        /* 小档全部读（很便宜），确保条数相同但内容不同的老历史也能补回来；
-           大档只在“备份确实比现在多/新”时才读，避免每次启动把 3 份带图大档全塞进内存。 */
-        if(curN<30)return true;
-        return Number(m&&m.msgs||0)>curN||Number(m&&m.cards||0)>curC||Number(m&&m.letters||0)>curL||Number(m&&m.moments||0)>curM
-          ||Number(m&&m.diary||0)>curD||(m&&m.diarySig&&m.diarySig!==curDS)||(m&&!m.diarySig&&Number(m.diary||0)>0)
-          ||Number(m&&m.skinTs||0)>curST+500||Number(m&&m.setTs||0)>curSeT+500||Number(m&&m.globals||0)>0&&curST===0;
-      });
+      /* v43-193：进入网站时把最近 7 份备份全部合一次，不只看“条数更多”的那几份。
+         条数相同但内容不同的历史（比如补发消息、改过的字卡）以前会被跳过；
+         合并只补 id 缺失的内容，并按墓碑/清空时间过滤，不会把删掉的补回来。 */
+      var slots=(meta||[]).slice(0,7);
       if(!slots.length)return 0;
       return slots.reduce(function(p,m){
         return p.then(function(){return dbGet("bk_slot_"+m.slot).catch(function(){return null;}).then(function(bk){added+=mergeOne(bk);});});
       },Promise.resolve()).then(function(){
+        return dbGet(BK_BEST).catch(function(){return null;}).then(function(best){if(best&&best.state)added+=mergeOne(best);});
+      }).then(function(){
         if(!added)return 0;
+        try{var _clr=Number(state.__chatClearedAt)||0;if(_clr&&Array.isArray(state.messages))state.messages=state.messages.filter(function(m){return (Number(m&&m.time)||0)>_clr;});}catch(_eBkClr){}
         try{__e11NormalizeMessages(state);}catch(_eBkNorm3){}
         try{__e11ApplyDeleted(state);}catch(_eBkDel){}try{applyTplDeleted(state);}catch(_eBkTpl){}
         state.__savedAt=Date.now();
@@ -9580,10 +9906,14 @@ window.__bkMergeNewest=function(force){
   }catch(_){window.__bkMerging=0;return 0;}
 };
 function __bkAuto(){
-  try{__bkSave(false).then(function(r){if(r==="ok")try{__bkPaint();}catch(e){}}).catch(function(e){
+  try{__bkSave(false).then(function(r){if(r==="ok"||r==="core")try{__bkPaint();}catch(e){}}).catch(function(e){
     try{if(e&&(e.name==="QuotaExceededError")){__bkMeta().then(function(m){
-      m.slice(0,1).forEach(function(x){dbSet("bk_slot_"+x.slot,null).catch(function(){});});
-      dbSet(BK_META,m.slice(0,1)).catch(function(){});});}}catch(_){}
+      /* v43-193：配额满时只丢最旧的一份，保留其余 6 份；旧代码误删 meta[0]（最新那份），
+         备份就会一份接一份“自己消失”。 */
+      var _old=m[m.length-1];if(!_old)return;
+      dbSet("bk_slot_"+_old.slot,null).catch(function(){});
+      dbSet(BK_META,m.filter(function(x){return x.slot!==_old.slot;})).catch(function(){});
+    });}}catch(_){}
   });}catch(e){}
 }
 function __bkPaint(){
@@ -10035,8 +10365,9 @@ function __e11ExitGlobals(){
     __bkGlobalKeys().forEach(function(k){
       var v=null;try{v=localStorage.getItem(k);}catch(_){v=null;}
       if(v===null||v===undefined)return;
-      if(v.length>1200000)return;
-      if(total+v.length>2600000)return;
+      /* v43-191：单个美化键超过 300KB 就不进离站快照，避免整份快照被一张背景图撑爆配额。 */
+      if(v.length>300000)return;
+      if(total+v.length>900000)return;
       out[k]=v;total+=v.length;
     });
   }catch(e){}
@@ -10056,59 +10387,62 @@ function __e11ExitSave(st,force){
     window.__e11ExitSavedSig=_sig;
     try{__e11DiarySnapshot(st||state);}catch(_eDiaryExit){}
   }catch(_eExitSig){}
-  /* v43-111：离开网站前真正写一份“离站快照”。
-     旧版 v43-103 直接把这里 return false，导致改完设置/字卡马上退出时，
-     最后一次改动没进 IndexedDB，再进来就回到更早的数据。
-     这里只序列化文字核心（图片本体仍在 IndexedDB），体积小、同步写完不黑屏；
-     主库的图片/表情会和这份快照按 id 合并，不会被冲掉。 */
+  /* v43-191：离开网站前写一份“离站快照”。旧版把 2.6MB 的全局键和 3MB 的聊天拼在一个键里，
+     手机 localStorage 配额一满就整份写失败；用户看到的就是“更新/退出后数据还是没保存”。
+     现在按体积逐级降级：先带小全局键 → 再只带聊天 → 最后只留最近 40 条，保证至少有一份能落盘。 */
   try{
     if(window.__restoring)return false;
-    /* 主库读失败时，界面还能用，但绝不拿默认空档覆盖上一次的离站快照 */
     if(window.__e11ExitPreserve)return false;
-    /* v43-123：数据还在读 IndexedDB 时，绝不能用默认空档写离站快照 */
     if(window.__e11BootLoading&&!window.__e11ExitAllowEarly)return false;
-    /* 首屏数据还没从 IndexedDB 读出来时，state 只是默认空档。
-       这时刷新/退出绝不能写“空快照”，否则会把上一次的聊天和设置冲成默认。 */
     if(!window.__stateReady&&!window.__e11ExitAllowEarly)return false;
     var src=st||(typeof state!=="undefined"?state:null);
     if(!src)return false;
     var _exitTs=Date.now();
-    /* v43-120：退出前第一件事先把明暗主题落盘，后面再慢慢序列化聊天；
-       否则页面一被系统杀掉，用户刚切的夜间模式就丢了。 */
     try{
       var _ed=!!(src.skin&&src.skin.dark);
       if(src.skin&&src.skin.themeMode&&src.skin.themeMode!=="manual"&&window.matchMedia)_ed=!!window.matchMedia("(prefers-color-scheme: dark)").matches;
       localStorage.setItem("__theme.v1",_ed?"dark":"light");
     }catch(_eThemeExit){}
-    /* v43-122：退出快照默认带“全部聊天”，不再只留 500 条。
-       性能靠 JSON.stringify 一次的同步成本控制；只有真的超过 localStorage 配额时才降级截断。 */
-    var _srcExit=src;
-    var core=__e11TextCore(_srcExit);
+    var core=__e11TextCore(src);
     try{
       core.__savedAt=_exitTs;core.__exit=1;
-      /* v43-121：这份快照就是“退出这一刻”的最终状态，
-         设置/皮肤/资料的更新时间必须一起推到退出时间。
-         否则旧逻辑里主库的 profile.__ts 更大，合并时会把刚改的昵称/签名判成旧数据丢掉。 */
       ["settings","skin","profile"].forEach(function(k){
         if(core[k]&&typeof core[k]==="object")core[k].__ts=_exitTs;
       });
     }catch(_){}
-    var payload={app:"privateChat",exit:1,ts:_exitTs,state:core,globals:__e11ExitGlobals()};
-    var txt=JSON.stringify(payload);
-    /* 超过 3.2MB 先保留最近 500 条聊天，设置/皮肤/资料/字卡等一个不丢 */
-    if(txt.length>3.2*1024*1024&&Array.isArray(core.messages)){
-      core.messages=core.messages.slice(-500);
-      txt=JSON.stringify(payload);
+    var globals={};
+    try{globals=__e11ExitGlobals();}catch(_eGlobals){}
+    var _fullMsgs=Array.isArray(core.messages)?core.messages.slice():null;
+    var _make=function(keep,withGlobals){
+      var c=core;
+      try{c=Object.assign({},core);}catch(_){}
+      if(_fullMsgs)c.messages=keep?_fullMsgs.slice(-keep):_fullMsgs;
+      else if(c.messages)c.messages=[];
+      return JSON.stringify({app:"privateChat",exit:1,ts:_exitTs,state:c,globals:withGlobals?globals:{},mini:withGlobals?0:1});
+    };
+    /* 每档都先直接覆盖；失败才移除旧快照再重试，绝不把上一份完好快照提前删掉。 */
+    var _levels=[
+      [null,true],[null,false],
+      [800,true],[800,false],
+      [500,true],[500,false],
+      [300,false],[120,false],[60,false],[40,false]
+    ];
+    var _ok=false,_txt="",_used=null;
+    for(var _li=0;_li<_levels.length;_li++){
+      var _keep=_levels[_li][0],_wg=_levels[_li][1];
+      _txt=_make(_keep,_wg);
+      if(_txt.length>4700000)continue;
+      try{localStorage.setItem(__E11_EXIT_KEY,_txt);_ok=true;_used=_li;break;}
+      catch(_eFull){
+        try{localStorage.removeItem("bigPending");}catch(_eBig){}
+        try{
+          localStorage.removeItem(__E11_EXIT_KEY);
+          localStorage.setItem(__E11_EXIT_KEY,_txt);_ok=true;_used=_li;break;
+        }catch(_eFull2){}
+      }
     }
-    if(txt.length>4.2*1024*1024&&Array.isArray(core.messages)){
-      core.messages=core.messages.slice(-120);
-      txt=JSON.stringify(payload);
-    }
-    try{localStorage.setItem(__E11_EXIT_KEY,txt);}catch(_e1){
-      try{localStorage.removeItem("bigPending");}catch(_){}
-      try{localStorage.removeItem(__E11_EXIT_KEY);localStorage.setItem(__E11_EXIT_KEY,txt);}catch(_e2){return false;}
-    }
-    try{localStorage.setItem("e11.exit.meta.v1",JSON.stringify({ts:_exitTs,len:txt.length}));}catch(_eMeta){}
+    if(!_ok)return false;
+    try{localStorage.setItem("e11.exit.meta.v1",JSON.stringify({ts:_exitTs,len:_txt.length,level:_used,mini:(_levels[_used]&&_levels[_used][0]!==null)?1:0,counts:{messages:_fullMsgs?_fullMsgs.length:0,cards:(core.cards||[]).length,letters:(core.letters||[]).length,moments:(core.moments||[]).length,guestbook:(core.guestbook||[]).length}}));}catch(_eMeta){}
     try{window.__e11ExitSavedAt=_exitTs;}catch(_){}
     return true;
   }catch(e){return false;}
@@ -10122,6 +10456,17 @@ function __e11ExitRead(){
 }
 window.__e11ExitSave=__e11ExitSave;
 window.__e11ExitRead=__e11ExitRead;
+/* v43-191：每次改动写库成功后，最多隔 10 秒同步写一份离站快照。
+   这样即使 App 被系统直接杀掉、来不及触发 pagehide，更新/退出前的最后改动也已经在本机。 */
+window.__e11QuickSnap=function(){
+  try{
+    if(document.hidden||window.__restoring||!window.__stateReady)return;
+    var n=Date.now();
+    if(n-(Number(window.__e11QuickSnapAt)||0)<10000)return;
+    window.__e11QuickSnapAt=n;
+    __e11ExitSave(typeof state!=="undefined"?state:null);
+  }catch(_){}
+};
 /* 把离站快照并进主存档：设置/皮肤/资料整份以离站为准，聊天按 id 并集；
    同一条消息保留主库里的图片 src，只补文字/状态，避免“为了恢复设置把表情图冲没”。 */
 function __e11MergeExitState(s,e){
@@ -10130,9 +10475,9 @@ function __e11MergeExitState(s,e){
     var ex=e.state,ts=Number(e.ts||ex.__savedAt)||0;
     if(!ts)return false;
     var nowTs=Date.now();
-    /* 只接受最近 7 天的离站快照；更早的旧快照不能再把已经删掉的内容复活 */
-    if(ts<nowTs-7*24*3600*1000)return false;
-    if(ts<Number(s.__savedAt||0)-24*3600*1000)return false;
+    /* v43-191：不再用“7 天/24 小时”把旧离站快照挡掉。
+       用户更新前可能隔了很久才回来，旧快照正是他要恢复的数据；
+       删除由墓碑和清空时间过滤，设置按 __ts 比较，旧快照不会盖掉新改动。 */
     try{__e11NormalizeMessages(ex);__e11NormalizeMessages(s);}catch(_eNormExit){}
     /* 已经删除的东西不能因为旧离站快照又复活：把双方墓碑并起来先过滤。 */
     try{
@@ -10320,6 +10665,7 @@ function __flushSave(immediate){
         try{__writeLocalSnapshot(sig);}catch(_eLs){
           try{__e11StorageWarn("本次改动已存进本地库；空间紧张时图片会稍后补存");}catch(_){}
         }
+        try{if(window.__e11QuickSnap)window.__e11QuickSnap();}catch(_eQuickSnap1){}
       }).catch(function(err){
         var nm=(err&&err.name)||"Error";
         /* 主库也写不进时，至少把文字/设置写进 localStorage，不能让这次编辑白改。
@@ -10332,6 +10678,7 @@ function __flushSave(immediate){
         }catch(_eLs2){
           try{__e11StorageWarn("图片暂未写进本地库，文字和设置已经保存");}catch(_){}
         }
+        try{if(window.__e11QuickSnap)window.__e11QuickSnap();}catch(_eQuickSnap2){}
       });
     };
     if(_pend.length){
@@ -10872,9 +11219,11 @@ window.__e11PersistNow=function(){
     try{if(window.__commitSettingsActive)window.__commitSettingsActive();}catch(e){}
     try{
       window.__e11ExitFast=1;
-      /* 三个卸载事件可能在同一毫秒连续触发：只让第一次真正序列化并写备份。 */
-      if(window.__e11FlushDone){return;}
-      window.__e11FlushDone=1;
+      /* 三个卸载事件可能在同一毫秒连续触发：2 秒内只真正写一次。
+         旧版一旦写过就把 __e11FlushDone 永久置 1，切后台后再从最近任务里杀掉 App 时
+         pagehide 会直接 return，最后一次改动反而没写；现在超过 2 秒仍会再写一份。 */
+      if(window.__e11FlushDone&&Date.now()-(Number(window.__e11FlushAt)||0)<2000)return;
+      window.__e11FlushDone=1;window.__e11FlushAt=Date.now();
       var _dirty=!!window.__e11Dirty;
       try{if(window.__e11AutoSig&&__e11AutoSig()!==window.__e11AutoSigLast)_dirty=true;}catch(_eDirtySig){}
       if(_dirty)state.__savedAt=Date.now();
@@ -10888,17 +11237,20 @@ window.__e11PersistNow=function(){
       if(window.__e11ExitSave)window.__e11ExitSave(state);
       else __e11ExitSave(state);
       try{localStorage.setItem("privateChat",JSON.stringify({__idbOnly:1,__savedAt:Number(state&&state.__savedAt)||Date.now()}));}catch(_){}
-      if(_dirty){try{window.__e11FullBackupSoon&&window.__e11FullBackupSoon(true);}catch(_){}window.__e11Dirty=0;}
+      /* v43-193：每次真正离开网站/切后台都写一份完整自动备份，不再只在“有改动”时写。
+         这样进入时永远有一份最新离开前的全量档；7 个槽位轮换，覆盖最旧的一份。 */
+      try{window.__e11FullBackupSoon&&window.__e11FullBackupSoon(true);}catch(_eExitBk){}
+      try{window.__e11Dirty=0;}catch(_eExitDirty){}
     }catch(e){}finally{window.__e11ExitFast=0;}
   }
   try{document.addEventListener("visibilitychange",function(){if(document.visibilityState==="hidden")flushAll();});}catch(e){}
   try{window.addEventListener("pagehide",flushAll);}catch(e){}
   try{window.addEventListener("beforeunload",flushAll);}catch(e){}
-  /* v43-183z33f：安卓/Chrome 冻结前也写一次离站快照。 */
+  /* v43-190z33f：安卓/Chrome 冻结前也写一次离站快照。 */
   try{document.addEventListener("freeze",flushAll);}catch(e){}
   /* 回到前台后允许下一次切后台/退出再写一次离站快照。 */
   try{document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")window.__e11FlushDone=0;});}catch(e){}
-  /* v43-183z33f：应用一直开着被直接杀进程时，最多丢 30 秒改动；数据没变就不写。 */
+  /* v43-190z33f：应用一直开着被直接杀进程时，最多丢 30 秒改动；数据没变就不写。 */
   try{
     setInterval(function(){
       try{
@@ -11062,8 +11414,60 @@ function __e11NormalizeMessages(s){
     if(_mx>=Number(s.seq)||!isFinite(Number(s.seq)))s.seq=_mx+1;
   }catch(_eSeqNorm){}
 }
+window.__E11_CHAT_LOG_KEY="e11.chatlog.v1";
+window.__e11ChatLogRead=function(){
+  try{
+    var raw=localStorage.getItem(window.__E11_CHAT_LOG_KEY);if(!raw)return [];
+    var a=JSON.parse(raw);return Array.isArray(a)?a:[];
+  }catch(_eLogRead){return [];}
+};
+window.__e11ChatLogPut=function(m){
+  try{
+    if(!m||!m.id||m.type==="sys"||m.type==="poke")return false;
+    var a=window.__e11ChatLogRead();
+    var item={id:String(m.id),from:m.from==="me"?"me":"partner",type:String(m.type||"text"),text:String(m.text!==""&&m.text!==undefined?m.text:"").slice(0,4000),time:Number(m.time)||Date.now(),kind:String(m.kind||""),quoteId:m.quoteId||null,src:(typeof m.src==="string"&&m.src.length<=2000)?m.src:""};
+    var k=item.id+"|"+item.time+"|"+item.text;
+    a=a.filter(function(x){return x&&(String(x.id)+"|"+String(Number(x.time)||0)+"|"+String(x.text||""))!==k;});
+    a.push(item);a=a.slice(-800);
+    var raw=JSON.stringify(a);
+    /* 删除恢复主要靠这份流水：保留更多条，但总大小压到 2.2MB 内，避免占满配额。 */
+    while(raw.length>2200000&&a.length>120){a=a.slice(-Math.max(120,Math.floor(a.length*0.72)));raw=JSON.stringify(a);}
+    try{localStorage.setItem(window.__E11_CHAT_LOG_KEY,raw);}
+    catch(_eLogFull){try{window.__e11QuotaRescue&&window.__e11QuotaRescue(2);localStorage.setItem(window.__E11_CHAT_LOG_KEY,raw);}catch(_eLogFull2){return false;}}
+    return true;
+  }catch(_eLogPut){return false;}
+};
+window.__e11ChatLogRestore=function(s,forceAll){
+  try{
+    if(!s||!Array.isArray(s.messages))return 0;
+    var a=window.__e11ChatLogRead();if(!a.length)return 0;
+    var clr=Number(s.__chatClearedAt)||0;
+    var exists={};s.messages.forEach(function(m){
+      if(m&&m.id)exists[String(m.id)+"|"+String(Number(m.time)||0)+"|"+String(m.text!==undefined?m.text:"")]=1;
+    });
+    var n=0;
+    a.forEach(function(x){
+      if(!x||!x.id)return;
+      var t=Number(x.time)||0;
+      if(!t)return;
+      if(!forceAll&&t<Date.now()-30*24*3600*1000)return;
+      if(!forceAll){
+        if(clr&&t<=clr)return;
+        try{if(window.__e11IsDeleted&&window.__e11IsDeleted("messages",String(x.id)))return;}catch(_eLogDel){}
+      }
+      var k=String(x.id)+"|"+String(t)+"|"+String(x.text!==undefined?x.text:"");
+      if(exists[k])return;
+      var _xt=String(x.type||"text"),_xsrc=String(x.src||"");
+      if(_xt==="image"&&!_xsrc)return;
+      s.messages.push({id:String(x.id),from:x.from==="me"?"me":"partner",type:_xt,text:String(x.text!==undefined?x.text:""),src:_xsrc,time:t,read:x.from!=="me",kind:String(x.kind||""),quoteId:x.quoteId||null});
+      exists[k]=1;n++;
+    });
+    return n;
+  }catch(_eLogRestore){return 0;}
+};
 function migrate(s){
   try{__e11NormalizeMessages(s);}catch(_eMsgNorm){}
+  try{window.__e11ChatLogRestore&&window.__e11ChatLogRestore(s);}catch(_eLogMig){}
   /* v43-107：删掉内置的“开启私密聊天”欢迎语，老存档也一起清掉。 */
   try{
     if(s&&Array.isArray(s.messages)){
@@ -11602,7 +12006,7 @@ async function init(){
       var _dn=window.__e11DiaryRestore?window.__e11DiaryRestore():0;
       if(_dn){try{save();__flushSave(true);}catch(_){}try{window.__e11RefreshAllViews?window.__e11RefreshAllViews():renderAll();}catch(_){}try{toast("已找回之前丢失的日记历史");}catch(_){}}
     }catch(_){}
-    try{window.__bkMergeNewest&&window.__bkMergeNewest();}catch(_){}
+    try{window.__bkMergeNewest&&window.__bkMergeNewest(true);}catch(_){}
     /* v43-141：上一次导出后如果数据被异常清空，进页面先用导出前自动备份补回 */
     try{window.__e11ExportGuardCheck&&window.__e11ExportGuardCheck();}catch(_){}
   },2500);}catch(_){}
@@ -11670,7 +12074,8 @@ async function init(){
     try{
       var _exitMeta=null;try{_exitMeta=JSON.parse(localStorage.getItem("e11.exit.meta.v1")||"null");}catch(_eExMeta){}
       var _exitObj=null;
-      if(_exitMeta&&Number(_exitMeta.ts)>Date.now()-7*24*3600*1000)_exitObj=__e11ExitRead();
+      /* v43-191：只要离站快照还在就合并，不再因为超过 7 天而跳过。 */
+      if(_exitMeta)_exitObj=__e11ExitRead();
       else if(!s)_exitObj=__e11ExitRead();
       if(_exitObj&&_exitObj.state){
         if(!s)s=_exitObj.state;
@@ -11873,7 +12278,10 @@ async function init(){
       try{var _e11SetBakApplied=window.__settingsBackupRestore&&window.__settingsBackupRestore();if(_e11SetBakApplied)window.__settingsBackup&&window.__settingsBackup(true);}catch(_eSetBak3){}
       try{var _e11UpGuard=window.__e11UpdateGuardApply&&window.__e11UpdateGuardApply();if(_e11UpGuard)window.__settingsBackup&&window.__settingsBackup(true);}catch(_eUpGuard3){}
       try{localStorage.setItem("e11.buildSeen.v1",window.__E11_BUILD);}catch(_eSeenSet){}
-      try{window.__e11RepairBulkTombs&&window.__e11RepairBulkTombs(state);}catch(_eTombFix){}try{__ltReadApply();}catch(e){}try{__prefApply();}catch(e){}try{window.__perfApply&&window.__perfApply();}catch(_){}window.__stateReady=1;window.__e11DataReady=1;try{window.__e11BootLoading=0;}catch(_eBootLoad1){}try{
+      try{window.__e11RepairBulkTombs&&window.__e11RepairBulkTombs(state);}catch(_eTombFix){}try{__ltReadApply();}catch(e){}try{__prefApply();}catch(e){}try{window.__perfApply&&window.__perfApply();}catch(_){}window.__stateReady=1;window.__e11DataReady=1;try{window.__e11BootLoading=0;}catch(_eBootLoad1){}
+      /* v43-192：一起听会话跟主档一起恢复；更新/重开后仍保持“正在一起听”，不用重新邀请。 */
+      try{musicSession=!!(state&&state.musicSession);}catch(_eMsSync){try{window.__e11MusicSession=!!(state&&state.musicSession);}catch(_eMsSync2){}}
+      try{if(typeof refreshMiniPlayer==="function")refreshMiniPlayer();}catch(_eMsMini){}try{
   var _runHydrateRest=function(){try{window.__e11HydrateRest&&window.__e11HydrateRest();}catch(_eHR){}};
   if(window.requestIdleCallback)requestIdleCallback(_runHydrateRest,{timeout:6000});else setTimeout(_runHydrateRest,2600);
 }catch(_eHRs){}/* 主题先别在这里定：这份还可能是默认浅色快照，等两份存档合并完（下面 6820 行）再 __themeReady，否则夜间用户会先被刷白 */
@@ -13829,7 +14237,7 @@ window.__e11SocialAudit=function(){
     if(exit&&exit.state){var ets=Number(exit.ts||exit.state.__savedAt)||0;if(ets>Date.now()-7*24*3600*1000)merge(exit.state,allowRevive);}
     return __bkMeta().then(function(meta){
       var chain=Promise.resolve();
-      (meta||[]).slice(0,3).forEach(function(m,idx){
+      (meta||[]).slice(0,7).forEach(function(m,idx){
         chain=chain.then(function(){
           return dbGet("bk_slot_"+m.slot).then(function(bv){
             merge(bv&&bv.state,(idx===0&&allowRevive&&!exit));
@@ -16218,6 +16626,7 @@ function pushMsg(from,type,text,opts){
   if(_msgTime<_maxPrevT)_msgTime=_maxPrevT;
   const m={id:id,from:from,type:type,text:text,src:opts.src||"",w:Number(opts.w)||0,h:Number(opts.h)||0,dur:opts.dur||0,sched:!!opts.sched,time:_msgTime,quoteId:opts.quoteId||null,kind:opts.kind||"",active:!!opts.active,catchup:!!opts.catchup,read:from!=="me",recalled:false,momentId:opts.momentId||"",commentId:opts.commentId||"",ttsText:opts.ttsText||"",sttText:opts.sttText||"",voice:opts.voice||"",inv:opts.inv||""};
   state.messages.push(m);
+  try{window.__e11ChatLogPut&&window.__e11ChatLogPut(m);}catch(_eChatLog){}
   try{
     if(from==="me"&&(type==="text"||type==="image")&&!opts.catchup&&!opts.quiet&&!opts.sched){
       window.maybePartnerTapback&&window.maybePartnerTapback(id);
@@ -19751,7 +20160,7 @@ function groupsOfKind(k){return (state.groups||[]).filter(function(g){return gro
 function cardsOfKind(k){return (state.cards||[]).filter(function(c){return cardKindOf(c)===k;});}
 /* v43-155：卡片有 groupId，但对应分组已经不在了（云端旧档/导入后分组被重建）。
    这些卡以前只在「全部」里能看到，点任何分组都是 0 条，像“没放进我设置的分组”。 */
-/* v43-183z33f：云端合并/导入会偶尔把同名分组带成两个不同 id，或者分组的 id 被重建，
+/* v43-190z33f：云端合并/导入会偶尔把同名分组带成两个不同 id，或者分组的 id 被重建，
    卡片就掉进「未分组」。这里按「类别 + 分组名」把同名重复组合并成一个，卡片跟着改到
    唯一的分组 id；没有分组的卡先按 groupName 找，仍找不到且该类别只有一个组就归进去。 */
 window.__e11NormalizeCardGroups=function(st){
@@ -19790,7 +20199,7 @@ window.__e11NormalizeCardGroups=function(st){
       if(!target){
         var sameKind=keep.filter(function(x){return ((x.kind==="letter"||x.kind==="moment")?x.kind:"chat")===ck;});
         if(sameKind.length){
-          /* v43-183z33f：找不到归属的孤儿卡不再留在「未分组」：
+          /* v43-190z33f：找不到归属的孤儿卡不再留在「未分组」：
              优先接回默认分组，没有再接当前类别的第一个分组。 */
           target=sameKind.filter(function(x){return /^(默认|默认分组|导入分组)$/.test(String(x.name||"").trim());})[0]||sameKind[0];
         }
@@ -19887,7 +20296,7 @@ function bindCardKindTabs(){
   }
 }
 function renderCards(){
-  /* v43-183z33f：渲染前先合并同名分组、把孤儿卡接回分组，避免显示成「未分组」。 */
+  /* v43-190z33f：渲染前先合并同名分组、把孤儿卡接回分组，避免显示成「未分组」。 */
   try{if(window.__e11NormalizeCardGroups&&window.__e11NormalizeCardGroups(state)){save();}}catch(_eNgRender){}
   /* v43-184：每次进字卡页先自动清一次跨分组重复，保证整份字卡只留一条。 */
   try{var _autoDup=dedupeCards(cardKindView);if(_autoDup){try{save();}catch(_){}}}catch(_eAutoDup){}
@@ -19895,6 +20304,8 @@ function renderCards(){
   if(!groupsOfKind(K).length){
     try{state.groups.push({id:uid(),name:"默认分组",kind:K});save();}catch(e){}
   }
+  /* v43-190z33f：先补默认分组，再归一化一次；否则没有任何分组时孤儿卡会直接落到「未分组」。 */
+  try{if(window.__e11NormalizeCardGroups&&window.__e11NormalizeCardGroups(state)){save();}}catch(_eNgAfterDefault){}
   activeGroupId=activeGidOfKind(K);
   var groups=groupsOfKind(K);
   if(!cardSelMode)cardSel.clear();
@@ -22391,7 +22802,7 @@ function __restoreIDB(all,opts){
           var c=cur.result;
           if(c){
             var _k=String(c.key||"");
-            if(_k.indexOf("bk_slot_")!==0&&_k!=="bk_snap_meta"&&_k!=="e11.customFont.v1"){try{c.delete();}catch(_){}}
+            if(_k.indexOf("bk_slot_")!==0&&_k!=="bk_snap_meta"&&_k!=="bk_best"&&_k!=="e11.customFont.v1"){try{c.delete();}catch(_){}}
             try{c.continue();}catch(_){}
             return;
           }
@@ -23153,8 +23564,22 @@ $("btn-clear-music-room")&&$("btn-clear-music-room").addEventListener("click",as
   try{window.__E11Cloud&&window.__E11Cloud.flush&&window.__E11Cloud.flush();}catch(_eMrC){}
   toast("一起听房间聊天已清空，歌单保留");
 });
+$("btn-reset-all-cloud").addEventListener("click",async()=>{
+  if(!(await __iosConfirm("本机和云端会一起清空：聊天、日记、留言、信件、动态、字卡、设置全部消失，清完不可恢复。继续？",{okText:"清除全部"})))return;
+  if(!(await __iosConfirm("最后确认：云端也一起清，之后无法从云端恢复。",{okText:"确定清除"})))return;
+  try{
+    if(window.__E11Cloud&&window.__E11Cloud.resetCloud){
+      await window.__E11Cloud.resetCloud(defaultState());
+    }else if(typeof authOk==="function"&&authOk()){
+      throw new Error("云端清空接口未就绪");
+    }
+  }catch(e){toast("云端没清掉："+String(e&&e.message||e).slice(0,80)+"；已停止，本机数据未动");return;}
+  window.__skipResetConfirm=1;
+  $("btn-reset-all").click();
+});
 $("btn-reset-all").addEventListener("click",async()=>{
-  if(!(await __iosConfirm("一键重置：只清空这台设备上的聊天、动态、留言、信件、字卡、表情、问卷和设置，并恢复默认。云端存档不会清空，之后可在设置里点「恢复云端」拉回来。确认重置本机？",{okText:"重置本机"})))return;
+  if(!window.__skipResetConfirm&&!(await __iosConfirm("只清空这台设备上的聊天、动态、留言、信件、字卡、表情、问卷和设置，云端存档保留。确认清除本机？",{okText:"清除本机"})))return;
+  window.__skipResetConfirm=0;
   /* v43-106：清空前强制写一份完整自动备份。以前重置会连最后一刻的数据一起清掉，
      用户误点后“全都没了”就再也找不回来。备份槽在下面会被跳过，不会一起清。 */
   try{ if(window.__bkSaveNow){ await Promise.race([window.__bkSaveNow(),new Promise(function(r){setTimeout(r,2500);})]); } }catch(_eBkPre){}
@@ -23208,7 +23633,7 @@ $("btn-reset-all").addEventListener("click",async()=>{
       var c=e.target.result;
       if(!c)return;
       var k=String(c.key||"");
-      if(k.indexOf("bk_slot_")!==0&&k!=="bk_snap_meta"){try{c.delete();}catch(_eDel){}};
+      if(k.indexOf("bk_slot_")!==0&&k!=="bk_snap_meta"&&k!=="bk_best"){try{c.delete();}catch(_eDel){}};
       try{c.continue();}catch(_eCont){}
     };
     tx.oncomplete=()=>{try{clearTimeout(_rstSafety);}catch(_){}_dropDBThenGo();};
@@ -23714,12 +24139,10 @@ function showView(id){
               var _vc=document.getElementById("view-chat");
               /* 只在这个 App 真的退到后台时才释放聊天列表；普通切到动态/信件/留言页不释放。
                  以前 10 秒后就把列表清空，回来要整页重铺，图片会被重新解码，看起来就是进聊天闪一下 */
-              if(_vc&&!_vc.classList.contains("open")&&document.hidden){
-                var _ml=document.getElementById("msglist");
-                if(_ml)_ml.innerHTML="";
-                window.__chatPrewarmed=0;window.__renderedKeys=[];window.__chatReleased=1;
-                try{_chatSig="";}catch(e){}
-              }
+              /* v43-196：不再在退到后台 10 秒后清空聊天列表。
+                 真机上退出去再进来点聊天，列表被清掉后要在可见状态重建几十行，
+                 用户看到的就是“点聊天页闪一下”。列表常驻，回来直接用现成的。 */
+              window.__chatReleased=0;
             }catch(e){}
           },10000);
           try{
@@ -34158,14 +34581,11 @@ window.__checkBuildThen=function(cb){try{cb();}catch(e){}};
 
 /* 听歌会话标记与内存变量同步 */
 try{if(state&&state.musicSession)musicSession=true;}catch(e){}
-try{
-  if(!sessionStorage.getItem("elevenSiteOpen")){
-    try{if(state){state.musicSession=false;state.drawSession=false;}}catch(e){}
-    try{musicSession=false;}catch(e){}
-    try{save();}catch(e){}
-  }
-  sessionStorage.setItem("elevenSiteOpen","1");
-}catch(e){}
+/* v43-192：这里原来在“每个新页面/更新后的第一次打开”把 musicSession、drawSession 强制清零，
+   并且立刻 save()。第一次打开时启动还没读完 IndexedDB，state 还是默认空档，
+   这次 save 会把空档写回主库，表现就是更新/退出再进数据像丢了，一起听也被强制关掉。
+   现在启动阶段绝不重置会话、绝不写盘；只有用户点一起听里的「关闭」才改 miniClosed/musicSession。 */
+try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
 
 /* 尺寸记忆：页面一照片框/应用图标、页面二照片框，重开后按上次调整后的尺寸显示 */
 (function(){
@@ -34716,7 +35136,7 @@ try{
       return false;
     }
   }
-  /* v43-183z33f：录音前先让原生层确认系统麦克风权限。
+  /* v43-190z33f：录音前先让原生层确认系统麦克风权限。
      以前直接 getUserMedia，WebView 的系统权限没开就会静默失败，表现为点了没反应。 */
   var __micWaiters=[],__micTimer=null;
   function __micFlush(ok){
@@ -34725,7 +35145,15 @@ try{
     ws.forEach(function(cb){try{cb(ok!==false);}catch(e){}});
   }
   window.__nativeMicGranted=function(ok){
-    if(ok===false){toast("麦克风权限被拒绝，去系统设置里允许后重试");__micFlush(false);return;}
+    if(ok===false){
+      toast("麦克风权限被拒绝，去系统设置里允许后重试");__micFlush(false);
+      try{
+        if(window.AndroidUI&&typeof AndroidUI.openAppSettings==="function"){
+          __iosConfirm("麦克风权限被拒绝。要现在打开系统设置，把「麦克风」打开吗？",{okText:"打开设置",cancelText:"稍后"}).then(function(yes){if(yes){try{AndroidUI.openAppSettings();}catch(_){}}});
+        }
+      }catch(_eMicSet){}
+      return;
+    }
     __micFlush(true);
   };
   function __ensureMic(cb){
@@ -34739,7 +35167,8 @@ try{
           __micTimer=setInterval(function(){
             tries++;
             try{if(AndroidUI.hasMicPermission()){__micFlush(true);return;}}catch(_eMicPoll){}
-            if(tries>=25){toast("麦克风权限还没打开，去系统设置里允许录音");__micFlush(false);}
+            /* v43-190z33f：系统权限弹窗可能要等用户十几秒，不再 5 秒就判失败。 */
+            if(tries>=300){toast("麦克风权限还没打开，去系统设置里允许录音");__micFlush(false);}
           },200);
         }
         return;
@@ -34747,6 +35176,12 @@ try{
     }catch(_eMicNative){}
     cb(true);
   }
+  try{
+    document.addEventListener("visibilitychange",function(){
+      if(document.hidden)return;
+      try{if(window.AndroidUI&&AndroidUI.hasMicPermission&&AndroidUI.hasMicPermission())__micFlush(true);}catch(_eMicVis){}
+    });
+  }catch(_eMicVisBind){}
   function startRec(tap){
     if(rec.active)return false;
     if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){toast("这个环境不支持录音");return false;}
@@ -34759,6 +35194,8 @@ try{
     showRec(true);try{var _vh=document.getElementById("vrec-hint");if(_vh)_vh.textContent="正在准备麦克风…";}catch(_){}
     __ensureMic(function(ok){
     if(!ok){rec.active=false;rec.streamReady=false;stopStream();showRec(false);return;}
+    /* v43-190z33f：拿到系统权限后音频上下文可能还挂着；先恢复再录音，避免“权限有了但仍然没声”。 */
+    try{if(ctx.state==="suspended")ctx.resume();}catch(_eMicResume){}
     navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
       if(my!==rec.gen||!rec.active){try{stream.getTracks().forEach(function(t){t.stop();});}catch(e){}return;}
       rec.stream=stream;rec.streamReady=true;rec.audioStart=Date.now();
@@ -34786,9 +35223,16 @@ try{
         showRec(true);
         try{var _vh4=document.getElementById("vrec-hint");if(_vh4)_vh4.textContent=rec.tapMode?"点一下结束并发送":"松手 发语音";}catch(_){}
       }catch(e){rec.active=false;stopStream();showRec(false);toast("录音启动失败，再试一次");}
-    }).catch(function(){
+    }).catch(function(err){
       rec.active=false;rec.streamReady=false;stopStream();showRec(false);
-      toast("没拿到麦克风权限，去浏览器设置里允许录音");
+      var _en=String(err&&err.name||"");
+      var _nativeOk=false;
+      try{_nativeOk=!!(window.AndroidUI&&AndroidUI.hasMicPermission&&AndroidUI.hasMicPermission());}catch(_eMicSt){}
+      if(_nativeOk)toast("麦克风被网页组件拒绝（"+(_en||"未知")+"）。请更新 Android System WebView，或直接用 APK 录音");
+      else toast("没拿到麦克风权限（"+(_en||"未知")+"）：网页请点地址栏允许录音；APK 请到系统设置 → 应用 → Eleven×11 → 权限里打开麦克风");
+      try{if(window.AndroidUI&&AndroidUI.openAppSettings&&(!_nativeOk||_en==="NotAllowedError")){
+        __iosConfirm("要现在打开系统设置，把麦克风权限打开吗？",{okText:"打开设置",cancelText:"稍后"}).then(function(yes){if(yes){try{AndroidUI.openAppSettings();}catch(_){}}});
+      }}catch(_eMicOpen){}
     });
     });
     return true;
@@ -37946,17 +38390,112 @@ body{margin:0;background:var(--bg,#fafafa);}
       }catch(e){if(st)st.textContent="恢复失败";toast("云端恢复失败："+String(e&&e.message||e).slice(0,100));}
       b.disabled=false;
     });
-    if($("btn-deep-restore"))$("btn-deep-restore").addEventListener("click",async function(){
-      if(!(await __iosConfirm("深度恢复会把云端、本机当前档和 3 份自动备份里的聊天、字卡、信件、留言、动态按 id 合并，只补不回删。继续？",{okText:"深度恢复"})))return;
+    if($("btn-mic-check"))$("btn-mic-check").addEventListener("click",async function(){
+      var b=this,st=$("mic-perm-sub");b.disabled=true;
+      function status(t){if(st)st.textContent=t;}
+      try{
+        var native=false,nativeOk=false;
+        try{native=!!(window.AndroidUI&&AndroidUI.hasMicPermission);nativeOk=native&&AndroidUI.hasMicPermission();}catch(_eMicN){}
+        if(native&&!nativeOk){
+          status("正在申请系统麦克风权限…");
+          try{AndroidUI.requestMicPermission();}catch(_eMicReq){}
+          await new Promise(function(res){
+            var n=0,t=setInterval(function(){n++;try{if(AndroidUI.hasMicPermission()){clearInterval(t);res();return;}}catch(_eMicPoll){}if(n>75){clearInterval(t);res();}},200);
+          });
+        }
+        nativeOk=native&&AndroidUI.hasMicPermission();
+        if(native&&!nativeOk){
+          status("系统权限还没允许");
+          toast("系统设置里没有允许麦克风");
+          if(await __iosConfirm("要现在打开应用设置，把麦克风打开吗？",{okText:"打开设置",cancelText:"稍后"})){try{AndroidUI.openAppSettings();}catch(_eMicSet){}};
+          b.disabled=false;return;
+        }
+        status(native?"系统权限已允许，正在测试网页录音…":"正在请求浏览器麦克风…");
+        navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+          try{stream.getTracks().forEach(function(t){t.stop();});}catch(_eMicStop){}
+          status(native?"麦克风可用（系统 + 网页组件）":"浏览器麦克风可用");
+          toast("麦克风可用");
+        }).catch(function(e){
+          var en=String(e&&e.name||"未知");
+          status(native?("系统已允许，但网页录音被拒："+en):("浏览器未允许："+en));
+          toast(native?("网页组件拒绝录音："+en+"，请更新 Android System WebView"):("浏览器麦克风未允许："+en));
+          try{if(window.AndroidUI&&AndroidUI.openAppSettings){__iosConfirm("要打开系统设置检查麦克风权限吗？",{okText:"打开设置",cancelText:"稍后"}).then(function(yes){if(yes){try{AndroidUI.openAppSettings();}catch(_){}}});}}catch(_eMicOpen2){}
+        });
+      }catch(e){status("检查失败："+String(e&&e.message||e).slice(0,80));}
+      b.disabled=false;
+    });
+    if($("btn-deep-restore2"))$("btn-deep-restore2").addEventListener("click",async function(){
+      if(!(await __iosConfirm("扫描本机旧库、7 份备份和云端，只补未删除内容。继续？",{okText:"深度恢复"})))return;
       var b=this,st=$("deep-restore-sub");b.disabled=true;if(st)st.textContent="正在汇总云端和本机备份…";
       try{
         var r=await window.__E11DeepRestore();
         if(st)st.textContent="已恢复";
+        try{var dbg=$("restore-debug");if(dbg&&r.debug){dbg.style.display="block";dbg.textContent=r.debug.join("\n");}}catch(_){}
         try{toast("深度恢复完成：聊天 "+r.after.messages+" 条 · 字卡 "+r.after.cards+" 张 · 信件 "+r.after.letters+" 封 · 留言 "+r.after.guestbook+" 条 · 动态 "+r.after.moments+" 条");}catch(_){}
         setTimeout(function(){location.reload();},900);
       }catch(e){
         if(st)st.textContent="没有可恢复的内容";
         toast("深度恢复失败："+String(e&&e.message||e).slice(0,100));
+      }
+      b.disabled=false;
+    });
+    /* v43-196：数据管理页放三个大按钮，解决“全部恢复点不动”：
+       原来的云同步页在横向分页里，按钮在屏幕外/被分页容器挡住。这里用同一套逻辑转发。 */
+    if($("btn-tomb-clean"))$("btn-tomb-clean").addEventListener("click",async function(){
+      if(!(await __iosConfirm("只清同一秒批量写入的误删标记，你逐条删的不动；清完自动快速恢复。继续？",{okText:"清理并恢复"})))return;
+      var b=this,old=b.textContent,rs=$("restore-status");b.disabled=true;b.textContent="清理中…";
+      try{
+        var c=window.__E11CleanBulkTombs();
+        if(rs){rs.style.display="block";rs.textContent="已清 "+(c.removed||0)+" 条误删标记，正在恢复…";}
+        var r=await window.__E11DeepRestore({quick:1});
+        toast("已清 "+(c.removed||0)+" 条误删标记；恢复后聊天 "+r.after.messages+" 条 · 信 "+r.after.letters+" · 留言 "+r.after.guestbook+" · 动态 "+r.after.moments);
+        try{var dbg=$("restore-debug");if(dbg&&r.debug){dbg.style.display="block";dbg.textContent=r.debug.join("\n");}}catch(_){}
+        setTimeout(function(){location.reload();},900);
+      }catch(e){toast("清理失败："+String(e&&e.message||e).slice(0,100));}
+      b.disabled=false;b.textContent=old;
+    });
+    if($("btn-quick-restore"))$("btn-quick-restore").addEventListener("click",async function(){
+      if(!(await __iosConfirm("只读最近一份备份和云端最新档，几秒内先恢复大部分内容；已删除的不会恢复。继续？",{okText:"快速恢复"})))return;
+      var b=this,old=b.textContent,rs=$("restore-status");
+      b.disabled=true;b.textContent="恢复中…";if(rs){rs.style.display="block";rs.textContent="正在读取最近一份备份…";}
+      try{
+        var r=await window.__E11DeepRestore({quick:1});
+        if(rs)rs.textContent="已恢复";
+        try{var dbg=$("restore-debug");if(dbg&&r.debug){dbg.style.display="block";dbg.textContent=r.debug.join("\n");}}catch(_){}
+        toast("快速恢复完成：聊天 "+r.after.messages+" 条 · 日记 "+(r.after.diary||0)+" 页 · 留言 "+r.after.guestbook+" 条 · 信件 "+r.after.letters+" 封 · 动态 "+r.after.moments+" 条");
+        setTimeout(function(){location.reload();},800);
+      }catch(e){
+        if(rs)rs.textContent="快速恢复失败";
+        toast("快速恢复失败："+String(e&&e.message||e).slice(0,100));
+      }
+      b.disabled=false;b.textContent=old;
+    });
+    if($("btn-cloud-replace2"))$("btn-cloud-replace2").addEventListener("click",async function(){
+      if(!(await __iosConfirm("用云端最全存档补回本机，已删除的不会恢复。继续？",{okText:"云端还原"})))return;
+      var b=this,st=$("cloud-replace-sub");b.disabled=true;if(st)st.textContent="正在读取云端最新档和完整档…";
+      try{
+        var r=await window.__E11CloudReplace();
+        if(st)st.textContent="已从云端还原";
+        toast("云端还原完成（"+r.src+"）：聊天 "+r.msgs+" 条 · 日记 "+r.diary+" 页 · 留言 "+r.guestbook+" 条 · 信件 "+r.letters+" 封 · 动态 "+r.moments+" 条 · 字卡 "+r.cards+" 张");
+        setTimeout(function(){location.reload();},900);
+      }catch(e){
+        if(st)st.textContent="云端还原失败";
+        toast("云端还原失败："+String(e&&e.message||e).slice(0,100));
+      }
+      b.disabled=false;
+    });
+    if($("btn-recover-all2"))$("btn-recover-all2").addEventListener("click",async function(){
+      if(!(await __iosConfirm("把本机和云端现有内容全部并回来；已删除的不会恢复。继续？",{okText:"全部恢复"})))return;
+      var b=this,st=$("deep-restore-sub");b.disabled=true;if(st)st.textContent="正在汇总聊天流水、永久最大档和全部备份…";
+      try{
+        var r=await window.__E11DeepRestore();
+        if(st)st.textContent="已全部恢复";
+        try{var dbg=$("restore-debug");if(dbg&&r.debug){dbg.style.display="block";dbg.textContent=r.debug.join("\n");}}catch(_){}
+        toast("全部数据已恢复：聊天 "+r.after.messages+" 条（恢复前 "+r.before.messages+" 条）· 日记 "+(r.after.diary||0)+" 页 · 留言 "+r.after.guestbook+" 条 · 信件 "+r.after.letters+" 封 · 动态 "+r.after.moments+" 条 · 字卡 "+(r.after.cards||0)+" 张");
+        setTimeout(function(){location.reload();},900);
+      }catch(e){
+        if(st)st.textContent="没有可恢复的内容";
+        toast("全部恢复失败："+String(e&&e.message||e).slice(0,100));
       }
       b.disabled=false;
     });
@@ -38040,6 +38579,45 @@ body{margin:0;background:var(--bg,#fafafa);}
 </script>
 <script>/* v43-56: 设置页容错：把被错误闭合挤出 set-pages 的分组归位到第二页 */
 (function(){function fix(){try{var v=document.getElementById("view-settings");if(!v)return;var pages=v.querySelector(".set-pages");if(!pages||pages.children.length<2)return;var keep=[v.querySelector(".v-head"),v.querySelector(".set-tabs"),pages];Array.prototype.slice.call(v.children).forEach(function(c){if(keep.indexOf(c)<0&&(c.classList.contains("set-sec-title")||c.classList.contains("set-group"))){pages.children[pages.children.length-1].appendChild(c);}});}catch(e){}}window.__e11FixSettings=fix;if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",fix);else fix();setTimeout(fix,300);})();
+</script>
+
+<script>
+/* v43-190z33f：每次更新后自动合并更新前的本机档，不再等用户点确认。
+   只补未删除内容；删除墓碑和清空聊天时间仍然优先，删掉的不复活。 */
+(function(){
+  try{localStorage.removeItem("e11.trash.v1");}catch(_eTrashGone){}
+  /* v43-190：把现有登录复制一份独立备份，更新后即使主键没读出来也能自动进入。 */
+  try{var _a=localStorage.getItem("e11.auth.v1");if(_a&&_a.length>2&&!localStorage.getItem("e11.auth.bak.v1"))localStorage.setItem("e11.auth.bak.v1",_a);}catch(_eAuthCopy){}
+  var KEY="e11.autoRestore."+(window.__E11_BUILD||"build");
+  /* v43-191：只把 done 当成“已经成功”。旧版 running/failed 会永久挡住下一次启动，
+     用户更新后中途退出一次，自动恢复就再也不会跑；现在失败/中断都会在下次进入重试。 */
+  try{if(localStorage.getItem(KEY)==="done")return;}catch(_){}
+  var tries=0;
+  var timer=setInterval(function(){
+    tries++;
+    try{
+      if(tries>160){clearInterval(timer);return;}
+      if(!(window.__stateReady&&window.__E11DeepRestore))return;
+      clearInterval(timer);
+      /* 首次安装没有本机旧档就不跑，避免空白设备多等一次云端。 */
+      if(!window.__e11BuildChanged&&!(window.__e11LocalHasArchive&&window.__e11LocalHasArchive()))return;
+      localStorage.setItem(KEY,"running");
+      setTimeout(function(){
+        try{toast("正在自动恢复更新前的数据…");}catch(_){}
+        window.__E11DeepRestore().then(function(r){
+          localStorage.setItem(KEY,"done");
+          try{
+            var a=r&&r.after||{};
+            toast("已自动恢复更新前数据：聊天 "+(a.messages||0)+" · 字卡 "+(a.cards||0)+" · 信件 "+(a.letters||0)+" · 留言 "+(a.guestbook||0)+" · 动态 "+(a.moments||0));
+          }catch(_){}
+        },function(e){
+          localStorage.setItem(KEY,"failed");
+          try{toast("自动恢复未完成："+String(e&&e.message||e).slice(0,70));}catch(_){}
+        });
+      },900);
+    }catch(_){}
+  },500);
+})();
 </script>
 </body>
 </html>
