@@ -264,7 +264,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183z14";
+window.__E11_BUILD="2026-11-24v43-183z15";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2712,7 +2712,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183z14">
+<meta name="app-build" content="2026-11-24v43-183z15">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -8192,11 +8192,13 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-183z14",
-  time:"2026-11-24 17:23",
+  date:"v43-183z15",
+  time:"2026-11-24 17:58",
   noticeKey:null,
-  lead:"2026-11-24 17:23 修改（v43-183z14）：日记封面现在会记住自己的修改时间，换过底色、版式、英文名或照片后，云端旧封面不会再把它顶回去；写信点“取消”先收键盘再关面板，不再整页换色闪一下，也不会取消后按钮点不动。",
+  lead:"2026-11-24 17:58 修改（v43-183z15）：留言页键盘弹起时也保持整屏，只在底部留出可滚空间，输入框和发送键停在键盘上方，键盘下面不再露出聊天界面；写信点“取消”不会再因为同一次触摸落到“写信”上而误打开。",
   items:[
+    "留言页键盘保持整屏（v43-183z15）：和动态回复同一套处理。键盘弹起时留言页仍铺满整屏，不把页面截到键盘上沿；只给留言列表底部加键盘高度的可滚余量，最后几条也能滚到键盘上方。输入框和发送键始终留在键盘上方，键盘下面看到的是留言页自己的底色，不会再漏出底层聊天界面。键盘收起、离开留言页立即还原。",
+    "取消不再误触写信（v43-183z15）：取消按钮和右上角“写信”在同一位置。以前取消时弹层先关掉，同一次触摸的 click 会落到底下的“写信”上，看起来就是“点取消又打开写信”。现在关闭后的 600 毫秒内拒绝重开写信，等这一下触摸彻底结束；随后再点“写信”或“回信”都正常。",
     "日记封面不再被旧档顶掉（v43-183z14）：封面保存时写入自己的修改时间，云端合并、自动备份、深度恢复都按新者优先。以前云端只要存着一份默认封面（标题、英文名、底色都非空），本机换过的封面就合并不进来，重开像没保存。",
     "封面照片先落预览（v43-183z14）：选大照片时先把原图接上，压缩完成再换成小图；不会因为照片还在解码就点保存，结果存了个空封面。标题、英文名、底色、照片仍然在保存后立刻重绘，重开日记保持原样。",
     "写信取消不再闪（v43-183z14）：取消时先把输入框失焦、收起键盘，再关写信面板；不再在关面板后把整页信纸从我写信的纸换成 TA 来信的纸，去掉取消瞬间的换色闪烁。",
@@ -22899,6 +22901,7 @@ function __fadeOutDiary(ms){
 function showView(id){
   /* 离开动态页时把为键盘临时钉住的高度收掉，回聊天/主页不会留下半截页面 */
   try{if(id!=="view-moments"&&window.__e11MomentKbReset)window.__e11MomentKbReset();}catch(_eMkReset){}
+  try{if(id!=="view-guestbook"&&window.__e11GuestbookKbReset)window.__e11GuestbookKbReset();}catch(_eGbkReset){}
   /* 离开动态/留言/信件页时收掉多选底栏，避免底栏浮在聊天或设置上面 */
   try{
     var _dmv=["view-moments","view-guestbook","view-letters"];
@@ -28111,6 +28114,10 @@ function fillLetterComposer(){
 }
 window.__writeReplyTo=null;
 function openWriteModal(replyTo){
+  /* v43-183z14：取消按钮和右上角“写信”在同一位置。真机上 pointerdown 关掉弹层后，
+     同一次触摸的 click 会落到底下的“写信”上，看起来就是“点取消又打开写信”。
+     关面板后的短窗口内拒绝重开，等这一下触摸彻底结束。 */
+  if(Date.now()<Number(window.__ltWriteBlockUntil||0))return;
   if(__ltCloseTimer){clearTimeout(__ltCloseTimer);__ltCloseTimer=null;}
   __ltWriteClosing=false;
   window.__writeReplyTo=replyTo||null;
@@ -28127,6 +28134,7 @@ var __ltWriteClosing=false,__ltCloseTimer=null;
 function closeWriteModal(){
   if(__ltWriteClosing)return;
   __ltWriteClosing=true;
+  window.__ltWriteBlockUntil=Date.now()+600;
   var m=document.getElementById("lt-write-modal");
   /* 取消时先把键盘收掉：真机上键盘还在时点顶部“取消”，第一次点常被键盘收起动画吃掉，
      看起来就是“按钮失效/闪一下”。这里在 pointerdown 也调用，保证第一下就关。 */
@@ -28900,6 +28908,80 @@ setInterval(__scanPendingNoteReplies,20000);
 $("btn-note-send").addEventListener("click",addNote);
 $("note-text").addEventListener("keydown",e=>{if(e.key==="Enter")addNote();});
 $("note-text").addEventListener("input",e=>{const c=$("gb-counter");if(c)c.textContent=e.target.value.length+"/200";});
+
+/* ===== 留言页键盘适配（v43-183z14） =====
+   和动态回复同一套：键盘弹起时留言页仍铺满整屏，只给列表底部加键盘高度的可滚余量。
+   不把页面截到键盘上沿，键盘下面就不会漏出底层聊天界面；输入框和发送键留在键盘上方。 */
+function __e11GuestbookKbReset(){
+  var vc=document.getElementById("view-guestbook");
+  if(!vc||!vc.__kbFit)return;
+  vc.__kbFit=false;
+  vc.style.position="";vc.style.top="";vc.style.left="";vc.style.right="";vc.style.bottom="";
+  vc.style.width="";vc.style.height="";vc.style.maxHeight="";vc.style.zIndex="";vc.style.overflow="";
+  try{if(vc.__kbPadEl)vc.__kbPadEl.style.paddingBottom=vc.__kbOrigPad||"";}catch(_){}
+  vc.__kbPadEl=null;vc.__kbOrigPad="";
+}
+window.__e11GuestbookKbReset=__e11GuestbookKbReset;
+function __fitGuestbookKb(){
+  try{
+    var vc=document.getElementById("view-guestbook");
+    if(!vc)return;
+    var ae=document.activeElement;
+    var typing=!!(ae&&ae.id==="note-text"&&vc.classList.contains("open"));
+    var m=__e11MomentKbMetrics();
+    if(!typing||m.kbH<=40||m.visH<180){__e11GuestbookKbReset();return;}
+    try{document.documentElement.scrollTop=0;document.body.scrollTop=0;}catch(_){}
+    var r=vc.getBoundingClientRect();
+    var scale=(vc.offsetWidth>0&&r.width>0)?(r.width/vc.offsetWidth):1;
+    var cssH=Math.max(180,Math.floor(m.stable/(scale||1)));
+    var list=vc.querySelector(".note-list");
+    vc.__kbFit=true;
+    vc.style.position="fixed";
+    vc.style.top="0px";vc.style.left="0px";vc.style.right="0px";vc.style.bottom="auto";
+    vc.style.width="100%";vc.style.maxHeight="none";vc.style.height=cssH+"px";
+    vc.style.zIndex="30";vc.style.overflow="hidden";
+    if(list&&(!vc.__kbPadEl||vc.__kbPadEl!==list)){
+      vc.__kbPadEl=list;vc.__kbOrigPad=list.style.paddingBottom||"";
+    }
+    if(list){
+      var _safe=0;
+      try{_safe=Math.round(m.kbH/(scale||1));}catch(_){_safe=m.kbH;}
+      list.style.paddingBottom="calc("+(18+_safe)+"px + env(safe-area-inset-bottom))";
+    }
+    /* 输入框在顶部卡片里，正常情况下本来就在键盘上方；如果机型顶部栏太高把输入行压到
+       键盘下，再把列表滚一下，把输入行带回来。 */
+    try{
+      var inp=document.getElementById("note-text");
+      if(inp){
+        var ir=inp.getBoundingClientRect();
+        var vv=window.visualViewport;
+        var visBottom=(vv?(vv.offsetTop||0)+vv.height:(window.innerHeight||0))-8;
+        if(ir.bottom>visBottom&&list)list.scrollTop+=Math.min(40,ir.bottom-visBottom);
+      }
+    }catch(_){}
+  }catch(_){}
+}
+window.__fitGuestbookKb=__fitGuestbookKb;
+function __scheduleGuestbookKb(){
+  __fitGuestbookKb();
+  [80,220,420].forEach(function(ms){setTimeout(function(){try{__fitGuestbookKb();}catch(_){}},ms);});
+}
+try{
+  if(!window.__gbKbBound){
+    window.__gbKbBound=1;
+    window.addEventListener("resize",function(){__scheduleGuestbookKb();},{passive:true});
+    if(window.visualViewport){
+      window.visualViewport.addEventListener("resize",function(){__scheduleGuestbookKb();},{passive:true});
+      window.visualViewport.addEventListener("scroll",function(){__scheduleGuestbookKb();},{passive:true});
+    }
+    document.addEventListener("focusin",function(e){
+      try{if(e.target&&e.target.id==="note-text")setTimeout(__scheduleGuestbookKb,60);}catch(_){}
+    },true);
+    document.addEventListener("focusout",function(e){
+      try{if(e.target&&e.target.id==="note-text")setTimeout(function(){if(!document.activeElement||document.activeElement.id!=="note-text")__e11GuestbookKbReset();},120);}catch(_){}
+    },true);
+  }
+}catch(_){}
 // 引导卡：点击直接编辑引导语（主页名字改到设置里）
 ["gb-prompt"].forEach(id=>{
   const el=$(id);if(!el)return;
