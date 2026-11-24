@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183z20";
+window.__E11_BUILD="2026-11-24v43-183z21";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2715,7 +2715,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183z20">
+<meta name="app-build" content="2026-11-24v43-183z21">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -6307,7 +6307,49 @@ setTimeout(function(){
     try{var o=JSON.parse(localStorage.getItem(window.__E11_DEL_KEY)||"{}");return (o&&typeof o==="object")?o:{};}catch(_){return {};}
   }
   function __e11DelLocalWrite(o){try{localStorage.setItem(window.__E11_DEL_KEY,JSON.stringify(o||{}));}catch(_){}}
-  window.__e11DelLocalRead=__e11DelLocalRead;
+  window.__e11DelLocalRead=__e11DelLocalRead;  /* v43-183z21：删除意图除了按 id 记，再按「内容指纹」记一层。
+     云端旧档/跨作用域合并/导入备份时，同一条内容偶尔会换 id 回来（尤其信件和动态），
+     只按 id 过滤就会“删了更新后又恢复”。指纹按 90 天有效期，避免把以后新发的同句也永久挡住。 */
+  window.__E11_DEL_FP_KEY="e11.deleted.fp.v1";
+  window.__E11_DEL_TTL=90*24*3600*1000;
+  function __e11FpRead(){try{var o=JSON.parse(localStorage.getItem(window.__E11_DEL_FP_KEY)||"{}");return (o&&typeof o==="object")?o:{};}catch(_){return {};}}
+  function __e11FpWrite(o){try{localStorage.setItem(window.__E11_DEL_FP_KEY,JSON.stringify(o||{}));}catch(_){}}
+  function __e11FpStr(v){try{if(v===undefined||v===null)return "";if(typeof v==="string")return v;return JSON.stringify(v);}catch(_){return "";}}
+  function __e11FpHash(raw){
+    try{
+      var t=String(raw||"").replace(/\s+/g," ").trim().slice(0,2000),h=2166136261;
+      for(var i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,16777619);}
+      return "f"+(h>>>0).toString(36)+"_"+t.length.toString(36);
+    }catch(_){return "";}
+  }
+  window.__e11ContentFp=function(kind,x){
+    try{
+      if(!kind||!x||typeof x!=="object")return "";
+      var raw;
+      if(kind==="letters")raw=[x.from||"",x.subject||"",x.body||x.text||""].join("\u0001");
+      else if(kind==="moments")raw=[x.from||"",x.text||"",x.repostOf||"",x.img?"img":""].join("\u0001");
+      else if(kind==="guestbook")raw=[x.from||"",x.text||x.ans&&x.ans.text||""].join("\u0001");
+      else raw=[x.from||"",x.text||"",x.title||""].join("\u0001");
+      var fp=__e11FpHash(raw);return fp?(kind+":"+fp):"";
+    }catch(_){return "";}
+  };
+  function __e11FpLive(kind,fp){
+    try{
+      var m=__e11FpRead();var ids=m[kind]||{};var ts=Number(ids[fp])||0;
+      return ts>0&&(Date.now()-ts)<window.__E11_DEL_TTL;
+    }catch(_){return false;}
+  }
+  function __e11MarkFp(kind,x){
+    try{
+      if(kind!=="letters"&&kind!=="guestbook"&&kind!=="moments")return false;
+      var fp=window.__e11ContentFp(kind,x);if(!fp)return false;
+      var m=__e11FpRead();m[kind]=m[kind]||{};
+      if(!m[kind][fp])m[kind][fp]=Date.now();
+      __e11FpWrite(m);return true;
+    }catch(_){return false;}
+  }
+  window.__e11MarkFp=__e11MarkFp;
+
   window.__e11MarkDeleted=function(kind,id){
     try{
       id=String(id);if(!kind||!id)return false;
@@ -6318,6 +6360,10 @@ setTimeout(function(){
       var m=__e11DelLocalRead();m[kind]=m[kind]||{};
       if(!m[kind][id])m[kind][id]=ts;
       __e11DelLocalWrite(m);
+      try{
+        var _hit=null;((st[kind]||[]).some(function(x){if(x&&String(x.id)===id){_hit=x;return true;}return false;}));
+        if(_hit)__e11MarkFp(kind,_hit);
+      }catch(_eFpMark){}
       try{window.__e11Dirty=1;}catch(_){}
       return true;
     }catch(_){return false;}
@@ -6431,12 +6477,80 @@ setTimeout(function(){
         if(!Array.isArray(st[k]))return;
         var ids=d[k];if(!ids)return;
         if(k==="musicPlaylist")st[k].forEach(function(x){if(x&&!x.id){var _sid=__e11SongStableId(x);if(_sid)x.id=_sid;}});
-        st[k]=st[k].filter(function(x){var id=__e11IdOf(x);return !(id&&ids[id]);});
+        st[k]=st[k].filter(function(x){
+          var id=__e11IdOf(x);if(id&&ids[id])return false;
+          try{if(k==="letters"||k==="guestbook"||k==="moments"){var _fp=window.__e11ContentFp(k,x);if(_fp&&__e11FpLive(k,_fp))return false;}}catch(_eFp){}
+          return true;
+        });
       });
     }catch(_eApplyDel){}
     return st;
   }
   try{window.__e11ApplyDeleted=__e11ApplyDeleted;}catch(_eApplyExp){}
+  /* v43-183z21：动态/信件/留言的本机滚动备份。
+     以前这类内容只存在于“当前 state + 三份自动备份 + 云端”，
+     任意一份旧档把数组覆盖成空、或版本切换时读档失败，就会真的看起来“全没了”。
+     这里在每次社交内容变化时同步写一份独立小备份，启动先按 id 接回来，再走墓碑过滤。 */
+  window.__E11_SOCIAL_KEY="e11.socialBak.v1";
+  window.__e11SocialSnap=function(st){
+    try{
+      st=st||((typeof state!=="undefined")?state:null);if(!st)return false;
+      var out={ts:Date.now(),letters:[],guestbook:[],moments:[]};
+      var old=null;try{old=JSON.parse(localStorage.getItem(window.__E11_SOCIAL_KEY)||"null");}catch(_){}
+      /* 按 id 合并旧备份与当前列表，绝不把旧备份里的条目丢掉；
+         已删除的条目会由墓碑/指纹在合并后过滤，不会因为备份回来。 */
+      ["letters","guestbook","moments"].forEach(function(k){
+        var by={},arr=[];
+        ((old&&Array.isArray(old[k])?old[k]:[]).concat(st[k]||[])).forEach(function(x){
+          if(!x||!x.id)return;var id=String(x.id);
+          if(by[id])return;by[id]=1;arr.push(x);
+        });
+        out[k]=arr;
+      });
+      out.letters=out.letters.slice(-400);out.guestbook=out.guestbook.slice(-600);out.moments=out.moments.slice(-400);
+      var txt=JSON.stringify(out);
+      if(txt.length>1600000){
+        out.guestbook=out.guestbook.slice(-300);out.letters=out.letters.slice(-200);out.moments=out.moments.slice(-200);txt=JSON.stringify(out);
+      }
+      localStorage.setItem(window.__E11_SOCIAL_KEY,txt);return true;
+    }catch(_){return false;}
+  };
+  window.__e11SocialLocalMerge=function(st){
+    try{
+      st=st||((typeof state!=="undefined")?state:null);if(!st)return 0;
+      var raw=localStorage.getItem(window.__E11_SOCIAL_KEY);if(!raw)return 0;
+      var o=JSON.parse(raw);if(!o||typeof o!=="object")return 0;
+      var n=0;
+      ["letters","guestbook","moments"].forEach(function(k){
+        var cur=Array.isArray(st[k])?st[k]:[];st[k]=cur;
+        var ids={};cur.forEach(function(x){if(x&&x.id)ids[String(x.id)]=1;});
+        (Array.isArray(o[k])?o[k]:[]).forEach(function(x){
+          if(!x||!x.id)return;var id=String(x.id);
+          if(ids[id])return;
+          try{if(window.__e11IsDeleted&&window.__e11IsDeleted(k,id))return;}catch(_){}
+          cur.push(x);ids[id]=1;n++;
+        });
+        if(k!=="guestbook"&&cur.length>1){cur.sort(function(a,b){return (Number(a.time)||0)-(Number(b.time)||0);});}
+      });
+      return n;
+    }catch(_){return 0;}
+  };
+  window.__e11RecoverGuestbook=function(){
+    var n=0;try{n=window.__e11SocialLocalMerge?window.__e11SocialLocalMerge(state):0;}catch(_){}
+    try{if(window.__e11ApplyDeleted)window.__e11ApplyDeleted(state,["guestbook"]);}catch(_){}
+    if(n){try{save();__flushSave(true);renderGuestbook(true);updateNewBadge();}catch(_){}}
+    var p=Promise.resolve(n);
+    try{if(window.__e11SocialAudit)p=p.then(function(){return window.__e11SocialAudit();});}catch(_){}
+    p=p.then(function(){try{return window.__recoverSocialFromBackups?__recoverSocialFromBackups():0;}catch(_){return 0;}});
+    p=p.then(function(){try{return window.__recoverMediaFromCloud?__recoverMediaFromCloud():0;}catch(_){return 0;}});
+    return p.then(function(){
+      var before=n,total=Array.isArray(state.guestbook)?state.guestbook.length:0;
+      try{if(window.__e11ApplyDeleted)window.__e11ApplyDeleted(state,["guestbook"]);}catch(_){}
+      try{renderGuestbook(true);updateNewBadge();if(total)save();}catch(_){}
+      try{toast(total>before?("已找回留言，共 "+total+" 条"):(n?("已找回 "+n+" 条留言"):"暂时没找到可恢复的留言"));}catch(_){}
+      return total;
+    });
+  };
   function __e11MergeCloudFull(full,latest){
     if(!full||!full.state)return latest;
     if(!latest||!latest.state)return full;
@@ -6957,6 +7071,7 @@ setTimeout(function(){
     /* 云端是完整备份，信件/动态/留言都以云端为准；本机只补“云端没有的新条目”，
        不能用本机空数组把云端 167 封信、175 条动态、237 条留言清掉。 */
     __e11MergeLocalSocial(st,localState);
+    try{if(window.__e11SocialLocalMerge)window.__e11SocialLocalMerge(st);}catch(_eSocSnapCloud){}
     __e11MergeLocalDiary(st,localState);
     /* 其他板块也按 id 合一次：云端旧档不能把本机刚加的字卡/歌单/红包/分组/收藏冲掉，
        真正的删除由下面的墓碑过滤，不会因为合并又复活。 */
@@ -8203,11 +8318,14 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-183z20",
-  time:"2026-11-24 18:24",
+  date:"v43-183z21",
+  time:"2026-11-24 18:42",
   noticeKey:null,
-  lead:"2026-11-24 18:24 修改（v43-183z20）：留言板旧历史能继续滚出来了；进站不再先黑好几秒；字卡分组新建/改名/屏蔽立即落盘，不会刷新后变回未分组；点「+ 分组」直接弹输入框，不会点了没反应。",
+  lead:"2026-11-24 18:42 修改（v43-183z21）：留言数据独立备份，丢了能找回；删除的动态/信件/留言加了内容指纹墓碑，更新后不再复活；屏幕按原生真实宽度铺满，右边白条再兜一层。",
   items:[
+    "留言数据丢失与找回（v43-183z21）：以前留言只存在当前存档、自动备份和云端，任意一份旧档把数组盖空就看起来全没了。现在动态/信件/留言每次变化都同步写一份独立小备份，启动先按 id 接回来；留言页空的时候可以直接点「找回旧留言」，会依次查本机备份、离站快照、自动备份和云端。另外移除了按“演示文案”删真实留言的旧逻辑——那几句和自动生成的字卡高度重合，是数据被误删的一个来源。",
+    "删除后更新又复活（v43-183z21）：以前只按 id 记墓碑，云端旧档或跨作用域合并偶尔会换 id 把同一条内容带回来。现在删除时同时记内容指纹（动态/信件/留言，90 天有效），加载、云端合并、备份恢复、每次渲染都按 id + 指纹双重过滤；删信件会连同下面所有回复一起删；删除后立刻强制落盘并推云端，不等 1.8 秒排程。",
+    "屏幕还是不适配（v43-183z21）：手机端舞台原来封顶 440，480dp 或系统显示大小放大后的机型会被截成 440，右边留白。现在手机端按真实可见宽度铺满，上限放到 600；APK 新增原生 getScreenWidthDp，网页里的 screen.width 报小时直接拿物理宽/density 的真实 dp 宽兜底。",
     "留言板历史记录（v43-183z20）：留言页真正滚的是 #note-list，以前却监听 .v-body 的滚动，超过首屏 20 条的旧留言永远不会续加载，看起来像历史全没了。现在两个滚动容器都监听，首屏先铺 30 条，往下滚会自动接上剩下的，旧留言一条不少。",
     "进站黑屏太久（v43-183z20）：启动层原来要等 IndexedDB 全部读完，最慢 3.2 秒才撤，慢机上就是几秒黑屏/白屏。现在最多只按住 0.9 秒，主页先出来，比例和后台数据随后补；实测本机启动层 0.45 秒已露出主页。",
     "字卡分组自动保存（v43-183z20）：新建分组只走 260ms 防抖保存，建完马上切页或杀进程，分组没落盘，组内字卡就全变成「未分组」。现在新建、改名、屏蔽、移入/复制分组都会立刻强制写本机存档，刷新后分组和归属都在。",
@@ -10402,6 +10520,13 @@ function __prefReapplyAll(){
 
 function save(){
   try{window.__e11Dirty=1;}catch(_eDirty){}
+  /* v43-183z21：社交内容一变就同步落一份独立小备份，保证“更新/旧档覆盖”后还能接回来。 */
+  try{
+    var _socArr=(typeof state!=="undefined"&&state)||{};
+    var _socSig=[(_socArr.letters||[]).length,(_socArr.guestbook||[]).length,(_socArr.moments||[]).length,
+      ((_socArr.guestbook||[]).slice(-1)[0]||{}).id||"",((_socArr.letters||[]).slice(-1)[0]||{}).id||"",((_socArr.moments||[]).slice(-1)[0]||{}).id||""].join("|");
+    if(window.__e11SocialSig!==_socSig){window.__e11SocialSig=_socSig;window.__e11SocialSnap&&window.__e11SocialSnap(_socArr);}
+  }catch(_eSocSnap){}
   /* 重置/恢复中禁止任何写盘：否则刷新前旧页面会把刚清掉的内容再写回来 */
   if(window.__restoring)return;
   /* v43-79：每次改动先同步落一份“文字核心档”。大图写不进本地库时，
@@ -11032,9 +11157,10 @@ function migrate(s){
   const DEMO_LETTER={subject:["第一封信","想你的日子","碎碎念","分享","回忆","小确幸","关于明天","无题","随笔","突然","想起","碎片","小记","日常","展信安","见信好"],body:["嗨，这是写给你的第一封信。","今天忙了一天，闲下来就想你了。","就是突然想写几句。","给你记一件小事，特别想告诉你。","看到一样东西，立刻想到了你。","翻到以前的照片，突然很想你。","今天有个小惊喜，想第一个跟你说。","明天见个面好不好？","嗨，这是写给你的第一封信。希望你喜欢这个只属于我们的私密空间。"]};
   const DEMO_NOTE=["今天过得怎么样？","别忘了吃午饭","刚看到个好笑的，回头讲给你","有点想你","周末想去哪儿逛逛？","记得早点休息","外面下雨了，带伞","今天也要加油呀","欢迎来留言板，想你了我就来这里留一句。"];
   const DEMO_MOMENT=["今天天气真好","分享一首歌","路边看到的小猫","生活碎片","刚看完一部电影","咖啡续命中","周末去哪玩好","今天天气真好，心情也特别好~","路边看到的小猫，好可爱"];
-  if(Array.isArray(s.letters))s.letters=s.letters.filter(x=>!x||x.from!=="partner"||!(DEMO_LETTER.subject.includes(x.subject)&&DEMO_LETTER.body.includes(x.body)));
-  if(Array.isArray(s.guestbook))s.guestbook=s.guestbook.filter(x=>!x||x.from!=="partner"||!DEMO_NOTE.includes(x.text));
-  if(Array.isArray(s.moments))s.moments=s.moments.filter(x=>!x||x.from!=="partner"||!DEMO_MOMENT.includes(x.text));
+  /* v43-183z21：不再按“文案是否等于演示句”删除对方内容。
+     这些演示句和自动生成的字卡高度重合（“今天过得怎么样？”等），
+     旧逻辑会把真实留言/信件/动态一起清掉，表现就是“留言数据突然全没了”。
+     历史演示内容由用户自己删；保住真实数据优先。 */
   /* v43-154：老存档/导入档里分组或字卡缺 kind 时，按「分组里的字卡属于哪一组」补回来。
      以前复制字卡没带 kind，复制到信件/动态分组后会被当成聊天字卡，看起来不在自己设置的组下面。 */
   try{
@@ -11562,8 +11688,10 @@ async function init(){
       state=migrate(s);
       /* v43-183k：本机删除墓碑先并进最终 state，再清一次；刷新/退出/旧档合并都不会复活已删内容。 */
       try{if(window.__e11DelLocalRestore)window.__e11DelLocalRestore(state);}catch(_eDelLocal){}
+      /* v43-183z21：读档后先把独立社交备份里缺的条目接回来（墓碑会随后清掉已删的）。 */
+      try{if(window.__e11SocialLocalMerge)window.__e11SocialLocalMerge(state);}catch(_eSocRec){}
       /* v43-163：合并/迁移后最后再按墓碑清一次，防止默认分组 g1 这类内置内容被旧档补回来。 */
-      try{__e11ApplyDeleted(state,["cards","groups"]);}catch(_eLoadDel){}
+      try{__e11ApplyDeleted(state);}catch(_eLoadDel){}
       /* v43-166：先补齐模板数组，再按模板墓碑过滤；否则旧档没有 letterTpl 时，
          默认模板刚补回来就绕过了下面的过滤，删掉的模板会重新出现。 */
       try{ensureLetterTpl();}catch(_eEnsTpl){}
@@ -27510,6 +27638,7 @@ document.addEventListener("click",function(e){
   __starToggle(b.dataset.starKind,b.dataset.starId);
 },false);
 function renderLetters(force){
+  try{if(window.__e11ApplyDeleted)window.__e11ApplyDeleted(state,["letters"]);}catch(_eLtGuard){}
   var _s="letters|"+__sigOfList(state.letters);
   if(!window.__rSig)window.__rSig={};
   /* force=true 时强制重画：进信件页一律走这条路，避免签名未变但列表是空的情况 */
@@ -28607,6 +28736,14 @@ var _lsBtn=$("letter-send");if(_lsBtn)_lsBtn.addEventListener("click",function()
 
 /* ===== 留言板 ===== */
 function renderGuestbook(force){
+  /* v43-183z21：渲染前先按墓碑清一次，并用独立备份补回被旧档覆盖掉的留言。
+     这样即使云端恢复晚到、或当前数组被写成空，页面也不会直接空白。 */
+  try{
+    if(window.__e11ApplyDeleted)window.__e11ApplyDeleted(state,["guestbook"]);
+    if((!Array.isArray(state.guestbook)||!state.guestbook.length)&&window.__e11SocialLocalMerge){
+      if(window.__e11SocialLocalMerge(state)){window.__e11ApplyDeleted&&window.__e11ApplyDeleted(state,["guestbook"]);try{save();}catch(_){}}
+    }
+  }catch(_eGbGuard){}
   /* 数据里只要有一条畸形（缺字段、循环引用、text 不是字符串），这里就会抛错，
      抛在写 innerHTML 之前 → 页面上「对方公开回答过的（N）」有数字、下面却一片空白。
      所以签名计算和整体渲染都兜住：真出错就用最简卡片兜底，绝不让列表变空 */
@@ -28783,10 +28920,14 @@ function renderGuestbook(force){
     });
     try{__bindStarButtons(root);}catch(_){}
   }
-  const empty=notes.length===0?'<div class="empty-hint">还没有留言，留一句吧。</div>':'';
+  const empty=notes.length===0?'<div class="empty-hint" style="flex-direction:column;gap:12px;"><span>还没有留言，留一句吧。</span><button class="small-btn ghost" id="gb-recover" style="font-size:12px;padding:6px 12px;">找回旧留言</button></div>':'';
   const unreadIds=gbUnread.filter(id=>notes.some(n=>n.id===id));
   const bar=unreadIds.length?'<div class="gb-newbar" id="gb-newbar">🔔 有新留言/回复（'+unreadIds.length+'）· 点击查看</div>':'';
   list.innerHTML=bar+empty+'<div class="qa-list"></div>';
+  try{
+    var _rb=document.getElementById("gb-recover");
+    if(_rb)_rb.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();try{window.__e11RecoverGuestbook&&window.__e11RecoverGuestbook();}catch(_){}});
+  }catch(_){}
   const qaList=list.querySelector('.qa-list');
   let gbShown=0;
   function gbAppend(n){
@@ -29197,6 +29338,10 @@ try{
     try{window.__e11ForceUntil=Date.now()+2000;}catch(_){}
     try{save();}catch(_){}
     try{__flushSave(true);}catch(_){}
+    /* v43-183z21：删除后立刻把墓碑推云端，不能等 1.8 秒排程；
+       否则用户马上更新/强杀，云端旧档还会回来。 */
+    try{window.__e11SocialSnap&&window.__e11SocialSnap(state);}catch(_){}
+    try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_){}
     try{
       if(kind==="moments")renderMoments();
       else if(kind==="guestbook")renderGuestbook(true);
@@ -29206,7 +29351,8 @@ try{
   }
   function __open(kind,id,ids){
     if(!__LABEL[kind])return;
-    __dKind=kind;__dId=String(id||"");__dIds=(ids&&ids.length?ids:[__dId]).map(String);
+    __dKind=kind;__dId=String(id||"");
+    __dIds=(kind==="letters")?__descIds(kind,__dId):(ids&&ids.length?ids:[__dId]).map(String);
     var title=document.getElementById("del-choice-title");
     var sub=document.getElementById("del-choice-sub");
     var n=__allGroups(kind).length;
@@ -29756,6 +29902,7 @@ window.__refreshMomentCard=function(mid){
   }catch(e){return false;}
 };
 function renderMoments(){
+  try{if(window.__e11ApplyDeleted)window.__e11ApplyDeleted(state,["moments"]);}catch(_eMomGuard){}
   /* 签名只看「动态数据」，不再把当前是哪一边算进去：
      从对方主页点回我的主页时数据没变，就只切显示侧，不整块清空重铺 */
   var _s="mom|"+(mpSide||"me")+"|"+__sigMoments(state.moments);
@@ -36268,6 +36415,14 @@ body{margin:0;background:var(--bg,#fafafa);}
         var _dpr=Number(window.devicePixelRatio)||1;
         var _sw=Number(window.screen&&window.screen.width)||0;
         if(_sw>600&&_dpr>1)_sw=_sw/_dpr;
+        /* v43-183z21：APK 里 WebView 的 screen.width 偶尔也按布局宽报小，
+           直接向原生要「物理宽/density」的真实 dp 宽，补到真正的屏幕宽度。 */
+        try{
+          if(window.AndroidUI&&window.AndroidUI.getScreenWidthDp){
+            var _aw=Number(window.AndroidUI.getScreenWidthDp())||0;
+            if(_aw>=320&&_aw<=600&&_aw>_sw)_sw=_aw;
+          }
+        }catch(_eAw){}
         if(_sw>=320&&_sw<=600&&_sw>w+2)w=_sw;
       }catch(_eSwW){}
       w=Math.max(300,Math.min(900,w));
@@ -36366,7 +36521,10 @@ body{margin:0;background:var(--bg,#fafafa);}
       var k=1;
       var rw=w, rh=h;
       /* 竖屏最宽 440：再宽的屏只增加左右留白，不放大内容；横屏按当前宽度铺满，最高 900。 */
-      var cap=_landView?Math.min(900,w):Math.min(440,w);
+      /* v43-183z21：手机端不再把舞台封顶在 440。
+         480dp / 系统显示大小放大后的机型会被截成 440，右边留一条白；
+         现在直接按真实可见宽度铺满，桌面固定窗口逻辑不受影响。 */
+      var cap=_landView?Math.min(900,w):Math.min(600,w);
       if(rw>cap)rw=cap;
       /* 根节点的 left/top 不受自身 scale 影响：这里写的是屏幕上的实际位置，
          不能再除以 k，否则平板居中会偏、键盘引起 offsetTop 时也会偏。 */
