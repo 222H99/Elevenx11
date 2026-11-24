@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-188z33f";
+window.__E11_BUILD="2026-11-24v43-189z33f";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2353,7 +2353,7 @@ body.msgsel-on #view-chat .bottombar{display:none;}
 #notify-prompt .np-t{padding-right:28px;}
 #notify-on{background:#007aff;color:#fff;}
 #notify-later{background:rgba(0,0,0,.06);color:#333;}
-/* v43-188z33f：问卷两层固定铺满、整块不透明；键盘弹起时上下都只看到问卷，不透出聊天页。 */
+/* v43-189z33f：问卷两层固定铺满、整块不透明；键盘弹起时上下都只看到问卷，不透出聊天页。 */
 #survey-create-overlay,#survey-answer-overlay{position:fixed;inset:0;width:100%;height:100%;background:#fff;isolation:isolate;}
 #survey-create-overlay.show,#survey-answer-overlay.show{background:#fff;}
 body.ui-dark #survey-create-overlay,body.ui-dark #survey-answer-overlay{background:#000;}
@@ -2747,7 +2747,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-188z33f">
+<meta name="app-build" content="2026-11-24v43-189z33f">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -6386,6 +6386,28 @@ setTimeout(function(){
   }
   window.__e11MarkFp=__e11MarkFp;
 
+  /* v43-189：删除前先把正文留一份，之后无论删多久都能从暂存恢复。 */
+  window.__E11_TRASH_KEY="e11.trash.v1";
+  window.__e11TrashPut=function(kind,x){
+    try{
+      if(!kind||!x||typeof x!=="object")return false;
+      var id=String(x.id||"");if(!id)return false;
+      var o=JSON.parse(localStorage.getItem(window.__E11_TRASH_KEY)||"{}");
+      if(!o||typeof o!=="object"||Array.isArray(o))o={};
+      var arr=Array.isArray(o[kind])?o[kind]:[];
+      var item=Object.assign({},x);
+      if(item.src&&String(item.src).length>180000)item.src=String(item.src).slice(0,180000);
+      arr=arr.filter(function(y){return String(y&&y.id||"")!==id;});
+      arr.push(item);o[kind]=arr.slice(-800);
+      var txt=JSON.stringify(o);
+      if(txt.length>2200000){
+        Object.keys(o).forEach(function(k){if(Array.isArray(o[k]))o[k]=o[k].slice(-Math.max(20,Math.floor(o[k].length/2)));});
+        txt=JSON.stringify(o);
+      }
+      if(txt.length>2600000)return false;
+      localStorage.setItem(window.__E11_TRASH_KEY,txt);return true;
+    }catch(_eTrashPut){return false;}
+  };
   window.__e11MarkDeleted=function(kind,id){
     try{
       id=String(id);if(!kind||!id)return false;
@@ -6398,7 +6420,7 @@ setTimeout(function(){
       __e11DelLocalWrite(m);
       try{
         var _hit=null;((st[kind]||[]).some(function(x){if(x&&String(x.id)===id){_hit=x;return true;}return false;}));
-        if(_hit)__e11MarkFp(kind,_hit);
+        if(_hit){__e11MarkFp(kind,_hit);try{window.__e11TrashPut(kind,_hit);}catch(_eTrash){}}
       }catch(_eFpMark){}
       try{window.__e11Dirty=1;}catch(_){}
       return true;
@@ -6520,7 +6542,8 @@ setTimeout(function(){
         if(!has)return;
         if(k==="musicPlaylist")st[k].forEach(function(x){if(x&&!x.id){var _sid=__e11SongStableId(x);if(_sid)x.id=_sid;}});
         st[k]=st[k].filter(function(x){
-          var id=__e11IdOf(x);if(id&&ids[id])return false;
+          var id=__e11IdOf(x);
+          if(id&&ids[id]){try{if(window.__e11TrashPut)window.__e11TrashPut(k,x);}catch(_eTrashCap){}return false;}
           try{if(k==="letters"||k==="guestbook"||k==="moments"){var _fp=window.__e11ContentFp(k,x);if(_fp&&__e11FpLive(k,_fp))return false;}}catch(_eFp){}
           return true;
         });
@@ -7502,6 +7525,27 @@ setTimeout(function(){
     try{var so=JSON.parse(localStorage.getItem("e11.socialBak.v1")||"null");if(so)add("社交独立备份",so);}catch(_){}
     try{var dbk=JSON.parse(localStorage.getItem("e11.diaryBak.v1")||"null");if(dbk&&dbk.diary)add("日记备份",{diary:dbk.diary});}catch(_){}
     try{var cfg=JSON.parse(localStorage.getItem("e11.cfgBak.v1")||"null");if(cfg)add("设置备份",cfg);}catch(_){}
+    /* 旧版 privateChat 可能是整份存档；删除暂存里也有正文。 */
+    try{var pc=JSON.parse(localStorage.getItem("privateChat")||"null");if(pc&&(pc.state||Array.isArray(pc.messages)||Array.isArray(pc.cards)))add("旧 privateChat 档",pc.state||pc);}catch(_){}
+    try{
+      var tr=JSON.parse(localStorage.getItem("e11.trash.v1")||"null");
+      if(tr&&typeof tr==="object"){
+        var trSt={};Object.keys(tr).forEach(function(k){if(Array.isArray(tr[k])&&tr[k].length)trSt[k]=tr[k];});
+        if(Object.keys(trSt).length)add("删除暂存",trSt);
+      }
+    }catch(_eTrashRead){}
+    /* 兜底扫其它可能存整份存档的 localStorage 键；只认有内容数组的对象，避免把配置当档。 */
+    try{
+      var _skipKey=/^(e11\.auth|e11\.session|e11\.owner|e11\.cloud|e11\.pwd|e11\.pwPass|e11\.lock|e11\.userLook|e11\.theme|e11\.fit|e11\.buildSeen|e11\.updateGuard|e11\.knownDb|e11\.lastAccount|e11\.tombRepair|e11\.deleted|e11\.chatlog|e11\.settings|e11\.profile|e11\.musicRoom|e11\.call|e11\.storage|e11\.boot|e11\.diaryBak|e11\.socialBak|e11\.cfgBak|e11\.core|e11\.exit|e11\.reset|e11\.forceLock|e11\.pwdPending|e11\.trash)/i;
+      Object.keys(localStorage).forEach(function(k){
+        if(_skipKey.test(k))return;
+        if(!/(chat|backup|snap|core|exit|social|diary|state|import)/i.test(k))return;
+        var raw=localStorage.getItem(k);if(!raw||raw.length<60||raw.length>8000000)return;
+        var o=JSON.parse(raw);var st=o&&o.state&&typeof o.state==="object"?o.state:o;
+        if(!st||typeof st!=="object")return;
+        if(Array.isArray(st.messages)||Array.isArray(st.cards)||Array.isArray(st.letters)||Array.isArray(st.guestbook)||Array.isArray(st.moments))add("键 "+k,st);
+      });
+    }catch(_eKeyScan){}
     function _paint(t){try{var el=document.getElementById("deep-restore-sub");if(el)el.textContent=t;}catch(_){}}
     /* 并发读取：以前 3 份备份、多个旧库一份一份排队，手机端慢到像卡死。 */
     function runPool(items,limit,fn){
@@ -7538,7 +7582,7 @@ setTimeout(function(){
     }catch(_){}
     /* v43-105：深度恢复必须同时拿 latest.json 和 latest.full.json。
        只读文字档会恢复聊天条数，却没有头像/照片/表情原图/一起听封面，用户看到的就是“恢复不全”。 */
-    /* v43-188z33f：深度恢复以前只读当前登录作用域的 3 个备份槽。
+    /* v43-189z33f：深度恢复以前只读当前登录作用域的 3 个备份槽。
        退出登录/换账号/更新后旧库可能留在 privateChatDB_v1_xxx 里，必须一起扫。 */
     var scopeP=Promise.resolve([]);
     try{
@@ -7656,14 +7700,14 @@ setTimeout(function(){
       try{before.diary=((window.__e11StateGet&&window.__e11StateGet()||{}).diary&&Object.keys(((window.__e11StateGet&&window.__e11StateGet()||{}).diary.pages)||{}).length)||0;}catch(_bD){}
       var after={};cats.forEach(function(k){after[k]=Array.isArray(base[k])?base[k].length:0;});
       try{after.diary=base.diary&&base.diary.pages?Object.keys(base.diary.pages).length:0;}catch(_aD){}
-      /* v43-188z33f 全量恢复：不按墓碑/清空时间过滤，所有副本里的内容都并回来。 */
+      /* v43-189z33f 全量恢复：不按墓碑/清空时间过滤，所有副本里的内容都并回来。 */
       base.deletedIds={};base.__chatClearedAt=0;
       after={};cats.forEach(function(k){after[k]=Array.isArray(base[k])?base[k].length:0;});
       try{after.diary=base.diary&&base.diary.pages?Object.keys(base.diary.pages).length:0;}catch(_aD2){}
       var total=after.messages+after.cards+after.letters+after.guestbook+after.moments+(after.diary||0);
       if(!total)throw new Error("云端和本机备份里都没有内容");
       base.__savedAt=Date.now();
-      /* v43-188z33f：深度恢复不清「只重置本机 / 一键清除」标记，
+      /* v43-189z33f：深度恢复不清「只重置本机 / 一键清除」标记，
          否则清空后点恢复会把已经删掉的整库又拉回来。 */
       var _socialFlag=0;try{_socialFlag=(cloud&&cloud.socialRestored)||0;}catch(_){}
       /* 这是用户明确要求的“全部恢复”，删除表和清空时间都要清掉，否则下次启动又会被过滤。 */
@@ -7736,7 +7780,7 @@ setTimeout(function(){
       /* v43-75：正常重新进入网站只认“上次退出时”的本机档，不再自动把云端档拉下来覆盖。
          这台设备以前同步过、本机又有内容时，只有用户主动点「从云端恢复」才拉取（force=1）。 */
       var _hasLocal=__e11LocalHasArchive();
-      /* v43-188z33f：本机只要有任何聊天/日记/字卡/信件/留言，自动检查就绝不拉云端覆盖。
+      /* v43-189z33f：本机只要有任何聊天/日记/字卡/信件/留言，自动检查就绝不拉云端覆盖。
          只有用户主动点「从云端恢复」(force=1) 才允许合并。更新前后都不会用云档顶掉本机。 */
       if(!force&&_hasLocal)return 0;
       return cloudGet({fresh:!_hasLocal}).then(function(cloud){
@@ -8471,16 +8515,16 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-188z33f",
+  date:"v43-189z33f",
   time:"2026-11-24 22:24",
   noticeKey:null,
-  lead:"2026-11-24 22:24 修改（v43-188z33f）：在 z33 原版上只修五项——麦克风权限、问卷键盘透出、字卡分组归位、离站数据原样、自动备份不吞聊天。",
+  lead:"2026-11-24 22:24 修改（v43-189z33f）：在 z33 原版上只修五项——麦克风权限、问卷键盘透出、字卡分组归位、离站数据原样、自动备份不吞聊天。",
   items:[
-    "麦克风点了没反应（v43-188z33f）：录音前先查系统录音权限，没有权限就先弹系统授权；网页版仍然直接走浏览器授权。授权结果会回传页面，5 秒没等到才提示去系统设置允许录音。",
-    "问卷打字透出聊天（v43-188z33f）：创建问卷、回答问卷两层改成整块不透明主题底色，深色模式变黑，键盘再高也只看到问卷本身。",
-    "字卡分组乱跑（v43-188z33f）：启动、合并存档、每次渲染前按「类别+组名」合并同名重复组，卡片改到保留组；孤儿卡按分组名接回，找不到接回默认组或同类第一个组，不再堆进「未分组」。",
-    "离开数据原样（v43-188z33f）：切后台、锁屏、关闭、返回、页面冻结都会立刻写离站快照；一直开着被直接杀进程时最多每 30 秒补一次，下次进入只认最近这份快照。",
-    "自动备份不吞聊天（v43-188z33f）：离站快照签名加入保存时间，内容没变不重复写；快照和备份只补不删，删除墓碑仍优先挡住恢复。",
+    "麦克风点了没反应（v43-189z33f）：录音前先查系统录音权限，没有权限就先弹系统授权；网页版仍然直接走浏览器授权。授权结果会回传页面，5 秒没等到才提示去系统设置允许录音。",
+    "问卷打字透出聊天（v43-189z33f）：创建问卷、回答问卷两层改成整块不透明主题底色，深色模式变黑，键盘再高也只看到问卷本身。",
+    "字卡分组乱跑（v43-189z33f）：启动、合并存档、每次渲染前按「类别+组名」合并同名重复组，卡片改到保留组；孤儿卡按分组名接回，找不到接回默认组或同类第一个组，不再堆进「未分组」。",
+    "离开数据原样（v43-189z33f）：切后台、锁屏、关闭、返回、页面冻结都会立刻写离站快照；一直开着被直接杀进程时最多每 30 秒补一次，下次进入只认最近这份快照。",
+    "自动备份不吞聊天（v43-189z33f）：离站快照签名加入保存时间，内容没变不重复写；快照和备份只补不删，删除墓碑仍优先挡住恢复。",
     "背景设置完又变（v43-183z33）：聊天背景、我的全局背景、卡片背景、留言板、信件、画画、动态主页、情侣空间、信纸、信封、一起听、通话这些背景，现在统一先写一份只记「最后一次选择」的小备份。纯色/渐变预设和信纸、信封预设以前只靠设置小备份，会被旧存档整份盖掉；现在启动时在旧档恢复之后，再无条件按这份选择恢复。",
     "信纸/信封换图会把本地撑满（v43-183z33）：信纸背景图以前整张塞进设置小备份，一张图就可能把 localStorage 顶满，后面的背景设置全都写不进去，刷新又回旧图。现在大图从设置小备份里剔除，单独走图片备份；信纸、信封的预设和换图也在点完立即强制落盘。",
     "删除的字卡分组又回来（v43-183z32）：删分组以前只走 260ms 防抖保存，马上退出时删除墓碑还没进主档；旧备份/离站快照一并就把整个分组和里面的字卡带回来。现在删分组立刻强制写本机、推云端，并在合并后再按「内存 + 本机同步墓碑」清一遍。",
@@ -10961,11 +11005,11 @@ window.__e11PersistNow=function(){
   try{document.addEventListener("visibilitychange",function(){if(document.visibilityState==="hidden")flushAll();});}catch(e){}
   try{window.addEventListener("pagehide",flushAll);}catch(e){}
   try{window.addEventListener("beforeunload",flushAll);}catch(e){}
-  /* v43-188z33f：安卓/Chrome 冻结前也写一次离站快照。 */
+  /* v43-189z33f：安卓/Chrome 冻结前也写一次离站快照。 */
   try{document.addEventListener("freeze",flushAll);}catch(e){}
   /* 回到前台后允许下一次切后台/退出再写一次离站快照。 */
   try{document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")window.__e11FlushDone=0;});}catch(e){}
-  /* v43-188z33f：应用一直开着被直接杀进程时，最多丢 30 秒改动；数据没变就不写。 */
+  /* v43-189z33f：应用一直开着被直接杀进程时，最多丢 30 秒改动；数据没变就不写。 */
   try{
     setInterval(function(){
       try{
@@ -11143,8 +11187,10 @@ window.__e11ChatLogPut=function(m){
     var item={id:String(m.id),from:m.from==="me"?"me":"partner",type:String(m.type||"text"),text:String(m.text!==""&&m.text!==undefined?m.text:"").slice(0,4000),time:Number(m.time)||Date.now(),kind:String(m.kind||""),quoteId:m.quoteId||null,src:(typeof m.src==="string"&&m.src.length<=2000)?m.src:""};
     var k=item.id+"|"+item.time+"|"+item.text;
     a=a.filter(function(x){return x&&(String(x.id)+"|"+String(Number(x.time)||0)+"|"+String(x.text||""))!==k;});
-    a.push(item);a=a.slice(-300);
+    a.push(item);a=a.slice(-800);
     var raw=JSON.stringify(a);
+    /* 删除恢复主要靠这份流水：保留更多条，但总大小压到 2.2MB 内，避免占满配额。 */
+    while(raw.length>2200000&&a.length>120){a=a.slice(-Math.max(120,Math.floor(a.length*0.72)));raw=JSON.stringify(a);}
     try{localStorage.setItem(window.__E11_CHAT_LOG_KEY,raw);}
     catch(_eLogFull){try{window.__e11QuotaRescue&&window.__e11QuotaRescue(2);localStorage.setItem(window.__E11_CHAT_LOG_KEY,raw);}catch(_eLogFull2){return false;}}
     return true;
@@ -11162,7 +11208,8 @@ window.__e11ChatLogRestore=function(s,forceAll){
     a.forEach(function(x){
       if(!x||!x.id)return;
       var t=Number(x.time)||0;
-      if(!t||t<Date.now()-30*24*3600*1000)return;
+      if(!t)return;
+      if(!forceAll&&t<Date.now()-30*24*3600*1000)return;
       if(!forceAll){
         if(clr&&t<=clr)return;
         try{if(window.__e11IsDeleted&&window.__e11IsDeleted("messages",String(x.id)))return;}catch(_eLogDel){}
@@ -19868,7 +19915,7 @@ function groupsOfKind(k){return (state.groups||[]).filter(function(g){return gro
 function cardsOfKind(k){return (state.cards||[]).filter(function(c){return cardKindOf(c)===k;});}
 /* v43-155：卡片有 groupId，但对应分组已经不在了（云端旧档/导入后分组被重建）。
    这些卡以前只在「全部」里能看到，点任何分组都是 0 条，像“没放进我设置的分组”。 */
-/* v43-188z33f：云端合并/导入会偶尔把同名分组带成两个不同 id，或者分组的 id 被重建，
+/* v43-189z33f：云端合并/导入会偶尔把同名分组带成两个不同 id，或者分组的 id 被重建，
    卡片就掉进「未分组」。这里按「类别 + 分组名」把同名重复组合并成一个，卡片跟着改到
    唯一的分组 id；没有分组的卡先按 groupName 找，仍找不到且该类别只有一个组就归进去。 */
 window.__e11NormalizeCardGroups=function(st){
@@ -19907,7 +19954,7 @@ window.__e11NormalizeCardGroups=function(st){
       if(!target){
         var sameKind=keep.filter(function(x){return ((x.kind==="letter"||x.kind==="moment")?x.kind:"chat")===ck;});
         if(sameKind.length){
-          /* v43-188z33f：找不到归属的孤儿卡不再留在「未分组」：
+          /* v43-189z33f：找不到归属的孤儿卡不再留在「未分组」：
              优先接回默认分组，没有再接当前类别的第一个分组。 */
           target=sameKind.filter(function(x){return /^(默认|默认分组|导入分组)$/.test(String(x.name||"").trim());})[0]||sameKind[0];
         }
@@ -20004,7 +20051,7 @@ function bindCardKindTabs(){
   }
 }
 function renderCards(){
-  /* v43-188z33f：渲染前先合并同名分组、把孤儿卡接回分组，避免显示成「未分组」。 */
+  /* v43-189z33f：渲染前先合并同名分组、把孤儿卡接回分组，避免显示成「未分组」。 */
   try{if(window.__e11NormalizeCardGroups&&window.__e11NormalizeCardGroups(state)){save();}}catch(_eNgRender){}
   /* v43-184：每次进字卡页先自动清一次跨分组重复，保证整份字卡只留一条。 */
   try{var _autoDup=dedupeCards(cardKindView);if(_autoDup){try{save();}catch(_){}}}catch(_eAutoDup){}
@@ -20012,7 +20059,7 @@ function renderCards(){
   if(!groupsOfKind(K).length){
     try{state.groups.push({id:uid(),name:"默认分组",kind:K});save();}catch(e){}
   }
-  /* v43-188z33f：先补默认分组，再归一化一次；否则没有任何分组时孤儿卡会直接落到「未分组」。 */
+  /* v43-189z33f：先补默认分组，再归一化一次；否则没有任何分组时孤儿卡会直接落到「未分组」。 */
   try{if(window.__e11NormalizeCardGroups&&window.__e11NormalizeCardGroups(state)){save();}}catch(_eNgAfterDefault){}
   activeGroupId=activeGidOfKind(K);
   var groups=groupsOfKind(K);
@@ -34835,7 +34882,7 @@ try{
       return false;
     }
   }
-  /* v43-188z33f：录音前先让原生层确认系统麦克风权限。
+  /* v43-189z33f：录音前先让原生层确认系统麦克风权限。
      以前直接 getUserMedia，WebView 的系统权限没开就会静默失败，表现为点了没反应。 */
   var __micWaiters=[],__micTimer=null;
   function __micFlush(ok){
@@ -34866,7 +34913,7 @@ try{
           __micTimer=setInterval(function(){
             tries++;
             try{if(AndroidUI.hasMicPermission()){__micFlush(true);return;}}catch(_eMicPoll){}
-            /* v43-188z33f：系统权限弹窗可能要等用户十几秒，不再 5 秒就判失败。 */
+            /* v43-189z33f：系统权限弹窗可能要等用户十几秒，不再 5 秒就判失败。 */
             if(tries>=100){toast("麦克风权限还没打开，去系统设置里允许录音");__micFlush(false);}
           },200);
         }
@@ -34887,7 +34934,7 @@ try{
     showRec(true);try{var _vh=document.getElementById("vrec-hint");if(_vh)_vh.textContent="正在准备麦克风…";}catch(_){}
     __ensureMic(function(ok){
     if(!ok){rec.active=false;rec.streamReady=false;stopStream();showRec(false);return;}
-    /* v43-188z33f：拿到系统权限后音频上下文可能还挂着；先恢复再录音，避免“权限有了但仍然没声”。 */
+    /* v43-189z33f：拿到系统权限后音频上下文可能还挂着；先恢复再录音，避免“权限有了但仍然没声”。 */
     try{if(ctx.state==="suspended")ctx.resume();}catch(_eMicResume){}
     navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
       if(my!==rec.gen||!rec.active){try{stream.getTracks().forEach(function(t){t.stop();});}catch(e){}return;}
@@ -38173,7 +38220,7 @@ body{margin:0;background:var(--bg,#fafafa);}
 </script>
 
 <script>
-/* v43-188z33f：更新后只弹一次「恢复全部历史」。走深度恢复，合并本机3份备份+云端；
+/* v43-189z33f：更新后只弹一次「恢复全部历史」。走深度恢复，合并本机3份备份+云端；
    已删除的条目和清空聊天之前的消息会被墓碑/清空时间挡住，不会复活。 */
 (function(){
   var KEY="e11.recoverall186.z33f";
