@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-204z34";
+window.__E11_BUILD="2026-11-25v43-205z34";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2747,7 +2747,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-204z34">
+<meta name="app-build" content="2026-11-25v43-205z34">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4623,6 +4623,7 @@ setTimeout(function(){
         <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;">
           <div class="set-label" style="font-size:14px;">恢复数据</div>
           <button class="small-btn ghost" style="width:100%;font-size:15px;padding:13px 12px;font-weight:700;color:var(--danger);" id="btn-recover-everything">恢复全部数据（含已删除）</button>
+          <button class="small-btn ghost" style="width:100%;font-size:14px;padding:11px 12px;" id="btn-recover-30d">只恢复近 30 天（含已删除）</button>
           <button class="small-btn ghost" style="width:100%;font-size:14px;padding:11px 12px;" id="btn-quick-restore">快速恢复（最近一份备份）</button>
         </div>
         <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;">
@@ -7621,6 +7622,9 @@ setTimeout(function(){
     /* v43-198：快速模式只读“永久最大档 + 最新一份备份 + 聊天流水 + 云端最新档”，
        不扫 7 份大档、不扫旧库、不拉 4MB 完整档，几秒内先恢复大部分内容。 */
     var _quick=!!(opts&&opts.quick);
+    /* v43-205：只恢复近 N 天。只影响从备份/流水/云端“并进来”的内容，
+       本机已经存在的历史原样保留；同时写一个截止时间，进站自动合并也不再翻出更早的旧档。 */
+    var _days=Number(opts&&opts.days)||0;
     try{var _curFix=window.__e11StateGet&&window.__e11StateGet();if(_curFix)window.__e11RepairBulkTombs&&window.__e11RepairBulkTombs(_curFix);}catch(_eDeepTombFix){}
     var cands=[];
     function add(name,st){
@@ -7858,6 +7862,19 @@ setTimeout(function(){
         }
       }catch(_eDeepChatClr){}
 
+      if(_days>0){
+        var _cut=Date.now()-_days*24*3600*1000;
+        var _timeOf=function(x){
+          try{return Number((x&&(x.time||x.createdAt||x.__ts||x.ts||x.updatedAt))||0);}catch(_){return 0;}
+        };
+        ["messages","cards","letters","guestbook","moments","redpackets","musicRoomMsgs","surveyHistory"].forEach(function(k){
+          if(!Array.isArray(base[k]))return;
+          base[k]=base[k].filter(function(x){var t=_timeOf(x);return !t||t>=_cut;});
+        });
+        base.__restoreCutoffAt=_cut;
+      }else if(_recAll){
+        base.__restoreCutoffAt=0;
+      }
       after={};cats.forEach(function(k){after[k]=Array.isArray(base[k])?base[k].length:0;});
       try{after.diary=base.diary&&base.diary.pages?Object.keys(base.diary.pages).length:0;}catch(_aD2){}
       try{after.musicRoomMsgs=Array.isArray(base.musicRoomMsgs)?base.musicRoomMsgs.length:0;}catch(_aMR){}
@@ -9875,6 +9892,18 @@ window.__e11FullBackupSoon=function(force){
     try{if(window.__bkSave)window.__bkSave(true,force?undefined:{onlyIfDirty:1}).catch(function(){});}catch(_){}
   }catch(_){}
 };
+/* v43-205：用户在“只恢复近 30 天”后，进站自动合并也不能再把 30 天前的旧档翻出来。 */
+window.__e11ItemTime=function(x){
+  try{return Number((x&&(x.time||x.createdAt||x.__ts||x.ts||x.updatedAt))||0);}catch(_){return 0;}
+};
+window.__e11KeepRecentOnly=function(x){
+  try{
+    var c=Number((typeof state!=="undefined"&&state&&state.__restoreCutoffAt)||0);
+    if(!c)return true;
+    var t=window.__e11ItemTime(x);
+    return !t||t>=c;
+  }catch(_){return true;}
+};
 /* v43-108：启动后在后台比对最近一份完整备份，把“主存档里缺了、备份里还有”的内容按 id 补回来。
    只补不删，并遵守 deletedIds 墓碑；用户主动删掉的东西不会被复活。
    这样即使主存档被旧版写坏/只恢复了一半，历史消息和字卡也能自动回来。 */
@@ -9917,6 +9946,7 @@ window.__bkMergeNewest=function(force){
         src.forEach(function(x){
           var kk=__e11MsgKey(x);
           if(kk&&seenKey[kk])return;
+          try{if(!window.__e11KeepRecentOnly(x))return;}catch(_eRecent){}
           var id=x&&(x.id!==undefined?x.id:x.key);
           /* v43-183z31：除内存墓碑外还要查本机墓碑键。
              启动合并可能早于 state.deletedIds 读回，只看内存会把刚删的动态从自动备份里补回来。 */
@@ -38509,6 +38539,22 @@ body{margin:0;background:var(--bg,#fafafa);}
         setTimeout(function(){location.reload();},900);
       }catch(e){toast("清理失败："+String(e&&e.message||e).slice(0,100));}
       b.disabled=false;b.textContent=old;
+    });
+    if($("btn-recover-30d"))$("btn-recover-30d").addEventListener("click",async function(){
+      if(!(await __iosConfirm("只并回最近 30 天的聊天、动态、信件、留言、一起听和字卡；30 天前的旧档不再翻出来。本机已有的旧记录保留不动。继续？",{okText:"恢复近30天"})))return;
+      var b=this,rs=$("restore-status");b.disabled=true;
+      if(rs){rs.style.display="block";rs.textContent="正在汇总最近 30 天的备份与云端…";}
+      try{
+        var r=await window.__E11DeepRestore({all:1,days:30});
+        if(rs)rs.textContent="已恢复近 30 天数据";
+        try{var dbg=$("restore-debug");if(dbg&&r.debug){dbg.style.display="block";dbg.textContent=r.debug.join("\n");}}catch(_){}
+        toast("近 30 天已恢复：聊天 "+r.after.messages+" 条 · 动态 "+r.after.moments+" 条 · 信件 "+r.after.letters+" 封 · 留言 "+r.after.guestbook+" 条 · 一起听 "+(r.after.musicRoomMsgs||0)+" 条");
+        setTimeout(function(){location.reload();},900);
+      }catch(e){
+        if(rs)rs.textContent="恢复失败";
+        toast("近 30 天恢复失败："+String(e&&e.message||e).slice(0,120));
+      }
+      b.disabled=false;
     });
     if($("btn-recover-everything"))$("btn-recover-everything").addEventListener("click",async function(){
       if(!(await __iosConfirm("会把聊天、动态、信件、留言、一起听聊天和字卡全部并回来，你主动删除的也会恢复。继续？",{okText:"全部恢复"})))return;
