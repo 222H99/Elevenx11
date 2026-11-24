@@ -131,21 +131,30 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
   d.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;gap:12px;"><div style="font:600 15px -apple-system,BlinkMacSystemFont,\'SF Pro Text\',sans-serif;color:'+fg+';opacity:.72;letter-spacing:.5px;">Eleven×11</div><div style="width:18px;height:18px;border-radius:50%;border:2px solid rgba(128,128,138,.22);border-top-color:#3478F6;animation:e11bootspin .8s linear infinite;"></div><div id="boot-sub" style="font:500 12px -apple-system,BlinkMacSystemFont,\'SF Pro Text\',sans-serif;color:'+fg+';opacity:.46;">正在打开…</div></div><style>@keyframes e11bootspin{to{transform:rotate(360deg)}}</style>';
   try{document.documentElement.appendChild(d);}catch(e){}
   window.__bootDark=dark;
+  /* v43-183z4：body 一建出来就先铺上和启动层同样的底色/明暗，避免 body 默认白底在深色下透出来。 */
+  document.addEventListener("DOMContentLoaded",function(){
+    try{if(document.body){document.body.style.background=bg;document.body.classList.toggle("ui-dark",!!dark);}}catch(_eBodyBg){}
+  },{once:true});
   window.__bootDone=function(){
     /* v43-176：启动时先让 showView 把主页打开，但不许它顺手撤启动层；
        等主页比例量完、套好之后再真正 reveal。否则第一眼看到 1.0，下一帧才缩/放。 */
     if(window.__holdBootReveal){window.__bootDeferred=1;return;}
-    /* v43-177：内容在启动阶段是 visibility:hidden，这里跟启动层同一帧显出来；
-       此时 viewport 已切到设备宽度、主页比例也已套好，不会出现先小后大。 */
-    try{if(document.body)document.body.style.visibility="visible";}catch(_eShowBody){}
-    /* 两个启动层以前各自等各自的调用：boot-veil 撤了、__veil 还盖着，
-       用户就会多看到一层“黑/白屏”。这里统一一起撤，谁先完成都一样。 */
-    try{window.__veilDone&&window.__veilDone();}catch(_eVeil){}
-    var sp=document.getElementById("e11-static-splash");
-    if(sp){try{sp.style.opacity="0";setTimeout(function(){try{sp.remove();}catch(e){}},140);}catch(e){}}
-    var v=document.getElementById("boot-veil");if(!v)return;
-    v.style.opacity="0";
-    setTimeout(function(){try{v.remove();}catch(e){}},140);
+    /* v43-183z4：不要一调用就立刻把两层遮罩淡掉。等目标页真的画出一帧（两次 rAF）
+       再淡，避免遮罩底下还是白底/黑底，用户看到“黑一下、白一下”。 */
+    if(window.__bootRevealQueued)return;
+    window.__bootRevealQueued=1;
+    var _revealNow=function(){
+      try{if(document.body){document.body.style.visibility="visible";document.body.style.background=bg;}}catch(_eShowBody){}
+      /* 两个启动层统一一起撤，谁先完成都一样。 */
+      try{window.__veilDone&&window.__veilDone();}catch(_eVeil){}
+      var sp=document.getElementById("e11-static-splash");
+      if(sp){try{sp.style.opacity="0";setTimeout(function(){try{sp.remove();}catch(e){}},140);}catch(e){}}
+      var v=document.getElementById("boot-veil");if(!v)return;
+      v.style.opacity="0";
+      setTimeout(function(){try{v.remove();}catch(e){}},140);
+    };
+    var _raf=window.requestAnimationFrame?window.requestAnimationFrame:function(fn){return setTimeout(fn,16);};
+    _raf(function(){_raf(function(){setTimeout(_revealNow,30);});});
   };
   /* 页面还没解析完就撤掉启动层，慢网下会直接露出一片白底。
      所以只有 HTML 真正解析完（或 App 初始化完成）才撤；解析没完就继续显示启动层。 */
@@ -167,7 +176,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
         try{window.__veilDone&&window.__veilDone();}catch(_){}
         try{window.__bootDone&&window.__bootDone();}catch(_){}
       }catch(_){}
-    },1800);
+    },900);
   },{once:true});
   window.addEventListener("load",function(){setTimeout(window.__bootReveal,80);},{once:true});
   setTimeout(function(){
@@ -252,7 +261,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183z3";
+window.__E11_BUILD="2026-11-24v43-183z4";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -313,9 +322,17 @@ html:not([data-boot="dark"]),html:not([data-boot="dark"]) body{background:#fafaf
 html.theme-swap *,html.theme-swap *::before,html.theme-swap *::after{transition:none!important;}
 html[data-boot="dark"],html[data-boot="dark"] body{background:#000!important;}
 html[data-boot="light"],html[data-boot="light"] body{background:#fafafa!important;}
+/* v43-183z4：密码页在第一帧主题还没铺完时也要跟启动层同色，不能再出现“黑启动层→白密码页→黑主界面”。 */
+html[data-boot="dark"] .lock-screen{background:#000!important;}
+html[data-boot="dark"] .lock-title,html[data-boot="dark"] .lock-sub,html[data-boot="dark"] .lock-tip,html[data-boot="dark"] .lock-ico{color:#fff!important;}
+html[data-boot="dark"] .lock-input{background:rgba(255,255,255,.14)!important;border-color:rgba(255,255,255,.20)!important;color:#fff!important;-webkit-text-fill-color:#fff!important;}
+html[data-boot="dark"] .lock-input::placeholder{color:rgba(255,255,255,.45)!important;-webkit-text-fill-color:rgba(255,255,255,.45)!important;}
+html[data-boot="dark"] #lock-forgot{color:rgba(255,255,255,.6)!important;}
 /* 开屏加载遮罩原来写死了浅色渐变：夜间先黑一下、再闪一块白，再进黑界面。
    这里让启动遮罩、声明页、登录页都跟着第一帧明暗走，不再黑→白→黑。 */
 html[data-boot="dark"] #__veil{background:#000!important;background-image:none!important;}
+/* 启动双层遮罩颜色统一：底层旧光晕不再露白/露黑，颜色只由最上层 boot-veil 决定 */
+html[data-boot] #__veil{background:transparent!important;background-image:none!important;}
 html[data-boot="dark"] #__veil>div{color:#f2f2f7!important;}
 html[data-boot="dark"] .about-screen{background:#000!important;color:#f2f2f7!important;}
 html[data-boot="dark"] .about-scroll h2,
@@ -863,6 +880,7 @@ body.ui-dark:not(.lt-preset) .env-card .ev-sig{color:rgba(255,255,255,.62) !impo
 .msg-row.me .bubble .quote{background:rgba(255,255,255,.15);}
 .msg-row.partner .bubble .quote{background:rgba(0,0,0,.06);}
 /* ===== 底部栏 ===== */
+body.e11-kb-on #view-chat .bottombar{padding-bottom:8px !important;}
 .bottombar{
   flex:0 0 auto;background:transparent;border-top:none;
   display:flex;align-items:flex-end;gap:6px;padding:8px 12px 8px 10px;
@@ -1877,11 +1895,21 @@ body.ui-dark:not(.lt-preset) #view-letters .lt-sub .lt-body{color:#F2F2F7 !impor
 .lock-btn{width:min(250px,78%);margin-top:14px;padding:12px 0;border:none;border-radius:16px;background:linear-gradient(135deg,#3478F6,#5AC8FA);color:#fff;font-size:15px;font-weight:600;cursor:pointer;}
 .lock-tip{font-size:12px;color:rgba(20,22,28,.66);margin:0 0 22px;text-align:center;}
 /* v43-183z：锁屏/登录整屏白底，键盘弹起只加底部内边距，内容停在键盘上方 */
-body.e11-kb-on .lock-screen{justify-content:flex-start;padding:calc(var(--safe-top,0px) + 16vh) 20px 12px;}
+/* v43-183z4：键盘弹起时锁屏不再整体往上推，也不再加「键盘高度」的内边距。
+   内容仍然在整屏正中，只把图标/副标题/提示收起来，让密码框和按钮本身稳稳留在中心；
+   键盘只是盖在屏幕下半部分，密码框始终在它上沿之上。 */
+body.e11-kb-on .lock-screen{justify-content:center;align-items:center;padding:0 20px;box-sizing:border-box;height:100lvh;min-height:100lvh;max-height:100lvh;overflow:hidden;}
+body.e11-kb-on .lock-screen .lock-input,body.e11-kb-on .lock-screen .lock-btn{margin-left:auto;margin-right:auto;}
 body.e11-kb-on .lock-ico{display:none;}
 body.e11-kb-on .lock-sub{display:none;}
 body.e11-kb-on .lock-tip{display:none;}
-body.e11-kb-on .lock-title{margin-bottom:10px;}
+body.e11-kb-on .lock-title{display:none;}
+body.e11-kb-on #lock-forgot,body.e11-kb-on #lock-skip{display:none!important;}
+/* 键盘弹起时只剩「密码框 + 进入」两件，整体仍在正中；
+   再把这一组下移 29px，让密码框本人的中心落在整屏 50% 的位置。 */
+body.e11-kb-on #lock-input,body.e11-kb-on .lock-btn{transform:translateY(24px);}
+/* 按钮压扁一点，底边留在键盘上沿之上，不再被键盘吃掉半截。 */
+body.e11-kb-on .lock-btn{margin-top:12px;padding:9px 0;}
 body.e11-kb-on .auth-gate{align-items:flex-start;padding-top:14px;padding-bottom:12px;}
 body.e11-kb-on .auth-card{margin-top:0;}
 /* ===== 开幕动画（水玻璃雨滴·宿命感） ===== */
@@ -2665,7 +2693,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183z3">
+<meta name="app-build" content="2026-11-24v43-183z4">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4413,7 +4441,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-24v43-183z3</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-24v43-183z4</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -8036,8 +8064,11 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-24",
   noticeKey:null,
-  lead:"v43-183z3：一起听房间聊天更新、退出、重开都不再丢；设置里的清除数据更彻底，旧 IndexedDB 主档不会在重载后把内容带回来。",
+  lead:"v43-183z4：密码页固定整屏居中，点一下自动弹键盘，页面不再被键盘推上去；聊天输入栏贴住键盘上沿；启动/进入的后台重活延后，黑白闪屏和点“同意并进入”的卡顿一起收掉。",
   items:[
+    "密码页居中不推屏（v43-183z4）：锁屏高度固定成键盘弹起前的整屏高度，密码框中心就在屏幕正中间；键盘只盖在下面，不再把整页顶上去。点“同意并进入”或点密码页空白处会直接聚焦密码框弹键盘，收起键盘恢复原样。",
+    "聊天输入栏贴键盘（v43-183z4）：键盘弹起时聊天页钉在屏幕顶部、高度收到键盘上沿，输入栏底边贴住键盘，不再留白也不再被挤出屏幕；键盘关闭立即还原。",
+    "启动闪屏与进入卡顿（v43-183z4）：启动层最多 1 秒就撤，底层旧光晕改成透明只由主题色显示，不再黑一下白一下；云端拉取、第二页图片预载和存档落盘全部挪到密码通过后的空闲时段，点“同意并进入”不再同步做重活。",
     "一起听记录不丢（v43-183z3）：歌词页房间里的聊天单独留一份本机兜底，并与主库、离站快照、云端按 id 合并；更新网站、退出重进、刷新后都按最后记录恢复。清空聊天或单独清空房间会写删除墓碑，旧档不能再补回来。",
     "清除数据更彻底（v43-183z3）：设置 → 数据管理新增“清空一起听聊天记录（保留歌单）”；一键清除会等 IndexedDB 事务完成再重载，个别手机事务卡住也有兜底。重载后早于清除时间的旧主档一律不采用，避免“清了又回来”。",
     "删除永不复活（v43-183z2）：删掉的表情包、字卡、字卡分组不再被云端旧档、历史媒体修复或自动备份补回来。以前检测到“云端还有内容”会整批清掉本机删除墓碑，这是表情和字卡复活的主因；现在墓碑永久保留，媒体合并后也会再按墓碑过滤。",
@@ -8168,11 +8199,23 @@ function __entryHome(){
      showView 内部偶尔会因为某个节点还没铺好抛错，不能让它把主题一起挡掉。 */
   try{window.__themeReady=1;if(typeof applySkin==="function")applySkin();}catch(_eThemeHome){}
   showView((window.__bootView&&window.__bootView())||"view-me");
+  /* 进主页后先让这一帧画完，再做云端/图片等后台活；避免解锁那一下和重活撞车。 */
+  try{
+    var _pew=window.__e11PendingEntryWork;window.__e11PendingEntryWork=null;
+    if(_pew){
+      var _runPew=function(){try{_pew();}catch(_ePew){}};
+      if(window.requestIdleCallback)requestIdleCallback(_runPew,{timeout:900});else setTimeout(_runPew,520);
+    }
+  }catch(_ePewOut){}
   /* 锁屏密码是在 init 之后才解开的：先补离开期间到点的动态/评论/留言/来信，
-     再启动各自的计时器。顺序反过来会把补发基准清掉。 */
-  try{if(typeof catchUpSocial==="function")catchUpSocial();}catch(e){}
-  try{if(typeof catchUpMissed==="function")catchUpMissed();}catch(e){}
-  try{if(typeof reviveSocialTimers==="function")reviveSocialTimers();}catch(e){}
+     再启动各自的计时器。顺序反过来会把补发基准清掉。
+     v43-183z4：这三步会遍历动态/信件/字卡，放在点击“进入”的同一个任务里就是那一下卡顿。
+     先让主页画出来，再用 60ms 空隙补，视觉上点完就进。 */
+  setTimeout(function(){
+    try{if(typeof catchUpSocial==="function")catchUpSocial();}catch(e){}
+    try{if(typeof catchUpMissed==="function")catchUpMissed();}catch(e){}
+    try{if(typeof reviveSocialTimers==="function")reviveSocialTimers();}catch(e){}
+  },60);
   setTimeout(function(){if(typeof askNotifyPrompt==="function")askNotifyPrompt();},4000);
 }
 function __afterLockPass(){
@@ -10972,7 +11015,7 @@ async function init(){
         try{window.__fitInvalidate&&window.__fitInvalidate(true);window.__fitCompute&&window.__fitCompute(true);}catch(_eBootFallbackFit){}
         window.__bootDone&&window.__bootDone();
       }catch(_eBootFallbackReveal){}
-    },4000);
+    },1000);
   }catch(_eBootFitReveal){try{window.__holdBootReveal=0;}catch(_x){}}
   /* v43-183g：启动层不再在这里撤，改为 _dbReady 后最终测量完成再撤。 */
   
@@ -11465,36 +11508,53 @@ function initKeyboardFix(){
       const vc=document.getElementById("view-chat");
       if(!vc)return;
       const ae=document.activeElement;
-      const typing=!!(ae&&ae.id==="msg-input");
-      if(!typing)window.__e11VHMax=window.innerHeight||window.__e11VHMax||0;
-      if(!typing||!vc.classList.contains("open")){
-        vc.style.height="";vc.style.bottom="";
-        return;
-      }
+      const typing=!!(ae&&(ae.id==="msg-input"||(ae.closest&&ae.closest("#view-chat .input-wrap"))));
+      if(!typing)window.__e11VHMax=Math.max(window.__e11VHMax||0,window.innerHeight||0);
+      const _clear=function(){
+        vc.style.height="";vc.style.bottom="";vc.style.maxHeight="";vc.style.paddingBottom="";
+        vc.style.position="";vc.style.top="";vc.style.left="";vc.style.right="";vc.style.width="";
+        const bb0=vc.querySelector(".bottombar");if(bb0){bb0.style.transform="";bb0.style.paddingBottom="";}
+      };
+      if(!typing||!vc.classList.contains("open")){_clear();return;}
       const vv=window.visualViewport;
       const innerH=window.innerHeight||0;
-      const vvBottom=vv?((vv.offsetTop||0)+vv.height):innerH;
-      const visBottom=Math.min(vvBottom||innerH,innerH||vvBottom||0);
       const stable=__e11StableViewH();
-      const kbH=Math.max(0,stable-(vv&&vv.height?vv.height:innerH));
-      const kbOpen=!!(stable&&(kbH>40||(innerH&&innerH<stable-40)));
-      if(!kbOpen||!visBottom){
-        vc.style.height="";vc.style.bottom="";vc.style.paddingBottom="";
-        return;
-      }
-      /* 键盘弹起时输入栏必须贴在键盘上沿，不能把输入栏留在舞台底部再露出空白。 */
-      vc.style.paddingBottom="0px";
+      /* 只认可视区高度，不再把 offsetTop 算进来。页面被浏览器顶起时 offsetTop
+         会把“键盘高度”算没，输入栏就正好藏到键盘后面。 */
+      const visH=Math.max(0,Math.min(innerH||stable||0,(vv&&vv.height)||innerH||stable||0));
+      const kbH=Math.max(0,stable-visH);
+      const kbOpen=!!(stable&&visH&&kbH>40);
+      if(!kbOpen||visH<180){_clear();return;}
+      /* 键盘弹起时把聊天页钉在物理屏幕顶部，高度就是键盘上沿；
+         不再依赖页面原来被滚到哪里，也不会把输入栏挤出屏幕。 */
+      try{document.documentElement.scrollTop=0;document.body.scrollTop=0;}catch(_eScroll0){}
       const r=vc.getBoundingClientRect();
-      const avail=visBottom-r.top;
-      if(avail<180){vc.style.height="";vc.style.bottom="";return;}
+      const _scale=(vc.offsetWidth>0&&r.width>0)?(r.width/vc.offsetWidth):1;
+      const _cssH=Math.max(180,Math.floor(visH/(_scale||1)));
+      vc.style.paddingBottom="0px";
+      vc.style.position="fixed";
+      vc.style.top="0px";
+      vc.style.left="0px";
+      vc.style.right="0px";
+      vc.style.bottom="auto";
+      vc.style.width="100%";
+      vc.style.maxHeight="none";
+      vc.style.height=_cssH+"px";
       const bb=vc.querySelector(".bottombar");
-      const over=bb?bb.getBoundingClientRect().bottom-visBottom:0;
-      if(over>6||(r.height&&r.height>avail+6)){
-        vc.style.bottom="auto";
-        vc.style.height=Math.round(avail)+"px";
-        if(bb)bb.style.transform="";
-        try{__chatPinNow();}catch(_){}
-      }
+      if(bb){bb.style.transform="";bb.style.paddingBottom="8px";}
+      try{__chatPinNow();}catch(_){}
+      try{
+        requestAnimationFrame(function(){
+          try{
+            const bb2=vc.querySelector(".bottombar");if(!bb2)return;
+            const over2=bb2.getBoundingClientRect().bottom-visH;
+            if(over2>2){
+              const cur=parseFloat(vc.style.height)||_cssH;
+              vc.style.height=Math.max(160,Math.floor(cur-over2/(_scale||1)))+"px";
+            }
+          }catch(_){}
+        });
+      }catch(_){}
     }catch(_){}
   }
   window.__e11KbFitChat=fitChatToKeyboard;
@@ -11514,7 +11574,7 @@ function initKeyboardFix(){
       const kbH=Math.max(0,Math.round(stable-vh));
       if(!kbOpen){
         document.body.classList.remove("e11-kb-on");
-        panels.forEach(function(el){if(el){el.style.height="";el.style.top="";el.style.bottom="";el.style.paddingBottom="";el.style.overflowY="";}});
+        panels.forEach(function(el){if(el){el.style.height="";el.style.minHeight="";el.style.maxHeight="";el.style.top="";el.style.bottom="";el.style.paddingBottom="";el.style.overflowY="";}});
         return;
       }
       let on=false;
@@ -11522,13 +11582,25 @@ function initKeyboardFix(){
         if(!el)return;
         if(el.classList.contains("show")){
           on=true;
-          el.style.top="0px";
-          el.style.bottom="0px";
-          el.style.height="";
-          el.style.paddingBottom=(14+kbH)+"px";
-          el.style.overflowY="auto";
+          if(el.id==="lock-screen"){
+            /* 关键：锁屏高度固定成“键盘弹起前的整屏高度”，不随键盘缩小。
+               密码框按这个整屏居中，键盘只是盖在下面，页面本身不会被推上去。 */
+            el.style.top="0px";
+            el.style.bottom="auto";
+            el.style.height=stable+"px";
+            el.style.minHeight=stable+"px";
+            el.style.maxHeight=stable+"px";
+            el.style.paddingBottom="0px";
+            el.style.overflowY="hidden";
+          }else{
+            el.style.top="0px";
+            el.style.bottom="0px";
+            el.style.height="";
+            el.style.paddingBottom=((14+kbH)+"px");
+            el.style.overflowY="auto";
+          }
         }else{
-          el.style.height="";el.style.top="";el.style.bottom="";el.style.paddingBottom="";el.style.overflowY="";
+          el.style.height="";el.style.minHeight="";el.style.maxHeight="";el.style.top="";el.style.bottom="";el.style.paddingBottom="";el.style.overflowY="";
         }
       });
       document.body.classList.toggle("e11-kb-on",on);
@@ -29418,14 +29490,18 @@ function initAbout(){
       var _agClick=document.getElementById("auth-gate");if(_agClick)_agClick.classList.remove("show");
       document.body.classList.remove("auth-locked");
     }catch(_){}
-    /* 声明页退场后再做后台重活：拉云端、铺第二页图片、恢复表情。 */
-    setTimeout(function(){
-      try{if(window.__e11PullAfterAbout&&window.__E11CloudPull)window.__E11CloudPull(false);}catch(_){}
-      try{preloadCp2Images&&preloadCp2Images();}catch(_){}
-    },60);
+    /* 云端拉取/第二页图片/表情恢复都推迟到密码通过、主页画出来以后，
+       点击“同意并进入”不再和这些后台重活抢主线程。 */
+    try{
+      window.__e11PendingEntryWork=function(){
+        try{if(window.__e11PullAfterAbout&&window.__E11CloudPull)window.__E11CloudPull(false);}catch(_){}
+        try{preloadCp2Images&&preloadCp2Images();}catch(_){}
+      };
+    }catch(_ePendingWork){}
     var _go=function(){
       /* 声明页读完先弹更新公告（如果有），关闭后再进锁屏/主页 */
       $("about-screen").classList.remove("show");
+      try{window.__e11LockAutoFocus=1;}catch(_eAutoF){}
       __entryStart();
     };
     /* 点“同意并进入”时先比一次构建号：有新版本就带 skipabout 重载（声明只出现这一次），否则正常进入 */
@@ -29616,9 +29692,16 @@ function initLock(){
   $("lock-screen").classList.add("show");
   /* v43-107：密码页已经可见，启动黑幕必须同时撤掉，否则重开像黑屏、输入框也点不到。 */
   try{window.__bootDone&&window.__bootDone();}catch(_eBootLock){}
-  /* v43-144：进站密码页不再自动聚焦，避免一打开就弹系统键盘遮住页面；
-     用户点输入框时再弹。 */
-  try{inp.blur();}catch(_eLockBlur){}
+  /* v43-183z4：密码页按整屏居中后，键盘不再把页面推走。
+     点“同意并进入”进来时直接聚焦密码框，键盘自动弹起；冷启动仍等用户点。 */
+  try{
+    if(window.__e11LockAutoFocus){
+      window.__e11LockAutoFocus=0;
+      inp.focus({preventScroll:true});
+    }else{
+      inp.blur();
+    }
+  }catch(_eLockBlur){}
 }
 window.__e11InitLock=initLock;
 /* v43-136：云端只同步“自定义密码”的校验指纹；默认密码不写，避免另一台设备误判。 */
@@ -29674,7 +29757,7 @@ function __openLockSetup(){
     if($("lock-sub"))$("lock-sub").textContent="设置本机进站密码";
     if($("lock-btn"))$("lock-btn").textContent="保存密码";
     if($("lock-tip"))$("lock-tip").textContent="输入 6 位数字；留空可恢复默认密码";
-    var inp=$("lock-input");if(inp){inp.value="";inp.placeholder="••••••••••";try{inp.blur();}catch(_){}}
+    var inp=$("lock-input");if(inp){inp.value="";inp.placeholder="••••••••••";try{inp.focus({preventScroll:true});}catch(_){}}
     try{window.__bootDone&&window.__bootDone();}catch(_){}
   }catch(_eOpenSetup){}
 }
@@ -29722,7 +29805,6 @@ function submitLock(){
          下次打开（含 PWA 冷启动）仍然要再输一次当前密码。 */
       try{localStorage.removeItem(PW_PASS_KEY);}catch(_){}
       try{document.cookie="e11pw=; Max-Age=0; Path=/; SameSite=Lax";}catch(_eCkSet){}
-      try{if(typeof save==="function")save();}catch(_){}
     }catch(_){}
     unlockGo();
   }
@@ -29734,15 +29816,47 @@ function submitLock(){
 function unlockGo(){
   window.__lockPassed=1;
   try{__lockSessionRemember();}catch(_eSession){}
-  $("lock-screen").classList.remove("show");$("lock-input").value="";
+  try{document.getElementById("lock-screen").classList.remove("show");}catch(_eHideLock){}
+  try{document.getElementById("lock-input").value="";document.getElementById("lock-input").blur();}catch(_eBlurLock){}
+  try{document.body.classList.remove("e11-kb-on");}catch(_eKbOff){}
   /* v43-102：免密只作用于当前页面，不写入任何持久键。 */
   try{localStorage.removeItem("lockFree");}catch(e){}
   try{sessionStorage.removeItem("__webPwOk");}catch(e){}
-  try{__writeLocalSnapshot();}catch(_){}
-  save();
+  /* 先让密码页退场、主页画出来，再在空闲时落盘；不在“进入”按钮这一下同步序列化。 */
   __afterLockPass();
+  try{
+    var _saveLater=function(){try{save();}catch(_eSaveLater){}};
+    if(window.requestIdleCallback)requestIdleCallback(_saveLater,{timeout:600});else setTimeout(_saveLater,120);
+  }catch(_eSaveLaterOut){}
 }
 $("lock-btn").addEventListener("click",submitLock);
+/* v43-183z4：点密码页任意空白处都直接把焦点给密码框，键盘自己弹起来；
+   不用先精确点到那一条输入框。已经是输入框/按钮就不重复处理。 */
+try{
+  var _lkTap=document.getElementById("lock-screen");
+  if(_lkTap&&!_lkTap.__e11TapBound){
+    _lkTap.__e11TapBound=1;
+    /* 触摸按下就聚焦，不等 click：iOS/部分 Android 的 click 合成慢，键盘会晚半拍才弹。 */
+    _lkTap.addEventListener("pointerdown",function(e){
+      try{
+        if(!_lkTap.classList.contains("show"))return;
+        var t=e.target;
+        if(t&&t.closest&&t.closest("button,a,input,textarea,select"))return;
+        var inp=document.getElementById("lock-input");
+        if(inp&&document.activeElement!==inp)inp.focus({preventScroll:true});
+      }catch(_){}
+    },{passive:true});
+    _lkTap.addEventListener("click",function(e){
+      try{
+        if(!_lkTap.classList.contains("show"))return;
+        var t=e.target;
+        if(t&&t.closest&&t.closest("button,a,input,textarea,select"))return;
+        var inp=document.getElementById("lock-input");
+        if(inp&&document.activeElement!==inp)inp.focus({preventScroll:true});
+      }catch(_){}
+    });
+  }
+}catch(_eLkTap){}
 $("lock-input").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();submitLock();}});
 $("lock-forgot").addEventListener("click",function(){
   /* v43-124：自定义密码后默认密码不再能进；这里也不能一键把密码改回默认，
@@ -33279,10 +33393,13 @@ try{
         if(cur&&d.ver===cur)return;
         window.__pendingBuild=d.ver;
         if(document.hidden){
+          /* v43-183z4：不在后台/回来时自动 reload。reload 必然先空一屏再重画，
+             就是用户说的“退出再进入黑白屏”。新 SW 已经接管，下次冷启动自然就是新版。 */
           try{if(window.__commitSettingsActive)window.__commitSettingsActive();}catch(_){}
           try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_){}
           try{if(window.__emergencySnapshot)window.__emergencySnapshot();}catch(_){}
-          window.__pendingBuild="";location.reload();return;
+          window.__pendingBuild=d.ver;
+          return;
         }
         /* 页面正开着：在主页且没在输入时才自动换版，避免聊天/写字时被刷新。
            其它页面只记下新版本，等切到后台/下次打开再换。 */
@@ -33306,10 +33423,10 @@ try{
              刷新不会丢内容；已经填了字就等切后台或下次打开。 */
           var safeGate=gateOpen&&document.body.classList.contains("auth-locked")&&!typing&&!typed;
           if(safeHome||safeGate){
-            try{toast("正在更新到新版本…");}catch(_){}
-            setTimeout(function(){
-              try{if(window.__pendingBuild){window.__pendingBuild="";var u=new URL(location.href);u.searchParams.set("__bust",Date.now().toString(36));location.replace(u.href);}}catch(_){}
-            },1200);
+            /* v43-183z4：页面正开着就不强制换页，只把新版本记下来。
+               以前这里 1.2 秒后 location.replace，用户正在主页也会被整页白/黑一下。 */
+            window.__pendingBuild=d.ver;
+            try{toast("新版本已准备好，下次打开自动生效");}catch(_){}
           }
         }catch(_){}
       }catch(e){}
@@ -33319,7 +33436,8 @@ try{
     setTimeout(__swAsk,600);
     setTimeout(__swAsk,3000);
     document.addEventListener("visibilitychange",function(){
-      try{if(document.hidden&&window.__pendingBuild){window.__pendingBuild="";var u=new URL(location.href);u.searchParams.set("__bust",Date.now().toString(36));location.replace(u.href);}}catch(e){}
+      /* v43-183z4：切后台不再自动替换页面；下次冷启动由 SW 直接给新版。 */
+      try{if(document.hidden&&window.__pendingBuild){if(window.__e11PersistNow)window.__e11PersistNow();}}catch(e){}
     });
   }catch(e){}
 })();
@@ -33351,16 +33469,13 @@ try{
     autoTimer=null;autoBuild="";autoAt=0;
   }
   function scheduleAutoUpdate(nb){
-    if(autoTimer&&autoBuild===nb)return;
+    if(autoBuild===nb)return;
     clearAutoUpdate();
-    autoBuild=nb;autoAt=Date.now()+60000;
-    try{toast("发现新版本，60 秒后自动更新");}catch(_eAutoToast){}
-    autoTimer=setTimeout(function(){
-      autoTimer=null;var b=autoBuild;autoBuild="";autoAt=0;
-      if(!b)return;
-      if(document.hidden){pendingBuild=b;return;}
-      try{forceUpdate(b,true);}catch(_eAutoGo){}
-    },60000);
+    autoBuild=nb;autoAt=Date.now();
+    /* v43-183z4：自动更新只提示、不换页。整页 replace 会先白一下再黑一下，
+       而且正在聊天/写字的页面会被硬刷新。新版已经进了 SW 缓存，下次打开直接生效。 */
+    pendingBuild=nb;
+    try{toast("新版本已准备好，下次打开自动生效");}catch(_eAutoToast){}
   }
   window.__e11AutoUpdateState=function(){return {build:autoBuild,active:!!autoTimer,due:autoAt};};
   function autoSafe(){
