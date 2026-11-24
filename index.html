@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-196z33f";
+window.__E11_BUILD="2026-11-25v43-197z33f";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2747,7 +2747,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-196z33f">
+<meta name="app-build" content="2026-11-25v43-197z33f">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -7751,7 +7751,7 @@ setTimeout(function(){
         _deepDel=__e11MergeDeleted(_deepDel,__e11DelLocalRead());
         base.deletedIds=_deepDel;
         if(_recAll){try{window.__e11IgnoreMsgDel=1;}catch(_igd){}}
-        __e11ApplyDeleted(base,_recAll?(window.__e11DeleteKinds||[]).filter(function(k){return k!=="messages";}):undefined);
+        if(!_recAll)__e11ApplyDeleted(base);
       }catch(_eDeepDelFix){}
       try{
         var _chatClr=0;
@@ -7777,12 +7777,13 @@ setTimeout(function(){
       /* v43-190z33f：深度恢复不清「只重置本机 / 一键清除」标记，
          否则清空后点恢复会把已经删掉的整库又拉回来。 */
       var _socialFlag=0;try{_socialFlag=(cloud&&cloud.socialRestored)||0;}catch(_){}
-      return applySnapshot({state:base,extras:{},coreOnly:0,deep:1,socialRestored:_socialFlag},{reloading:false,msgRestoreAll:_recAll}).then(function(){
+      return applySnapshot({state:base,extras:{},coreOnly:0,deep:1,socialRestored:_socialFlag},{reloading:false,msgRestoreAll:_recAll,restoreAll:_recAll}).then(function(){
         if(_recAll){
           try{
-            if(state.deletedIds)delete state.deletedIds.messages;
-            state.__chatClearedAt=0;
-            var _lm2=__e11DelLocalRead();if(_lm2&&_lm2.messages){delete _lm2.messages;__e11DelLocalWrite(_lm2);}
+            state.deletedIds={};state.__chatClearedAt=0;state.musicRoomClearedAt=0;
+            var _lm2=__e11DelLocalRead();
+            ["messages","letters","guestbook","moments","cards","emojis","partnerEmojis","redpackets","musicRoomMsgs","groups","favorites","surveyHistory"].forEach(function(k){delete _lm2[k];});
+            __e11DelLocalWrite(_lm2);
             try{
               var _seen={},_out=[];
               (state.messages||[]).forEach(function(m){
@@ -38394,7 +38395,7 @@ body{margin:0;background:var(--bg,#fafafa);}
       b.disabled=false;
     });
     if($("btn-recover-all"))$("btn-recover-all").addEventListener("click",async function(){
-      if(!(await __iosConfirm("恢复聊天全部历史，包括误删的；主动删的也可能回来。继续？",{okText:"全部恢复"})))return;
+      if(!(await __iosConfirm("恢复聊天、日记、留言、信件、动态全部历史，以前删掉的也会回来。继续？",{okText:"全部恢复"})))return;
       var b=this,st=$("deep-restore-sub");b.disabled=true;if(st)st.textContent="正在汇总聊天流水、永久最大档和全部备份…";
       try{
         var r=await window.__E11DeepRestore({all:1});
