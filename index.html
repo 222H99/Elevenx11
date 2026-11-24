@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-195z33f";
+window.__E11_BUILD="2026-11-25v43-196z33f";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2747,7 +2747,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-195z33f">
+<meta name="app-build" content="2026-11-25v43-196z33f">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4459,9 +4459,9 @@ setTimeout(function(){
         <div class="set-row"><button class="small-btn ghost" id="btn-cloud-test" style="font-size:12px;padding:6px 12px;">测试连接</button><span class="set-sub" id="cloud-test-sub" style="margin-left:10px;flex:1;">未测试</span></div>
         <div class="set-row"><span class="set-label">从云端恢复<div class="set-sub">不会自动覆盖本机；只有点这个按钮才拉取云端存档</div></span><button class="small-btn ghost" id="btn-cloud-pull" style="font-size:12px;padding:6px 12px;">恢复云端</button><span class="set-sub" id="cloud-pull-sub" style="margin-left:10px;flex:1;"></span></div>
         <div class="set-row"><span class="set-label">麦克风权限<div class="set-sub" id="mic-perm-sub">检查系统或浏览器是否已允许录音</div></span><button class="small-btn ghost" id="btn-mic-check" style="font-size:12px;padding:6px 12px;">检查权限</button></div>
-        <div class="set-row"><span class="set-label">深度恢复（本机旧库 + 云端）<div class="set-sub">扫描本机所有旧库、7 份备份、聊天流水、社交备份和云端；只补未删除内容，删除记录继续生效</div></span><button class="small-btn ghost" id="btn-deep-restore" style="font-size:12px;padding:6px 12px;">深度恢复</button><span class="set-sub" id="deep-restore-sub" style="margin-left:10px;flex:1;"></span></div>
-        <div class="set-row"><span class="set-label">全部恢复（含误删聊天）<div class="set-sub">聊天少了 20 多条、被旧版误记成删除时用这个；会强制把聊天流水、永久最大档、7 份备份和云端里的消息并回来，只对“聊天”放开删除记录，字卡、信件、留言、动态仍按删除生效</div></span><button class="small-btn ghost" id="btn-recover-all" style="font-size:12px;padding:6px 12px;">全部恢复</button></div>
-        <div class="set-row"><span class="set-label">云端强制恢复（覆盖本机）<div class="set-sub">先从云端拉最新档和完整档，取最全的一份直接铺回本机；日记、留言、信件、动态、字卡一起回来。会跳过本机删除记录，以前删掉的云端内容也会重现</div></span><button class="small-btn ghost" id="btn-cloud-replace" style="font-size:12px;padding:6px 12px;">云端还原</button><span class="set-sub" id="cloud-replace-sub" style="margin-left:10px;flex:1;"></span></div>
+        <div class="set-row"><span class="set-label">深度恢复</span><button class="small-btn ghost" id="btn-deep-restore" style="font-size:13px;padding:8px 16px;position:relative;z-index:3;">深度恢复</button></div>
+        <div class="set-row"><span class="set-label">全部恢复</span><button class="small-btn ghost" id="btn-recover-all" style="font-size:13px;padding:8px 16px;position:relative;z-index:3;">全部恢复</button></div>
+        <div class="set-row"><span class="set-label">云端还原</span><button class="small-btn ghost" id="btn-cloud-replace" style="font-size:13px;padding:8px 16px;position:relative;z-index:3;">云端还原</button></div>
         <div class="set-row"><span class="set-label">保存并切换<div class="set-sub">会清掉本机登录态，聊天记录保留；切换后需要重新登录</div></span><button class="small-btn" id="btn-cloud-save" style="font-size:12px;padding:6px 12px;">保存并重启</button></div>
         <div class="set-row"><span class="set-label">恢复官方云端<div class="set-sub">回到内置 Supabase，登录态会清掉</div></span><button class="small-btn ghost" id="btn-cloud-reset" style="font-size:12px;padding:6px 12px;">恢复官方</button></div>
       </div>
@@ -4623,6 +4623,11 @@ setTimeout(function(){
       <!-- 数据 -->
       <div class="set-sec-title">数据管理</div>
       <div class="set-group">
+        <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;">
+          <button class="small-btn ghost" style="width:100%;font-size:14px;padding:11px 12px;" id="btn-recover-all2">全部恢复（聊天 · 日记 · 留言 · 信件 · 动态）</button>
+          <button class="small-btn ghost" style="width:100%;font-size:14px;padding:11px 12px;" id="btn-cloud-replace2">云端还原（用云端覆盖本机）</button>
+          <button class="small-btn ghost" style="width:100%;font-size:14px;padding:11px 12px;" id="btn-deep-restore2">深度恢复（本机旧库 + 云端）</button>
+        </div>
         <div class="set-row"><button class="small-btn ghost" style="width:100%;" id="btn-export">全量导出（聊天 / 信件 / 动态 / 字卡 / 表情 / 设置）</button></div>
         <div class="set-row" style="gap:8px;">
           <button class="small-btn ghost" style="flex:1;font-size:13px;" id="btn-export-chat">只导出聊天</button>
@@ -24070,12 +24075,10 @@ function showView(id){
               var _vc=document.getElementById("view-chat");
               /* 只在这个 App 真的退到后台时才释放聊天列表；普通切到动态/信件/留言页不释放。
                  以前 10 秒后就把列表清空，回来要整页重铺，图片会被重新解码，看起来就是进聊天闪一下 */
-              if(_vc&&!_vc.classList.contains("open")&&document.hidden){
-                var _ml=document.getElementById("msglist");
-                if(_ml)_ml.innerHTML="";
-                window.__chatPrewarmed=0;window.__renderedKeys=[];window.__chatReleased=1;
-                try{_chatSig="";}catch(e){}
-              }
+              /* v43-196：不再在退到后台 10 秒后清空聊天列表。
+                 真机上退出去再进来点聊天，列表被清掉后要在可见状态重建几十行，
+                 用户看到的就是“点聊天页闪一下”。列表常驻，回来直接用现成的。 */
+              window.__chatReleased=0;
             }catch(e){}
           },10000);
           try{
@@ -38358,7 +38361,7 @@ body{margin:0;background:var(--bg,#fafafa);}
       b.disabled=false;
     });
     if($("btn-deep-restore"))$("btn-deep-restore").addEventListener("click",async function(){
-      if(!(await __iosConfirm("深度恢复会扫描本机所有旧库、7 份备份、聊天流水、社交备份和云端，把未删除的聊天、字卡、信件、留言、动态按 id 并回来。已删除的不会恢复。继续？",{okText:"深度恢复"})))return;
+      if(!(await __iosConfirm("扫描本机旧库、7 份备份和云端，只补未删除内容。继续？",{okText:"深度恢复"})))return;
       var b=this,st=$("deep-restore-sub");b.disabled=true;if(st)st.textContent="正在汇总云端和本机备份…";
       try{
         var r=await window.__E11DeepRestore();
@@ -38371,8 +38374,13 @@ body{margin:0;background:var(--bg,#fafafa);}
       }
       b.disabled=false;
     });
+    /* v43-196：数据管理页放三个大按钮，解决“全部恢复点不动”：
+       原来的云同步页在横向分页里，按钮在屏幕外/被分页容器挡住。这里用同一套逻辑转发。 */
+    [["btn-recover-all2","btn-recover-all"],["btn-cloud-replace2","btn-cloud-replace"],["btn-deep-restore2","btn-deep-restore"]].forEach(function(pair){
+      var a=$(pair[0]),b=$(pair[1]);if(a&&b)a.addEventListener("click",function(){b.click();});
+    });
     if($("btn-cloud-replace"))$("btn-cloud-replace").addEventListener("click",async function(){
-      if(!(await __iosConfirm("会用云端最全的存档覆盖本机：聊天、日记、留言、信件、动态、字卡都按云端来，本机删除记录不再生效，以前删掉的内容可能重现。继续？",{okText:"云端还原"})))return;
+      if(!(await __iosConfirm("用云端最全存档覆盖本机，日记、留言、信件、动态一起恢复；删除记录不生效。继续？",{okText:"云端还原"})))return;
       var b=this,st=$("cloud-replace-sub");b.disabled=true;if(st)st.textContent="正在读取云端最新档和完整档…";
       try{
         var r=await window.__E11CloudReplace();
@@ -38386,7 +38394,7 @@ body{margin:0;background:var(--bg,#fafafa);}
       b.disabled=false;
     });
     if($("btn-recover-all"))$("btn-recover-all").addEventListener("click",async function(){
-      if(!(await __iosConfirm("会把聊天记录里所有历史消息都并回来，包括以前批量消失、被误记成删除的聊天。你自己主动删掉的聊天也可能重新出现。只恢复聊天，其它内容不动。继续？",{okText:"全部恢复"})))return;
+      if(!(await __iosConfirm("恢复聊天全部历史，包括误删的；主动删的也可能回来。继续？",{okText:"全部恢复"})))return;
       var b=this,st=$("deep-restore-sub");b.disabled=true;if(st)st.textContent="正在汇总聊天流水、永久最大档和全部备份…";
       try{
         var r=await window.__E11DeepRestore({all:1});
