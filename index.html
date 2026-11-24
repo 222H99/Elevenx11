@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-191z33f";
+window.__E11_BUILD="2026-11-25v43-192z33f";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2747,7 +2747,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-191z33f">
+<meta name="app-build" content="2026-11-25v43-192z33f">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -8532,11 +8532,12 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-191z33f",
-  time:"2026-11-25 12:30",
+  date:"v43-192z33f",
+  time:"2026-11-25 18:10",
   noticeKey:null,
-  lead:"2026-11-25 修改（v43-191z33f）：离站快照按体积降级，退出/更新前一定先落一份；自动恢复失败或中途退出后，下次进入会继续重试。",
+  lead:"2026-11-25 修改（v43-192z33f）：启动时不再强制重置一起听/画画会话，更新或重开不会打断一起听；只有点「关闭」下一次才需要重新邀请。",
   items:[
+    "更新后一起听被关掉（v43-192z33f）：页面末尾有一段“新页面第一次打开就强制 musicSession=false 并 save()”的旧逻辑。更新/退出后 sessionStorage 被清空，一起听会被判成没开始；而且 save 发生在启动读库前，还会把默认空档写回主库。现在启动阶段不再重置会话、不再写盘，只有点「关闭」才会把 miniClosed 置真，下一次才需要重新邀请。",
     "更新退出后数据没保存（v43-191z33f）：离站快照以前把聊天和 2.6MB 全局外观拼成一个键，手机配额一满整份写失败。现在按体积逐级降级，先写完整、再写不带外观、最后至少保留最近 40 条聊天，保证退出时有一份能落盘。",
     "自动恢复卡住（v43-191z33f）：上次自动恢复如果中途退出或失败，会留下 running/failed 标记，旧逻辑以后永久跳过。现在只把 done 当作成功，失败或中断下次进入自动重试；旧离站快照也不再按 7 天/24 小时丢弃。",
     "麦克风点了没反应（v43-190z33f）：录音前先查系统录音权限，没有权限就先弹系统授权；网页版仍然直接走浏览器授权。授权结果会回传页面，5 秒没等到才提示去系统设置允许录音。",
@@ -12075,7 +12076,10 @@ async function init(){
       try{var _e11SetBakApplied=window.__settingsBackupRestore&&window.__settingsBackupRestore();if(_e11SetBakApplied)window.__settingsBackup&&window.__settingsBackup(true);}catch(_eSetBak3){}
       try{var _e11UpGuard=window.__e11UpdateGuardApply&&window.__e11UpdateGuardApply();if(_e11UpGuard)window.__settingsBackup&&window.__settingsBackup(true);}catch(_eUpGuard3){}
       try{localStorage.setItem("e11.buildSeen.v1",window.__E11_BUILD);}catch(_eSeenSet){}
-      try{window.__e11RepairBulkTombs&&window.__e11RepairBulkTombs(state);}catch(_eTombFix){}try{__ltReadApply();}catch(e){}try{__prefApply();}catch(e){}try{window.__perfApply&&window.__perfApply();}catch(_){}window.__stateReady=1;window.__e11DataReady=1;try{window.__e11BootLoading=0;}catch(_eBootLoad1){}try{
+      try{window.__e11RepairBulkTombs&&window.__e11RepairBulkTombs(state);}catch(_eTombFix){}try{__ltReadApply();}catch(e){}try{__prefApply();}catch(e){}try{window.__perfApply&&window.__perfApply();}catch(_){}window.__stateReady=1;window.__e11DataReady=1;try{window.__e11BootLoading=0;}catch(_eBootLoad1){}
+      /* v43-192：一起听会话跟主档一起恢复；更新/重开后仍保持“正在一起听”，不用重新邀请。 */
+      try{musicSession=!!(state&&state.musicSession);}catch(_eMsSync){try{window.__e11MusicSession=!!(state&&state.musicSession);}catch(_eMsSync2){}}
+      try{if(typeof refreshMiniPlayer==="function")refreshMiniPlayer();}catch(_eMsMini){}try{
   var _runHydrateRest=function(){try{window.__e11HydrateRest&&window.__e11HydrateRest();}catch(_eHR){}};
   if(window.requestIdleCallback)requestIdleCallback(_runHydrateRest,{timeout:6000});else setTimeout(_runHydrateRest,2600);
 }catch(_eHRs){}/* 主题先别在这里定：这份还可能是默认浅色快照，等两份存档合并完（下面 6820 行）再 __themeReady，否则夜间用户会先被刷白 */
@@ -34363,14 +34367,11 @@ window.__checkBuildThen=function(cb){try{cb();}catch(e){}};
 
 /* 听歌会话标记与内存变量同步 */
 try{if(state&&state.musicSession)musicSession=true;}catch(e){}
-try{
-  if(!sessionStorage.getItem("elevenSiteOpen")){
-    try{if(state){state.musicSession=false;state.drawSession=false;}}catch(e){}
-    try{musicSession=false;}catch(e){}
-    try{save();}catch(e){}
-  }
-  sessionStorage.setItem("elevenSiteOpen","1");
-}catch(e){}
+/* v43-192：这里原来在“每个新页面/更新后的第一次打开”把 musicSession、drawSession 强制清零，
+   并且立刻 save()。第一次打开时启动还没读完 IndexedDB，state 还是默认空档，
+   这次 save 会把空档写回主库，表现就是更新/退出再进数据像丢了，一起听也被强制关掉。
+   现在启动阶段绝不重置会话、绝不写盘；只有用户点一起听里的「关闭」才改 miniClosed/musicSession。 */
+try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
 
 /* 尺寸记忆：页面一照片框/应用图标、页面二照片框，重开后按上次调整后的尺寸显示 */
 (function(){
