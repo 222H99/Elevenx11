@@ -264,7 +264,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183z12";
+window.__E11_BUILD="2026-11-24v43-183z13";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2122,7 +2122,7 @@ body.ui-dark .invite-btn.no{background:rgba(255,255,255,.10);color:rgba(255,255,
 }
 
 .mom-unread{position:sticky;top:0;z-index:6;margin:2px 0 8px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;font-weight:600;color:var(--accent);background:var(--glass,rgba(255,255,255,.85));-webkit-backdrop-filter:blur(12px) saturate(160%);backdrop-filter:blur(12px) saturate(160%);border:1px solid var(--glassborder,rgba(255,255,255,.3));border-radius:20px;padding:8px 14px;box-shadow:0 4px 14px rgba(0,0,0,.12);cursor:pointer;text-align:center;}
-.mom-profile{background:var(--glass,rgba(255,255,255,.45));-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);border:1px solid var(--glassborder,rgba(255,255,255,.6));box-shadow:inset 0 1px 0 var(--glassinner,rgba(255,255,255,.5)),0 8px 24px rgba(0,0,0,.08);border-radius:20px;overflow:hidden;margin-bottom:14px;}
+.mom-profile{min-height:324px;background:var(--glass,rgba(255,255,255,.45));-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);border:1px solid var(--glassborder,rgba(255,255,255,.6));box-shadow:inset 0 1px 0 var(--glassinner,rgba(255,255,255,.5)),0 8px 24px rgba(0,0,0,.08);border-radius:20px;overflow:hidden;margin-bottom:14px;}
 .mp-cover{height:120px;position:relative;background:linear-gradient(135deg,#5AC8FA,#3478F6);background-size:cover;background-position:center;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 10px 30px rgba(0,0,0,.08);overflow:hidden;}
 .mp-cover::after{content:"";position:absolute;inset:0;pointer-events:none;
@@ -2141,8 +2141,6 @@ body.ui-dark .invite-btn.no{background:rgba(255,255,255,.10);color:rgba(255,255,
 .mp-bio{font-size:13px;color:var(--ttext);padding:8px 18px 4px;word-break:break-word;line-height:1.55;white-space:pre-line;height:53px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
 .mp-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .mp-actions{display:flex;gap:8px;padding:10px 18px 14px;}
-.mp-direct-tip{display:none;align-items:center;justify-content:center;height:51px;font-size:12px;color:#8E8E93;letter-spacing:.2px;}
-.mom-profile.partner-view .mp-direct-tip{display:flex;}
 .moment-card{background:var(--glass,rgba(255,255,255,.45));-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);border:1px solid var(--glassborder,rgba(255,255,255,.6));box-shadow:inset 0 1px 0 var(--glassinner,rgba(255,255,255,.5)),0 8px 24px rgba(0,0,0,.08);border-radius:20px;overflow:hidden;}
 .moment-head{display:flex;align-items:center;gap:10px;padding:12px 14px;}
 .moment-head .mh-av{width:40px;height:40px;border-radius:50%;object-fit:cover;flex:0 0 auto;background:var(--panel);}
@@ -2714,7 +2712,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183z12">
+<meta name="app-build" content="2026-11-24v43-183z13">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4904,7 +4902,6 @@ setTimeout(function(){
           <button class="small-btn ghost" id="btn-mp-cover" style="font-size:12px;padding:5px 10px;">换背景</button>
           <button class="small-btn ghost" id="btn-mp-bio" style="font-size:12px;padding:5px 10px;">编辑资料</button>
         </div>
-        <div class="mp-direct-tip" id="mp-direct-tip">点封面或头像即可更换</div>
       </div>
       <div class="mom-unread hidden" id="mom-unread"></div>
       <div class="moment-feed" id="moment-feed"></div>
@@ -7987,7 +7984,12 @@ function dayLabel(ts){
   if(k(d)===k(yest))return "昨天";
   return (d.getMonth()+1)+"月"+d.getDate()+"日";
 }
-function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),2200);}
+function toast(msg){
+  const t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(t._t);
+  /* 页内提示不再统一停 2.2 秒：短提示 1.4 秒就收，长一点的错误/说明最多 2.4 秒。 */
+  const _ms=String(msg==null?"":msg).length>20?2400:1400;
+  t._t=setTimeout(()=>t.classList.remove("show"),_ms);
+}
 /* ===== 来消息浮动弹窗 ===== */
 let incomingPopTimer=null;
 function hideIncomingPop(){const p=$("incoming-pop");if(p)p.classList.remove("show");}
@@ -8181,12 +8183,17 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-183z12",
-  time:"2026-11-24 16:45",
+  date:"v43-183z13",
+  time:"2026-11-24 17:01",
   noticeKey:null,
-  lead:"2026-11-24 16:45 修改（v43-183z12）：对方主页去掉底部“换他的背景 / 编辑他的资料”，改成直接点封面换背景、点头像换头像；封面面板仍可在“我的背景 / 他的背景”之间点击或滑动切换；双方主页卡片保持同一高度。",
+  lead:"2026-11-24 17:01 修改（v43-183z13）：对方主页那一行“点封面或头像即可更换”字条删掉，卡片仍和我的主页同高；动态里点评论“回复”会锁定那一条，输入框被键盘顶住时自动抬到键盘上方，不再插横条、不再把页面推得乱跳。",
   items:[
-    "对方主页只留直接操作（v43-183z12）：对方主页底部不再出现“换他的背景 / 编辑他的资料”两个按钮。点封面直接打开背景面板，并默认选中“他的背景”；点头像直接打开选图换他的头像。底部只留一行很轻的提示“点封面或头像即可更换”，占住原按钮高度，卡片仍和我的主页一样大。头像右下角的小铅笔角标已去掉，头像本身照常可点。",
+    "动态回复锁定（v43-183z13）：点某条评论的“回复”，只把这一条标成回复目标，并把回复对象锁到这条评论；输入框自动聚焦。键盘弹起时动态页按键盘上沿重排，短页面也会留出可滚余量，输入框和发送键停在键盘上方，不会出现“回复框没显示”或被键盘完全盖住。",
+    "不再乱弹（v43-183z13）：回复时不再往卡片底部插入“回复 XX”横条，卡片高度不变；只保留被回复评论的浅蓝底色。发送或取消后输入行自动收回，回复仍然挂在被点的那条评论下面。",
+    "键盘下面不露聊天（v43-183z13）：回复时动态页固定到键盘上沿，页面高度不再超出可见区，输入框、键盘下方不会再漏出底层的聊天界面；键盘收起或离开动态页立即还原。",
+    "页内提示缩短（v43-183z13）：底部短提示从固定 2.2 秒缩到 1.4 秒收起，较长的说明最多 2.4 秒，不再一直压在页面上。",
+    "对方主页字条删除（v43-183z13）：删掉对方主页底部“点封面或头像即可更换”的提示字条；仍然直接点封面换背景、点头像换头像，底部不出现“换他的背景 / 编辑他的资料”按钮，双方主页卡片固定同一高度。头像右下角的小铅笔角标已去掉，头像本身照常可点。",
+    "主页直接操作（v43-183z12）：点封面直接打开背景面板，并默认选中“他的背景”；点头像直接打开选图换他的头像。我的主页底部仍有“换背景 / 编辑资料”，点我的封面默认改“我的背景”，在背景面板里仍可滑到“他的背景”。",
     "我的主页保持原样（v43-183z12）：我的主页底部仍有“换背景 / 编辑资料”，点我的封面默认改“我的背景”，在背景面板里仍可滑到“他的背景”。头像点击也照旧直接换图，两边互不误改。",
     "背景滑动切换（v43-183z11）：点我的封面默认改“我的背景”，点对方封面默认改“他的背景”；选择面板顶部新增“我的背景 / 他的背景”分段开关，点一下或左右滑动都能切换，颜色、图片、清空只作用于当前选中的一方，不会误改另一方。",
     "编辑资料去掉换背景（v43-183z11）：编辑资料里的“主页封面 / 换背景”整行已删除，背景统一从主页封面或“换背景”按钮进入，不再出现两个入口互相打架。",
@@ -22877,6 +22884,8 @@ function __fadeOutDiary(ms){
   }catch(_){try{el.classList.remove("show");el.classList.remove("writing");}catch(__){}}
 }
 function showView(id){
+  /* 离开动态页时把为键盘临时钉住的高度收掉，回聊天/主页不会留下半截页面 */
+  try{if(id!=="view-moments"&&window.__e11MomentKbReset)window.__e11MomentKbReset();}catch(_eMkReset){}
   /* 离开动态/留言/信件页时收掉多选底栏，避免底栏浮在聊天或设置上面 */
   try{
     var _dmv=["view-moments","view-guestbook","view-letters"];
@@ -29575,6 +29584,92 @@ function momAppendChunk(n){
     if(last&&(window.__momShown||0)<all.length)window.__momIO.observe(last);
   }catch(e){}
 }
+/* v43-183z13：动态/主页评论输入框在真机上被键盘盖住的根因。
+   浏览器布局视口没有跟着键盘缩短时，.app 还是整屏高，动态页内容又常常不够长，
+   .v-body 没有可滚余量，keepMomentReplyVisible 想抬也抬不动，输入框就正好压在键盘下面。
+   这里在键盘弹起时把动态页钉到“键盘上沿”那么高，页面自然多出可滚空间；
+   键盘收起/离开动态页立即恢复，不用改 .app 或聊天页。 */
+function __e11MomentKbMetrics(){
+  var vv=window.visualViewport;
+  var stable=Math.max(window.__uiStableH||0,window.__e11VHMax||0,window.innerHeight||0);
+  var innerH=window.innerHeight||stable||0;
+  var visH=Math.max(0,Math.min(innerH||stable||0,(vv&&vv.height)||innerH||stable||0));
+  try{
+    if(window.AndroidUI&&typeof AndroidUI.getVisibleBottomDp==="function"){
+      var nb=Number(AndroidUI.getVisibleBottomDp())||0;
+      if(nb>120&&nb<stable-20)visH=Math.min(visH||nb,nb);
+    }
+  }catch(_){}
+  return {stable:stable,visH:visH,kbH:Math.max(0,stable-visH)};
+}
+function __e11MomentKbReset(){
+  var vc=document.getElementById("view-moments");
+  if(!vc)return;
+  if(!vc.__kbFit)return;
+  vc.__kbFit=false;
+  vc.style.position="";vc.style.top="";vc.style.left="";vc.style.right="";vc.style.bottom="";
+  vc.style.width="";vc.style.height="";vc.style.maxHeight="";vc.style.zIndex="";vc.style.overflow="";
+  try{if(vc.__kbPadEl)vc.__kbPadEl.style.paddingBottom=vc.__kbOrigPad||"";}catch(_){}
+  vc.__kbPadEl=null;vc.__kbOrigPad="";
+}
+window.__e11MomentKbReset=__e11MomentKbReset;
+function __fitMomentKb(){
+  try{
+    var vc=document.getElementById("view-moments");
+    if(!vc)return;
+    var ae=document.activeElement;
+    var inp=ae&&ae.closest?ae.closest(".moment-comment-input"):null;
+    var typing=!!(inp&&inp.isConnected&&vc.classList.contains("open"));
+    var m=__e11MomentKbMetrics();
+    if(!typing||m.kbH<=40||m.visH<180){__e11MomentKbReset();return;}
+    try{document.documentElement.scrollTop=0;document.body.scrollTop=0;}catch(_){}
+    /* 关键：动态页仍然铺满整屏（不是只到键盘上沿）。
+       只给 .v-body 底部加一段和键盘一样高的内边距，页面就有了可滚余量；
+       底部那块仍是动态页自己的底色，不会把下面常驻的聊天页漏出来。
+       之前只把页面截到键盘上沿，键盘以下就露出了聊天输入栏，正是用户看到的问题。 */
+    var r=vc.getBoundingClientRect();
+    var scale=(vc.offsetWidth>0&&r.width>0)?(r.width/vc.offsetWidth):1;
+    var cssH=Math.max(180,Math.floor(m.stable/(scale||1)));
+    var vb=vc.querySelector(".v-body");
+    vc.__kbFit=true;
+    vc.style.position="fixed";
+    vc.style.top="0px";vc.style.left="0px";vc.style.right="0px";vc.style.bottom="auto";
+    vc.style.width="100%";vc.style.maxHeight="none";vc.style.height=cssH+"px";
+    vc.style.zIndex="30";vc.style.overflow="hidden";
+    if(vb&&(!vc.__kbPadEl||vc.__kbPadEl!==vb)){
+      vc.__kbPadEl=vb;vc.__kbOrigPad=vb.style.paddingBottom||"";
+    }
+    if(vb){
+      var _safe=0;
+      try{_safe=Math.round(m.kbH/(scale||1));}catch(_){_safe=m.kbH;}
+      vb.style.paddingBottom="calc("+(16+_safe)+"px + env(safe-area-inset-bottom))";
+    }
+    try{window.__momentKeepVisible&&window.__momentKeepVisible(inp);}catch(_){}
+  }catch(_){}
+}
+window.__fitMomentKb=__fitMomentKb;
+function __scheduleMomentKb(){
+  __fitMomentKb();
+  try{window.__momentKeepVisible&&window.__momentKeepVisible();}catch(_){}
+  [80,220,420].forEach(function(ms){setTimeout(function(){__fitMomentKb();try{window.__momentKeepVisible&&window.__momentKeepVisible();}catch(_){}},ms);});
+}
+try{
+  if(!window.__momKbBound){
+    window.__momKbBound=1;
+    var _momKbEvt=function(){__scheduleMomentKb();};
+    window.addEventListener("resize",_momKbEvt,{passive:true});
+    if(window.visualViewport){
+      window.visualViewport.addEventListener("resize",_momKbEvt,{passive:true});
+      window.visualViewport.addEventListener("scroll",_momKbEvt,{passive:true});
+    }
+    document.addEventListener("focusin",function(e){
+      try{if(e.target&&e.target.closest&&e.target.closest(".moment-comment-input"))setTimeout(__scheduleMomentKb,60);}catch(_){}
+    },true);
+    document.addEventListener("focusout",function(e){
+      try{if(e.target&&e.target.closest&&e.target.closest(".moment-comment-input"))setTimeout(function(){if(!document.activeElement||!document.activeElement.closest||!document.activeElement.closest(".moment-comment-input"))__e11MomentKbReset();},120);}catch(_){}
+    },true);
+  }
+}catch(_){}
 function bindMomentFeed(){
   var feed=$("moment-feed");if(!feed||feed.__mb)return;feed.__mb=true;
   function cardOf(el){return el&&el.closest?el.closest(".moment-card"):null;}
@@ -29593,6 +29688,9 @@ function bindMomentFeed(){
       else if(ir.top<top)vb.scrollTop-=(top-ir.top);
     }catch(e){}
   }
+  window.__momentKeepVisible=function(inp){
+    try{if(inp&&inp.isConnected)keepMomentReplyVisible(inp);}catch(_){}
+  };
   function scheduleMomentReplyKeep(inp){
     try{
       window.__momentReplyInp=inp;
@@ -29627,7 +29725,12 @@ function bindMomentFeed(){
       return;}
     var cb=t.closest("[data-cm]");
     if(cb){var card0=cardOf(cb);var ci0=card0?card0.querySelector('[data-ci="'+cb.dataset.cm+'"]'):null;
-      if(ci0){ci0.classList.toggle("hidden");if(!ci0.classList.contains("hidden")){var inp0=ci0.querySelector("input");if(inp0)setTimeout(function(){inp0.focus();},80);}}return;}
+      /* 点“评论”是发顶层评论，先把上一条“回复某人”的锁定状态清掉，避免带着旧对象发出去。 */
+      replyCtx={momentId:null,commentId:null,name:""};momentFocusMid=null;
+      feed.querySelectorAll(".mc-rep-target").forEach(function(x){x.classList.remove("mc-rep-target");});
+      if(ci0){ci0.classList.toggle("hidden");if(!ci0.classList.contains("hidden")){
+        var inp0=ci0.querySelector("input");if(inp0){inp0.placeholder="评论…";setTimeout(function(){try{inp0.focus({preventScroll:true});}catch(_){inp0.focus();}try{__fitMomentKb();}catch(_){}},80);}}
+      }return;}
     var eb=t.closest("[data-memoji]");
     if(eb){e.preventDefault();e.stopPropagation();openCommentEmoji(eb.dataset.memoji,eb);return;}
     var dc=t.closest("[data-mdelc]");
@@ -29644,17 +29747,17 @@ function bindMomentFeed(){
     if(rb){e.preventDefault();e.stopPropagation();
       var card=cardOf(rb);if(!card)return;var mid=card.dataset.id;
       replyCtx={momentId:mid,commentId:rb.dataset.mreply,name:rb.dataset.mname};momentFocusMid=mid;
+      /* v43-183z13：不再往卡片底部插一条“回复 XX”提示。
+         那条提示会把整张卡撑高，键盘一弹页面就被推着跳；改成只给被回复的那行加底色，
+         输入框还是卡片里同一个，位置、高度都不变，视觉上锁定这一条。 */
       feed.querySelectorAll(".mc-repind").forEach(function(x){x.remove();});
       feed.querySelectorAll(".mc-rep-target").forEach(function(x){x.classList.remove("mc-rep-target");});
       var row=rb.closest(".mc-row");if(row)row.classList.add("mc-rep-target");
-      var ind=document.createElement("div");ind.className="mc-repind";ind.dataset.ri=mid;
-      ind.innerHTML='回复 <b>'+esc(replyCtx.name)+'</b><button data-ri-x>×</button>';
       var ci=card.querySelector('[data-ci="'+mid+'"]');
-      if(ci){ci.parentNode.insertBefore(ind,ci);ci.classList.remove("hidden");
+      if(ci){ci.classList.remove("hidden");
         var inp=ci.querySelector("input");
         if(inp){inp.placeholder='回复 '+(replyCtx.name||'')+'…';if(momentDraft[mid])inp.value=momentDraft[mid];
-          /* 回复哪个就停在哪个输入框上：不再把整页滚到卡片中央 */
-          setTimeout(function(){try{inp.focus({preventScroll:true});}catch(_){try{inp.focus();}catch(__){}}},60);}}
+          setTimeout(function(){try{inp.focus({preventScroll:true});}catch(_){try{inp.focus();}catch(__){}}try{__fitMomentKb();}catch(_){}try{keepMomentReplyVisible(inp);}catch(_){}},60);}}
       return;}
     var rx=t.closest("[data-ri-x]");
     if(rx){e.preventDefault();e.stopPropagation();
@@ -29688,6 +29791,9 @@ function bindMomentFeed(){
         myCid=uid();m3.comments.push({id:myCid,from:"me",text:txt,emoji:emo||undefined,time:Date.now(),likes:[],replies:[]});
       }
       if(inp3)inp3.value="";momentDraft[mid2]="";momentFocusMid=null;
+      /* 发送后把评论输入行收回，别让它一直挂在卡片底部 */
+      try{if(ci3){ci3.classList.add("hidden");var _pi3=ci3.querySelector("input");if(_pi3)_pi3.placeholder="评论…";}}catch(_){}
+      try{window.__e11MomentKbReset&&window.__e11MomentKbReset();}catch(_){}
       try{if(window.__commentEmoji)window.__commentEmoji[mid2]="";var eb2=card3?card3.querySelector('[data-memoji="'+mid2+'"]'):null;if(eb2)eb2.textContent="😊";}catch(_){}
       save();
       /* 只更新这张卡的评论区；不重建整张动态、不滚屏，回复哪个就留在键盘上方哪个位置 */
