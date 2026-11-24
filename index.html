@@ -10052,7 +10052,7 @@ function __e11ExitSave(st,force){
     var _dk=Object.keys(_dg),_dlast=0;
     try{_dk.forEach(function(k){var p=_dg[k]||{};_dlast=Math.max(_dlast,Number(p.writtenAt)||0,Number(p.mine&&p.mine.time)||0,Number(p.partner&&p.partner.time)||0);});}catch(_eDSig){}
     var _dcov=_sigst&&_sigst.diary&&_sigst.diary.cover?_sigst.diary.cover:null;
-    var _sig=[Number(window.__chatRev)||0,(_sigst&&_sigst.messages&&_sigst.messages.length)||0,(_sigst&&_sigst.messages&&_sigst.messages.length?_sigst.messages[_sigst.messages.length-1].id:""),Number(_sigst&&_sigst.settings&&_sigst.settings.__ts)||0,Number(_sigst&&_sigst.skin&&_sigst.skin.__ts)||0,_dk.length,_dlast,_dcov?((_dcov.title||"")+"|"+(_dcov.img||"").length+"|"+(_dcov.done?1:0)):""].join("|");
+    var _sig=[Number(window.__chatRev)||0,Number(_sigst&&_sigst.__savedAt)||0,(_sigst&&_sigst.messages&&_sigst.messages.length)||0,(_sigst&&_sigst.messages&&_sigst.messages.length?_sigst.messages[_sigst.messages.length-1].id:""),Number(_sigst&&_sigst.settings&&_sigst.settings.__ts)||0,Number(_sigst&&_sigst.skin&&_sigst.skin.__ts)||0,_dk.length,_dlast,_dcov?((_dcov.title||"")+"|"+(_dcov.img||"").length+"|"+(_dcov.done?1:0)):""].join("|");
     if(!force&&_sig===window.__e11ExitSavedSig&&Date.now()-(Number(window.__e11ExitSavedAt)||0)<2500)return true;
     window.__e11ExitSavedSig=_sig;
     try{__e11DiarySnapshot(st||state);}catch(_eDiaryExit){}
