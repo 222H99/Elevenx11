@@ -131,6 +131,8 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
   d.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;gap:12px;"><div style="font:600 15px -apple-system,BlinkMacSystemFont,\'SF Pro Text\',sans-serif;color:'+fg+';opacity:.72;letter-spacing:.5px;">Eleven×11</div><div style="width:18px;height:18px;border-radius:50%;border:2px solid rgba(128,128,138,.22);border-top-color:#3478F6;animation:e11bootspin .8s linear infinite;"></div><div id="boot-sub" style="font:500 12px -apple-system,BlinkMacSystemFont,\'SF Pro Text\',sans-serif;color:'+fg+';opacity:.46;">正在打开…</div></div><style>@keyframes e11bootspin{to{transform:rotate(360deg)}}</style>';
   try{document.documentElement.appendChild(d);}catch(e){}
   window.__bootDark=dark;
+  /* html 根节点也先铺主题底色：iOS 橡皮筋回弹/进出前后退时，不会在 body 边缘露出一条白底或黑底。 */
+  try{document.documentElement.style.background=bg;document.documentElement.style.backgroundColor=bg;}catch(_eHtmlBg){}
   /* v43-183z4：body 一建出来就先铺上和启动层同样的底色/明暗，避免 body 默认白底在深色下透出来。 */
   document.addEventListener("DOMContentLoaded",function(){
     try{if(document.body){document.body.style.background=bg;document.body.classList.toggle("ui-dark",!!dark);}}catch(_eBodyBg){}
@@ -144,7 +146,8 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
     if(window.__bootRevealQueued)return;
     window.__bootRevealQueued=1;
     var _revealNow=function(){
-      try{if(document.body){document.body.style.visibility="visible";document.body.style.background=bg;}}catch(_eShowBody){}
+      try{if(document.body){document.body.style.visibility="visible";document.body.style.background=bg;}
+        document.documentElement.style.background=bg;document.documentElement.style.backgroundColor=bg;}catch(_eShowBody){}
       /* 两个启动层统一一起撤，谁先完成都一样。 */
       try{window.__veilDone&&window.__veilDone();}catch(_eVeil){}
       var sp=document.getElementById("e11-static-splash");
@@ -261,7 +264,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183z4";
+window.__E11_BUILD="2026-11-24v43-183z5";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -331,8 +334,8 @@ html[data-boot="dark"] #lock-forgot{color:rgba(255,255,255,.6)!important;}
 /* 开屏加载遮罩原来写死了浅色渐变：夜间先黑一下、再闪一块白，再进黑界面。
    这里让启动遮罩、声明页、登录页都跟着第一帧明暗走，不再黑→白→黑。 */
 html[data-boot="dark"] #__veil{background:#000!important;background-image:none!important;}
-/* 启动双层遮罩颜色统一：底层旧光晕不再露白/露黑，颜色只由最上层 boot-veil 决定 */
-html[data-boot] #__veil{background:transparent!important;background-image:none!important;}
+/* 启动只保留一层主题色遮罩：旧光晕层直接关掉，不再出现底层白/黑透出来 */
+html[data-boot] #__veil{display:none!important;}
 html[data-boot="dark"] #__veil>div{color:#f2f2f7!important;}
 html[data-boot="dark"] .about-screen{background:#000!important;color:#f2f2f7!important;}
 html[data-boot="dark"] .about-scroll h2,
@@ -1895,21 +1898,9 @@ body.ui-dark:not(.lt-preset) #view-letters .lt-sub .lt-body{color:#F2F2F7 !impor
 .lock-btn{width:min(250px,78%);margin-top:14px;padding:12px 0;border:none;border-radius:16px;background:linear-gradient(135deg,#3478F6,#5AC8FA);color:#fff;font-size:15px;font-weight:600;cursor:pointer;}
 .lock-tip{font-size:12px;color:rgba(20,22,28,.66);margin:0 0 22px;text-align:center;}
 /* v43-183z：锁屏/登录整屏白底，键盘弹起只加底部内边距，内容停在键盘上方 */
-/* v43-183z4：键盘弹起时锁屏不再整体往上推，也不再加「键盘高度」的内边距。
-   内容仍然在整屏正中，只把图标/副标题/提示收起来，让密码框和按钮本身稳稳留在中心；
-   键盘只是盖在屏幕下半部分，密码框始终在它上沿之上。 */
-body.e11-kb-on .lock-screen{justify-content:center;align-items:center;padding:0 20px;box-sizing:border-box;height:100lvh;min-height:100lvh;max-height:100lvh;overflow:hidden;}
-body.e11-kb-on .lock-screen .lock-input,body.e11-kb-on .lock-screen .lock-btn{margin-left:auto;margin-right:auto;}
-body.e11-kb-on .lock-ico{display:none;}
-body.e11-kb-on .lock-sub{display:none;}
-body.e11-kb-on .lock-tip{display:none;}
-body.e11-kb-on .lock-title{display:none;}
-body.e11-kb-on #lock-forgot,body.e11-kb-on #lock-skip{display:none!important;}
-/* 键盘弹起时只剩「密码框 + 进入」两件，整体仍在正中；
-   再把这一组下移 29px，让密码框本人的中心落在整屏 50% 的位置。 */
-body.e11-kb-on #lock-input,body.e11-kb-on .lock-btn{transform:translateY(24px);}
-/* 按钮压扁一点，底边留在键盘上沿之上，不再被键盘吃掉半截。 */
-body.e11-kb-on .lock-btn{margin-top:12px;padding:9px 0;}
+/* v43-183z5：密码页保持原来的整屏居中排版，键盘弹起也不隐藏标题/图标、不位移。
+   锁屏高度固定成键盘前的整屏高度，键盘只盖在屏幕下半部分，页面本身不往上推。 */
+body.e11-kb-on .lock-screen{justify-content:center;align-items:center;padding:40px;box-sizing:border-box;height:100lvh;min-height:100lvh;max-height:100lvh;overflow:hidden;}
 body.e11-kb-on .auth-gate{align-items:flex-start;padding-top:14px;padding-bottom:12px;}
 body.e11-kb-on .auth-card{margin-top:0;}
 /* ===== 开幕动画（水玻璃雨滴·宿命感） ===== */
@@ -2693,7 +2684,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183z4">
+<meta name="app-build" content="2026-11-24v43-183z5">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4441,7 +4432,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-24v43-183z4</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-24v43-183z5</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -6320,6 +6311,19 @@ setTimeout(function(){
   }
   window.__e11RepairBulkTombs=__e11RepairBulkTombs;
   try{window.__e11DeleteKinds=__e11DeleteKinds;}catch(_eKindsExp){}
+  /* 没有 id 的导入歌曲用内容算一个稳定 id：删除墓碑按这个 id 写，
+     云端/历史快照里同一首无 id 的歌也会算出同一个 id，才不会被旧档补回来。 */
+  function __e11SongStableId(sg){
+    try{
+      if(!sg)return "";
+      if(sg.id)return String(sg.id);
+      var _raw=[sg.neteaseId||"",sg.url||"",sg.localBlob||"",String(sg.name||sg.song||sg.title||""),String(sg.artist||sg.singer||"")].join("\u0001");
+      var h=2166136261;
+      for(var i=0;i<_raw.length;i++){h^=_raw.charCodeAt(i);h=Math.imul(h,16777619);}
+      return "sgx_"+(h>>>0).toString(36)+"_"+_raw.length.toString(36);
+    }catch(_eSgSid){return "";}
+  }
+  window.__e11SongStableId=__e11SongStableId;
   function __e11ApplyDeleted(st,kinds){
     try{
       var d=st&&st.deletedIds;if(!d)return st;
@@ -6327,6 +6331,7 @@ setTimeout(function(){
       _ks.forEach(function(k){
         if(!Array.isArray(st[k]))return;
         var ids=d[k];if(!ids)return;
+        if(k==="musicPlaylist")st[k].forEach(function(x){if(x&&!x.id){var _sid=__e11SongStableId(x);if(_sid)x.id=_sid;}});
         st[k]=st[k].filter(function(x){var id=__e11IdOf(x);return !(id&&ids[id]);});
       });
     }catch(_eApplyDel){}
@@ -6613,7 +6618,8 @@ setTimeout(function(){
         mpDist:p.mpDist,mpDur:String(p.mpDur||""),mpNote:String(p.mpNote||""),
         mpSong:String(p.mpSong||""),mpSongArtist:String(p.mpSongArtist||""),
         mpAv1:String(p.mpAv1||""),mpAv2:String(p.mpAv2||""),mpCover:String(p.mpCover||""),
-        musicSession:!!(st&&st.musicSession),musicCur:Number(st&&st.musicCur)||-1,
+        musicSession:!!(st&&st.musicSession),musicCur:(st&&st.musicCur!==undefined)?Number(st.musicCur):-1,
+        miniClosed:!!(st&&st.miniClosed),miniCollapsed:!!(st&&st.miniCollapsed),
         /* 一起听房间聊天单独留一份，刷新/更新/退出后不能因为主库没写完就消失。 */
         musicRoomMsgs:(Array.isArray(st&&st.musicRoomMsgs)?st.musicRoomMsgs.slice(-150):[]).map(function(m){
           var x={id:m.id,from:m.from,type:m.type,text:String(m.text||""),time:Number(m.time)||0};
@@ -6656,6 +6662,17 @@ setTimeout(function(){
         st.musicRoomMsgs=_arr.slice(-150);
         st.musicRoomClearedAt=_clr;
         try{window.__e11ApplyDeleted&&window.__e11ApplyDeleted(st,["musicRoomMsgs"]);}catch(_eRmDel2){}
+      }
+      /* 小弹窗/当前歌曲也跟房间记录一起恢复：刷新、退出、更新后除非点过关闭，
+         一起听小弹窗继续在；关闭状态也写进备份，不会被旧档重新打开。 */
+      if(bts>curTs+300){
+        if(b.musicCur!==undefined){
+          var _mcur=Number(b.musicCur);
+          if(_mcur>=-1&&Array.isArray(st.musicPlaylist)&&_mcur<st.musicPlaylist.length)st.musicCur=_mcur;
+        }
+        if(typeof b.musicSession==="boolean")st.musicSession=b.musicSession;
+        if(typeof b.miniClosed==="boolean")st.miniClosed=b.miniClosed;
+        if(typeof b.miniCollapsed==="boolean")st.miniCollapsed=b.miniCollapsed;
       }
       /* 只有本机备份比当前（可能是云端旧档）更新时才覆盖；否则保留云端/当前值。
          以前只在字段为空时补，云端把 mpName/mpDur 写成默认值后就永远补不回来。 */
@@ -8064,8 +8081,14 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-24",
   noticeKey:null,
-  lead:"v43-183z4：密码页固定整屏居中，点一下自动弹键盘，页面不再被键盘推上去；聊天输入栏贴住键盘上沿；启动/进入的后台重活延后，黑白闪屏和点“同意并进入”的卡顿一起收掉。",
+  lead:"v43-183z5：一起听小弹窗刷新/退出后保留到点 × 为止；删除歌曲不再复活、不再关弹窗；听歌/画画邀请进聊天自动重新识别；背景保存不再误触歌曲；密码页恢复原排版不上推；启动去掉第二层遮罩的黑白闪。",
   items:[
+    "一起听小弹窗常驻（v43-183z5）：当前歌曲和“关闭”状态一起写进本机兜底；刷新、退出、更新网站后按本机恢复，只有点小弹窗 × 才算关闭。改动小弹窗状态会立即同步兜底，云端旧档不能把它关掉。",
+    "删歌不复活（v43-183z5）：删除时给没有 id 的导入歌曲也补 id 并写墓碑，云端/历史快照/自动备份不能再补回来；删的是当前歌就自动切到下一首继续，只剩唯一一首才收起播放，但小弹窗不因删歌而关闭。",
+    "邀请识别修正（v43-183z5）：聊天里还挂着对方未处理的听歌/画画邀请，进聊天页或刷新后会自动恢复同一个邀请弹窗和消息，不再只靠定时抽签；已经进入一起听/画画不会再重复邀请，关掉弹窗后可以重新收到邀请。",
+    "背景保存不误触（v43-183z5）：一起听背景弹层点“保存链接”或“确认修改”关闭后 420ms 内忽略歌曲行的点击，避免关层后的幽灵点击直接播放/删除歌曲。",
+    "密码页恢复原样（v43-183z5）：去掉键盘弹起时隐藏图标/标题/副标题/提示和输入框下移的规则，锁屏继续按整屏居中排版，键盘只盖下半屏，页面本身不往上推。",
+    "启动黑白屏（v43-183z5）：去掉第二层旧光晕遮罩，只保留一层跟随明暗主题的启动层；启动层退出后直接露出已画好的页面，不再两层颜色交替。",
     "密码页居中不推屏（v43-183z4）：锁屏高度固定成键盘弹起前的整屏高度，密码框中心就在屏幕正中间；键盘只盖在下面，不再把整页顶上去。点“同意并进入”或点密码页空白处会直接聚焦密码框弹键盘，收起键盘恢复原样。",
     "聊天输入栏贴键盘（v43-183z4）：键盘弹起时聊天页钉在屏幕顶部、高度收到键盘上沿，输入栏底边贴住键盘，不再留白也不再被挤出屏幕；键盘关闭立即还原。",
     "启动闪屏与进入卡顿（v43-183z4）：启动层最多 1 秒就撤，底层旧光晕改成透明只由主题色显示，不再黑一下白一下；云端拉取、第二页图片预载和存档落盘全部挪到密码通过后的空闲时段，点“同意并进入”不再同步做重活。",
@@ -8543,7 +8566,7 @@ function defaultState(){
     quizBank:[],
     redpackets:[],
     musicPlaylist:[],
-    musicRoomMsgs:[],musicRoomClearedAt:0,
+    musicRoomMsgs:[],musicRoomClearedAt:0,miniClosed:false,
     musicBg:0,musicBgImg:"",musicDiscBgImg:"",musicDiscInnerImg:"",musicCoverImg:"",musicCur:-1,musicVol:0.8,musicLoop:false,miniPos:null,miniCollapsed:false,
     messages:[],
     seq:0,
@@ -22593,6 +22616,7 @@ function showView(id){
   try{if(window.__placeMeDots)window.__placeMeDots();}catch(e){}
   if(id==="view-chat"){
     newR=0;updateNewBadge();
+    setTimeout(function(){try{__resumePendingInvites();}catch(_eRp){}},420);
     if(window.__chatDirty){window.__chatDirty=false;}
     /* 已经在隐藏态画好了就不再在可见状态重画；只有没准备过才补一次 */
     if(!_chatEntryPrepared){renderChat();}
@@ -22888,7 +22912,7 @@ function musicInviteOpen(dir,type){
     const m0=msgById(id);if(m0){m0.inv=type;m0.status="pending";}
     pendingMusicInvId=id;
   }
-  const m=msgById(pendingMusicInvId);if(m&&m.from!==(fromMe?"me":"partner")){m.from=fromMe?"me":"partner";m.status="pending";m.inv=type;}
+  const m=msgById(pendingMusicInvId);if(m){m.from=fromMe?"me":"partner";m.status="pending";m.inv=type;}
   $("mvi-partner").src=state.partner.avatar||avatarSvg("#5AC8FA");
   $("mvi-me").src=state.me.avatar||avatarSvg("#A5A5B0");
   /* 一起听邀请弹窗也要显示当前歌曲封面：以前只有头像和一个 ▶，看不到封面 */
@@ -22954,6 +22978,23 @@ function musicInviteClose(){
   try{clearTimeout(musicAutoAccept);}catch(_){}
 }
 var __musicInviteLastAt=0;
+/* 聊天里还挂着的对方邀请，进聊天页/刷新后要能重新认出来。
+   以前只靠定时抽签，刷新后旧邀请弹窗就再也不会出现，接受/拒绝按钮也对不上消息。 */
+function __resumePendingInvites(){
+  try{
+    if(window.__curView!=="view-chat")return;
+    if($("music-invite").classList.contains("show")||$("draw-invite").classList.contains("show"))return;
+    var list=state.messages||[],last=null;
+    for(var i=list.length-1;i>=0;i--){
+      var m=list[i];
+      if(m&&m.type==="invite"&&m.from==="partner"&&m.status==="pending"&&(m.inv==="music"||m.inv==="draw")){last=m;break;}
+    }
+    if(!last)return;
+    if(last.inv==="draw"){pendingDrawInvId=last.id;drawInviteShown=true;drawInviteOpen("partner");}
+    else{pendingMusicInvId=last.id;musicInviteShown=true;musicInviteOpen("partner","music");}
+  }catch(_eResumeInv){}
+}
+window.__resumePendingInvites=__resumePendingInvites;
 function maybePartnerMusicInvite(){
   /* v43-150：只在聊天页/音乐页弹，别的页面不把用户拽走。 */
   if(window.__curView!=="view-chat"&&window.__curView!=="view-music")return;
@@ -22962,9 +23003,9 @@ function maybePartnerMusicInvite(){
      以前只在“邀请成功”时记时间，失败后每分钟都会重抽，15% 被叠成很高的实际概率。 */
   if(Date.now()-(__musicInviteLastAt||0)<15*60000)return;
   __musicInviteLastAt=Date.now();
-  /* 已经在“一起听”里就说明双方已经达成，不再重复邀请。
+  /* 只有小弹窗还开着、当前歌还在，才算已经在“一起听”；关了弹窗或删空后允许新的邀请。
      只是选中了一首歌不算一起听，不能再借这个直接跳回音乐页。 */
-  if(state.musicSession===true)return;
+  if(state.musicSession===true&&!state.miniClosed&&Number(state.musicCur)>=0)return;
   const p=Math.min(100,Math.max(0,Number(state.settings.socialProbMusic)));
   if(Math.random()*100>=p)return;
   musicInviteShown=true;musicInviteOpen("partner","music");
@@ -22985,7 +23026,7 @@ $("mvi-yes").addEventListener("click",()=>{
     window.__gameReturn="view-chat";showView("view-game");initGameCanvas();toast("接受邀请，一起画吧");
     return;
   }
-  musicSession=true;state.musicSession=true;try{save();}catch(e){} // 双方达成听歌邀请，之后点一起听直接进入页面
+  musicSession=true;state.musicSession=true;state.miniClosed=false;try{window.__e11MusicRoomTouch&&window.__e11MusicRoomTouch();}catch(_eInvTouch){}try{save();}catch(e){} // 双方达成听歌邀请，之后点一起听直接进入页面
   if(!fromMe){var _sysAcc2=pushMsg("me","sys","你接受了听歌邀请");__appendChatMsg(_sysAcc2);}
   if(_invIdAcc)__refreshRecallRow(_invIdAcc);
   const au=musicAudio();
@@ -23162,7 +23203,7 @@ function refreshMiniPlayer(){
   /* 不能看 .open：切页时旧页要 110ms 后才撤 open，这期间小弹窗会被误判成“还在音乐页”而藏起来，
      之后 timeupdate 又只刷新已显示的弹窗，于是它就一直不见了。 */
   const _cur=window.__curView||"";
-  const show=state.musicCur>=0&&_cur!=="view-music";
+  const show=state.musicCur>=0&&!state.miniClosed&&_cur!=="view-music";
   mp.classList.toggle("show",show);
   if(!show)return;
   mp.classList.toggle("collapsed",!!state.miniCollapsed);
@@ -23522,8 +23563,38 @@ function renderMusicList(){
       var _im=li.querySelector(".ml-cover img");
       if(_im)_missingCovers.push({sg:s,im:_im});
     }
-    li.querySelector(".ml-del").onclick=(e)=>{e.stopPropagation();try{var _mp=state.musicPlaylist[i];if(_mp&&_mp.id)window.__e11MarkDeleted("musicPlaylist",_mp.id);}catch(_eMpDel){};state.musicPlaylist.splice(i,1);if(state.musicCur===i){au.pause();state.musicCur=-1;}else if(state.musicCur>i)state.musicCur--;save();try{__flushSave(true);}catch(_){}try{window.__E11Cloud&&window.__E11Cloud.flush&&window.__E11Cloud.flush();}catch(_){}renderMusicList();};
-    li.onclick=()=>playMusic(i);
+    li.querySelector(".ml-del").onclick=(e)=>{
+      e.stopPropagation();if(e.preventDefault)e.preventDefault();
+      /* 关闭背景弹层后的幽灵点击不能删歌/放歌 */
+      if(Date.now()<Number(window.__e11SheetClickUntil||0))return;
+      var _mp=state.musicPlaylist[i];
+      try{
+        if(_mp){
+          _mp.id=window.__e11SongStableId?_mp.id||window.__e11SongStableId(_mp):_mp.id;
+          window.__e11MarkDeleted("musicPlaylist",_mp.id);
+        }
+      }catch(_eMpDel){}
+      var _wasCur=state.musicCur===i,_playing=!au.paused;
+      state.musicPlaylist.splice(i,1);
+      if(_wasCur){
+        if(state.musicPlaylist.length){
+          /* 删当前歌只切下一首，不把一起听小弹窗关掉；只有点小弹窗的 × 才算关闭 */
+          state.musicCur=Math.min(i,state.musicPlaylist.length-1);state.miniClosed=false;
+          save();try{__flushSave(true);}catch(_){}renderMusicList();
+          try{playMusic(state.musicCur);if(!_playing)au.pause();}catch(_eNextCur){}
+        }else{au.pause();state.musicCur=-1;state.miniClosed=false;}
+      }else{
+        if(state.musicCur>i)state.musicCur--;
+        save();try{__flushSave(true);}catch(_){}
+      }
+      try{window.__e11MusicRoomTouch&&window.__e11MusicRoomTouch();}catch(_eDelTouch){}
+      try{window.__E11Cloud&&window.__E11Cloud.flush&&window.__E11Cloud.flush();}catch(_){}
+      renderMusicList();
+    };
+    li.onclick=()=>{
+      if(Date.now()<Number(window.__e11SheetClickUntil||0))return;
+      playMusic(i);
+    };
     _frag.appendChild(li);
   });
   list.appendChild(_frag);
@@ -23787,7 +23858,8 @@ function warmSongUrl(song){
 function playMusic(i){
   const pl=state.musicPlaylist;if(!pl.length)return;
   i=Math.min(Math.max(0,i),pl.length-1);
-  state.musicCur=i;save();
+  state.musicCur=i;state.miniClosed=false;try{window.__e11MusicRoomTouch&&window.__e11MusicRoomTouch();}catch(_ePlayTouch){}
+  save();
   const au=musicAudio();
   const song=pl[i];
   /* 本地导入的音频存在 IndexedDB（state 里只留 key）：播放前换成临时 URL */
@@ -24015,7 +24087,7 @@ var _163Warmed=false;
     showView("view-music");
   });
   $("mp-collapse").addEventListener("click",e=>{e.stopPropagation();state.miniCollapsed=true;save();refreshMiniPlayer();});
-  $("mp-close").addEventListener("click",e=>{e.stopPropagation();au.pause();state.musicCur=-1;try{musicSession=false;state.musicSession=false;}catch(e){}save();renderMusicList();refreshMiniPlayer();toast("已关闭听歌，下次一起听需要重新邀请");});
+  $("mp-close").addEventListener("click",e=>{e.stopPropagation();au.pause();state.musicCur=-1;state.miniClosed=true;try{musicSession=false;state.musicSession=false;}catch(e){}try{window.__e11MusicRoomTouch&&window.__e11MusicRoomTouch();}catch(_eCloseTouch){}save();renderMusicList();refreshMiniPlayer();toast("已关闭听歌，下次一起听需要重新邀请");});
   $("mp-play").addEventListener("click",e=>{e.stopPropagation();togglePlay();refreshMiniPlayer();});
   $("mp-prev").addEventListener("click",e=>{e.stopPropagation();playMusic(state.musicCur-1);});
   $("mp-next").addEventListener("click",e=>{e.stopPropagation();playMusic(state.musicCur+1);});
@@ -25692,8 +25764,8 @@ $("btn-music-back").addEventListener("click",function(){
     renderMusicBg();$("music-bg-sheet").classList.toggle("show");
   });
   $("music-bg-sheet").addEventListener("click",e=>{if(e.target===e.currentTarget)$("music-bg-sheet").classList.remove("show");});
-$("mb-confirm").addEventListener("click",()=>{$("music-bg-sheet").classList.remove("show");});
-  $("mb-save").addEventListener("click",()=>{const u=$("mb-url").value.trim();if(!u)return;state.musicBgImg=u;renderMusicBg();__bgPersistNow();toast("已设置背景");$("music-bg-sheet").classList.remove("show");});
+$("mb-confirm").addEventListener("click",(e)=>{e.stopPropagation();window.__e11SheetClickUntil=Date.now()+420;$("music-bg-sheet").classList.remove("show");});
+  $("mb-save").addEventListener("click",(e)=>{e.stopPropagation();const u=$("mb-url").value.trim();if(!u)return;state.musicBgImg=u;renderMusicBg();__bgPersistNow();toast("已设置背景");window.__e11SheetClickUntil=Date.now()+420;$("music-bg-sheet").classList.remove("show");});
   $("mb-import").addEventListener("click",()=>window.__nativePick("mb-file"));
   $("mdc-import")&&$("mdc-import").addEventListener("click",()=>window.__nativePick("mdc-img"));
   $("mdc-save")&&$("mdc-save").addEventListener("click",function(){
@@ -26295,6 +26367,7 @@ function maybePartnerDrawInvite(){
   /* v43-150：只从聊天页发起邀请；正在画画时不重开画布，避免把当前画作冲掉。 */
   if(window.__curView!=="view-chat")return;
   if(drawInviteShown||$("draw-invite").classList.contains("show"))return;
+  try{if(state.drawSession&&game&&game.agreed)return;}catch(_eDrawIng){}
   /* 画画属于「大事件」：一次抽签后 15 分钟内不再抽。
      以前只在弹窗成功时记时间，没抽中会每分钟继续抽，实际频率远高于设置值。 */
   if(Date.now()-(__drawInviteLastAt||0)<15*60000)return;
@@ -26314,7 +26387,7 @@ function drawInviteOpen(dir){
     const m0=msgById(id);if(m0){m0.inv="draw";m0.status="pending";}
     pendingDrawInvId=id;
   }
-  const m=msgById(pendingDrawInvId);if(m&&m.from!==(fromMe?"me":"partner")){m.from=fromMe?"me":"partner";m.status="pending";}
+  const m=msgById(pendingDrawInvId);if(m){m.from=fromMe?"me":"partner";m.status="pending";m.inv="draw";}
   $("dvi-partner").src=state.partner.avatar||avatarSvg("#5AC8FA");
   $("dvi-me").src=state.me.avatar||avatarSvg("#A5A5B0");
   $("dvi-name").textContent= fromMe?("你邀请 "+(state.profile.partnerMpName||state.partner.name||"对方")):("@"+(state.profile.partnerMpName||state.partner.name||"对方"));
@@ -31760,6 +31833,8 @@ function __e11RefreshAllViews(){
 window.__e11RefreshAllViews=__e11RefreshAllViews;
 function renderAll(){
   renderTopStatus();
+  /* 刷新/重开后按本机当前歌曲恢复一起听小弹窗；关掉过就保持关闭 */
+  try{refreshMiniPlayer();}catch(_eMiniAll){}
   /* 启动时不铺整张聊天列表：默认停在主页，聊天行晚一点（空闲时）再预铺，避免刚点开就卡一下 */
   try{
     var _vc=document.getElementById("view-chat");
