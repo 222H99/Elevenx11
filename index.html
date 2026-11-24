@@ -252,7 +252,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183m";
+window.__E11_BUILD="2026-11-24v43-183n";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2643,7 +2643,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183m">
+<meta name="app-build" content="2026-11-24v43-183n">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4390,7 +4390,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-24v43-183m</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-24v43-183n</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -7973,8 +7973,9 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-24",
   noticeKey:null,
-  lead:"v43-183m：修复部分机型键盘弹起后聊天输入栏被键盘挡住、看不到的问题。现在会同时参考布局视口和 visualViewport，按真实可视底边收短聊天页，输入栏始终留在键盘上方；键盘收起或失焦后自动恢复整屏。",
+  lead:"v43-183n：修复点聊天加号时系统补发的 click 误落到“设置”格子、直接进设置页的问题。菜单打开后的第一下幽灵点击会被拦截，用户真正再点设置仍可正常进入。",
   items:[
+    "加号误触设置修复（v43-183n）：加号在 touchend 时立即打开菜单，部分 Android WebView 之后还会补一个 click，正好落到刚出现的“设置”格子上。现在菜单打开后会先锁住幽灵点击，只有用户在新的菜单上真实按下（pointerdown）才解锁；设置入口的旧捕获兜底也加了同样的拦截，点加号不会再直接跳设置。",
     "聊天输入栏键盘避让（v43-183m）：部分 Android WebView / 输入法只缩 window.innerHeight，或只缩 visualViewport，缩放舞台可能仍停在整屏高度，底部输入栏就落到键盘下面。现在直接按聊天页顶边和真实可视底边计算，键盘占多少就把聊天页收到键盘上沿，输入栏和发送键始终可见；收起键盘后恢复。",
     "删除防复活（v43-183k）：消息、字卡、分组、信件、留言、动态、红包、收藏、歌单、问卷删除时会同时写入本机删除墓碑，并立即落盘。刷新、退出、版本更新、合并云端旧档或自动备份后，都不会再把删掉的内容补回来。",
     "问卷删除不复活（v43-183k）：批量导入和手动加入题库都会先检查删除墓碑，删过的题不会重新进入问卷或题库；只有你明确重新添加同一题才会解除。",
@@ -22411,10 +22412,21 @@ __fastTapBtn("btn-plus",()=>{
      这个 click 可能落到刚出现的「设置」格子上，表现就是点加号直接进了设置。
      400ms 内把落在菜单上的 click 全部吞掉。 */
   window.__plusGuardUntil=Date.now()+400;
+  /* v43-183n：只靠时间不够——设置入口还有一条 document 捕获阶段的旧兜底，
+     会抢在菜单自己的捕获监听之前执行。这里改成「真实 pointerdown 才解锁」：
+     系统补发的 click 没有 pointerdown，一律吞掉；用户亲手再点设置会先有
+     pointerdown，立即解锁，不会被误挡。 */
+  window.__plusGhostBlock=1;
+  try{clearTimeout(window.__plusGhostT);}catch(_){}
+  window.__plusGhostT=setTimeout(function(){window.__plusGhostBlock=0;},900);
   $("plus-overlay").classList.add("show");
 });
+$("plus-overlay").addEventListener("pointerdown",function(){
+  /* 这是用户在新菜单上的真实触摸，后面的 click 可以正常执行 */
+  window.__plusGhostBlock=0;
+},true);
 $("plus-overlay").addEventListener("click",function(e){
-  if(Date.now()<(window.__plusGuardUntil||0)){e.preventDefault();e.stopPropagation();return;}
+  if(window.__plusGhostBlock||Date.now()<(window.__plusGuardUntil||0)){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();return;}
 },true);
 $("plus-overlay").addEventListener("click",e=>{if(e.target.id==="plus-overlay")closePlus();});
 $("top-call").addEventListener("click",()=>{
@@ -35666,6 +35678,9 @@ body{margin:0;background:var(--bg,#fafafa);}
   document.addEventListener("click",function(e){
     var t=e.target&&e.target.closest?e.target.closest("#me-nav-settings,#plus-settings,#me-nav-chat,#me-nav-moments,#me-nav-letter,#me-nav-note,#me-nav-music"):null;
     if(!t)return;
+    /* v43-183n：加号刚打开时系统补发的 click 会落到「设置」上；这条捕获监听
+       比加号面板自己的监听更早，必须在入口这里也拦住。 */
+    if(t.id==="plus-settings"&&window.__plusGhostBlock){try{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();}catch(_){}return;}
     try{e.preventDefault();e.stopPropagation();}catch(_){}
     go(t.id);
   },true);
