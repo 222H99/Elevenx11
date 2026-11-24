@@ -264,7 +264,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-183z7";
+window.__E11_BUILD="2026-11-25v43-183z8";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -450,6 +450,7 @@ html.ui-dark,body.ui-dark{background:#000000 !important;}
   --panel:#F2F2F7;
   --field:#ffffff;
   --danger:#FF3B30;
+  --appfont:-apple-system,BlinkMacSystemFont,"Helvetica Neue","PingFang SC","Noto Sans SC",sans-serif;
   --radius:18px;
   --tail:4px;
   --bubbleborder:0px solid transparent;
@@ -459,7 +460,7 @@ html.ui-dark,body.ui-dark{background:#000000 !important;}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;margin:0;padding:0;overflow:hidden;overflow-x:hidden;}
 body{
-  font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue","PingFang SC","Noto Sans SC",sans-serif;
+  font-family:var(--appfont);
   background:#fafafa;color:var(--ttext);
   -webkit-user-select:none;user-select:none;
   overscroll-behavior:none;
@@ -467,6 +468,8 @@ body{
   -webkit-text-size-adjust:100%;text-size-adjust:100%;
 }
 *{-webkit-tap-highlight-color:transparent;}
+/* 设置里的界面字体对所有可输入/可点控件也生效；日记/信纸等专门排版的元素仍保留自己的字体声明 */
+button,input,textarea,select{font-family:var(--appfont);}
 input,textarea{-webkit-user-select:text;user-select:text;}
 .wall{position:absolute;inset:0;z-index:0;pointer-events:none;background-color:var(--wallbg,var(--bg));background-image:var(--wallimg,none),linear-gradient(var(--walltint),var(--walltint));background-position:center;background-size:cover,auto;background-repeat:no-repeat,repeat;}
 .app{
@@ -1428,6 +1431,8 @@ body:not(.app-ready) #view-chat{visibility:hidden !important;}
 .snd-vol .snd-vol-val{font-size:12px;color:#8E8E93;min-width:34px;text-align:right;font-variant-numeric:tabular-nums;}
 .snd-ops .small-btn{padding:3px 8px;font-size:11.5px;line-height:1.5;}
 
+.font-preview{margin:0 0 16px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--ttext);font-size:17px;line-height:1.55;overflow-wrap:anywhere;}
+.font-preview .fp-tag{font-size:12px;color:#8E8E93;margin-right:6px;}
 .set-input{width:86px;border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:16px;outline:none;background:var(--field);color:var(--ttext);text-align:center;}
 /* 设置页数字项的加减器：手机上不用点进键盘、也不用一格格拖滑杆 */
 .num-step{display:flex;align-items:center;gap:4px;flex:0 0 auto;}
@@ -2685,7 +2690,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-183z7">
+<meta name="app-build" content="2026-11-25v43-183z8">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4433,7 +4438,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-25v43-183z7</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-25v43-183z8</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -4447,7 +4452,27 @@ setTimeout(function(){
             <button class="small-btn ghost" data-fsz="4" style="font-size:12px;padding:6px 10px;">特大</button>
           </div>
         </div>
-                <div class="set-row"><span class="set-label">日记：TA 套用我的内页<div class="set-sub">3% 概率，TA 那半页会用你设置的内页图片；关掉后永远用自己的纸</div></span><button class="switch on" id="sw-diary-skin"></button></div>
+        <div class="set-row"><span class="set-label">界面字体<div class="set-sub">聊天、设置和主页；日记、信纸保留原手写体</div></span>
+          <select class="sel" id="set-font-family" style="flex:0 1 142px;min-width:118px;padding:7px 6px;">
+            <option value="system">系统默认</option>
+            <option value="pingfang">苹方黑体</option>
+            <option value="songti">宋体</option>
+            <option value="kaiti">楷体</option>
+            <option value="yuanti">圆体</option>
+            <option value="custom">我的字体</option>
+          </select>
+        </div>
+        <div class="set-row"><span class="set-label">上传字体<div class="set-sub" id="font-file-sub">支持 TTF / OTF / WOFF / WOFF2，最大 24MB；只存本机</div></span>
+          <div style="display:flex;gap:6px;flex:0 0 auto;">
+            <button class="small-btn" id="btn-font-upload" style="white-space:nowrap;font-size:12px;padding:6px 10px;">选择文件</button>
+            <button class="small-btn ghost" id="btn-font-remove" style="display:none;white-space:nowrap;font-size:12px;padding:6px 10px;">删除</button>
+          </div>
+        </div>
+        <input type="file" id="file-e11-font" accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2" hidden>
+              </div>
+      <div class="font-preview" id="font-preview"><span class="fp-tag">预览</span>今天也要好好生活 · Eleven×11 0123</div>
+      <div class="set-group">
+        <div class="set-row"><span class="set-label">日记：TA 套用我的内页<div class="set-sub">3% 概率，TA 那半页会用你设置的内页图片；关掉后永远用自己的纸</div></span><button class="switch on" id="sw-diary-skin"></button></div>
                 <div class="set-row"><span class="set-label">日记：对方每页字卡数<div class="set-sub">TA 写一页时随机抽几句，1–50 句</div></span><input class="set-input" id="set-diary-cards" type="number" min="1" max="50" value="11"></div>
         <div class="set-row"><span class="set-label">聊天页显示头像<div class="set-sub">关掉后聊天页和导出的长图都不显示头像</div></span><button class="switch on" id="sw-chat-avatar"></button></div>
         <div class="set-row"><span class="set-label">头像大小<div class="set-sub">聊天里双方头像的尺寸</div></span><input type="range" id="set-chat-av" min="20" max="48" step="2" style="flex:1;max-width:140px;margin-left:auto;"><button class="small-btn ghost" id="reset-chat-av" style="font-size:12px;padding:6px 10px;flex:0 0 auto;">恢复默认</button></div>
@@ -8080,10 +8105,11 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"2026-11-24",
+  date:"2026-11-25",
   noticeKey:null,
-  lead:"v43-183z7：设置里点“检查更新”不再只弹提示——安卓端直接下载更新包，下载完自动拉起安装器；网页端发现新版直接换页。启动与缓存继续沿用 z6 的提速。",
+  lead:"v43-183z8：设置 → 外观新增“界面字体”，可以切换系统、苹方、宋体、楷体、圆体，也可以直接上传本机字体文件（TTF/OTF/WOFF），带实时预览；字体只存本机，不上传云端。",
   items:[
+    "界面字体（v43-183z8）：设置 → 外观 → 界面字体，内置系统默认、苹方黑体、宋体、楷体、圆体；选“我的字体”可上传本机 TTF / OTF / WOFF / WOFF2（最大 24MB），下方有实时预览，删除后恢复系统默认。字体文件存在本机 IndexedDB，不随云端设置上传；聊天、设置、主页会立即套用，日记和信纸仍保留原手写体。",
     "检查更新一键安装（v43-183z7）：安卓端点“检查更新”发现新版后自动开始下载，不再需要点第二次“下载更新”；下载完成自动打开系统安装器。Android 8+ 第一次会跳“允许安装未知应用”，授权后返回自动继续，聊天记录保留。网页/PWA 端点检查更新仍会清运行时缓存并直接换到新版页面。另修正版本号后缀比较：z5/z6/z7 不再被当成同一版，检查更新能真正发现新版。",
     "启动白屏（v43-183z6）：首次进入不再等 IndexedDB 读完才撤启动层，声明页/密码页画出第一帧就自己揭幕；只有无门禁的返回用户才等存档，兜底从 1 秒延到 3.2 秒，避免数据慢时露出空白主页。本地实测启动层消失从约 1.2 秒降到约 0.58 秒。",
     "重复进入慢（v43-183z6）：Service Worker 改为缓存优先，有缓存立即返回，新版本在后台抓取并写回；不再每次点进都先等网络最多 2.6 秒。实测第二次打开 DOM 约 0.2 秒，断网也能正常进站。",
@@ -9974,10 +10000,13 @@ function __prefSave(){
       if(_cur.avatarSize!==undefined)_av=_cur.avatarSize;
       if(_cur.bubbleScale!==undefined)_bs=_cur.bubbleScale;
       if(_cur.avatarShape!==undefined)s.avatarShape=_cur.avatarShape;
+      if(_cur.fontFamily!==undefined)s.fontFamily=_cur.fontFamily;
+      if(_cur.customFontName!==undefined)s.customFontName=_cur.customFontName;
     }
     var _obj={
       ts:Math.max(Date.now(),Number(_cur&&_cur.ts)||0),
       fontSize:_fs,avatarSize:Math.round(_av),bubbleScale:_bs,avatarShape:s.avatarShape,showChatAvatar:s.showChatAvatar!==false,
+      fontFamily:s.fontFamily||"system",customFontName:s.customFontName||"",
       cp2Layout:(state&&state.cp2Layout)||null
     };
     var _lsOk=false;
@@ -9994,12 +10023,13 @@ function __prefApplyObject(p){
     var __curTs=Number(state&&state.settings&&state.settings.__ts)||0;
     if(Number(p.ts||0)<__curTs)return false;
     state.settings=state.settings||{};
-    ["fontSize","avatarSize","bubbleScale","avatarShape","showChatAvatar"].forEach(function(k){
+    ["fontSize","avatarSize","bubbleScale","avatarShape","showChatAvatar","fontFamily","customFontName"].forEach(function(k){
       if(p[k]!==undefined&&p[k]!==null)state.settings[k]=p[k];
     });
     if(Number(p.ts)>0)state.settings.__ts=Number(p.ts);
     if(p.cp2Layout&&typeof p.cp2Layout==="object"){state.cp2Layout=p.cp2Layout;}
     try{if(window.__applyFontSize)window.__applyFontSize();}catch(e){}
+  try{if(window.__applyFontFamily)window.__applyFontFamily();}catch(e){}
     try{if(window.__applyChatSizes)window.__applyChatSizes();}catch(e){}
     try{if(window.__applyAvatarShape)window.__applyAvatarShape();}catch(e){}
     try{if(window.__applyChatAvatarVis)window.__applyChatAvatarVis();}catch(e){}
@@ -10030,7 +10060,7 @@ function __userLookRestore(){
     try{if(_keepPwd!==undefined)state.settings.entryPwd=_keepPwd;if(_keepUnl!==undefined)state.settings.unlocked=_keepUnl;}catch(_eULKeepPwd){}
     if(p.skin)state.skin=Object.assign({},state.skin||{},p.skin);
     if(p.prefs&&typeof p.prefs==="object"){
-      ["fontSize","avatarSize","bubbleScale","avatarShape","showChatAvatar"].forEach(function(k){if(p.prefs[k]!==undefined&&p.prefs[k]!==null)state.settings[k]=p.prefs[k];});
+      ["fontSize","avatarSize","bubbleScale","avatarShape","showChatAvatar","fontFamily","customFontName"].forEach(function(k){if(p.prefs[k]!==undefined&&p.prefs[k]!==null)state.settings[k]=p.prefs[k];});
       if(p.prefs.cp2Layout&&typeof p.prefs.cp2Layout==="object")state.cp2Layout=p.prefs.cp2Layout;
       /* 云端 extras 会带旧的 uiPrefs；这里把本机外观档里的偏好写回去，后续任何 __prefApply 都覆盖不了。 */
       try{
@@ -10172,13 +10202,14 @@ function __prefApply(){
     var __curTs=Number(state&&state.settings&&state.settings.__ts)||0;
     if(Number(p.ts||0)<__curTs)return;
     state.settings=state.settings||{};
-    ["fontSize","avatarSize","bubbleScale","avatarShape","showChatAvatar"].forEach(function(k){
+    ["fontSize","avatarSize","bubbleScale","avatarShape","showChatAvatar","fontFamily","customFontName"].forEach(function(k){
       if(p[k]!==undefined&&p[k]!==null)state.settings[k]=p[k];
     });
     state.settings.__ts=Number(p.ts)||0;
     if(p.cp2Layout&&typeof p.cp2Layout==="object"){state.cp2Layout=p.cp2Layout;}
   }catch(e){}
   try{if(window.__applyFontSize)window.__applyFontSize();}catch(e){}
+  try{if(window.__applyFontFamily)window.__applyFontFamily();}catch(e){}
   try{if(window.__applyChatSizes)window.__applyChatSizes();}catch(e){}
   try{if(window.__applyAvatarShape)window.__applyAvatarShape();}catch(e){}
   try{if(window.__applyChatAvatarVis)window.__applyChatAvatarVis();}catch(e){}
@@ -10186,6 +10217,7 @@ function __prefApply(){
 }
 function __prefReapplyAll(){
   try{if(window.__applyFontSize)window.__applyFontSize();}catch(e){}
+  try{if(window.__applyFontFamily)window.__applyFontFamily();}catch(e){}
   try{if(window.__applyChatSizes)window.__applyChatSizes();}catch(e){}
   try{if(window.__applyAvatarShape)window.__applyAvatarShape();}catch(e){}
   try{if(window.__applyChatAvatarVis)window.__applyChatAvatarVis();}catch(e){}
@@ -11416,6 +11448,7 @@ async function init(){
             if(dp&&(!best||Number(dp.ts)>Number(best.ts)))best=dp;
             if(best&&typeof window.__prefApplyObject==="function")window.__prefApplyObject(best);
             try{if(window.__applyFontSize)window.__applyFontSize();}catch(e){}
+  try{if(window.__applyFontFamily)window.__applyFontFamily();}catch(e){}
             try{if(window.__applyChatSizes)window.__applyChatSizes();}catch(e){}
             try{if(window.__applyAvatarShape)window.__applyAvatarShape();}catch(e){}
           }catch(e){}
@@ -20704,7 +20737,7 @@ $("sw-bg-sound")&&$("sw-bg-sound").addEventListener("click",function(){
 });
 /* 版本比较：app-build 形如 2026-11-18v38；日期相同再比 v 后缀 */
 function __cmpBuild(a,b){
-  /* 版本形如 2026-11-24v43-183z7：日期、v 后的主版本、第二段、字母后缀、后缀数字
+  /* 版本形如 2026-11-25v43-183z8：日期、v 后的主版本、第二段、字母后缀、后缀数字
      都要参与比较。旧实现的后缀只取字母，z5/z6/z7 会被当成同一个版本，
      表现就是“检查更新永远说已是最新”。 */
   function parse(x){
@@ -21110,6 +21143,177 @@ window.__applyChatSizes=applyChatSizes;
   document.addEventListener("DOMContentLoaded",bindFs);
   setTimeout(bindFs,300);setTimeout(bindFs,1500);
 })();
+/* ===== 界面字体：内置字体切换 + 本机字体上传 ===== */
+(function(){
+  var FONT_KEY="e11.customFont.v1";
+  var MAX_FONT=24*1024*1024;
+  var STACKS={
+    system:'-apple-system,BlinkMacSystemFont,"Helvetica Neue","PingFang SC","Noto Sans SC",sans-serif',
+    pingfang:'"PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif',
+    songti:'"Songti SC","STSong","Noto Serif CJK SC","SimSun",serif',
+    kaiti:'"Kaiti SC","STKaiti","KaiTi","Noto Serif CJK SC",serif',
+    yuanti:'"Yuanti SC","Hiragino Maru Gothic ProN","Noto Sans SC",sans-serif',
+    custom:'"E11CustomFont","PingFang SC","Noto Sans SC","Microsoft YaHei",sans-serif'
+  };
+  function curKey(){
+    var k=state&&state.settings&&state.settings.fontFamily;
+    if(!STACKS[k])k="system";
+    return k;
+  }
+  function applyFontFamily(){
+    try{
+      var k=curKey();
+      document.documentElement.style.setProperty("--appfont",STACKS[k]);
+      var sel=document.getElementById("set-font-family");
+      if(sel&&sel.value!==k)sel.value=k;
+      var nm=(state&&state.settings&&state.settings.customFontName)||"";
+      var rm=document.getElementById("btn-font-remove");
+      if(rm)rm.style.display=(window.__e11CustomLoaded||nm)?"":"none";
+      var sub=document.getElementById("font-file-sub");
+      if(sub){
+        if(window.__e11CustomLoaded){
+          sub.textContent=(nm?("已载入："+nm):"已载入自定义字体")+" · 只存本机";
+        }else if(nm){
+          sub.textContent="自定义字体未载入，请重新上传";
+        }else{
+          sub.textContent="支持 TTF / OTF / WOFF / WOFF2，最大 24MB；只存本机";
+        }
+      }
+    }catch(e){}
+  }
+  window.__applyFontFamily=applyFontFamily;
+  function registerFace(rec){
+    return new Promise(function(res,rej){
+      try{
+        if(window.__e11CustomFace){try{document.fonts.delete(window.__e11CustomFace);}catch(_){}} 
+        var face=new FontFace("E11CustomFont",rec.buf);
+        face.load().then(function(){
+          document.fonts.add(face);
+          window.__e11CustomFace=face;
+          window.__e11CustomLoaded=true;
+          res(true);
+        },function(err){rej(err||new Error("font-load"));});
+      }catch(e){rej(e);}
+    });
+  }
+  function loadCustomFont(){
+    if(window.__e11FontLoading)return window.__e11FontLoading;
+    window.__e11FontLoading=(async function(){
+      try{
+        if(!db)await openDB();
+        var rec=await dbGet(FONT_KEY);
+        if(!rec||!rec.buf){window.__e11CustomLoaded=false;applyFontFamily();return false;}
+        await registerFace(rec);
+        applyFontFamily();
+        return true;
+      }catch(e){
+        window.__e11CustomLoaded=false;applyFontFamily();
+        return false;
+      }finally{
+        window.__e11FontLoading=null;
+      }
+    })();
+    return window.__e11FontLoading;
+  }
+  function dbDeleteKey(k){
+    return new Promise(function(res){
+      if(!db){res(false);return;}
+      try{
+        var tx=db.transaction(STORE,"readwrite");
+        tx.objectStore(STORE).delete(k);
+        tx.oncomplete=function(){res(true);};
+        tx.onerror=function(){res(false);};
+        tx.onabort=function(){res(false);};
+      }catch(e){res(false);}
+    });
+  }
+  async function handleFontFile(file){
+    if(!file)return;
+    if(file.size>MAX_FONT){toast("字体文件超过 24MB，换个小一点的字体");return;}
+    toast("正在读取字体…");
+    try{
+      var buf=await file.arrayBuffer();
+      var nm=String(file.name||"自定义字体").replace(/\.[^.]+$/,"").replace(/[\\/:*?"<>|]/g,"").trim().slice(0,40)||"自定义字体";
+      var rec={name:nm,type:file.type||"",buf:buf,ts:Date.now()};
+      await registerFace(rec);
+      var saved=true;
+      try{
+        if(!db)await openDB();
+        await dbSet(FONT_KEY,rec);
+      }catch(e){saved=false;}
+      state.settings=state.settings||{};
+      state.settings.fontFamily="custom";
+      state.settings.customFontName=nm;
+      state.settings.__ts=Date.now();
+      try{__prefSave();}catch(e){}
+      applyFontFamily();
+      try{save();}catch(e){}
+      try{if(window.__flushSave)window.__flushSave();}catch(e){}
+      toast(saved?"已应用字体："+nm:"字体已应用，但本机保存失败，重启后可能需要重新上传");
+    }catch(e){
+      toast("这个字体无法识别，换一个 TTF / OTF / WOFF 文件试试");
+    }
+  }
+  function bindFontUI(){
+    var sel=document.getElementById("set-font-family");
+    if(sel&&!sel._fb){
+      sel._fb=1;
+      sel.addEventListener("change",function(){
+        var k=this.value;
+        if(k==="custom"&&!window.__e11CustomLoaded){
+          toast("请先上传一个字体文件");
+          this.value=curKey();
+          return;
+        }
+        state.settings=state.settings||{};
+        state.settings.fontFamily=k;
+        state.settings.__ts=Date.now();
+        try{__prefSave();}catch(e){}
+        applyFontFamily();
+        try{save();}catch(e){}
+        var lbl=this.options[this.selectedIndex]?this.options[this.selectedIndex].text:"";
+        toast("界面字体："+lbl);
+      });
+    }
+    var ub=document.getElementById("btn-font-upload");
+    if(ub&&!ub._fb){ub._fb=1;ub.addEventListener("click",function(){window.__nativePick("file-e11-font");});}
+    var fi=document.getElementById("file-e11-font");
+    if(fi&&!fi._fb){
+      fi._fb=1;
+      fi.addEventListener("change",function(){
+        var f=this.files&&this.files[0];
+        if(f)handleFontFile(f);
+        try{this.value="";}catch(_){}
+      });
+    }
+    var rb=document.getElementById("btn-font-remove");
+    if(rb&&!rb._fb){
+      rb._fb=1;
+      rb.addEventListener("click",async function(){
+        if(!(await __iosConfirm("删除上传的字体？删除后会回到系统默认字体。",{okText:"删除"})))return;
+        await dbDeleteKey(FONT_KEY);
+        try{if(window.__e11CustomFace)document.fonts.delete(window.__e11CustomFace);}catch(_){}
+        window.__e11CustomFace=null;window.__e11CustomLoaded=false;
+        state.settings=state.settings||{};
+        state.settings.fontFamily="system";
+        state.settings.customFontName="";
+        state.settings.__ts=Date.now();
+        try{__prefSave();}catch(e){}
+        applyFontFamily();
+        try{save();}catch(e){}
+        try{if(window.__flushSave)window.__flushSave();}catch(e){}
+        toast("已删除上传字体，恢复系统默认");
+      });
+    }
+    applyFontFamily();
+  }
+  function boot(){
+    bindFontUI();
+    loadCustomFont().then(function(){applyFontFamily();});
+  }
+  document.addEventListener("DOMContentLoaded",boot);
+  setTimeout(boot,300);setTimeout(boot,1500);setTimeout(boot,3000);
+})();
 (function(){
   function bind(){
     var btns=document.querySelectorAll("[data-avshape]");
@@ -21213,7 +21417,10 @@ function __dumpIDB(){
     try{
       var out={};
       var tx=db.transaction(STORE,"readonly"),st=tx.objectStore(STORE),rq=st.openCursor();
-      rq.onsuccess=function(){var c=rq.result;if(!c){res(out);return;}out[c.key]=c.value;c.continue();};
+      rq.onsuccess=function(){var c=rq.result;if(!c){res(out);return;}var k=String(c.key||'');
+      /* 上传字体是几十 MB 的 ArrayBuffer，不进 JSON 备份；备份/恢复后让用户重新上传即可，避免把备份撑爆或写成空对象 */
+      if(k==='e11.customFont.v1'){c.continue();return;}
+      out[c.key]=c.value;c.continue();};
       rq.onerror=function(){res(out);};
     }catch(e){res({});}
   });
@@ -21228,8 +21435,26 @@ function __restoreIDB(all,opts){
       var tx=db.transaction(STORE,"readwrite"),st=tx.objectStore(STORE);
       /* 只有“用户主动全量导入”才清空整库，保证备份原样覆盖。
          云端快照只带文字/state 时用 merge：绝不把本机已有的 bigimg/emojiimg 原图删掉。 */
-      if(!merge)st.clear();
-      Object.keys(all).forEach(function(k){try{st.put(all[k],k);}catch(_){}});
+      var putAll=function(){Object.keys(all).forEach(function(k){try{st.put(all[k],k);}catch(_){}});};
+      if(merge){putAll();}
+      else{
+        /* 上传字体单独留一份：全量导入不把它当普通数据清掉；字体文件太大，也不进 JSON 备份。 */
+        var keepFont=null;
+        try{var g=st.get("e11.customFont.v1");g.onsuccess=function(){keepFont=g.result||null;};}catch(_){}
+        var cur=st.openCursor();
+        cur.onsuccess=function(){
+          var c=cur.result;
+          if(c){
+            var _k=String(c.key||"");
+            if(_k.indexOf("bk_slot_")!==0&&_k!=="bk_snap_meta"&&_k!=="e11.customFont.v1"){try{c.delete();}catch(_){}}
+            try{c.continue();}catch(_){}
+            return;
+          }
+          if(keepFont){try{st.put(keepFont,"e11.customFont.v1");}catch(_){}}
+          putAll();
+        };
+        cur.onerror=function(){if(keepFont){try{st.put(keepFont,"e11.customFont.v1");}catch(_){}}putAll();};
+      }
       tx.oncomplete=function(){res(true);};
       tx.onerror=function(){res(false);};
     }catch(e){res(false);}
