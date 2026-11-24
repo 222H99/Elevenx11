@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183z39";
+window.__E11_BUILD="2026-11-24v43-183z40";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2748,7 +2748,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183z39">
+<meta name="app-build" content="2026-11-24v43-183z40">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -8465,11 +8465,13 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-183z39",
-  time:"2026-11-24 21:45",
+  date:"v43-183z40",
+  time:"2026-11-24 22:10",
   noticeKey:null,
-  lead:"2026-11-24 21:45 修改（v43-183z39）：预览正常、主站不一样，原因是主站旧 Service Worker 为了首屏速度，网络只要超过 450ms 就直接回旧缓存页；预览没有这份旧缓存，所以每次都是新版。现在在线时会等新版 HTML，旧缓存只留给断网。主站存满后消息写不进去，也加了配额抢救和会话兜底。",
+  lead:"2026-11-24 22:10 修改（v43-183z40）：发完后点返回、从动态/信件/留言/设置/通知再回聊天，整段消息空白。现在每次离开聊天都先同步写离站快照，每次从别的页面进聊天都强制重画；另外加了一份最多 300 条的独立聊天流水，主存档/离站快照没写上时也能按条补回来。删除和清空仍然优先。",
   items:[
+    "返回或切窗口后聊天整段空白（v43-183z40）：以前重新进聊天只看“签名有没有变”，签名没变就复用页面上的旧列表；别的入口把列表清掉、或者进程被回收后，就只剩空白。现在只要是从主页/动态/信件/留言/设置/通知进聊天，一律按当前存档强制重画，签名相同也画。",
+    "消息没存档、系统提示有但聊天没有（v43-183z40）：新增最多 300 条的独立聊天流水，每条文字消息发出时同步写，不依赖 10 条发件箱和离站快照。启动、重进聊天都会按 id+时间补回；删除墓碑和清空时刻先过滤，删掉的、清空前的一条都不会复活。",
     "主站显示旧版、预览正常（v43-183z39）：同一份 z38 部署到两边，线上 HTML 完全一致；差异来自主站浏览器/WebView 里的旧 Service Worker。旧逻辑导航时只等网络 450ms，2MB 的页面没下完就直接返回上一版缓存，主站就一直像没更新；预览是新缓存或没有旧缓存，所以正常。现在在线时先等 2.5 秒，没下完再等 4 秒，只有真断网才回旧缓存，主站下次打开一定拿新版。",
     "主站消息没存档、预览正常（v43-183z39）：主站用久了，localStorage 可能被十几张背景大图占满；写离站快照或发件箱时 setItem 静默失败，消息就真的没留下。预览是新环境、空间充足所以正常。现在写不进去会先清可再生缓存，再按时间只保留最近几张背景备份；还不行就写 sessionStorage 应急副本，启动时一起读回来，至少保证聊天和设置这份快照落盘。",
     "点返回消息就消失、没存档（v43-183z38）：聊天页的左上角返回和安卓系统返回，现在都会先把当前消息强制同步写进离站快照，再离开；不会再等 260ms 防抖或 IndexedDB 异步写完。每条文字消息发出时还会同步写一份最多 10 条的“发件箱”，即使进程被系统回收、主库没写进去，下次启动也会按 id+时间补回来；删除墓碑和清空时刻仍然优先，删掉的不会复活。",
@@ -11096,6 +11098,55 @@ function trimSocial(){
    这里每条消息发出时立刻同步写 localStorage（最多 10 条文字），下次启动按 id+时间补回。
    删除墓碑和清空时刻仍然优先，删掉的消息不会被它复活。 */
 window.__E11_MSG_OUTBOX_KEY="e11.msgout.v1";
+/* v43-183z40：发件箱只有 10 条，而且是按“最后一次启动”补；用户点返回/切窗口/被系统回收后
+   整段聊天消失时，10 条救不回全部。这里再加一份最多 300 条的独立聊天流水，只存文字和关键字段，
+   每次 pushMsg 同步写。启动和进聊天前都按 id+时间合并，删除墓碑和清空时刻仍然优先。 */
+window.__E11_CHAT_LOG_KEY="e11.chatlog.v1";
+window.__e11ChatLogRead=function(){
+  try{
+    var raw=localStorage.getItem(window.__E11_CHAT_LOG_KEY);if(!raw)return [];
+    var a=JSON.parse(raw);return Array.isArray(a)?a:[];
+  }catch(_eLogRead){return [];}
+};
+window.__e11ChatLogPut=function(m){
+  try{
+    if(!m||!m.id||m.type==="sys"||m.type==="poke")return false;
+    var a=window.__e11ChatLogRead();
+    var item={id:String(m.id),from:m.from==="me"?"me":"partner",type:String(m.type||"text"),text:String(m.text!==""&&m.text!==undefined?m.text:"").slice(0,4000),time:Number(m.time)||Date.now(),kind:String(m.kind||""),quoteId:m.quoteId||null,src:(typeof m.src==="string"&&m.src.length<=2000)?m.src:""};
+    var k=item.id+"|"+item.time+"|"+item.text;
+    a=a.filter(function(x){return x&&(String(x.id)+"|"+String(Number(x.time)||0)+"|"+String(x.text||""))!==k;});
+    a.push(item);a=a.slice(-300);
+    var raw=JSON.stringify(a);
+    try{localStorage.setItem(window.__E11_CHAT_LOG_KEY,raw);}
+    catch(_eLogFull){try{window.__e11QuotaRescue&&window.__e11QuotaRescue(2);localStorage.setItem(window.__E11_CHAT_LOG_KEY,raw);}catch(_eLogFull2){return false;}}
+    return true;
+  }catch(_eLogPut){return false;}
+};
+window.__e11ChatLogRestore=function(s){
+  try{
+    if(!s||!Array.isArray(s.messages))return 0;
+    var a=window.__e11ChatLogRead();if(!a.length)return 0;
+    var clr=Number(s.__chatClearedAt)||0;
+    var exists={};s.messages.forEach(function(m){
+      if(m&&m.id)exists[String(m.id)+"|"+String(Number(m.time)||0)+"|"+String(m.text!==undefined?m.text:"")]=1;
+    });
+    var n=0;
+    a.forEach(function(x){
+      if(!x||!x.id)return;
+      var t=Number(x.time)||0;
+      if(!t||t<Date.now()-30*24*3600*1000)return;
+      if(clr&&t<=clr)return;
+      try{if(window.__e11IsDeleted&&window.__e11IsDeleted("messages",String(x.id)))return;}catch(_eLogDel){}
+      var k=String(x.id)+"|"+String(t)+"|"+String(x.text!==undefined?x.text:"");
+      if(exists[k])return;
+      var _xt=String(x.type||"text"),_xsrc=String(x.src||"");
+      if(_xt==="image"&&!_xsrc)return;
+      s.messages.push({id:String(x.id),from:x.from==="me"?"me":"partner",type:_xt,text:String(x.text!==undefined?x.text:""),src:_xsrc,time:t,read:x.from!=="me",kind:String(x.kind||""),quoteId:x.quoteId||null});
+      exists[k]=1;n++;
+    });
+    return n;
+  }catch(_eLogRestore){return 0;}
+};
 window.__e11MsgOutboxPut=function(m){
   try{
     if(!m||!m.id||m.type!=="text")return false;
@@ -11246,6 +11297,7 @@ function __e11NormalizeMessages(s){
 function migrate(s){
   /* v43-183z37：主库/离站快照都没赶上时，把最后几条同步发件箱里的文字消息补回来。 */
   try{window.__e11MsgOutboxRestore&&window.__e11MsgOutboxRestore(s);}catch(_eOutMig){}
+  try{window.__e11ChatLogRestore&&window.__e11ChatLogRestore(s);}catch(_eLogMig){}
   try{__e11NormalizeMessages(s);}catch(_eMsgNorm){}
   /* v43-183z36：清空时刻不可能晚于现在。设备时钟回拨/存档带未来时间时，
      这个值会把之后的新消息当成“清空前的旧消息”吞掉；超过当前时间就作废。 */
@@ -16440,6 +16492,7 @@ function pushMsg(from,type,text,opts){
   state.messages.push(m);
   /* v43-183z37：同步留一份很小的文字发件箱，返回键/进程被回收也不会连最后一句都没存档 */
   try{window.__e11MsgOutboxPut&&window.__e11MsgOutboxPut(m);}catch(_eOutbox){}
+  try{window.__e11ChatLogPut&&window.__e11ChatLogPut(m);}catch(_eChatLog){}
   try{
     if(from==="me"&&(type==="text"||type==="image")&&!opts.catchup&&!opts.quiet&&!opts.sched){
       window.maybePartnerTapback&&window.maybePartnerTapback(id);
@@ -23844,7 +23897,13 @@ function showView(id){
       if(window.__chatReleaseTimer)clearTimeout(window.__chatReleaseTimer);
       var _vc0=document.getElementById("view-chat");
       var _mlNow=document.getElementById("msglist");
-      var _need=!_vc0||!window.__chatPrewarmed||window.__chatDirty||!_mlNow||!_mlNow.children.length||(typeof _chatSigNow==="function"&&_chatSigNow()!==_chatSig);
+      /* v43-183z40：只要不是“本来就在聊天页”，每次从主页/动态/信件/留言/设置/通知进来都强制重画，
+         不再依赖缓存签名。签名相同但 DOM 被别的窗口路径清掉时，用户看到的就是整页空白。 */
+      var _fromOtherView=!!(window.__curView&&window.__curView!=="view-chat");
+      /* 每次进聊天都先把独立聊天流水并回 state；这样即使主档/快照这次没写上，
+         人也不会看到“整段聊天没了”。删除墓碑和清空时刻在恢复函数里优先过滤。 */
+      try{window.__e11ChatLogRestore&&window.__e11ChatLogRestore(state);__e11NormalizeMessages&&__e11NormalizeMessages(state);}catch(_eLogEntry){}
+      var _need=_fromOtherView||!_vc0||!window.__chatPrewarmed||window.__chatDirty||!_mlNow||!_mlNow.children.length||(typeof _chatSigNow==="function"&&_chatSigNow()!==_chatSig);
       if(_need){
         window.__chatDirty=false;renderChat(true);setTimeout(function(){try{window.__chatForceVisible&&window.__chatForceVisible();}catch(_){}},80);window.__chatPrewarmed=1;window.__chatDirty=false;
       }
@@ -23891,6 +23950,11 @@ function showView(id){
     var _was=window.__curView;
     var _fadeFrom=null;
     if(_was&&_was!==id&&$(_was))_fadeFrom=$(_was);
+    /* v43-183z40：不只左上角返回，从聊天页去动态/信件/留言/设置/字卡或系统通知跳走时，
+       也先同步写一份离站快照，避免“从别的窗口回来整段聊天不见了”。 */
+    if(_was==="view-chat"&&id!=="view-chat"){
+      try{window.__e11Dirty=1;window.__e11ExitSave&&window.__e11ExitSave(state,true);}catch(_eLeaveChatSave){}
+    }
     if(!window.__viewInit){window.__viewInit=1;["view-chat","view-me","view-cards","view-settings","view-letters","view-guestbook","view-moments","view-redpacket","view-game","view-music","view-couple"].forEach(function(v){if(v!==id&&$(v))$(v).classList.remove("open");});}
     $(id).classList.add("open");window.__curView=id;
     try{
@@ -35520,7 +35584,13 @@ try{
         if(r&&r.active)r.active.postMessage({type:"query-build"});
       }).catch(function(){});}catch(e){}
     };
-    document.addEventListener("visibilitychange",function(){if(!document.hidden)__swAsk();});
+    document.addEventListener("visibilitychange",function(){
+      if(!document.hidden){
+        __swAsk();
+        /* v43-183z40：从后台/别的 App 回到聊天页，按状态强制重画一次；防止 DOM 丢了但签名没变导致空白。 */
+        try{if(window.__curView==="view-chat")setTimeout(function(){try{renderChat(true);}catch(_){}},120);}catch(_){}
+      }
+    });
     window.addEventListener("pageshow",__swAsk);
     /* 后台发现新版本：记下来，等切到后台时静默重载成新版（下次点开就是最新） */
     /* 新 sw 接管后不再无条件 reload：新 SW 可能只是先接住旧整页，
