@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-190z33f";
+window.__E11_BUILD="2026-11-25v43-191z33f";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2747,7 +2747,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-190z33f">
+<meta name="app-build" content="2026-11-25v43-191z33f">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -8532,11 +8532,13 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-190z33f",
-  time:"2026-11-24 22:24",
+  date:"v43-191z33f",
+  time:"2026-11-25 12:30",
   noticeKey:null,
-  lead:"2026-11-24 22:24 修改（v43-190z33f）：在 z33 原版上只修五项——麦克风权限、问卷键盘透出、字卡分组归位、离站数据原样、自动备份不吞聊天。",
+  lead:"2026-11-25 修改（v43-191z33f）：离站快照按体积降级，退出/更新前一定先落一份；自动恢复失败或中途退出后，下次进入会继续重试。",
   items:[
+    "更新退出后数据没保存（v43-191z33f）：离站快照以前把聊天和 2.6MB 全局外观拼成一个键，手机配额一满整份写失败。现在按体积逐级降级，先写完整、再写不带外观、最后至少保留最近 40 条聊天，保证退出时有一份能落盘。",
+    "自动恢复卡住（v43-191z33f）：上次自动恢复如果中途退出或失败，会留下 running/failed 标记，旧逻辑以后永久跳过。现在只把 done 当作成功，失败或中断下次进入自动重试；旧离站快照也不再按 7 天/24 小时丢弃。",
     "麦克风点了没反应（v43-190z33f）：录音前先查系统录音权限，没有权限就先弹系统授权；网页版仍然直接走浏览器授权。授权结果会回传页面，5 秒没等到才提示去系统设置允许录音。",
     "问卷打字透出聊天（v43-190z33f）：创建问卷、回答问卷两层改成整块不透明主题底色，深色模式变黑，键盘再高也只看到问卷本身。",
     "字卡分组乱跑（v43-190z33f）：启动、合并存档、每次渲染前按「类别+组名」合并同名重复组，卡片改到保留组；孤儿卡按分组名接回，找不到接回默认组或同类第一个组，不再堆进「未分组」。",
@@ -10163,8 +10165,9 @@ function __e11ExitGlobals(){
     __bkGlobalKeys().forEach(function(k){
       var v=null;try{v=localStorage.getItem(k);}catch(_){v=null;}
       if(v===null||v===undefined)return;
-      if(v.length>1200000)return;
-      if(total+v.length>2600000)return;
+      /* v43-191：单个美化键超过 300KB 就不进离站快照，避免整份快照被一张背景图撑爆配额。 */
+      if(v.length>300000)return;
+      if(total+v.length>900000)return;
       out[k]=v;total+=v.length;
     });
   }catch(e){}
@@ -10184,59 +10187,62 @@ function __e11ExitSave(st,force){
     window.__e11ExitSavedSig=_sig;
     try{__e11DiarySnapshot(st||state);}catch(_eDiaryExit){}
   }catch(_eExitSig){}
-  /* v43-111：离开网站前真正写一份“离站快照”。
-     旧版 v43-103 直接把这里 return false，导致改完设置/字卡马上退出时，
-     最后一次改动没进 IndexedDB，再进来就回到更早的数据。
-     这里只序列化文字核心（图片本体仍在 IndexedDB），体积小、同步写完不黑屏；
-     主库的图片/表情会和这份快照按 id 合并，不会被冲掉。 */
+  /* v43-191：离开网站前写一份“离站快照”。旧版把 2.6MB 的全局键和 3MB 的聊天拼在一个键里，
+     手机 localStorage 配额一满就整份写失败；用户看到的就是“更新/退出后数据还是没保存”。
+     现在按体积逐级降级：先带小全局键 → 再只带聊天 → 最后只留最近 40 条，保证至少有一份能落盘。 */
   try{
     if(window.__restoring)return false;
-    /* 主库读失败时，界面还能用，但绝不拿默认空档覆盖上一次的离站快照 */
     if(window.__e11ExitPreserve)return false;
-    /* v43-123：数据还在读 IndexedDB 时，绝不能用默认空档写离站快照 */
     if(window.__e11BootLoading&&!window.__e11ExitAllowEarly)return false;
-    /* 首屏数据还没从 IndexedDB 读出来时，state 只是默认空档。
-       这时刷新/退出绝不能写“空快照”，否则会把上一次的聊天和设置冲成默认。 */
     if(!window.__stateReady&&!window.__e11ExitAllowEarly)return false;
     var src=st||(typeof state!=="undefined"?state:null);
     if(!src)return false;
     var _exitTs=Date.now();
-    /* v43-120：退出前第一件事先把明暗主题落盘，后面再慢慢序列化聊天；
-       否则页面一被系统杀掉，用户刚切的夜间模式就丢了。 */
     try{
       var _ed=!!(src.skin&&src.skin.dark);
       if(src.skin&&src.skin.themeMode&&src.skin.themeMode!=="manual"&&window.matchMedia)_ed=!!window.matchMedia("(prefers-color-scheme: dark)").matches;
       localStorage.setItem("__theme.v1",_ed?"dark":"light");
     }catch(_eThemeExit){}
-    /* v43-122：退出快照默认带“全部聊天”，不再只留 500 条。
-       性能靠 JSON.stringify 一次的同步成本控制；只有真的超过 localStorage 配额时才降级截断。 */
-    var _srcExit=src;
-    var core=__e11TextCore(_srcExit);
+    var core=__e11TextCore(src);
     try{
       core.__savedAt=_exitTs;core.__exit=1;
-      /* v43-121：这份快照就是“退出这一刻”的最终状态，
-         设置/皮肤/资料的更新时间必须一起推到退出时间。
-         否则旧逻辑里主库的 profile.__ts 更大，合并时会把刚改的昵称/签名判成旧数据丢掉。 */
       ["settings","skin","profile"].forEach(function(k){
         if(core[k]&&typeof core[k]==="object")core[k].__ts=_exitTs;
       });
     }catch(_){}
-    var payload={app:"privateChat",exit:1,ts:_exitTs,state:core,globals:__e11ExitGlobals()};
-    var txt=JSON.stringify(payload);
-    /* 超过 3.2MB 先保留最近 500 条聊天，设置/皮肤/资料/字卡等一个不丢 */
-    if(txt.length>3.2*1024*1024&&Array.isArray(core.messages)){
-      core.messages=core.messages.slice(-500);
-      txt=JSON.stringify(payload);
+    var globals={};
+    try{globals=__e11ExitGlobals();}catch(_eGlobals){}
+    var _fullMsgs=Array.isArray(core.messages)?core.messages.slice():null;
+    var _make=function(keep,withGlobals){
+      var c=core;
+      try{c=Object.assign({},core);}catch(_){}
+      if(_fullMsgs)c.messages=keep?_fullMsgs.slice(-keep):_fullMsgs;
+      else if(c.messages)c.messages=[];
+      return JSON.stringify({app:"privateChat",exit:1,ts:_exitTs,state:c,globals:withGlobals?globals:{},mini:withGlobals?0:1});
+    };
+    /* 每档都先直接覆盖；失败才移除旧快照再重试，绝不把上一份完好快照提前删掉。 */
+    var _levels=[
+      [null,true],[null,false],
+      [800,true],[800,false],
+      [500,true],[500,false],
+      [300,false],[120,false],[60,false],[40,false]
+    ];
+    var _ok=false,_txt="",_used=null;
+    for(var _li=0;_li<_levels.length;_li++){
+      var _keep=_levels[_li][0],_wg=_levels[_li][1];
+      _txt=_make(_keep,_wg);
+      if(_txt.length>4700000)continue;
+      try{localStorage.setItem(__E11_EXIT_KEY,_txt);_ok=true;_used=_li;break;}
+      catch(_eFull){
+        try{localStorage.removeItem("bigPending");}catch(_eBig){}
+        try{
+          localStorage.removeItem(__E11_EXIT_KEY);
+          localStorage.setItem(__E11_EXIT_KEY,_txt);_ok=true;_used=_li;break;
+        }catch(_eFull2){}
+      }
     }
-    if(txt.length>4.2*1024*1024&&Array.isArray(core.messages)){
-      core.messages=core.messages.slice(-120);
-      txt=JSON.stringify(payload);
-    }
-    try{localStorage.setItem(__E11_EXIT_KEY,txt);}catch(_e1){
-      try{localStorage.removeItem("bigPending");}catch(_){}
-      try{localStorage.removeItem(__E11_EXIT_KEY);localStorage.setItem(__E11_EXIT_KEY,txt);}catch(_e2){return false;}
-    }
-    try{localStorage.setItem("e11.exit.meta.v1",JSON.stringify({ts:_exitTs,len:txt.length}));}catch(_eMeta){}
+    if(!_ok)return false;
+    try{localStorage.setItem("e11.exit.meta.v1",JSON.stringify({ts:_exitTs,len:_txt.length,level:_used,mini:(_levels[_used]&&_levels[_used][0]!==null)?1:0,counts:{messages:_fullMsgs?_fullMsgs.length:0,cards:(core.cards||[]).length,letters:(core.letters||[]).length,moments:(core.moments||[]).length,guestbook:(core.guestbook||[]).length}}));}catch(_eMeta){}
     try{window.__e11ExitSavedAt=_exitTs;}catch(_){}
     return true;
   }catch(e){return false;}
@@ -10250,6 +10256,17 @@ function __e11ExitRead(){
 }
 window.__e11ExitSave=__e11ExitSave;
 window.__e11ExitRead=__e11ExitRead;
+/* v43-191：每次改动写库成功后，最多隔 10 秒同步写一份离站快照。
+   这样即使 App 被系统直接杀掉、来不及触发 pagehide，更新/退出前的最后改动也已经在本机。 */
+window.__e11QuickSnap=function(){
+  try{
+    if(document.hidden||window.__restoring||!window.__stateReady)return;
+    var n=Date.now();
+    if(n-(Number(window.__e11QuickSnapAt)||0)<10000)return;
+    window.__e11QuickSnapAt=n;
+    __e11ExitSave(typeof state!=="undefined"?state:null);
+  }catch(_){}
+};
 /* 把离站快照并进主存档：设置/皮肤/资料整份以离站为准，聊天按 id 并集；
    同一条消息保留主库里的图片 src，只补文字/状态，避免“为了恢复设置把表情图冲没”。 */
 function __e11MergeExitState(s,e){
@@ -10258,9 +10275,9 @@ function __e11MergeExitState(s,e){
     var ex=e.state,ts=Number(e.ts||ex.__savedAt)||0;
     if(!ts)return false;
     var nowTs=Date.now();
-    /* 只接受最近 7 天的离站快照；更早的旧快照不能再把已经删掉的内容复活 */
-    if(ts<nowTs-7*24*3600*1000)return false;
-    if(ts<Number(s.__savedAt||0)-24*3600*1000)return false;
+    /* v43-191：不再用“7 天/24 小时”把旧离站快照挡掉。
+       用户更新前可能隔了很久才回来，旧快照正是他要恢复的数据；
+       删除由墓碑和清空时间过滤，设置按 __ts 比较，旧快照不会盖掉新改动。 */
     try{__e11NormalizeMessages(ex);__e11NormalizeMessages(s);}catch(_eNormExit){}
     /* 已经删除的东西不能因为旧离站快照又复活：把双方墓碑并起来先过滤。 */
     try{
@@ -10448,6 +10465,7 @@ function __flushSave(immediate){
         try{__writeLocalSnapshot(sig);}catch(_eLs){
           try{__e11StorageWarn("本次改动已存进本地库；空间紧张时图片会稍后补存");}catch(_){}
         }
+        try{if(window.__e11QuickSnap)window.__e11QuickSnap();}catch(_eQuickSnap1){}
       }).catch(function(err){
         var nm=(err&&err.name)||"Error";
         /* 主库也写不进时，至少把文字/设置写进 localStorage，不能让这次编辑白改。
@@ -10460,6 +10478,7 @@ function __flushSave(immediate){
         }catch(_eLs2){
           try{__e11StorageWarn("图片暂未写进本地库，文字和设置已经保存");}catch(_){}
         }
+        try{if(window.__e11QuickSnap)window.__e11QuickSnap();}catch(_eQuickSnap2){}
       });
     };
     if(_pend.length){
@@ -11000,9 +11019,11 @@ window.__e11PersistNow=function(){
     try{if(window.__commitSettingsActive)window.__commitSettingsActive();}catch(e){}
     try{
       window.__e11ExitFast=1;
-      /* 三个卸载事件可能在同一毫秒连续触发：只让第一次真正序列化并写备份。 */
-      if(window.__e11FlushDone){return;}
-      window.__e11FlushDone=1;
+      /* 三个卸载事件可能在同一毫秒连续触发：2 秒内只真正写一次。
+         旧版一旦写过就把 __e11FlushDone 永久置 1，切后台后再从最近任务里杀掉 App 时
+         pagehide 会直接 return，最后一次改动反而没写；现在超过 2 秒仍会再写一份。 */
+      if(window.__e11FlushDone&&Date.now()-(Number(window.__e11FlushAt)||0)<2000)return;
+      window.__e11FlushDone=1;window.__e11FlushAt=Date.now();
       var _dirty=!!window.__e11Dirty;
       try{if(window.__e11AutoSig&&__e11AutoSig()!==window.__e11AutoSigLast)_dirty=true;}catch(_eDirtySig){}
       if(_dirty)state.__savedAt=Date.now();
@@ -11850,7 +11871,8 @@ async function init(){
     try{
       var _exitMeta=null;try{_exitMeta=JSON.parse(localStorage.getItem("e11.exit.meta.v1")||"null");}catch(_eExMeta){}
       var _exitObj=null;
-      if(_exitMeta&&Number(_exitMeta.ts)>Date.now()-7*24*3600*1000)_exitObj=__e11ExitRead();
+      /* v43-191：只要离站快照还在就合并，不再因为超过 7 天而跳过。 */
+      if(_exitMeta)_exitObj=__e11ExitRead();
       else if(!s)_exitObj=__e11ExitRead();
       if(_exitObj&&_exitObj.state){
         if(!s)s=_exitObj.state;
@@ -38291,7 +38313,9 @@ body{margin:0;background:var(--bg,#fafafa);}
   /* v43-190：把现有登录复制一份独立备份，更新后即使主键没读出来也能自动进入。 */
   try{var _a=localStorage.getItem("e11.auth.v1");if(_a&&_a.length>2&&!localStorage.getItem("e11.auth.bak.v1"))localStorage.setItem("e11.auth.bak.v1",_a);}catch(_eAuthCopy){}
   var KEY="e11.autoRestore."+(window.__E11_BUILD||"build");
-  try{if(localStorage.getItem(KEY)==="done"||localStorage.getItem(KEY)==="running")return;}catch(_){}
+  /* v43-191：只把 done 当成“已经成功”。旧版 running/failed 会永久挡住下一次启动，
+     用户更新后中途退出一次，自动恢复就再也不会跑；现在失败/中断都会在下次进入重试。 */
+  try{if(localStorage.getItem(KEY)==="done")return;}catch(_){}
   var tries=0;
   var timer=setInterval(function(){
     tries++;
