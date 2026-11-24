@@ -252,7 +252,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183z";
+window.__E11_BUILD="2026-11-24v43-183z2";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -1300,6 +1300,20 @@ body:not(.app-ready) #view-chat{visibility:hidden !important;}
 .ck-tabs .ckt{flex:1;border:none;border-radius:12px;padding:9px 0;font-size:13px;font-weight:600;color:var(--sub,#8A8A8E);background:rgba(120,120,128,.10);}
 .ck-tabs .ckt.active{background:var(--accent,#3478F6);color:#fff;box-shadow:0 4px 12px rgba(52,120,246,.28);}
 .card-sec{margin-bottom:20px;}
+/* v43-184：窄屏下字卡页头和分组不横向溢出，按钮自动收窄，内容始终能完整看到 */
+#view-cards .v-head{flex-wrap:wrap;row-gap:6px;}
+#view-cards .v-head .v-title{min-width:86px;flex:1 1 100px;}
+#view-cards .v-head>div:last-child{flex-wrap:wrap;justify-content:flex-end;gap:5px;max-width:100%;}
+#view-cards .v-head .small-btn{padding:6px 8px!important;font-size:12px!important;min-width:0;}
+#view-cards .v-body{overflow-x:hidden;}
+.group-tabs{overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;padding-bottom:6px;}
+.group-tabs::-webkit-scrollbar{display:none;}
+.group-tab{max-width:calc(100vw - 44px);}
+.group-tab .gt-name{max-width:min(120px,38vw);}
+@media(max-width:360px){
+  #view-cards .v-head .small-btn{padding:5px 7px!important;font-size:11px!important;}
+  .group-tab{padding-left:9px;font-size:13px;}
+}
 .sec-label{font-size:13px;color:#8E8E93;margin-bottom:10px;font-weight:600;}
 .group-tabs{display:flex;flex-wrap:wrap;gap:8px;padding-bottom:4px;}
 .group-tab{flex:0 0 auto;border:1px solid var(--line);background:var(--panel);color:var(--ttext);padding:6px 6px 6px 12px;border-radius:16px;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:5px;min-height:42px;white-space:nowrap;-webkit-user-select:none;user-select:none;}
@@ -1431,7 +1445,7 @@ input[type=file][hidden]{display:block !important;position:fixed !important;left
 /* 红包金额输入会弹数字键盘：弹层自身限高并允许滚动，键盘收起/弹起时不会把确认按钮挤出屏幕 */
 #redpacket-sheet{max-height:calc(100% - 8px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;}
 /* ➕ 菜单仿微信：图标网格 */
-#plus-sheet{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:var(--field);}
+#plus-sheet{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:var(--field);max-height:calc(100% - env(safe-area-inset-top) - 8px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;}
 .plus-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 6px;padding:6px 14px 12px;}
 .plus-item{display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:none;padding:0;cursor:pointer;}
 .pi-ic{position:relative;width:52px;height:52px;border-radius:50%;background:var(--card,#fff);display:flex;align-items:center;justify-content:center;color:var(--ttext);box-shadow:0 1px 3px rgba(0,0,0,.07);}
@@ -1490,7 +1504,7 @@ body.ui-dark #overlay #sheet{background:rgba(38,38,42,.95);box-shadow:0 12px 34p
   background:rgba(255,255,255,.42);-webkit-backdrop-filter:blur(26px) saturate(180%);backdrop-filter:blur(26px) saturate(180%);
   color:var(--ttext);}
 .call-overlay.show{display:flex;}
-.call-main{display:flex;flex-direction:column;align-items:center;gap:16px;padding:24px;width:100%;}
+.call-main{display:flex;flex-direction:column;align-items:center;gap:clamp(10px,2.4vh,16px);padding:clamp(12px,3vh,24px) 16px;width:100%;max-height:100%;overflow-y:auto;box-sizing:border-box;-webkit-overflow-scrolling:touch;}
 .call-video-stage{position:absolute;inset:0;display:none;background:#0b0d12;overflow:hidden;}
 .call-video-stage .cvs-partner{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(2px) brightness(.75);transform:scale(1.06);transition:filter .25s;}
 .cvs-tag{position:absolute;top:calc(14px + var(--safe-top, env(safe-area-inset-top)));left:50%;transform:translateX(-50%);font-size:12px;color:rgba(255,255,255,.85);background:rgba(0,0,0,.35);padding:4px 10px;border-radius:999px;z-index:3;}
@@ -1507,12 +1521,12 @@ body.ui-dark #overlay #sheet{background:rgba(38,38,42,.95);box-shadow:0 12px 34p
 #call-overlay.video .call-controls{gap:14px;}
 #call-video-bg.custom{filter:none;transform:none;}
 #call-overlay.video .call-btn .cb-label{color:rgba(255,255,255,.85);}
-.call-avatar{width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,.7);background:var(--panel);
+.call-avatar{width:clamp(64px,16vh,100px);height:clamp(64px,16vh,100px);border-radius:50%;object-fit:cover;border:3px solid rgba(255,255,255,.7);background:var(--panel);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 10px 30px rgba(0,0,0,.12);}
 .call-name{font-size:22px;font-weight:600;}
 .call-status{font-size:14px;color:var(--sub);}
 .call-timer{font-size:17px;color:var(--sub);font-variant-numeric:tabular-nums;letter-spacing:1px;}
-.call-controls{display:flex;gap:20px;margin-top:18px;align-items:flex-end;}
+.call-controls{display:flex;gap:clamp(10px,3.4vw,20px);margin-top:clamp(8px,2.4vh,18px);align-items:flex-end;flex-wrap:wrap;justify-content:center;}
 .call-btn{width:64px;height:64px;border-radius:50%;border:1px solid rgba(255,255,255,.75);
   background:rgba(255,255,255,.55);-webkit-backdrop-filter:blur(14px) saturate(160%);backdrop-filter:blur(14px) saturate(160%);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 4px 14px rgba(0,0,0,.08);
@@ -1863,11 +1877,11 @@ body.ui-dark:not(.lt-preset) #view-letters .lt-sub .lt-body{color:#F2F2F7 !impor
 .lock-btn{width:min(250px,78%);margin-top:14px;padding:12px 0;border:none;border-radius:16px;background:linear-gradient(135deg,#3478F6,#5AC8FA);color:#fff;font-size:15px;font-weight:600;cursor:pointer;}
 .lock-tip{font-size:12px;color:rgba(20,22,28,.66);margin:0 0 22px;text-align:center;}
 /* v43-183z：锁屏/登录整屏白底，键盘弹起只加底部内边距，内容停在键盘上方 */
-body.e11-kb-on .lock-screen{justify-content:flex-start;padding:14px 20px 12px;}
+body.e11-kb-on .lock-screen{justify-content:flex-start;padding:calc(var(--safe-top,0px) + 16vh) 20px 12px;}
 body.e11-kb-on .lock-ico{display:none;}
 body.e11-kb-on .lock-sub{display:none;}
-body.e11-kb-on .lock-tip{display:block;font-size:11px;margin:0 0 10px;}
-body.e11-kb-on .lock-title{margin-bottom:6px;}
+body.e11-kb-on .lock-tip{display:none;}
+body.e11-kb-on .lock-title{margin-bottom:10px;}
 body.e11-kb-on .auth-gate{align-items:flex-start;padding-top:14px;padding-bottom:12px;}
 body.e11-kb-on .auth-card{margin-top:0;}
 /* ===== 开幕动画（水玻璃雨滴·宿命感） ===== */
@@ -2651,7 +2665,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183z">
+<meta name="app-build" content="2026-11-24v43-183z2">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4124,6 +4138,7 @@ setTimeout(function(){
           <span class="csb-info" id="csb-info">已选 0 条</span>
           <button class="small-btn ghost" id="btn-card-select-all">全选</button>
           <button class="small-btn ghost" id="btn-card-invert">反选</button>
+          <button class="small-btn ghost" id="btn-card-dedupe">去重</button>
           <button class="small-btn ghost" id="btn-card-move">移入分组</button>
           <button class="small-btn ghost" id="btn-card-copy-group">复制到</button>
           <button class="small-btn ghost" id="btn-card-replace">替换文字</button>
@@ -4398,7 +4413,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-24v43-183z</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-24v43-183z2</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -6820,16 +6835,15 @@ setTimeout(function(){
             /* 云端墓碑也可能被旧客户端写成“每个内容一条”：内容 172、墓碑 172，
                新设备本机没有墓碑时以前会原样保留，结果一拉就全被过滤成 0。 */
             if(cloudN>=minN&&((ln>=6&&localN<cloudN*0.6)||(sn>=6&&sn>=cloudN*0.6))){
-              try{delete st.deletedIds[k];}catch(_){}
+              /* v43-184：只标记“云端有内容”，绝不清墓碑；删掉的表情/内容必须保持删除。 */
               try{st.socialRestored=1;}catch(_){}
             }
           });
         }
       }catch(_eMass){}
       if((snap&&snap.socialRestored)||(st&&st.socialRestored))st.socialRestored=1;
-      if(((snap&&snap.socialRestored)||(st&&st.socialRestored))&&st&&st.deletedIds){
-        ["letters","guestbook","moments","emojis","partnerEmojis"].forEach(function(k){try{delete st.deletedIds[k];}catch(_){}});
-      }
+      /* v43-184：删除是永久意图。以前这里一旦看到 socialRestored 就把信件/留言/动态/表情的
+         本机墓碑整批删掉，旧云端档一合并，用户删过的表情和内容立刻复活。现在墓碑永不批量清除。 */
     }catch(_eSocialFlag){}
     try{__e11ApplyDeleted(st);}catch(_eApply){}try{applyTplDeleted(st);}catch(_eApplyTpl){}try{__e11FilterQuizBank(st);}catch(_eApplyQB){}
     try{__syncAvatarMirrors();}catch(_eApplyAv){}
@@ -6925,6 +6939,8 @@ setTimeout(function(){
       if(__reloading){window.__e11CloudPause=1;window.__restoring=1;return;}
       window.__e11CloudPause=0;
       try{__e11TombstoneScan(true);}catch(_eKnown){}
+      /* v43-184：云端合并完成后再按本机最后一次背景选择兜一次，避免旧 skin 把图盖回去。 */
+      try{if(window.__e11BgLocalRestore)window.__e11BgLocalRestore();}catch(_eBgDone){}
       /* 文字档一到就并行补头像/照片/表情/封面，不再等进页面 700ms 之后。 */
       try{setTimeout(function(){window.__e11TryMediaRepair&&window.__e11TryMediaRepair();},250);}catch(_eMediaSoon){}
       /* 音乐链接不再在启动/云端恢复后预热：没进音乐页时属于纯浪费流量。
@@ -7182,11 +7198,7 @@ setTimeout(function(){
       try{before.diary=((window.__e11StateGet&&window.__e11StateGet()||{}).diary&&Object.keys(((window.__e11StateGet&&window.__e11StateGet()||{}).diary.pages)||{}).length)||0;}catch(_bD){}
       var after={};cats.forEach(function(k){after[k]=Array.isArray(base[k])?base[k].length:0;});
       try{after.diary=base.diary&&base.diary.pages?Object.keys(base.diary.pages).length:0;}catch(_aD){}
-      try{
-        if(base.deletedIds){
-          ["letters","guestbook","moments","emojis","partnerEmojis"].forEach(function(k){if(after[k]>0)delete base.deletedIds[k];});
-        }
-      }catch(_eDeepDel){}
+      /* v43-184：深度恢复不再清掉删除墓碑，删过的东西不能因为“云端还有”就复活。 */
       var total=after.messages+after.cards+after.letters+after.guestbook+after.moments+(after.diary||0);
       if(!total)throw new Error("云端和本机备份里都没有内容");
       base.__savedAt=Date.now();
@@ -7981,8 +7993,13 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-24",
   noticeKey:null,
-  lead:"v43-183z：以 183n 稳定版为主线，补上背景设置同步落盘和锁屏键盘避让：换完卡片/主页/一起听背景后刷新、退出、更新都不会回旧图；锁屏输密码弹键盘时，密码框和按钮停在键盘上方，不再整片空白。",
+  lead:"v43-183z2：以 183n 稳定版为主线，修掉删除后复活、字卡重复和背景回旧图；字卡/加号/通话界面按屏幕自动收放，锁屏键盘弹起时密码框和按钮固定在键盘上方。",
   items:[
+    "删除永不复活（v43-183z2）：删掉的表情包、字卡、字卡分组不再被云端旧档、历史媒体修复或自动备份补回来。以前检测到“云端还有内容”会整批清掉本机删除墓碑，这是表情和字卡复活的主因；现在墓碑永久保留，媒体合并后也会再按墓碑过滤。",
+    "字卡自动去重（v43-183z2）：进入字卡页先按类别自动清掉跨分组重复，整份字卡同一句只留一条；多选工具栏新增「去重」按钮，勾选后点一下就能清掉当前类别的重复字卡。",
+    "字卡/加号/通话自适应（v43-183z2）：字卡页头和分组在窄屏自动换行/收窄，分组标签可横向滑动，不再横向溢出；加号菜单限高可滚动，矮屏也能看到全部功能；通话页头像、按钮间距按屏幕高度收放，控制键不会被挤出屏幕。",
+    "背景不再回旧图（v43-183z2）：卡片、主页、聊天、信件、留言、动态、一起听、通话等背景更换后，记住“本机最后一次选择”，刷新、退出、更新网站后无条件按它恢复；清空写墓碑，旧快照不能再补回。",
+    "锁屏密码页（v43-183z2）：键盘弹起时密码页不整体上推，标题固定在屏幕上方约 16% 处，密码框就在标题下面一点，登录按钮和忘记密码也始终在键盘上方。",
     "背景不再回旧图（v43-183z）：卡片背景、主页背景、一起听背景等更换后，先同步写本机设置/美化小备份和背景备份，再异步落云端。刷新、退出、更新网站后按最新选择恢复；用户明确清空的背景写墓碑，旧快照和历史媒体修复不能再补回来。",
     "一起听背景持久化（v43-183z）：一起听的数字背景预设以前不在美化管理里，只靠异步主库，换完马上刷新会回旧值。现在和设置/美化一起本机备份，短链接和预设都能跟着恢复。",
     "锁屏键盘避让（v43-183z）：键盘弹起时锁屏和登录页仍铺满整屏白底，只把底部内边距加到键盘高度；密码框、登录按钮、忘记密码提示都停在键盘上方，不会只留一片空白。",
@@ -11371,6 +11388,10 @@ function initKeyboardFix(){
      visualViewport，缩放舞台偶尔仍停在整屏高度，结果输入栏落到键盘下面。
      这里不再只信舞台高度，直接拿「聊天页顶边」和「真实可视底边」比一次：
      键盘占掉多少，就把聊天页高度收到键盘上沿，底部栏始终留在可视区里。 */
+  function __e11StableViewH(){
+    try{return Math.max(window.__uiStableH||0,window.__e11VHMax||0,window.innerHeight||0);}catch(_){return window.innerHeight||0;}
+  }
+  window.__e11VHMax=Math.max(window.__e11VHMax||0,window.innerHeight||0);
   function fitChatToKeyboard(){
     try{
       if(window.__deskFixed)return;
@@ -11378,6 +11399,7 @@ function initKeyboardFix(){
       if(!vc)return;
       const ae=document.activeElement;
       const typing=!!(ae&&ae.id==="msg-input");
+      if(!typing)window.__e11VHMax=window.innerHeight||window.__e11VHMax||0;
       if(!typing||!vc.classList.contains("open")){
         vc.style.height="";vc.style.bottom="";
         return;
@@ -11386,12 +11408,15 @@ function initKeyboardFix(){
       const innerH=window.innerHeight||0;
       const vvBottom=vv?((vv.offsetTop||0)+vv.height):innerH;
       const visBottom=Math.min(vvBottom||innerH,innerH||vvBottom||0);
-      const stable=window.__uiStableH||innerH||0;
-      const kbOpen=!!(stable&&((innerH&&innerH<stable-40)||(vv&&vv.height<stable-40)));
+      const stable=__e11StableViewH();
+      const kbH=Math.max(0,stable-(vv&&vv.height?vv.height:innerH));
+      const kbOpen=!!(stable&&(kbH>40||(innerH&&innerH<stable-40)));
       if(!kbOpen||!visBottom){
-        vc.style.height="";vc.style.bottom="";
+        vc.style.height="";vc.style.bottom="";vc.style.paddingBottom="";
         return;
       }
+      /* 键盘弹起时输入栏必须贴在键盘上沿，不能把输入栏留在舞台底部再露出空白。 */
+      vc.style.paddingBottom="0px";
       const r=vc.getBoundingClientRect();
       const avail=visBottom-r.top;
       if(avail<180){vc.style.height="";vc.style.bottom="";return;}
@@ -11414,7 +11439,8 @@ function initKeyboardFix(){
       const vv=window.visualViewport;
       const ae=document.activeElement;
       const typing=!!(ae&&(ae.tagName==="INPUT"||ae.tagName==="TEXTAREA"||ae.isContentEditable));
-      const stable=window.__uiStableH||window.innerHeight||0;
+      if(!typing)window.__e11VHMax=window.innerHeight||window.__e11VHMax||0;
+      const stable=__e11StableViewH();
       const vh=vv?vv.height:0;
       const kbOpen=!!(typing&&stable&&vh&&vh<stable-60);
       const panels=[document.getElementById("lock-screen"),document.getElementById("auth-gate")];
@@ -11765,6 +11791,10 @@ function setSkinImg(key,raw,after){
   try{
     if(!state.skin)state.skin={};
     state.skin[key]=raw;
+    state.skin.__ts=Date.now();
+    try{window.__settingsSaveSig=JSON.stringify(state.settings||{});}catch(_){}
+    try{window.__skinSaveSig=JSON.stringify(state.skin||{});}catch(_){}
+    try{__settingsBackup(true);}catch(_eSkinBak){}
     try{applySkin();}catch(e){}
     try{after&&after();}catch(e){}
     save();
@@ -11790,7 +11820,7 @@ function setSkinImg(key,raw,after){
       try{
         if(state.skin[key]!==raw)return;
         if(String(c).length>=String(raw).length&&String(raw).length<420000)return;
-        state.skin[key]=c;applySkin();try{after&&after();}catch(e){}save();try{__flushSave(true);}catch(e){}
+        state.skin[key]=c;state.skin.__ts=Date.now();try{__settingsBackup(true);}catch(_){}applySkin();try{after&&after();}catch(e){}save();try{__flushSave(true);}catch(e){}
       }catch(e){}
     });
   }catch(e){}
@@ -11811,6 +11841,8 @@ window.__E11_BG_PATHS=[
 ];
 window.__E11_BG_KEY=function(path){return "e11.bg.v2."+path.join("_");};
 window.__E11_BG_TS=function(path){return "e11.bg.v2.ts."+path.join("_");};
+window.__E11_BG_PICK_KEY=function(path){return "e11.bg.pick.v2."+path.join("_");};
+window.__E11_BG_PICK_TS=function(path){return "e11.bg.pick.v2.ts."+path.join("_");};
 window.__e11BgPathGet=function(path){
   var cur=(typeof state!=="undefined"&&state)||null;
   for(var i=0;i<path.length;i++){if(!cur)return "";cur=cur[path[i]];}
@@ -11821,21 +11853,22 @@ window.__e11BgLocalSync=function(){
     if(typeof state==="undefined"||!state)return;
     window.__E11_BG_PATHS.forEach(function(path){
       var v=window.__e11BgPathGet(path),k=window.__E11_BG_KEY(path);
+      var pk=window.__E11_BG_PICK_KEY(path),pt=window.__E11_BG_PICK_TS(path);
       try{
         if(!v){
           /* 空值不是“没有记录”，而是一个明确的“已清空”墓碑：
              否则刷新时主库/美化库里的旧图又会把刚清掉的背景补回来。 */
-          try{localStorage.setItem(k,"__empty__");localStorage.setItem(window.__E11_BG_TS(path),String(Date.now()));}catch(_){ }
+          try{localStorage.setItem(k,"__empty__");localStorage.setItem(window.__E11_BG_TS(path),String(Date.now()));
+            localStorage.setItem(pk,"__empty__");localStorage.setItem(pt,String(Date.now()));}catch(_){ }
           return;
         }
         if(v.indexOf("data:")!==0){
-          /* 外链背景（例如一起听里填的图片 URL）本身会随 state 持久化，
-             不能写成空墓碑，否则重开反而被清掉。 */
-          try{localStorage.removeItem(k);localStorage.removeItem(window.__E11_BG_TS(path));}catch(_){ }
+          /* 外链背景（一起听 URL 等）很短，直接记成“最后一次选择”，重开无条件用它。 */
+          try{localStorage.setItem(pk,v);localStorage.setItem(pt,String(Date.now()));localStorage.removeItem(k);localStorage.removeItem(window.__E11_BG_TS(path));}catch(_){ }
           return;
         }
         if(v.length>1200000)return;
-        try{localStorage.setItem(k,v);localStorage.setItem(window.__E11_BG_TS(path),String(Date.now()));}
+        try{localStorage.setItem(pk,"__data__");localStorage.setItem(pt,String(Date.now()));localStorage.setItem(k,v);localStorage.setItem(window.__E11_BG_TS(path),String(Date.now()));}
         catch(_eq){
           /* 空间紧：先清掉同一批里最旧的背景备份，再试当前这张 */
           try{
@@ -11856,10 +11889,33 @@ window.__e11BgLocalRestore=function(){
     window.__E11_BG_PATHS.forEach(function(path){
       var cur=window.__e11BgPathGet(path);
       var bak=null;try{bak=localStorage.getItem(window.__E11_BG_KEY(path));}catch(_){bak=null;}
+      var pick=null;try{pick=localStorage.getItem(window.__E11_BG_PICK_KEY(path));}catch(_){pick=null;}
+      /* v43-184：最后一次在本机选过的背景优先，云端/旧档合并多少次都按它恢复。
+         短外链直接存值；图片存 __data__，真实图在同路径的 dataURL 备份里。 */
+      if(pick==="__empty__"){
+        if(cur!==""){
+          var pObj=state;for(var pi=0;pi<path.length-1;pi++){if(!pObj[path[pi]]||typeof pObj[path[pi]]!=="object")pObj[path[pi]]={};pObj=pObj[path[pi]];}
+          pObj[path[path.length-1]]="";changed=true;
+        }
+        return;
+      }
+      if(pick&&pick!=="__data__"){
+        if(cur!==pick){
+          var pObj2=state;for(var pj=0;pj<path.length-1;pj++){if(!pObj2[path[pj]]||typeof pObj2[path[pj]]!=="object")pObj2[path[pj]]={};pObj2=pObj2[path[pj]];}
+          pObj2[path[path.length-1]]=pick;changed=true;
+        }
+        return;
+      }
       if(!bak||(bak.indexOf("data:")!==0&&bak!=="__empty__"))return;
       var bakTs=0;try{bakTs=Number(localStorage.getItem(window.__E11_BG_TS(path)))||0;}catch(_){}
       var st=path[0]==="skin"?(state.skin||{}):(state.settings||{});
       var curTs=Number(st&&st.__ts)||0;
+      if(pick==="__data__"){
+        /* 本机最后选的是图：有无条件恢复，避免云端旧 skin.__ts 把新图压回去。 */
+        if(cur!==bak){var dObj=state;for(var di=0;di<path.length-1;di++){if(!dObj[path[di]]||typeof dObj[path[di]]!=="object")dObj[path[di]]={};dObj=dObj[path[di]];}
+          dObj[path[path.length-1]]=bak;changed=true;}
+        return;
+      }
       if(bak==="__empty__"){
         /* 用户明确清空过：这个墓碑无条件生效。
            主库/美化库/云端旧档的图片都可能是异步补回来的，只有这里能兜住。 */
@@ -18129,6 +18185,7 @@ function __mergeMediaSnapshots(a,b){
       if(a[k])a[k][f]=ap;if(b[k])b[k][f]=bp;
     });
   }catch(e){}
+  try{if(window.__e11ApplyDeleted){window.__e11ApplyDeleted(a,["emojis","partnerEmojis","cards","groups"]);window.__e11ApplyDeleted(b,["emojis","partnerEmojis","cards","groups"]);}}catch(_eDelSnap){}
   return changed;
 }
 window.__mergeMediaSnapshots=__mergeMediaSnapshots;
@@ -18196,6 +18253,7 @@ function __mergeMediaRepair(repair){
       });
     }
   }catch(_e){}
+  try{if(window.__e11ApplyDeleted)window.__e11ApplyDeleted(t,["emojis","partnerEmojis","cards","groups"]);}catch(_eDelRepair){}
   return changed;
 }
 window.__mergeMediaRepair=__mergeMediaRepair;
@@ -18372,6 +18430,18 @@ function curEmojis(){
   return arr;
 }
 function setCurEmojis(arr){if(emojiSide==="partner")state.partnerEmojis=arr;else state.emojis=arr;}
+/* v43-184：删表情也写永久墓碑，云端/旧备份再合并也不会补回来。 */
+function markEmojiDeletedIds(ids){
+  var kind=(emojiSide==="partner")?"partnerEmojis":"emojis";
+  (ids||[]).forEach(function(id){
+    if(id===undefined||id===null||!String(id))return;
+    try{
+      state.deletedIds=state.deletedIds||{};state.deletedIds[kind]=state.deletedIds[kind]||{};
+      if(!state.deletedIds[kind][String(id)])state.deletedIds[kind][String(id)]=Date.now();
+      if(window.__e11MarkDeleted)window.__e11MarkDeleted(kind,id);
+    }catch(_e){}
+  });
+}
 function applyEmojiSize(){
   /* 表情大小（面板格子 + 聊天里发出的表情都跟着这个值缩放） */
   var px=Number(state.settings&&state.settings.emPx)||260;
@@ -18620,6 +18690,7 @@ $("btn-emoji-selall").addEventListener("click",()=>{
 $("btn-emoji-seldel").addEventListener("click",async()=>{
   if(!emojiSel.size){toast("先勾选要删除的表情");return;}
   if(!(await __iosConfirm("删除选中的 "+emojiSel.size+" 个表情？")))return;
+  markEmojiDeletedIds(Array.from(emojiSel));
   setCurEmojis(curEmojis().filter(x=>!emojiSel.has(x.id)));
   emojiSel.clear();save();renderEmojis();toast("已删除所选表情");
 });
@@ -18627,6 +18698,7 @@ $("btn-emoji-clearall").addEventListener("click",async()=>{
   const list=curEmojis();
   if(!list.length)return;
   if(!(await __iosConfirm("清空全部 "+list.length+" 个表情？")))return;
+  markEmojiDeletedIds(list.map(function(e){return e&&e.id;}));
   setCurEmojis([]);emojiSel.clear();save();renderEmojis();toast("已清空表情");
 });
 /* 表情大小设置已移除：不再绑定滑杆，尺寸固定默认 */
@@ -18831,6 +18903,8 @@ function bindCardKindTabs(){
   }
 }
 function renderCards(){
+  /* v43-184：每次进字卡页先自动清一次跨分组重复，保证整份字卡只留一条。 */
+  try{var _autoDup=dedupeCards(cardKindView);if(_autoDup){try{save();}catch(_){}}}catch(_eAutoDup){}
   const K=cardKindView;
   if(!groupsOfKind(K).length){
     try{state.groups.push({id:uid(),name:"默认分组",kind:K});save();}catch(e){}
@@ -18877,6 +18951,14 @@ function renderCards(){
     b.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();b.click();}});
   });
   $("grp-new").addEventListener("click",()=>{$("new-group-name").focus();});
+  try{
+    var _dbtn=document.getElementById("btn-card-dedupe");
+    if(_dbtn&&!_dbtn.__b){_dbtn.__b=1;_dbtn.addEventListener("click",function(){
+      var n=dedupeCards(cardKindView);
+      if(n){try{save();}catch(_){}}try{renderCards();}catch(_){}
+      toast(n?("已去重 "+n+" 条重复字卡"):"当前分组没有重复字卡");
+    });}
+  }catch(_eDbtn){}
   // 全部 / 本组字卡
   const list=$("card-list");
   const _isOrphan=activeGroupId===CARD_ORPHAN_GID;
