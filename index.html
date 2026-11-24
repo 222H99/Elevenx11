@@ -264,7 +264,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-24v43-183z6";
+window.__E11_BUILD="2026-11-24v43-183z7";
 /* v43-130：跨版本首启保护。老版本更新时来不及写 updateGuard，这里用「上次见过的 build」判断：
    本机已有设置小备份或 IDB 数据、但 build 变了，这一轮先信本机设置/皮肤，不让云端旧档盖回默认。
    首装（没有任何本机备份）不启用，云端恢复不受影响。 */
@@ -2685,7 +2685,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-24v43-183z6">
+<meta name="app-build" content="2026-11-24v43-183z7">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4433,7 +4433,7 @@ setTimeout(function(){
         <div class="set-row"><span class="set-label">永久存储<div class="set-sub" id="pwa-store-state">防止系统在空间紧张时清掉表情和图片；安装成 PWA 后更容易保留</div></span><button class="small-btn ghost" id="btn-pwa-persist" style="font-size:12px;padding:6px 12px;">申请</button></div>
         <div class="set-row"><span class="set-label">表情图体检<div class="set-sub" id="pwa-emoji-state">从本机库、缓存和备份里自动补回失效图</div></span><button class="small-btn ghost" id="btn-pwa-emoji-check" style="font-size:12px;padding:6px 12px;">检查</button></div>
       </div>
-      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-24v43-183z6</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">版本<div class="set-sub" id="build-txt">2026-11-24v43-183z7</div></span><button class="small-btn" id="btn-check-update" style="font-size:12px;padding:6px 12px;">检查更新</button></div></div>
       </div>
       <div class="set-page">
       <!-- 皮肤 -->
@@ -8082,8 +8082,9 @@ var ANNOUNCE={
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
   date:"2026-11-24",
   noticeKey:null,
-  lead:"v43-183z6：启动不再等存档，第一帧直接显示声明页/锁屏；已缓存后再进约 0.2 秒；第二页延后预铺、隐藏时不再重复测量；修复日记备份每次启动重复合并、重复弹“已找回”提示。",
+  lead:"v43-183z7：设置里点“检查更新”不再只弹提示——安卓端直接下载更新包，下载完自动拉起安装器；网页端发现新版直接换页。启动与缓存继续沿用 z6 的提速。",
   items:[
+    "检查更新一键安装（v43-183z7）：安卓端点“检查更新”发现新版后自动开始下载，不再需要点第二次“下载更新”；下载完成自动打开系统安装器。Android 8+ 第一次会跳“允许安装未知应用”，授权后返回自动继续，聊天记录保留。网页/PWA 端点检查更新仍会清运行时缓存并直接换到新版页面。另修正版本号后缀比较：z5/z6/z7 不再被当成同一版，检查更新能真正发现新版。",
     "启动白屏（v43-183z6）：首次进入不再等 IndexedDB 读完才撤启动层，声明页/密码页画出第一帧就自己揭幕；只有无门禁的返回用户才等存档，兜底从 1 秒延到 3.2 秒，避免数据慢时露出空白主页。本地实测启动层消失从约 1.2 秒降到约 0.58 秒。",
     "重复进入慢（v43-183z6）：Service Worker 改为缓存优先，有缓存立即返回，新版本在后台抓取并写回；不再每次点进都先等网络最多 2.6 秒。实测第二次打开 DOM 约 0.2 秒，断网也能正常进站。",
     "首页启动卡顿（v43-183z6）：第二页情侣空间从启动后 40ms 延到 1.2 秒再预铺，隐藏状态下不再跑整套 getBoundingClientRect/写样式；并加去重，避免定时器和滑动激活重复渲染同一页。",
@@ -20703,20 +20704,28 @@ $("sw-bg-sound")&&$("sw-bg-sound").addEventListener("click",function(){
 });
 /* 版本比较：app-build 形如 2026-11-18v38；日期相同再比 v 后缀 */
 function __cmpBuild(a,b){
-  /* v43-41 / v43-42 的第二段必须参与比较；以前只取 v 后面的 43，
-     导致同一天的所有 v43-x 全被判成同一个版本，检查更新永远说“已是最新”。 */
+  /* 版本形如 2026-11-24v43-183z7：日期、v 后的主版本、第二段、字母后缀、后缀数字
+     都要参与比较。旧实现的后缀只取字母，z5/z6/z7 会被当成同一个版本，
+     表现就是“检查更新永远说已是最新”。 */
   function parse(x){
     var s=String(x||"");
     var md=/(\d{4}-\d{2}-\d{2})/.exec(s);
-    var mv=/v(\d+)(?:-(\d+))?([a-z]*)/i.exec(s);
+    var mv=/v(\d+)(?:-(\d+))?([0-9a-z]*)/i.exec(s);
     if(!mv)return null;
-    var major=Number(mv[1]||0),minor=Number(mv[2]||0),letter=String(mv[3]||"").toLowerCase();
-    var lv=letter?letter.charCodeAt(0)-96:0;
-    return {d:md?md[1]:"",n:major*100000+minor*100+lv};
+    var suffix=String(mv[3]||"").toLowerCase();
+    var sm=/^([a-z]*)(\d*)$/.exec(suffix)||["", "", ""];
+    var letters=sm[1]||"",num=Number(sm[2]||0)||0;
+    var lv=0;
+    for(var i=0;i<letters.length;i++){lv=lv*26+(letters.charCodeAt(i)-96);}
+    return {d:md?md[1]:"",major:Number(mv[1]||0),minor:Number(mv[2]||0),lv:lv,num:num};
   }
   var x=parse(a),y=parse(b);if(!x||!y)return 0;
   if(x.d<y.d)return -1;if(x.d>y.d)return 1;
-  return x.n<y.n?-1:x.n>y.n?1:0;
+  if(x.major!==y.major)return x.major<y.major?-1:1;
+  if(x.minor!==y.minor)return x.minor<y.minor?-1:1;
+  if(x.lv!==y.lv)return x.lv<y.lv?-1:1;
+  if(x.num!==y.num)return x.num<y.num?-1:1;
+  return 0;
 }
 window.__cmpBuild=__cmpBuild;
 if($("btn-check-update"))$("btn-check-update").addEventListener("click",function(){
@@ -33671,7 +33680,7 @@ try{
       }
       bar.innerHTML='';
       var tx=document.createElement("div");tx.style.cssText="flex:1;min-width:0;line-height:1.35";
-      tx.innerHTML='发现新版本 <b style="font-weight:700">'+String(nb).replace(/[<>&]/g,"")+'</b><br><span style="opacity:.6;font-size:11px">下载后覆盖安装，聊天记录会保留</span>';
+      tx.innerHTML='发现新版本 <b style="font-weight:700">'+String(nb).replace(/[<>&]/g,"")+'</b><br><span style="opacity:.6;font-size:11px">点检查更新会自动下载并打开安装，聊天记录保留</span>';
       var go=document.createElement("button");go.textContent="下载更新";
       go.style.cssText="flex:none;border:0;border-radius:11px;padding:8px 12px;background:#fff;color:#111;font:700 12px -apple-system,sans-serif";
       go.onclick=function(){
@@ -33735,8 +33744,20 @@ try{
         if(apkMode()){
           var apkUrl=info.apk||"";
           if(!apkUrl){var vm=/v(\d+)-(\d+)/.exec(info.build||"");if(vm)apkUrl="https://github.com/222H99/Elevenx11/releases/tag/v"+vm[1]+"-"+vm[2];}
-          if(apkUrl)showApkUpdate(info.build,apkUrl);
-          if(manual)try{toast(apkUrl?"发现新版本 "+info.build+"，请下载安装包":"发现新版本 "+info.build+"，请到发布页下载安装包");}catch(_){}
+          if(apkUrl&&!manual)showApkUpdate(info.build,apkUrl);
+          if(manual){
+            if(apkUrl){
+              try{toast("发现新版本 "+info.build+"，正在下载更新…");}catch(_){}
+              try{var _apkBar=document.getElementById("apk-update-bar");if(_apkBar)_apkBar.style.display="none";}catch(_){}
+              try{
+                if(window.AndroidUI&&typeof AndroidUI.downloadApk==="function")AndroidUI.downloadApk(apkUrl);
+                else if(window.AndroidUI&&typeof AndroidUI.openUrl==="function")AndroidUI.openUrl(apkUrl);
+                else location.href=apkUrl;
+              }catch(_){try{location.href=apkUrl;}catch(__){}}
+            }else{
+              try{toast("发现新版本 "+info.build+"，请到发布页下载安装包");}catch(_){}
+            }
+          }
         }else if(manual){
           clearAutoUpdate();
           try{toast("发现新版本 "+info.build+"，正在更新…");}catch(_){}
