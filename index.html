@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-202z34";
+window.__E11_BUILD="2026-11-25v43-203z34";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2747,7 +2747,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-202z34">
+<meta name="app-build" content="2026-11-25v43-203z34">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4622,10 +4622,11 @@ setTimeout(function(){
       <div class="set-group">
         <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;">
           <div class="set-label" style="font-size:14px;">恢复数据</div>
+          <button class="small-btn ghost" style="width:100%;font-size:15px;padding:13px 12px;font-weight:700;color:var(--danger);" id="btn-recover-everything">恢复全部数据（含已删除）</button>
           <button class="small-btn ghost" style="width:100%;font-size:14px;padding:11px 12px;" id="btn-quick-restore">快速恢复（最近一份备份）</button>
         </div>
         <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;">
-          <button class="small-btn ghost" style="width:100%;font-size:14px;padding:11px 12px;" id="btn-recover-all2">恢复全部数据（本机 7 份 + 云端）</button>
+          <button class="small-btn ghost" style="width:100%;font-size:14px;padding:11px 12px;" id="btn-recover-all2">恢复全部数据（保留删除）</button>
         </div>
         <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;">
           <button class="small-btn ghost" style="width:100%;font-size:14px;padding:11px 12px;" id="btn-cloud-replace2">云端还原（用云端覆盖本机）</button>
@@ -7743,7 +7744,7 @@ setTimeout(function(){
       }catch(_eScopeAdd){}
       if(cloudFull&&cloudFull.state)add("云端完整档",cloudFull.state);
       if(cloud&&cloud.state)add("云端文字档",cloud.state);
-      var cats=["messages","cards","letters","guestbook","moments","redpackets","musicPlaylist","emojis","partnerEmojis","groups","favorites"];
+      var cats=["messages","cards","letters","guestbook","moments","redpackets","musicPlaylist","emojis","partnerEmojis","groups","favorites","musicRoomMsgs"];
       function score(st){
         var n=0;cats.forEach(function(k){if(Array.isArray(st[k]))n+=st[k].length;});
         try{if(Array.isArray(st.musicPlaylist))n+=st.musicPlaylist.length*2;}catch(_){}
@@ -7851,9 +7852,24 @@ setTimeout(function(){
 
       after={};cats.forEach(function(k){after[k]=Array.isArray(base[k])?base[k].length:0;});
       try{after.diary=base.diary&&base.diary.pages?Object.keys(base.diary.pages).length:0;}catch(_aD2){}
-      var total=after.messages+after.cards+after.letters+after.guestbook+after.moments+(after.diary||0);
+      try{after.musicRoomMsgs=Array.isArray(base.musicRoomMsgs)?base.musicRoomMsgs.length:0;}catch(_aMR){}
+      var total=after.messages+after.cards+after.letters+after.guestbook+after.moments+(after.diary||0)+(after.musicRoomMsgs||0);
       if(!total)throw new Error("云端和本机备份里都没有内容");
       base.__savedAt=Date.now();
+      if(_recAll){
+        /* v43-203：用户明确选“含已删除”时，先解除所有删除拦截，否则 applySnapshot
+           里的清空时间/一起听清空时间仍会把恢复出来的内容再过滤掉。 */
+        base.__chatClearedAt=0;base.musicRoomClearedAt=0;
+        if(base.deletedIds)base.deletedIds={};
+        try{state.deletedIds={};state.__chatClearedAt=0;state.musicRoomClearedAt=0;}catch(_eRecAllState){}
+        try{__e11DelLocalWrite({});}catch(_eRecAllLoc){}
+        try{localStorage.removeItem("e11.deleted.fp.v2");}catch(_eRecAllFp){}
+        /* 一起听的小备份键里也存着清空时间，必须一起归零，否则恢复出来的房间聊天会被它再过滤。 */
+        try{
+          var _mrBak=JSON.parse(localStorage.getItem("e11.musicRoom")||"null");
+          if(_mrBak&&typeof _mrBak==="object"){_mrBak.musicRoomClearedAt=0;localStorage.setItem("e11.musicRoom",JSON.stringify(_mrBak));}
+        }catch(_eRecAllMrBak){}
+      }
       /* v43-190z33f：深度恢复不清「只重置本机 / 一键清除」标记，
          否则清空后点恢复会把已经删掉的整库又拉回来。 */
       var _socialFlag=0;try{_socialFlag=(cloud&&cloud.socialRestored)||0;}catch(_){}
@@ -7861,6 +7877,7 @@ setTimeout(function(){
         if(_recAll){
           try{
             state.deletedIds={};state.__chatClearedAt=0;state.musicRoomClearedAt=0;
+            try{localStorage.removeItem("e11.deleted.fp.v2");}catch(_eRecAllFp2){}
             var _lm2=__e11DelLocalRead();
             ["messages","letters","guestbook","moments","cards","emojis","partnerEmojis","redpackets","musicRoomMsgs","groups","favorites","surveyHistory"].forEach(function(k){delete _lm2[k];});
             __e11DelLocalWrite(_lm2);
@@ -38478,6 +38495,23 @@ body{margin:0;background:var(--bg,#fafafa);}
         setTimeout(function(){location.reload();},900);
       }catch(e){toast("清理失败："+String(e&&e.message||e).slice(0,100));}
       b.disabled=false;b.textContent=old;
+    });
+    if($("btn-recover-everything"))$("btn-recover-everything").addEventListener("click",async function(){
+      if(!(await __iosConfirm("会把聊天、动态、信件、留言、一起听聊天和字卡全部并回来，你主动删除的也会恢复。继续？",{okText:"全部恢复"})))return;
+      if(!(await __iosConfirm("再次确认：删除过的内容会一起回来，之后要重新删。",{okText:"确认恢复"})))return;
+      var b=this,rs=$("restore-status");b.disabled=true;
+      if(rs){rs.style.display="block";rs.textContent="正在汇总本机备份、旧库和云端…";}
+      try{
+        var r=await window.__E11DeepRestore({all:1});
+        if(rs)rs.textContent="已恢复全部数据";
+        try{var dbg=$("restore-debug");if(dbg&&r.debug){dbg.style.display="block";dbg.textContent=r.debug.join("\n");}}catch(_){}
+        toast("已恢复全部：聊天 "+r.after.messages+" 条 · 动态 "+r.after.moments+" 条 · 信件 "+r.after.letters+" 封 · 留言 "+r.after.guestbook+" 条 · 一起听 "+(r.after.musicRoomMsgs||0)+" 条 · 日记 "+(r.after.diary||0)+" 页");
+        setTimeout(function(){location.reload();},900);
+      }catch(e){
+        if(rs)rs.textContent="恢复失败";
+        toast("全部恢复失败："+String(e&&e.message||e).slice(0,120));
+      }
+      b.disabled=false;
     });
     if($("btn-quick-restore"))$("btn-quick-restore").addEventListener("click",async function(){
       if(!(await __iosConfirm("只读最近一份备份和云端最新档，几秒内先恢复大部分内容；已删除的不会恢复。继续？",{okText:"快速恢复"})))return;
