@@ -21164,6 +21164,8 @@ window.__applyChatSizes=applyChatSizes;
     try{
       var k=curKey();
       document.documentElement.style.setProperty("--appfont",STACKS[k]);
+      /* 只有当前真的选了“我的字体”才去读几十 MB 的字体文件；用系统字体时启动不碰 IDB */
+      if(k==="custom"&&!window.__e11CustomLoaded&&!window.__e11FontLoading&&!window.__e11FontMissing){try{setTimeout(loadCustomFont,0);}catch(_){}}
       var sel=document.getElementById("set-font-family");
       if(sel&&sel.value!==k)sel.value=k;
       var nm=(state&&state.settings&&state.settings.customFontName)||"";
@@ -21190,7 +21192,7 @@ window.__applyChatSizes=applyChatSizes;
         face.load().then(function(){
           document.fonts.add(face);
           window.__e11CustomFace=face;
-          window.__e11CustomLoaded=true;
+          window.__e11CustomLoaded=true;window.__e11FontMissing=false;
           res(true);
         },function(err){rej(err||new Error("font-load"));});
       }catch(e){rej(e);}
@@ -21198,16 +21200,17 @@ window.__applyChatSizes=applyChatSizes;
   }
   function loadCustomFont(){
     if(window.__e11FontLoading)return window.__e11FontLoading;
+    if(curKey()!=="custom"){return Promise.resolve(false);}
     window.__e11FontLoading=(async function(){
       try{
         if(!db)await openDB();
         var rec=await dbGet(FONT_KEY);
-        if(!rec||!rec.buf){window.__e11CustomLoaded=false;applyFontFamily();return false;}
+        if(!rec||!rec.buf){window.__e11CustomLoaded=false;window.__e11FontMissing=true;applyFontFamily();return false;}
         await registerFace(rec);
         applyFontFamily();
         return true;
       }catch(e){
-        window.__e11CustomLoaded=false;applyFontFamily();
+        window.__e11CustomLoaded=false;window.__e11FontMissing=true;applyFontFamily();
         return false;
       }finally{
         window.__e11FontLoading=null;
@@ -21293,7 +21296,7 @@ window.__applyChatSizes=applyChatSizes;
         if(!(await __iosConfirm("删除上传的字体？删除后会回到系统默认字体。",{okText:"删除"})))return;
         await dbDeleteKey(FONT_KEY);
         try{if(window.__e11CustomFace)document.fonts.delete(window.__e11CustomFace);}catch(_){}
-        window.__e11CustomFace=null;window.__e11CustomLoaded=false;
+        window.__e11CustomFace=null;window.__e11CustomLoaded=false;window.__e11FontMissing=true;
         state.settings=state.settings||{};
         state.settings.fontFamily="system";
         state.settings.customFontName="";
