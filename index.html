@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-222z44";
+window.__E11_BUILD="2026-11-25v43-223z45";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -2786,7 +2786,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-222z44">
+<meta name="app-build" content="2026-11-25v43-223z45">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -10010,7 +10010,13 @@ window.__e11KeepRecentOnly=function(x){
 /* v43-108：启动后在后台比对最近一份完整备份，把“主存档里缺了、备份里还有”的内容按 id 补回来。
    只补不删，并遵守 deletedIds 墓碑；用户主动删掉的东西不会被复活。
    这样即使主存档被旧版写坏/只恢复了一半，历史消息和字卡也能自动回来。 */
-window.__bkMergeNewest=function(force){
+window.__bkMergeNewest=function(){
+  /* v43-223：自动备份不再参与启动合并。以前每次启动会拿最新自动备份往主档里补内容，
+     旧备份里的老消息被补回来，聊天时间看着就错乱，也像“莫名其妙回到旧档”。
+     现在只有进入时的整机快照决定状态；备份只能手动恢复。 */
+  return Promise.resolve(0);
+};
+window.__bkMergeNewestLegacy=function(force){
   try{
     /* v43-183z32：有最近的离站快照时，它就是上次离开的完整状态；
        自动备份只补“这次根本没读到存档”的情况，不再往正常状态里补旧内容。 */
@@ -12035,7 +12041,9 @@ window.__e11ChatLogRestore=function(s,forceAll){
 };
 function migrate(s){
   try{__e11NormalizeMessages(s);}catch(_eMsgNorm){}
-  try{window.__e11ChatLogRestore&&window.__e11ChatLogRestore(s);}catch(_eLogMig){}
+  /* v43-223：聊天流水也不在每次 migrate 时自动并回来。
+     它只在一键恢复的显式动作里用，否则旧流水会把已删/旧时间消息重新塞回聊天，造成顺序和時間错乱。 */
+  try{if(window.__e11AllowChatLogAuto===true&&window.__e11ChatLogRestore)window.__e11ChatLogRestore(s);}catch(_eLogMig){}
   /* v43-107：删掉内置的“开启私密聊天”欢迎语，老存档也一起清掉。 */
   try{
     if(s&&Array.isArray(s.messages)){
@@ -12887,6 +12895,15 @@ async function init(){
             var _curSaved=Number(state&&state.__savedAt)||0;
             if(Number(_sessSnap.ts)>=_curSaved-1500){
               var _sessState=_sessSnap.state;
+              /* 快照比主档还旧、且主档明显有更多更新的聊天时，不用它覆盖，避免旧档复活。
+                 正常退出时快照的消息不会比主档旧。 */
+              try{
+                var _curMsgs=(state&&Array.isArray(state.messages))?state.messages:[];
+                var _snMsgs=(_sessState&&Array.isArray(_sessState.messages))?_sessState.messages:[];
+                var _mxT=function(a){var m=0;a.forEach(function(x){var t=Number(x&&x.time)||0;if(t>m)m=t;});return m;};
+                var _ct=_mxT(_curMsgs),_st=_mxT(_snMsgs);
+                if(_curMsgs.length>_snMsgs.length&&_ct>_st+3600000){throw new Error("session-old");}
+              }catch(_eSessOld){if(String(_eSessOld&&_eSessOld.message)==="session-old")throw _eSessOld;}
               try{_sessState=await __hydrateBig(_sessState);}catch(_eSessHyd){}
               state=migrate(_sessState);
               window.__e11SessionUsed=1;
