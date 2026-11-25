@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-26v43-235z60f14";window.__E11_CODE=342;
+window.__E11_BUILD="2026-11-26v43-235z60f15";window.__E11_CODE=343;
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -1869,12 +1869,6 @@ body.env-open #btn-letters-back{visibility:hidden!important;pointer-events:none!
 /* v43-235z60f11：舞台高度可能比真正可视窗口高（底部被浏览器条盖住）。
    声明页/公告页/锁屏是 fixed+inset:0，会跟着撑到被盖住的区域，底部按钮就看不见。
    用 --ui-extra 把这三层底边收回可视区。 */
-/* v43-235z60f14：顶部再固定一个入口，不依赖页面底部是否被浏览器条/滚动吞掉 */
-#about-agree-top{position:fixed;top:calc(env(safe-area-inset-top) + 10px);left:50%;transform:translateX(-50%);
-  z-index:100011;display:none;border:0;border-radius:999px;padding:11px 26px;
-  background:linear-gradient(135deg,#3478F6,#5AC8FA);color:#fff;font-size:15px;font-weight:700;
-  box-shadow:0 8px 22px rgba(52,120,246,.35);cursor:pointer;}
-.about-screen.show #about-agree-top{display:block;}
 .announce-screen,.about-screen,.lock-screen{bottom:var(--ui-extra,0px)!important;}
 .about-screen{position:fixed;inset:0;z-index:100002;display:none;flex-direction:column;
   background-image:none;background-color:#FFFFFF;}
@@ -1886,17 +1880,17 @@ body.env-open #btn-letters-back{visibility:hidden!important;pointer-events:none!
 .about-scroll ul{padding-left:18px;margin-bottom:8px;}
 .about-scroll li{font-size:14px;line-height:1.7;color:#3a3d44;margin-bottom:4px;}
 .about-scroll .about-note{font-size:13px;color:#8e8e93;margin-top:20px;text-align:center;line-height:1.6;}
-/* v43-235z60f13：声明页整页可滚动时，原来的 flex 页脚会被排到 852 舞台底部、甚至被浏览器条盖住。
-   现在把“同意并进入”直接固定在可视区底部，永远不随内容滚走。 */
-.about-agree{position:fixed!important;left:12px!important;right:12px!important;
-  bottom:calc(env(safe-area-inset-bottom) + 18px + var(--ui-extra,0px))!important;
-  z-index:100010!important;flex-shrink:0;padding:8px;border-radius:20px;
-  background:rgba(255,255,255,.90);border:1px solid rgba(255,255,255,.72);
-  box-shadow:0 10px 30px rgba(0,0,0,.16);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);}
+/* v43-235z60f15：只留底部按钮，做成实心整条页脚，不再是浮在正文上的半透明栏 */
+.about-agree{position:fixed!important;left:0!important;right:0!important;
+  bottom:var(--ui-extra,0px)!important;
+  z-index:100010!important;flex-shrink:0;
+  padding:10px 24px calc(16px + env(safe-area-inset-bottom));
+  border-radius:0;background:#fff;border-top:1px solid rgba(0,0,0,.06);
+  box-shadow:0 -6px 20px rgba(0,0,0,.06);}
 body.ui-dark .about-screen,html.ui-dark .about-screen{background-color:#000!important;color:#f2f2f7!important;}
 body.ui-dark .about-scroll h2,body.ui-dark .about-scroll p,body.ui-dark .about-scroll li{color:#f2f2f7!important;}
 body.ui-dark .about-scroll .about-note{color:rgba(255,255,255,.55)!important;}
-body.ui-dark .about-agree{background:rgba(0,0,0,.92)!important;border-top-color:rgba(255,255,255,.10)!important;}
+body.ui-dark .about-agree{background:#000!important;border-top-color:rgba(255,255,255,.10)!important;}
 .about-agree-btn{display:block;width:100%;padding:14px 0;border:none;border-radius:16px;background:linear-gradient(135deg,#3478F6,#5AC8FA);color:#fff;font-size:15px;font-weight:600;cursor:pointer;}
 /* 夜间信件/来信详情：信纸强制深底，字才会看得见（白天预设不受影响） */
 /* 只有在「跟随主题」(0 号，无预设) 时才强制黑；用户选过彩色背景的，夜间也照旧显示 */
@@ -2845,7 +2839,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-26v43-235z60f14">
+<meta name="app-build" content="2026-11-26v43-235z60f15">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -5925,7 +5919,6 @@ setTimeout(function(){
 </div>
 <div class="about-screen" id="about-screen">
   <button id="about-x" aria-label="关闭作者声明" title="关闭">×</button>
-  <button id="about-agree-top" type="button">同意并进入</button>
   <div class="about-scroll">
     <h2>关于本站</h2>
     <p>Eleven×11 是一款仿 iMessage 风格的字卡网站。所有聊天数据都保存在你自己的浏览器里，不上传到任何服务器，也不会被任何人获取。</p>
