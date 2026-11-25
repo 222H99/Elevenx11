@@ -272,7 +272,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-26v43-236b9";
+window.__E11_BUILD="2026-11-26v43-236b10";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -2796,7 +2796,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-26v43-236b9">
+<meta name="app-build" content="2026-11-26v43-236b10">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -8941,11 +8941,12 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-236b9",
-  time:"2026-11-26 02:30",
+  date:"v43-236b10",
+  time:"2026-11-26 02:40",
   noticeKey:null,
   lead:"2026-11-26 修改（v43-236b7）：双方新增的评论、动态、信件、留言现在会即时落盘，同一条动态里后补的评论也会和另一台设备按 id 合并，不再被旧数组长度判断漏掉；另外固定为先声明页、再密码页，信件返回/收起/取消三处顶栏统一高度。",
   items:[
+    "聊天顶栏固定但会闪（v43-236b10）：上一版靠不停 scrollTo 把页面拉回顶部，和 Safari 抢滚动会闪。现在不再改滚动，而是让聊天页整页贴合 visualViewport：top 跟随可视区偏移、高度等于可视区高度，顶栏永远在可视区最上方，只有消息列表在变矮。",
     "聊天顶栏随键盘上移（v43-236b9）：iOS 聚焦输入框时会把整页往上顶，返回/头像/通话这一栏跟着跑出屏幕。现在聊天输入时把页面滚动锁回 0，并把残余的可视区平移量反向补到顶栏；顶栏位置不动，只有聊天记录区随键盘上沿收缩。",
     "信件顶栏按钮偏大（v43-236b8）：收起/信纸信封/回信/取消以前被撑到 44px，外框比「全部已读」大一圈。现在统一到 28px、12 号字，横向留白收窄，顶栏高度仍和信件主页返回栏一致。",
     "双方评论/动态/信件/留言不自动保存（v43-236b7）：以前退出签名只比较数组长度和最后一条 id，同一条动态里新加的评论、同一条信件/留言的修改都不会触发落盘，系统杀掉 App 就丢。现在按内容深度签名，并且社交内容一变就立刻写一份离站档。",
@@ -13495,6 +13496,7 @@ function initKeyboardFix(){
       const _clear=function(){
         vc.style.height="";vc.style.bottom="";vc.style.maxHeight="";vc.style.paddingBottom="";
         vc.style.position="";vc.style.top="";vc.style.left="";vc.style.right="";vc.style.width="";
+        vc.__kbTop=-1;vc.__kbH=-1;
         const bb0=vc.querySelector(".bottombar");if(bb0){bb0.style.transform="";bb0.style.paddingBottom="";}
         const hd0=vc.querySelector(".topbar");if(hd0){hd0.style.transform="";}
       };
@@ -13502,10 +13504,6 @@ function initKeyboardFix(){
       const vv=window.visualViewport;
       const innerH=window.innerHeight||0;
       const stable=__e11StableViewH();
-      /* v43-235z60b5：如果 WebView 已经把 innerHeight 缩到键盘上沿（adjustResize
-         或浏览器自己处理），说明布局视口已经在避让键盘，不能再把聊天页定成
-         vv 高度——两套尺寸同时改就是“一闪一闪”的根源。 */
-      if(innerH>0&&stable&&innerH<stable-40){_clear();return;}
       /* 只认可视区高度，不再把 offsetTop 算进来。页面被浏览器顶起时 offsetTop
          会把“键盘高度”算没，输入栏就正好藏到键盘后面。 */
       let visH=Math.max(0,Math.min(innerH||stable||0,(vv&&vv.height)||innerH||stable||0));
@@ -13520,28 +13518,25 @@ function initKeyboardFix(){
       const kbH=Math.max(0,stable-visH);
       const kbOpen=!!(stable&&visH&&kbH>40);
       if(!kbOpen||visH<180){_clear();return;}
-      /* 键盘弹起时把聊天页钉在物理屏幕顶部，高度就是键盘上沿；
-         不再依赖页面原来被滚到哪里，也不会把输入栏挤出屏幕。 */
-      try{document.documentElement.scrollTop=0;document.body.scrollTop=0;window.scrollTo(0,0);}catch(_eScroll0){}
-      /* v43-236b9：iOS 聚焦输入框时会把可视视口整体往上平移，顶栏（返回/头像/通话）
-         跟着跑出屏幕。这里把平移量反向补到顶栏，只让聊天记录区随键盘上推。 */
-      try{
-        const hd=vc.querySelector(".topbar");
-        const ot=Number((vv&&vv.offsetTop)||0)||0;
-        if(hd)hd.style.transform=ot?("translateY("+ot+"px)"):"";
-      }catch(_eHeadPan){}
-      const r=vc.getBoundingClientRect();
-      const _scale=(vc.offsetWidth>0&&r.width>0)?(r.width/vc.offsetWidth):1;
-      const _cssH=Math.max(180,Math.floor(visH/(_scale||1)));
+      /* v43-236b10：不再和 Safari 抢滚动位置（scrollTo 会一闪一闪）。
+         做法是让整个聊天页精确贴合 visualViewport：top 跟着可视区偏移，
+         高度就是可视区高度。Safari 把可视区往上顶多少，聊天页就跟着上移多少，
+         顶栏始终停在可视区最上方；只有中间的聊天列表在变矮，输入栏贴着键盘上沿。 */
+      const _ot=Math.max(0,Math.round(Number((vv&&vv.offsetTop)||0)||0));
+      const _scale=1;
+      const _cssH=Math.max(180,Math.round(visH));
+      if(vc.__kbTop===_ot&&vc.__kbH===_cssH&&vc.style.position==="fixed"){try{__chatPinNow();}catch(_){ }return;}
+      vc.__kbTop=_ot;vc.__kbH=_cssH;
       vc.style.paddingBottom="0px";
       vc.style.position="fixed";
-      vc.style.top="0px";
+      vc.style.top=_ot+"px";
       vc.style.left="0px";
       vc.style.right="0px";
       vc.style.bottom="auto";
       vc.style.width="100%";
       vc.style.maxHeight="none";
       vc.style.height=_cssH+"px";
+      const hd=vc.querySelector(".topbar");if(hd)hd.style.transform="";
       const bb=vc.querySelector(".bottombar");
       if(bb){bb.style.transform="";bb.style.paddingBottom="8px";}
       try{__chatPinNow();}catch(_){}
@@ -13680,20 +13675,6 @@ function initKeyboardFix(){
   function syncRaf(){if(__kbRaf)return;__kbRaf=requestAnimationFrame(function(){__kbRaf=0;try{sync();}catch(e){}});}
   window.visualViewport.addEventListener("resize",syncRaf);
   window.visualViewport.addEventListener("scroll",syncRaf);
-  /* 聊天输入时页面被浏览器顶起来就立刻拉回 0，顶栏不再随键盘上移 */
-  const kbScrollGuard=function(){
-    try{
-      const ae=document.activeElement;
-      const vc=document.getElementById("view-chat");
-      if(!vc||!vc.classList.contains("open"))return;
-      if(!(ae&&(ae.id==="msg-input"||(ae.closest&&ae.closest("#view-chat .input-wrap")))))return;
-      if(window.scrollY>1||document.documentElement.scrollTop>1||document.body.scrollTop>1){
-        window.scrollTo(0,0);document.documentElement.scrollTop=0;document.body.scrollTop=0;
-      }
-    }catch(_){}
-  };
-  window.visualViewport.addEventListener("scroll",kbScrollGuard,{passive:true});
-  window.addEventListener("scroll",kbScrollGuard,{passive:true});
   window.addEventListener("resize",sync);
   // 键盘收起 / 失焦 / 转屏 / 切页时强制复位，避免输入栏和通知弹窗停在页面中间
   function resetKbShift(){
