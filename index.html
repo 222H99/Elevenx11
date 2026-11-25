@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-231z55";
+window.__E11_BUILD="2026-11-25v43-232z57";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -2786,7 +2786,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-231z55">
+<meta name="app-build" content="2026-11-25v43-232z57">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -6436,6 +6436,29 @@ setTimeout(function(){
     });
     return clean;
   }
+  /* v43-232：恢复时同一条消息可能因为 type/__ts 被规范化过而键不一致，出现同 id 重复。
+     这里再按“id+发送方+时间+正文”折叠一次；同 id 但时间/正文不同的老复用消息仍然保留。 */
+  function __e11DedupeMsgs(list){
+    try{
+      if(!Array.isArray(list))return list;
+      var out=[],byId={},byContent={};
+      list.forEach(function(m){
+        if(!m||typeof m!=="object"){out.push(m);return;}
+        var id=String(m.id||m.mid||m.msgId||m.messageId||"");
+        var content=String(m.from||"")+"|"+(Number(__e11TimeMs(m.time))||0)+"|"+String(m.text!==undefined?m.text:(m.src||"")).slice(0,220);
+        var hit=id&&byId[id]!==undefined?byId[id]:byContent[content];
+        if(hit!==undefined&&hit>=0){
+          try{out[hit]=window.__e11FillFields?window.__e11FillFields(out[hit],m):Object.assign({},out[hit],m);}catch(_){out[hit]=Object.assign({},out[hit],m);}
+          return;
+        }
+        var idx=out.length;out.push(m);
+        if(id)byId[id]=idx;
+        if(content&&content!=="||")byContent[content]=idx;
+      });
+      return out;
+    }catch(_){return list;}
+  }
+  window.__e11DedupeMsgs=__e11DedupeMsgs;
   /* 删除也要同步：只靠“并集”会把用户删掉的聊天/字卡/信件又拉回来。
      这里给每条被删掉的记录记一个墓碑（kind + id），云端日志和完整档合并后按墓碑过滤。 */
   var __e11DeleteKinds=["messages","letters","guestbook","moments","cards","groups","musicPlaylist","musicRoomMsgs","favorites","emojis","partnerEmojis","redpackets","surveyHistory"];
@@ -7710,11 +7733,11 @@ setTimeout(function(){
     var _days=Number(opts&&opts.days)||0;
     try{var _curFix=window.__e11StateGet&&window.__e11StateGet();if(_curFix)window.__e11RepairBulkTombs&&window.__e11RepairBulkTombs(_curFix);}catch(_eDeepTombFix){}
     var cands=[];
-    function add(name,st){
+    function add(name,st,k4){
       if(!st||typeof st!=="object"||Array.isArray(st))return;
-      cands.push({name:name,st:st});
+      cands.push({name:name,st:st,keep4:(k4&&typeof k4==="object")?k4:null});
     }
-    try{var cur=window.__e11StateGet&&window.__e11StateGet();add("本机当前",cur);}catch(_){}
+    try{var cur=window.__e11StateGet&&window.__e11StateGet();add("本机当前",cur,__e11Keep4Read&&__e11Keep4Read());}catch(_){}
     try{var c=JSON.parse(localStorage.getItem("e11.core.v1")||"null");if(c&&c.state)add("文字核心档",c.state);}catch(_){}
     try{var e=JSON.parse(localStorage.getItem("e11.exit.v1")||"null");if(e&&e.state)add("离站快照",e.state);}catch(_){}
     /* 全量恢复：独立社交小备份、日记备份、设置备份也都算来源。 */
@@ -7769,13 +7792,13 @@ setTimeout(function(){
           localP=__bkMeta().then(function(m){
             var _keys=[BK_BEST];if(m&&m[0]&&m[0].slot!==undefined)_keys.push("bk_slot_"+m[0].slot);
             _paint("正在读取最近一份备份…");
-            return runPool(_keys,2,function(k){return __e11DbGetTimed(k,8000).then(function(v){return v&&v.state?v.state:null;});});
+            return runPool(_keys,2,function(k){return __e11DbGetTimed(k,8000).then(function(v){return v&&v.state?{st:v.state,k4:v.keep4||null}:null;});});
           });
         }else{
           var _keys=__bkSlots().concat([BK_BEST]);
           localP=runPool(_keys,3,function(k,i){
             _paint("正在快速读取本机备份 "+(i+1)+"/"+_keys.length+"…");
-            return __e11DbGetTimed(k,5000).then(function(v){return v&&v.state?v.state:null;});
+            return __e11DbGetTimed(k,5000).then(function(v){return v&&v.state?{st:v.state,k4:v.keep4||null}:null;});
           });
         }
       }
@@ -7826,19 +7849,19 @@ setTimeout(function(){
       var backs=res[0]||[],cloudWrap=res[1]||{},scopes=res[2]||[];
       var cloud=cloudWrap.latest||null,cloudFull=cloudWrap.full||null;
       _paint("正在合并内容…");
-      backs.forEach(function(st,i){add("自动备份"+(i+1),st);});
+      backs.forEach(function(o,i){add("自动备份"+(i+1),o&&o.st,o&&o.k4);});
       /* 其它登录作用域的主档和 3 个备份槽一起进候选。 */
       try{
         scopes.forEach(function(o){
           var label=(o.name||"旧库").replace("privateChatDB_v1","本机库");
-          if(o.db&&o.db.state)add(label+" 主档",o.db.state);
+          if(o.db&&o.db.state)add(label+" 主档",o.db.state,o.db.keep4||null);
           try{
-            __bkSlots().forEach(function(k,i){if(o.db&&o.db[k]&&o.db[k].state)add(label+" 备份"+(i+1),o.db[k].state);});
+            __bkSlots().forEach(function(k,i){if(o.db&&o.db[k]&&o.db[k].state)add(label+" 备份"+(i+1),o.db[k].state,o.db[k].keep4||null);});
           }catch(_eScopeBk){}
         });
       }catch(_eScopeAdd){}
-      if(cloudFull&&cloudFull.state)add("云端完整档",cloudFull.state);
-      if(cloud&&cloud.state)add("云端文字档",cloud.state);
+      if(cloudFull&&cloudFull.state)add("云端完整档",cloudFull.state,cloudFull.keep4||null);
+      if(cloud&&cloud.state)add("云端文字档",cloud.state,cloud.keep4||null);
       var cats=["messages","cards","letters","guestbook","moments","redpackets","musicPlaylist","emojis","partnerEmojis","groups","favorites","musicRoomMsgs"];
       function score(st){
         var n=0;cats.forEach(function(k){if(Array.isArray(st[k]))n+=st[k].length;});
@@ -7875,6 +7898,7 @@ setTimeout(function(){
         try{if(window.__e11MergeDiary)window.__e11MergeDiary(base,c.st);}catch(_eDeepDiary){}
       });
       try{__e11NormalizeMessages(base);}catch(_eDeepNormFinal){}
+      try{if(window.__e11DedupeMsgs)base.messages=__e11DedupeMsgs(base.messages);}catch(_eDeepDedupe){}
       /* v43-107：设置、美化皮肤、主页资料不能只补“空字段”。
          默认档里每个字段都有默认值，旧逻辑会认为不是空，于是云端的自定义颜色、
          背景、字号、昵称、签名永远进不来（换设备就是“设置/美化/资料没同步”）。
@@ -7916,6 +7940,23 @@ setTimeout(function(){
           });
         });
       }catch(_eDeepFill){}
+      /* v43-232：名字/图标/卡片头像/一起听图 这四项除了 state，还单独存在备份的 keep4 里。
+         以前深度恢复只挑 settings/profile，旧备份里完整的名字和图标没被应用，重进又被本机旧 keep4 盖回。 */
+      try{
+        var _bestK4=null,_bestK4Rev=-1,_bestK4Ts=0,_bestK4N=-1;
+        var _k4Fields=["meName","partnerName","homeName","partnerHomeName","chatName","chatHomeName","partnerChatName","partnerChatHomeName","myDisplayName","partnerDisplayName","cardMeAvatar","cardPartnerAvatar","meAvatar","partnerAvatar","musicCoverImg","musicDiscInnerImg"];
+        function _k4N(o){var n=0;_k4Fields.forEach(function(k){if(o&&o[k])n++;});try{if(o&&o.icons&&o.icons.all)n++;Object.keys((o&&o.icons&&o.icons.byId)||{}).forEach(function(k){if(o.icons.byId[k])n++;});}catch(_){ }return n;}
+        cands.forEach(function(c){
+          var o=c.keep4;if(!o||typeof o!=="object")return;
+          var r=Number(o.rev||0),t=Number(o.ts||0),n=_k4N(o);
+          if(r>_bestK4Rev||(r===_bestK4Rev&&(t>_bestK4Ts||(t===_bestK4Ts&&n>_bestK4N)))){_bestK4=o;_bestK4Rev=r;_bestK4Ts=t;_bestK4N=n;}
+        });
+        var _baseK4=__e11Keep4Pack(base)||{},_baseK4Rev=Number(_baseK4.rev||0)||0,_baseK4N=_k4N(_baseK4);
+        if(_bestK4&&(_bestK4Rev>_baseK4Rev||(_bestK4Rev===_baseK4Rev&&_bestK4N>_baseK4N))){
+          __e11Keep4ApplyObj(base,_bestK4);
+          window.__e11DeepBestK4=_bestK4;
+        }
+      }catch(_eDeepK4){}
       if(Array.isArray(base.messages))base.messages.sort(function(a,b){var ta=Number(a&&a.time)||0,tb=Number(b&&b.time)||0;return ta-tb;});
       var before={};cats.forEach(function(k){before[k]=Array.isArray((window.__e11StateGet&&window.__e11StateGet()||{})[k])?window.__e11StateGet()[k].length:0;});
       try{before.diary=((window.__e11StateGet&&window.__e11StateGet()||{}).diary&&Object.keys(((window.__e11StateGet&&window.__e11StateGet()||{}).diary.pages)||{}).length)||0;}catch(_bD){}
@@ -7989,6 +8030,13 @@ setTimeout(function(){
       /* v43-190z33f：深度恢复不清「只重置本机 / 一键清除」标记，
          否则清空后点恢复会把已经删掉的整库又拉回来。 */
       var _socialFlag=0;try{_socialFlag=(cloud&&cloud.socialRestored)||0;}catch(_){}
+      /* v43-232：深度恢复以前只在最后和“本机当前”补图；本机头像/照片/封面已经空掉时，
+         旧备份里的原图明明在也不会补。这里把所有候选里的空图位一次性补满。 */
+      try{
+        cands.forEach(function(c){
+          if(c&&c.st&&c.st!==base){try{__mergeMediaSnapshots(base,c.st);}catch(_eDeepMedia){try{window.__mergeMediaSnapshots&&window.__mergeMediaSnapshots(base,c.st);}catch(__){}}}
+        });
+      }catch(_eDeepMediaAll){}
       return applySnapshot({state:base,extras:{},coreOnly:0,deep:1,socialRestored:_socialFlag},{reloading:false,msgRestoreAll:_recAll,restoreAll:_recAll}).then(function(){
         if(_recAll){
           try{
@@ -8011,6 +8059,21 @@ setTimeout(function(){
           }catch(_eRecAllFix){}
           try{window.__e11IgnoreMsgDel=0;}catch(_eRecAllFlag){}
         }
+        /* v43-232：applySnapshot/合并阶段可能把刚恢复的四项图又洗掉，最后再把备份里的四项和空图位补一次。 */
+        try{
+          if(window.__e11DeepBestK4)__e11Keep4ApplyObj(state,window.__e11DeepBestK4);
+          cands.forEach(function(c){if(c&&c.st&&c.st!==state){try{__mergeMediaSnapshots(state,c.st);}catch(_eDeepMedia2){}}});
+        }catch(_eDeepReK4){}
+        /* v43-232：applySnapshot 还会把“本机当前”的社交内容并回来，最后再折一次重复消息。 */
+        try{if(window.__e11DedupeMsgs)state.messages=__e11DedupeMsgs(state.messages);}catch(_eDeepDedupe2){}
+        try{
+          var _rk4=__e11Keep4Pack&&__e11Keep4Pack(state);
+          if(_rk4){
+            try{localStorage.setItem(__E11_KEEP4_KEY,JSON.stringify(_rk4));}catch(_eRk4Ls){}
+            try{if(typeof dbSet==="function")dbSet("e11.keep4.v2",_rk4).catch(function(){});}catch(_eRk4Db){}
+          }
+        }catch(_eRk4){}
+        try{if(Array.isArray(state.messages))after.messages=state.messages.length;}catch(_eAfterMsg){}
         try{setTimeout(function(){window.__e11TryMediaRepair&&window.__e11TryMediaRepair();},250);}catch(_){}
         var _ms=Date.now()-_deepT0;
         try{var el=document.getElementById("deep-restore-sub");if(el)el.textContent="已恢复（"+(Math.round(_ms/100)/10)+" 秒）";}catch(_eMs){}
