@@ -12814,7 +12814,7 @@ async function init(){
     /* 第一次进入/重置后还要看声明页或密码页：这两层不依赖存档，先让它们出来，
        点“同意并进入”前不再被 1 秒启动层挡住。存档继续在后台读，读完再补主页。 */
     var _gatePending=false;
-    try{_gatePending=!(window.__lockPassed||window.__aboutDone)&&!(typeof __pwDevicePass==="function"&&__pwDevicePass());}catch(_eGate){
+    try{_gatePending=!(window.__lockPassed||window.__aboutDone)&&!(typeof __pwDevicePass==="function"&&__pwDevicePass())&&!(typeof __lockSessionValid==="function"&&__lockSessionValid());}catch(_eGate){
       _gatePending=!(window.__aboutDone||window.__lockPassed);
     }
     if(_gatePending){
@@ -33083,10 +33083,13 @@ function scheduleLetter(){
 
 /* ===== 作者声明页（每次开屏都显示） ===== */
 function initAbout(){
-  /* v43-106：这台设备已经输对过密码（没有重置标记）就直接进 App，
-     声明页和密码页都不再弹。第一次进入或一键重置后才会出现。 */
+  /* v43-234：同一个标签页里已经看过声明/已经通过密码，刷新、站内更新、检查更新
+     都不再重新弹声明页和密码页；只有新开的标签页/冷启动才重新走一遍。
+     以前只判 __pwDevicePass()（固定 false），于是每次 reload 声明页都盖回来。 */
   try{
-    if(__pwDevicePass()){
+    var _sameTabAbout=false;
+    try{_sameTabAbout=sessionStorage.getItem("e11.aboutAck.v1")==="1"||__lockSessionValid();}catch(_eSameTab){}
+    if(__pwDevicePass()||_sameTabAbout){
       window.__aboutDone=1;
       var _abSkip=document.getElementById("about-screen");if(_abSkip)_abSkip.classList.remove("show");
       try{var _vSkip=document.getElementById("__veil");if(_vSkip){_vSkip.style.opacity="0";setTimeout(function(){if(_vSkip&&_vSkip.parentNode)_vSkip.parentNode.removeChild(_vSkip);},200);}}catch(_){}
@@ -33152,6 +33155,7 @@ function initAbout(){
       return;
     }
     window.__aboutDone=1;
+    try{sessionStorage.setItem("e11.aboutAck.v1","1");}catch(_eAboutAck){}
     try{
       var _lkClick=document.getElementById("lock-screen");if(_lkClick)_lkClick.classList.add("show");
       var _agClick=document.getElementById("auth-gate");if(_agClick)_agClick.classList.remove("show");
@@ -33291,16 +33295,23 @@ try{
 })();
 function initLock(){
   if(window.__lockPassed){try{document.getElementById("lock-screen").classList.remove("show");}catch(_lpd){}return;}
-  /* v43-103：先把锁屏摆到屏幕上，再去等 state。以前 state 慢 1 秒，
-     用户点完“同意”看到的是一片空白，以为密码页又没了。 */
-  try{
-    var _lk0=document.getElementById("lock-screen");
-    if(_lk0)_lk0.classList.add("show");
-    var _g0=document.getElementById("auth-gate");if(_g0)_g0.classList.remove("show");
-    var _w0=document.getElementById("auth-wait-card");if(_w0)_w0.style.display="none";
-    document.body.classList.remove("auth-locked");
-  }catch(_lkShow0){}
-  if(typeof state==="undefined"||!state||!state.settings){setTimeout(initLock,120);return;}
+  /* v43-234：同一标签页已经通过密码（刷新/站内更新）时，绝不能再把密码页闪出来。
+     以前这里先把 .show 加上，等 state/会话校验完才撤，用户会看到密码页“乱弹”一下。
+     现在先看有没有本标签页放行标记：有就等 state，绝不提前显示；没有才立刻摆锁屏。 */
+  var _sessSaved=false;
+  try{_sessSaved=!!sessionStorage.getItem("e11.lockSession.v1");}catch(_sessSavedErr){}
+  if(typeof state==="undefined"||!state||!state.settings){
+    if(!_sessSaved){
+      try{
+        var _lk0=document.getElementById("lock-screen");
+        if(_lk0)_lk0.classList.add("show");
+        var _g0=document.getElementById("auth-gate");if(_g0)_g0.classList.remove("show");
+        var _w0=document.getElementById("auth-wait-card");if(_w0)_w0.style.display="none";
+        document.body.classList.remove("auth-locked");
+      }catch(_lkShow0){}
+    }
+    setTimeout(initLock,120);return;
+  }
   var _standalone=false;
   try{_standalone=typeof __pwaStandalone==="function"?__pwaStandalone():false;}catch(_eSa){}
   /* 一键重置后强制重新输密码，云端恢复回来的 unlocked 也不能绕过 */
@@ -33328,6 +33339,15 @@ function initLock(){
       state.settings.entryPwd=__lockHash(_raw||LOCK_DEFAULT);
     }
   }catch(_ePwMig){}
+  /* 已经在本标签页输对过密码：直接放行，锁屏保持隐藏，不闪一下 */
+  var _freeNow=(__pwDevicePass()||__lockSessionValid());
+  if(_freeNow){
+    try{state.settings.unlocked=true;}catch(_){}
+    window.__lockPassed=1;
+    try{document.getElementById("lock-screen").classList.remove("show");}catch(_){}
+    __afterLockPass();
+    return;
+  }
   const inp=$("lock-input");if(!inp)return;
   lockSetup=false;
   /* 网页版按“这次打开”记密码：同一个标签页内输对后不弹，新开网页仍然要输。
