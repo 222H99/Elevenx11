@@ -272,7 +272,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-26v43-236b5";
+window.__E11_BUILD="2026-11-26v43-236b6";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -1695,8 +1695,10 @@ body.ui-dark #overlay #sheet{background:rgba(38,38,42,.95);box-shadow:0 12px 34p
 /* 写信整页 */
 
 #lt-write-modal .lt-write-sheet{width:100%;max-width:100%;height:100%;max-height:100%;border-radius:0;display:flex;flex-direction:column;background:var(--paper-bg,#fff);background-image:var(--paper-img,none);background-size:cover;background-position:center;}
-#lt-write-modal .ltw-top{padding:10px 16px 6px;align-items:center;padding-top:calc(10px + var(--safe-top, env(safe-area-inset-top)));}
-#lt-write-modal .lt-write-sheet{padding-top:var(--safe-top, env(safe-area-inset-top));box-sizing:border-box;}
+#lt-write-modal .ltw-top{padding:10px 12px 10px;padding-top:calc(10px + var(--safe-top, env(safe-area-inset-top)));align-items:center;box-sizing:border-box;}
+#lt-write-modal .ltw-top .small-btn{min-height:44px;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;}
+#lt-write-modal .lt-write-sheet{padding:0;box-sizing:border-box;}
+#lt-write-modal .sheet-grip{display:none;}
 #lt-write-modal .lt-write-foot{padding-bottom:calc(10px + env(safe-area-inset-bottom));}
 #lt-write-modal .ltw-title{flex:1;text-align:center;font-size:16px;font-weight:700;color:var(--ttext,#111);}
 #lt-write-modal .lt-write{flex:1;display:flex;flex-direction:column;padding:0 16px 10px;}
@@ -1755,8 +1757,9 @@ body.ui-dark #overlay #sheet{background:rgba(38,38,42,.95);box-shadow:0 12px 34p
 .env-card .ev-page{display:flex;flex-direction:column;min-height:100%;}
 body.env-open #btn-letters-back{visibility:hidden!important;pointer-events:none!important;}
 .env-card .ev-main{border-radius:18px;padding:14px 16px;margin:0 0 12px;background-color:#ffffff;border:1px solid rgba(0,0,0,.06);box-shadow:0 6px 18px rgba(0,0,0,.05);}
-.env-card .ev-page-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:8px;padding:14px 16px 10px;background:rgba(255,255,255,.74);-webkit-backdrop-filter:blur(16px) saturate(150%);backdrop-filter:blur(16px) saturate(150%);border-bottom:1px solid rgba(0,0,0,.06);}
+.env-card .ev-page-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:8px;padding:10px 12px 10px;padding-top:calc(10px + var(--safe-top, env(safe-area-inset-top)));box-sizing:border-box;background:rgba(255,255,255,.74);-webkit-backdrop-filter:blur(16px) saturate(150%);backdrop-filter:blur(16px) saturate(150%);border-bottom:1px solid rgba(0,0,0,.06);}
 .env-card .ev-page-title{flex:1;text-align:center;font-size:16px;font-weight:700;color:var(--ttext,#1C1C1E);}
+.env-card .ev-page-head .small-btn{min-height:44px;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;}
 .env-card .ev-head-sp{width:56px;}
 .env-card .ev-scroll{flex:1;padding:16px;}
 .env-card .ev-sig{margin-top:12px;text-align:right;font-size:12.5px;line-height:1.7;color:var(--sub,#8E8E93);}
@@ -2793,7 +2796,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-26v43-236b5">
+<meta name="app-build" content="2026-11-26v43-236b6">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -8291,6 +8294,10 @@ setTimeout(function(){
       try{window.__cloudLoginOpen=0;}catch(_){}
       try{var _gateN=document.getElementById("auth-gate");if(_gateN)_gateN.classList.remove("show");}catch(_){}
       try{document.body.classList.remove("auth-locked");}catch(_){}
+      try{
+        var _abNow=document.getElementById("about-screen");
+        if(!window.__aboutDone&&_abNow&&_abNow.classList.contains("show"))return;
+      }catch(_){}
       try{if(typeof initLock==="function")initLock();}catch(_){}
       return;
     }
@@ -33174,6 +33181,8 @@ function initAbout(){
       if(!ab.classList.contains("show"))ab.classList.add("show");
       var ag=document.getElementById("auth-gate");
       if(ag&&ag.classList.contains("show"))ag.classList.remove("show");
+      var lk=document.getElementById("lock-screen");
+      if(lk&&lk.classList.contains("show"))lk.classList.remove("show");
     }catch(_){}
   };
   setTimeout(_keepAbout,120);setTimeout(_keepAbout,700);setTimeout(_keepAbout,1800);
@@ -33329,6 +33338,11 @@ try{
   setTimeout(function(){try{if(!localStorage.getItem("__e11ImportUpload")&&!localStorage.getItem("__e11HardReset"))clearInterval(_t);}catch(_){}},18000);
 })();
 function initLock(){
+  /* 声明页未同意前不弹密码页，保证顺序固定为：声明 → 密码 → 主页 */
+  try{
+    var _abLock=document.getElementById("about-screen");
+    if(!window.__aboutDone&&_abLock&&_abLock.classList.contains("show"))return;
+  }catch(_){}
   if(window.__lockPassed){try{document.getElementById("lock-screen").classList.remove("show");}catch(_lpd){}return;}
   /* v43-234：同一标签页已经通过密码（刷新/站内更新）时，绝不能再把密码页闪出来。
      以前这里先把 .show 加上，等 state/会话校验完才撤，用户会看到密码页“乱弹”一下。
