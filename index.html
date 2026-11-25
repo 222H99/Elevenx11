@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-26v43-235z60f18";window.__E11_CODE=346;
+window.__E11_BUILD="2026-11-26v43-235z60f19";window.__E11_CODE=347;
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -637,6 +637,12 @@ body.e11-has-mom-wall #view-moments .v-head{background:transparent !important;bo
   .bb-btn{width:34px;height:34px;min-height:34px;}
   .input-wrap{min-height:34px;}
   .msg-input{font-size:15px;padding:6px 10px;}
+/* v43-235z60f19：iOS 对字号小于 16px 的输入框会在聚焦时自动放大整页，
+   这是“键盘一弹就缩放”的根因，统一把可输入元素抬到 16px，避免自动 zoom。 */
+@media (pointer:coarse){
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+  textarea,[contenteditable="true"],[contenteditable=""]{font-size:16px!important;}
+}
   .msglist{padding:8px 12px 8px;}
   .msg-avatar{width:26px;height:26px;}
   .bubble{padding:6px 12px;font-size:14px;}
@@ -2836,7 +2842,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-26v43-235z60f18">
+<meta name="app-build" content="2026-11-26v43-235z60f19">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -39279,12 +39285,18 @@ body{margin:0;background:var(--bg,#fafafa);}
          固定 393×852 设计稿，只做整体等比 scale，绝不再按屏宽改逻辑宽度。
          屏幕更宽/更窄都只是整体放大或缩小，内容不会横向被拉宽。 */
       var DW=393, DH=852;
-      var k=Math.min(w/DW,h/DH);
+      /* v43-235z60f19：键盘弹起时 visualViewport 变矮，但整页比例不能跟着缩。
+         第一次按稳定屏高算出的 k 存起来，输入过程中直接复用；只有键盘收起、
+         横竖屏/窗口真的变了才重新算。 */
+      var _scaleH=h;
+      if(_typing&&window.__uiFrozenH){_scaleH=window.__uiFrozenH;}
+      else if(!_typing){window.__uiFrozenH=h;}
+      var k=Math.min(w/DW,_scaleH/DH);
       k=Math.min(1.4,Math.max(0.6,k));
       if(Math.abs(k-1)<0.004)k=1;
       var rw=DW, rh=DH;
       var left=Math.max(0,Math.round((w-DW*k)/2));
-      var top=Math.max(0,Math.round((h-DH*k)/2));
+      var top=Math.max(0,Math.round((_scaleH-DH*k)/2));
       var _sig=[w,h,k,rw,rh,left,top,voffX,voffY].join("|");
       if(window.__uiSig===_sig)return;
       window.__uiSig=_sig;
