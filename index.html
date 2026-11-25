@@ -20,7 +20,7 @@ body{visibility:hidden;}
 @media (prefers-color-scheme:dark){html,body{background:#141416;}}
 </style>
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#ffffff" id="theme-color-meta">
+<meta name="theme-color" content="#00000000" id="theme-color-meta">
 <script>try{if(/iPad|iPhone|iPod/.test(navigator.userAgent)&&(navigator.standalone===true||matchMedia("(display-mode: standalone)").matches))document.documentElement.classList.add("ios-standalone");}catch(e){}</script>
 <script>
 /* ================= iOS 风格确认弹窗（网页和 APK 共用） ================= */
@@ -112,7 +112,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
   document.documentElement.style.background=bg;
   document.documentElement.setAttribute("data-boot",dark?"dark":"light");
   /* v43-173：首屏就把 theme-color 写成全透明，不再先闪白条/黑条。 */
-  try{var _tc=document.getElementById("theme-color-meta");var _darkSys=false;try{_darkSys=!!(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches);}catch(_eDs){}_tc.setAttribute("content",_darkSys?"#000000":"#ffffff");}catch(e){}
+  try{var _tc=document.getElementById("theme-color-meta");if(_tc)_tc.setAttribute("content","#00000000");}catch(e){}
   /* 第一帧就告诉系统「这块内容是深/浅色」：iOS 的顶栏（时间/信号/电量）会据此立刻上色，
      不用等到后面 applySkin() 再同步（那一段就是「顶栏很久才变过来」） */
   try{document.documentElement.style.colorScheme=dark?"dark":"light";}catch(e){}
@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-26v43-235z60f19";window.__E11_CODE=347;
+window.__E11_BUILD="2026-11-26v43-235z60";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -292,49 +292,6 @@ window.__E11_BUILD="2026-11-26v43-235z60f19";window.__E11_CODE=347;
     var clear=[];try{if(window.caches&&caches.keys)clear.push(caches.keys().then(function(ks){return Promise.all((ks||[]).map(function(k){return caches.delete(k);}));}));}catch(_){}
     Promise.all(clear).then(go).catch(go);
     setTimeout(go,1200);
-  }catch(_){}
-})();
-/* v43-235z60f11：进入即最新版。
-   不再等首屏空闲 350ms 才查版本，也不等旧 Service Worker 的 450ms 缓存。
-   页面一启动就查 version.json（带时间戳 no-store）；只要线上 versionCode 更高，
-   就立刻注销旧 SW、清掉旧 shell 缓存、带时间戳重进一次。
-   只对「更高版本」生效，CDN 短暂回旧不会把页面降级；同一会话同一新版只重进一次，不会死循环。 */
-(function(){
-  try{
-    if(window.AndroidUI)return;
-    if(!/^https?:$/.test(location.protocol))return;
-    var _b=window.__E11_BUILD,_c=Number(window.__E11_CODE)||0;
-    var _u="./version.json?__e11boot="+Date.now().toString(36);
-    var _done=false,_to=null,_ctrl=null;
-    function _again(){
-      if(_done)return;_done=true;
-      var _key="e11.entryFresh."+_c;
-      try{if(sessionStorage.getItem(_key))return;sessionStorage.setItem(_key,"1");}catch(_){}
-      function _go(){
-        try{
-          var _n=new URL(location.href);_n.searchParams.set("__e11fresh",Date.now().toString(36));
-          location.replace(_n.href);
-        }catch(_){try{location.reload();}catch(__){}}
-      }
-      var _p=[];
-      try{
-        if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations){
-          _p.push(navigator.serviceWorker.getRegistrations().then(function(rs){
-            return Promise.all((rs||[]).map(function(r){try{return r.unregister();}catch(_){return null;}}));
-          }).catch(function(){}));
-        }
-      }catch(_){}
-      try{if(window.caches&&caches.keys)_p.push(caches.keys().then(function(ks){return Promise.all((ks||[]).map(function(k){return caches.delete(k);}));}).catch(function(){}));}catch(_){}
-      Promise.all(_p).then(_go,_go);
-      setTimeout(_go,900);
-    }
-    try{if(typeof AbortController!=="undefined"){_ctrl=new AbortController();_to=setTimeout(function(){try{_ctrl.abort();}catch(_){}},1300);}}catch(_){}
-    fetch(_u,{cache:"no-store",credentials:"omit",signal:_ctrl?_ctrl.signal:undefined}).then(function(r){return r&&r.ok?r.json():null;}).then(function(j){
-      if(_to)clearTimeout(_to);
-      if(!j)return;
-      var _rc=Number(j.versionCode)||0;
-      if(_rc>_c)_again();
-    }).catch(function(){if(_to)clearTimeout(_to);});
   }catch(_){}
 })();
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
@@ -482,8 +439,8 @@ window.addEventListener("appinstalled",function(){window.__e11InstallPrompt=null
       name:"Eleven×11",short_name:"11×11",
       description:"两个人的私密空间：聊天、动态、信件、留言板、字卡、一起听",
       id:root,start_url:base,scope:root,
-      display:"fullscreen",display_override:["fullscreen","standalone","minimal-ui"],orientation:"any",
-      background_color:"#fafafa",theme_color:"#ffffff",lang:"zh-CN",dir:"ltr",
+      display:"standalone",display_override:["standalone","minimal-ui"],orientation:"any",
+      background_color:"#fafafa",theme_color:"#00000000",lang:"zh-CN",dir:"ltr",
       categories:["social","lifestyle"],prefer_related_applications:false,
       launch_handler:{client_mode:"navigate-existing"},
       icons:[
@@ -637,12 +594,6 @@ body.e11-has-mom-wall #view-moments .v-head{background:transparent !important;bo
   .bb-btn{width:34px;height:34px;min-height:34px;}
   .input-wrap{min-height:34px;}
   .msg-input{font-size:15px;padding:6px 10px;}
-/* v43-235z60f19：iOS 对字号小于 16px 的输入框会在聚焦时自动放大整页，
-   这是“键盘一弹就缩放”的根因，统一把可输入元素抬到 16px，避免自动 zoom。 */
-@media (pointer:coarse){
-  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
-  textarea,[contenteditable="true"],[contenteditable=""]{font-size:16px!important;}
-}
   .msglist{padding:8px 12px 8px;}
   .msg-avatar{width:26px;height:26px;}
   .bubble{padding:6px 12px;font-size:14px;}
@@ -1872,28 +1823,21 @@ body.env-open #btn-letters-back{visibility:hidden!important;pointer-events:none!
 #about-x{display:none;position:fixed;top:calc(10px + var(--safe-top, env(safe-area-inset-top)));right:14px;z-index:100005;width:38px;height:38px;border:0;border-radius:50%;background:rgba(120,120,128,.28);color:#fff;font-size:24px;line-height:36px;text-align:center;padding:0;cursor:pointer;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);}
 #about-x.show{display:block;}
 .about-x-dark{background:rgba(255,255,255,.18)!important;}
-/* v43-235z60f11：舞台高度可能比真正可视窗口高（底部被浏览器条盖住）。
-   声明页/公告页/锁屏是 fixed+inset:0，会跟着撑到被盖住的区域，底部按钮就看不见。
-   用 --ui-extra 把这三层底边收回可视区。 */
-.announce-screen,.about-screen,.lock-screen{bottom:var(--ui-extra,0px)!important;}
 .about-screen{position:fixed;inset:0;z-index:100002;display:none;flex-direction:column;
   background-image:none;background-color:#FFFFFF;}
 .about-screen.show{display:flex;}
-.about-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:40px 24px 28px;}
+.about-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:40px 24px 20px;}
 .about-scroll h2{font-size:17px;font-weight:700;color:#1c1f26;margin:24px 0 10px;}
 .about-scroll h2:first-child{margin-top:0;}
 .about-scroll p{font-size:14px;line-height:1.7;color:#3a3d44;margin-bottom:8px;}
 .about-scroll ul{padding-left:18px;margin-bottom:8px;}
 .about-scroll li{font-size:14px;line-height:1.7;color:#3a3d44;margin-bottom:4px;}
 .about-scroll .about-note{font-size:13px;color:#8e8e93;margin-top:20px;text-align:center;line-height:1.6;}
-/* v43-235z60f16：按钮放回正文末尾，跟着声明内容一起滚。
-   不再有固定页脚/实心栏，也就没有底部那条“透出来的固定栏”。 */
-.about-agree{position:static!important;margin:28px 0 10px;padding:0;
-  background:transparent;border:0;box-shadow:none;border-radius:0;}
+.about-agree{flex-shrink:0;padding:12px 24px calc(16px + env(safe-area-inset-bottom));background:rgba(255,255,255,.88);border-top:1px solid rgba(255,255,255,.7);}
 body.ui-dark .about-screen,html.ui-dark .about-screen{background-color:#000!important;color:#f2f2f7!important;}
 body.ui-dark .about-scroll h2,body.ui-dark .about-scroll p,body.ui-dark .about-scroll li{color:#f2f2f7!important;}
 body.ui-dark .about-scroll .about-note{color:rgba(255,255,255,.55)!important;}
-body.ui-dark .about-agree{background:#000!important;border-top-color:rgba(255,255,255,.10)!important;}
+body.ui-dark .about-agree{background:rgba(0,0,0,.92)!important;border-top-color:rgba(255,255,255,.10)!important;}
 .about-agree-btn{display:block;width:100%;padding:14px 0;border:none;border-radius:16px;background:linear-gradient(135deg,#3478F6,#5AC8FA);color:#fff;font-size:15px;font-weight:600;cursor:pointer;}
 /* 夜间信件/来信详情：信纸强制深底，字才会看得见（白天预设不受影响） */
 /* 只有在「跟随主题」(0 号，无预设) 时才强制黑；用户选过彩色背景的，夜间也照旧显示 */
@@ -2842,7 +2786,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-26v43-235z60f19">
+<meta name="app-build" content="2026-11-26v43-235z60">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4096,7 +4040,7 @@ setTimeout(function(){
           </div>
           <div id="cp2-recover-list"></div>
         </div>
-      </div>      <div id="me-dock-wrap" style="position:fixed;left:0;right:0;bottom:calc(14px + env(safe-area-inset-bottom) + var(--ui-extra,0px));display:flex;justify-content:center;z-index:998;pointer-events:none;">
+      </div>      <div id="me-dock-wrap" style="position:fixed;left:0;right:0;bottom:calc(14px + env(safe-area-inset-bottom));display:flex;justify-content:center;z-index:998;pointer-events:none;">
         <div id="me-dock-bar" style="display:flex;justify-content:center;align-items:center;gap:14px;width:calc(100% - 32px);max-width:360px;padding:10px 24px;border-radius:28px;background:transparent;-webkit-backdrop-filter:blur(26px) saturate(180%);backdrop-filter:blur(26px) saturate(180%);border:1px solid rgba(255,255,255,.85);box-shadow:0 12px 32px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.95);pointer-events:auto;">
           <div style="width:64px;flex:0 0 auto;"><button class="me-app" id="me-nav-music"><span class="me-app-ic"><img class="me-app-img" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20fill='%239BA0A8'%20d='M12%203v10.55A4%204%200%201%200%2014%2017V7h4V3h-6z'/%3E%3C/svg%3E"></span><span class="me-app-lb">音乐</span></button></div>
           <div style="width:64px;flex:0 0 auto;"><button class="me-app" id="me-nav-settings"><span class="me-app-ic"><img class="me-app-img" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAAEEklEQVR4nO3dy1IbOxSGUeVUHjLDTM5TMWHIW5IBdoUiduNLq/Vra61pKkFofy038YXWAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACDQj9EL4MPL69v7I3/v/9+/zPATmzHYoyF/JewP/41ewMr2innvf2tmgqYUQVOKoClF0IO45+1D0IW4SARNMYKmFEHfaMWH8xm/Z88ufePSUPd4Vq5XLM+u7dq6Znkm0gm94dpwX17f3p8JMvXk21pX6pq/muKqG+HWAd5zch0dRY+1pZ/U0Ysb5d7wtoaccrJdW+Mj60uOOnZhozwT4OdBp4T81V5rTI06clGjpEaYKjFqPxSeiPl+iXsm6JY5mFmk7d3yQacNZEZJe7h00EmDmF3KXi4bdMoAKknY02WDpiZBU4qgKUXQlLJs0InPcs0uYU+XDbq1jAFUkbKXSwdNPcsHnXKyzCxpD5cPurWsgcwmbe8ETSmCPkk7aWaQuGc/Ry+AbTO8CyaJoIN8d+J9/XOB/yvuIWOkEYHs9bA9Ku602w730CcjPmJgzxjSwhpF0AP0im/vi2RGgm7Hns5HBHdk1Gn38YI+0JGhrXpSLx/0USfMiMCO+ppJp/TyQR9h5Gm52km91Dd7Vu2e+RbJHxS5p9JPrCQ9FK6m1+dqfyfi9NhbSsgpp/PZCvtS7h46ZWhc13NG5YJOkXY6t5a5pr2VCtrpPI9esyoVNAi6g+SH9uS17UHQlCJoShE0pQiaUgRNKYKmFEFTiqApRdCUIujFVH+9i6A7qB5NslJBV3+dQiW9ZlUqaLalPHJ4x8odUj49KCWeNL1nM3zwRxgZV8LF1do6e1D6Xd9nWxvqJN1HyoVb7pYjTcIFk7CGoywf9BEny8igjvjaKadza4I+zIioVzqZzwR9oCMDWzHm1gTdWqv3ecorfnbfmaAH6BXcy+vb+6on81nU1TXarL80yC8M+muJ/4dO9jnGewNZ/TS+JO4KGy0tknPkqetKE7moUdKiSZcYtR8KT8R8v8Q9EzSlCLplnjSzSNu75YNOG8iMkvZw6aCTBjG7lL1cOmjqWTbolBOlkoQ9XTZoahI0pQiaUgRNKcsGnfg6hNkl7OmyQbeWMYAqUvZy6aBbyxnEzJL2cPmgW8sayGzS9k7QJ2mD6Wmv7zVxz+IWNNqjz3ZdGm7CM2ef7bnGxJhbE/RF9w75u+GODnvv9aXG3Jqgr7plyI8M9qi4e73hNjnm1gS9aWvIzwy2Z9TPBtfrez6KHwo3XBvgs4NNDuPS2lI+RP4WUyyyol6n9Czh9eKEphRBU4qgC1n9dqM1QVOMoClF0JQi6EHc7/Yh6CJcIB8EPZAI92dDQ1R7GScAAAAAAAAAAAAAAAAAAAAAAAAAAABw1R9owq38gTOcsgAAAABJRU5ErkJggg=="></span><span class="me-app-lb">设置</span></button></div>
@@ -5970,9 +5914,9 @@ setTimeout(function(){
     <p>感谢你使用 Eleven×11。创作的本意都是为爱发电，请尊重创作，尊重爱。</p>
 
     <div class="about-note">更新内容见「设置 → 社交 → 更新公告」</div>
-    <div class="about-agree">
-      <button class="about-agree-btn" id="about-agree-btn">同意并进入</button>
-    </div>
+  </div>
+  <div class="about-agree">
+  <button class="about-agree-btn" id="about-agree-btn">同意并进入</button>
   </div>
 </div>
 
@@ -14654,21 +14598,6 @@ function applySkin(){
   }catch(_eWallReset){}
   r.setProperty("--wallimg",_wallSrc?'url("'+wallUrl(_wallSrc)+'")':"none");
   r.setProperty("--walltint","rgba(0,0,0,0)");
-  /* v43-235z60f11：把壁纸同步到 html/body 的画布背景。
-     页面舞台只到可视高度时，底部安全区露出来的是画布背景；
-     以前这里是 body 的纯白，所以永远一条白。现在画布铺同一张壁纸。 */
-  try{
-    var _wpaint=_wallSrc?('url("'+wallUrl(_wallSrc)+'")'):"none";
-    [document.documentElement,document.body].forEach(function(_pn){
-      if(!_pn)return;
-      _pn.style.backgroundImage=_wpaint;
-      _pn.style.backgroundSize="cover";
-      _pn.style.backgroundPosition="center";
-      _pn.style.backgroundRepeat="no-repeat";
-      _pn.style.backgroundAttachment="fixed";
-      if(_wpaint==="none")_pn.style.backgroundColor="";
-    });
-  }catch(_eCanvasWall){}
   /* 夜间/白天切换时，音乐页「跟随主题」的底色要跟着重画 */
   try{if(typeof renderMusicBg==="function")renderMusicBg();}catch(_e){}
   /* 把壁纸留在内存里：聊天页隐藏再显示时 iOS 不会重新解码/重新铺一次（那一下就是白闪） */
@@ -14738,7 +14667,6 @@ function applySkin(){
   if(dark){
     // 夜间：整体深色 + 气泡自动压暗适配
     r.setProperty("--bg","#000000");
-    try{var _tcD=document.getElementById("theme-color-meta");if(_tcD)_tcD.setAttribute("content","#000000");}catch(_eTcD){}
     r.setProperty("--topbar","#000000");
     r.setProperty("--bottombar","#1C1C1E");
     r.setProperty("--ttext","#ffffff");
@@ -14758,7 +14686,6 @@ function applySkin(){
     r.setProperty("--parttext",__safeTextColor(s.partTextColor||autoText(partb),partb));
   }else{
     r.setProperty("--bg",s.bg);
-    try{var _tcL=document.getElementById("theme-color-meta");if(_tcL)_tcL.setAttribute("content","#ffffff");}catch(_eTcL){}
     r.setProperty("--topbar","#ffffff"); /* v43-103：白天顶栏固定纯白 */
     r.setProperty("--bottombar",s.bottombar);
     r.setProperty("--ttext","#111111");
@@ -33205,10 +33132,6 @@ function initAbout(){
   btn.textContent="同意并进入";
   btn.style.opacity="1";
   btn.style.cursor="pointer";
-  try{
-    var _topBtn=document.getElementById("about-agree-top");
-    if(_topBtn&&!_topBtn.__bound){_topBtn.__bound=1;_topBtn.addEventListener("click",function(){try{btn.click();}catch(_){}});}
-  }catch(_eTopBtn){}
   var _dbReady=true;
   /* 有些旧保存路径会异步把 .show 撤掉；只要用户还没点同意，就确保声明页一直在最上层。 */
   var _keepAbout=function(){
@@ -39073,21 +38996,6 @@ body{margin:0;background:var(--bg,#fafafa);}
   }
   for(var j=0;j<kids.length;j++)root.appendChild(kids[j]);
   body.appendChild(root);
-  /* v43-235z60f11：100vw/100vh 探针。iOS Safari/PWA 的 innerHeight 会少报
-     底部工具栏的 59pt，但 CSS 的 100vh 是完整大视口；拿它纠正舞台。 */
-  try{
-    var _vp=document.createElement("div");_vp.id="__vp_probe";
-    _vp.style.cssText="position:fixed;left:0;top:0;width:100vw;height:100vh;height:100lvh;visibility:hidden;pointer-events:none;z-index:-1;";
-    body.appendChild(_vp);
-    /* iOS PWA：100vh/innerHeight 可能不含顶部 59pt 状态栏，页面却从 0 画到 793，
-       底部正好少 59。单独量安全区 top，补进舞台高度。 */
-    var _st=document.createElement("div");_st.id="__safe_top";
-    _st.style.cssText="position:fixed;left:0;top:0;height:env(safe-area-inset-top,0px);width:1px;visibility:hidden;pointer-events:none;";
-    body.appendChild(_st);
-    var _sb=document.createElement("div");_sb.id="__safe_bottom";
-    _sb.style.cssText="position:fixed;left:0;bottom:0;height:env(safe-area-inset-bottom,0px);width:1px;visibility:hidden;pointer-events:none;";
-    body.appendChild(_sb);
-  }catch(_eProbe){}
   /* 小弹窗原先是 view-chat 的子元素：父级 .view 自带 z-index，弹窗再高也会被
      view-me 这类同级页面盖住，点播放键实际点到主页。挪到缩放舞台顶层，z-index 才真正生效。 */
   try{var _mp=document.getElementById("mini-player");if(_mp&&_mp.parentElement!==root)root.appendChild(_mp);}catch(_eMp){}
@@ -39117,32 +39025,16 @@ body{margin:0;background:var(--bg,#fafafa);}
         }catch(_eAw){}
         if(_sw>=320&&_sw<=600&&_sw>w+2)w=_sw;
       }catch(_eSwW){}
-      try{
-        var _vpEl=document.getElementById("__vp_probe");
-        if(_vpEl){
-          var _pw=_vpEl.offsetWidth||0; if(_pw>=320&&_pw<=900&&_pw>w+2)w=_pw;
-        }
-        /* 有些 iOS/安卓 WebView 把 screen.width 报成物理像素（1179/1080），
-           除以 dpr 后才是真正的 CSS 宽（393/360）。 */
-        var _sdprW=Number(window.devicePixelRatio)||1;
-        var _swRaw=Number(window.screen&&window.screen.width)||0;
-        if(_swRaw>w+2)_swRaw=_sdprW>1?_swRaw/_sdprW:_swRaw;
-        if(_swRaw>=320&&_swRaw<=900&&_swRaw>w+2)w=_swRaw;
-      }catch(_ePw){}
       w=Math.max(300,Math.min(900,w));
       var _vvH=(vv&&vv.height)||0;
       var _innerH=window.innerHeight||0;
       var _clientH=document.documentElement.clientHeight||0;
-      var _screenH=0; /* v43-235z60f11：下面统一按 dpr 折算后再取最大值 */
+      var _screenH=(window.screen&&window.screen.height)||0;
       /* 某些 iPhone WebView 的 screen.height 会被浏览器栏/键盘残值带小；
          再用 outerHeight / availHeight 取一个靠谱的屏幕高度，避免整站只按半屏渲染。 */
       try{
-        var _sdprS=Number(window.devicePixelRatio)||1;
         var _sh=(window.screen&&window.screen.height)||0;
         var _ah=(window.screen&&window.screen.availHeight)||0;
-        /* iOS WebView 常把 screen.height 报成物理像素 2556；不折算会把整站拉到 1065pt */
-        if(_sh>1200&&_sdprS>1)_sh=_sh/_sdprS;
-        if(_ah>1200&&_sdprS>1)_ah=_ah/_sdprS;
         var _oh=window.outerHeight||0;
         _screenH=Math.max(_screenH,_sh,_ah,_oh,_innerH,_clientH);
       }catch(_eS){}
@@ -39168,50 +39060,14 @@ body{margin:0;background:var(--bg,#fafafa);}
       var _diaryOpen=!!(document.getElementById("diary-view")&&document.getElementById("diary-view").classList.contains("show"));
       /* 页面初次加载时记住真实屏高：键盘弹起 visualViewport 会变矮，但日记页不跟着缩，
          这样工具条/纸页不会被键盘顶到上面去。屏高变大（键盘收起/旋转）时重新取。 */
-      if(!window.__uiStableH||Math.abs((window.__uiStableW||0)-w)>8){
+      if(!window.__uiStableH||Math.abs((window.__uiStableW||0)-w)>8||_baseH>window.__uiStableH+50){
         window.__uiStableH=_baseH;window.__uiStableW=w;
-      }else if(h>window.__uiStableH+20){
-        window.__uiStableH=h;window.__uiStableW=w;
+      }else if(!_typing&&_baseH<window.__uiStableH-20){
+        /* 键盘关掉后从残值恢复成真正可见高度；不能一直沿用键盘时的矮舞台 */
+        window.__uiStableH=_baseH;window.__uiStableW=w;
       }
       var voffX=(vv&&vv.offsetLeft)||0, voffY=(vv&&vv.offsetTop)||0;
-      /* v43-235z60f11f1：键盘弹起不再拿 visualViewport 的矮高度当整页高度。
-         以前键盘一弹 h=键盘高度，root 跟着缩；收起后 vv 又可能停在少一条的残值，
-         页面就整体被挤上去、底部留白条。这里始终取屏幕/布局高度的最大值。 */
-      var _vh100=0;
-      try{var _vpEl2=document.getElementById("__vp_probe");if(_vpEl2)_vh100=_vpEl2.offsetHeight||0;}catch(_ePh){}
-      var h=Math.max(window.__uiStableH||0,_innerH||0,_clientH||0,_vvH||0,_vh100);
-      /* v43-235z60f11：iOS 的 screen.height 经常是物理像素 2556，不是 CSS 的 852；
-         直接当 852 用会超出，直接忽略又少 59pt 白条。除以 dpr 后落在可视高度附近才采用。 */
-      try{
-        var _sdprH=Number(window.devicePixelRatio)||1;
-        var _stEl=document.getElementById("__safe_top");
-        var _sat=_stEl?(_stEl.offsetHeight||0):0;
-        var _sabEl=document.getElementById("__safe_bottom");
-        var _sab=_sabEl?(_sabEl.offsetHeight||0):0;
-        var _hCands=[];
-        try{_hCands.push(Number(window.screen&&window.screen.height)||0);}catch(_){}
-        try{_hCands.push(Number(window.screen&&window.screen.availHeight)||0);}catch(_){}
-        try{_hCands.push(Number(window.outerHeight)||0);}catch(_){}
-        /* v43-235z60f11：可视高度 + 顶部安全区 = 真正的整屏高（793+59=852）。
-           底部安全区已在 100vh 内时不再重复加。 */
-        if(_sat>0)_hCands.push(h+_sat);
-        if(_sab>0&&_sat<=0)_hCands.push(h+_sab);
-        for(var _hi=0;_hi<_hCands.length;_hi++){
-          var _hv=_hCands[_hi];
-          if(_hv>h+160&&_sdprH>1)_hv=_hv/_sdprH;
-          if(_hv>=h&&_hv<=h+200&&_hv>h)h=_hv;
-        }
-      }catch(_eShH){}
-      try{
-        var _scrH=Number(window.screen&&window.screen.height)||0;
-        var _ah2=Number(window.screen&&window.screen.availHeight)||0;
-        if(_ah2>_scrH&&_ah2<=h+160)_scrH=_ah2;
-        /* 不再只认 standalone：豆包内置浏览器/Safari 里 innerHeight 只有 793，
-           但 iPhone 屏幕 852，底部会空出 59pt 白条。差在 160 以内就按屏幕补满。 */
-        if(_scrH>=h&&_scrH<=h+160)h=_scrH;
-      }catch(_eStand){}
-      /* v43-235z60f11：不再用偏小的 screenH 反向截断 h；
-         h 已经由 852/安全区候选限制在 +200 以内。 */
+      var h=_diaryOpen?(window.__uiStableH||_baseH):(_typing?_vvH:(window.__uiStableH||_baseH));
       /* 极少数 WebView 在键盘收起/切页时 visualViewport 会短暂给 0 或半截残值，
          整站按这个高度画就会只剩一条、下面一大块空白。这里退回稳定屏高。 */
       if(_typing&&(!_vvH||(_screenH&&_vvH<_screenH*0.28))){_typing=false;h=window.__uiStableH||_baseH;}
@@ -39262,41 +39118,22 @@ body{margin:0;background:var(--bg,#fafafa);}
       /* v43-152：这里原来每次 sync 都同步写一次 localStorage。
          visualViewport 滚动/键盘弹起时 sync 会按帧触发，等于每帧做一次 JSON 序列化+落盘，
          徒增卡顿；这个键当前没有任何读取方，直接去掉。 */
-      /* v43-235z60f11：全手机统一成 393×852 的同一套视图。
-         以 852 设计高定比例 k，逻辑宽=屏宽/k，整体缩放后屏幕正好铺满；
-         苹果/安卓、360/393/430 宽都按同一套排版，不再各机各长各短。 */
-      /* v43-235z60f17：舞台绝不超过真正看得见的 visualViewport。
-         底部浏览器条会占掉 59pt，按 852 排会把 Dock 排到白条下面。 */
-      try{
-        if(_vvH>0&&h>_vvH&&h-_vvH<160)h=_vvH;
-      }catch(_eCapVv){}
-      /* v43-235z60f11：可视窗口（visualViewport）比布局视口矮时，
-         差值就是底部被浏览器条盖住的高度。固定层底边收回这个差值。 */
-      try{
-        var _visH=h;
-        if(_innerH>0)_visH=Math.min(_visH,_innerH);
-        if(_vvH>0)_visH=Math.min(_visH,_vvH);
-        if(_clientH>0)_visH=Math.min(_visH,_clientH);
-        var _extra=Math.max(0,Math.min(160,Math.round(h-_visH)));
-        document.documentElement.style.setProperty("--ui-extra",_extra+"px");
-        window.__uiExtra=_extra;
-      }catch(_eExtra){}
-      /* v43-235z60f18：回到最初的原比例缩放。
-         固定 393×852 设计稿，只做整体等比 scale，绝不再按屏宽改逻辑宽度。
-         屏幕更宽/更窄都只是整体放大或缩小，内容不会横向被拉宽。 */
-      var DW=393, DH=852;
-      /* v43-235z60f19：键盘弹起时 visualViewport 变矮，但整页比例不能跟着缩。
-         第一次按稳定屏高算出的 k 存起来，输入过程中直接复用；只有键盘收起、
-         横竖屏/窗口真的变了才重新算。 */
-      var _scaleH=h;
-      if(_typing&&window.__uiFrozenH){_scaleH=window.__uiFrozenH;}
-      else if(!_typing){window.__uiFrozenH=h;}
-      var k=Math.min(w/DW,_scaleH/DH);
-      k=Math.min(1.4,Math.max(0.6,k));
-      if(Math.abs(k-1)<0.004)k=1;
-      var rw=DW, rh=DH;
-      var left=Math.max(0,Math.round((w-DW*k)/2));
-      var top=Math.max(0,Math.round((_scaleH-DH*k)/2));
+      var k=1;
+      var rw=w, rh=h;
+      /* 竖屏最宽 440：再宽的屏只增加左右留白，不放大内容；横屏按当前宽度铺满，最高 900。 */
+      /* v43-183z21：手机端不再把舞台封顶在 440。
+         480dp / 系统显示大小放大后的机型会被截成 440，右边留一条白；
+         现在直接按真实可见宽度铺满，桌面固定窗口逻辑不受影响。 */
+      var cap=_landView?Math.min(900,w):Math.min(600,w);
+      if(rw>cap)rw=cap;
+      /* 根节点的 left/top 不受自身 scale 影响：这里写的是屏幕上的实际位置，
+         不能再除以 k，否则平板居中会偏、键盘引起 offsetTop 时也会偏。 */
+      var left=(w-rw*k)/2+voffX;
+      /* iOS 键盘弹起时 visualViewport 不只会变矮，还可能整体向下偏移（offsetTop）。
+         固定舞台必须跟着这个偏移走，否则可视窗口看到的是舞台上方那截空白/黑底，
+         聊天内容整体“消失”，只剩键盘。日记页与其他页统一按 voffY 对齐。 */
+      var top=voffY;
+      if(!top||top<0)top=0;
       var _sig=[w,h,k,rw,rh,left,top,voffX,voffY].join("|");
       if(window.__uiSig===_sig)return;
       window.__uiSig=_sig;
