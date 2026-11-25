@@ -2,7 +2,7 @@
    作用一：缓存主页面，第二次打开时不再重新下载 2MB HTML，直接出首屏（黑屏时间大幅缩短）。
    作用二：提供通知点击回到 App 的最小能力。
    策略：有缓存立即返回，同时在后台抓取新版并写回缓存；首次无缓存才等网络。 */
-const E11_VERSION = "2026-11-25v43-235z60f15";
+const E11_VERSION = "2026-11-25v43-235z60f16";
 const E11_CACHE = "e11-shell-" + E11_VERSION;
 const E11_INDEX = "./";
 const E11_TIMEOUT = 1400;
@@ -30,7 +30,7 @@ self.addEventListener("activate", (e) => {
         try { c.postMessage({ type: "build", ver: E11_VERSION }); } catch (_) {}
         try { c.postMessage({ type: "e11-build", build: E11_VERSION }); } catch (_) {}
       }
-      /* v43-235z60f15：新 SW 接管后，主动把还停在旧壳里的窗口导航到最新入口。
+      /* v43-235z60f16：新 SW 接管后，主动把还停在旧壳里的窗口导航到最新入口。
          旧版页面自己没有更新逻辑时，这一步是唯一能把它拉出来的办法。 */
       await new Promise((r) => setTimeout(r, 350));
       for (const c of wins) {
