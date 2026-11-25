@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-212z35";
+window.__E11_BUILD="2026-11-25v43-213z35";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2759,7 +2759,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-212z35">
+<meta name="app-build" content="2026-11-25v43-213z35">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -11834,6 +11834,9 @@ function migrate(s){
   if(s.profile.following===undefined)s.profile.following=17;
   if(s.profile.mpName===undefined)s.profile.mpName=s.me.name;
   if(s.profile.partnerMpName===undefined)s.profile.partnerMpName=s.partner.name;
+  /* v43-213：一起听房间名字单独一套，不和主页资料、聊天名字互相覆盖 */
+  if(s.profile.musicMeName===undefined)s.profile.musicMeName=s.profile.mpName;
+  if(s.profile.musicPartnerName===undefined)s.profile.musicPartnerName=s.profile.partnerMpName;
   if(s.profile.partnerHandle===undefined)s.profile.partnerHandle="";
   if(s.profile.partnerFollowers===undefined)s.profile.partnerFollowers=0;
   if(s.profile.partnerFollowing===undefined)s.profile.partnerFollowing=0;
@@ -25018,7 +25021,7 @@ function gCompress(d,max,q){return __shrinkImg(d,max||720,q||0.72);}
         '<input class="text-input" id="mu-e-note" maxlength="60" placeholder="例如：相距644.8公里，一起听了6分钟" value="'+String(state.musicRoomNote||"").replace(/"/g,"&quot;")+'">';
     }else if(m==="partner"||m==="me"){
       title.textContent="编辑"+(m==="me"?"我的":"对方")+"名字";
-      body.innerHTML='<input class="text-input" id="mu-e-name" maxlength="12" value="'+(m==="me"?state.profile.mpName:state.profile.partnerMpName)+'">';
+      body.innerHTML='<input class="text-input" id="mu-e-name" maxlength="12" value="'+(m==="me"?(state.profile.musicMeName||state.profile.mpName):(state.profile.musicPartnerName||state.profile.partnerMpName))+'">';
     }
     ov.classList.add("show");
   }
@@ -25029,12 +25032,10 @@ function gCompress(d,max,q){return __shrinkImg(d,max||720,q||0.72);}
       state.musicRoomNote=(($("mu-e-note")&&$("mu-e-note").value)||"").trim();
       try{window.__e11MusicRoomTouch&&window.__e11MusicRoomTouch();}catch(_){}
     }else if(mode==="partner"){
-      state.profile.partnerMpName=($("mu-e-name").value||"").trim();
-      state.profile.partnerDisplayName=state.profile.partnerMpName;
+      state.profile.musicPartnerName=($("mu-e-name").value||"").trim();
       try{window.__e11MusicRoomTouch&&window.__e11MusicRoomTouch();}catch(_){}
     }else if(mode==="me"){
-      state.profile.mpName=($("mu-e-name").value||"").trim();
-      state.profile.myDisplayName=state.profile.mpName;
+      state.profile.musicMeName=($("mu-e-name").value||"").trim();
       try{window.__e11MusicRoomTouch&&window.__e11MusicRoomTouch();}catch(_){}
     }
     ov.classList.remove("show");
@@ -25433,7 +25434,7 @@ function renderMusicList(){
   try{__verifyMusicCustomMedia();}catch(_){}
   /* 进音乐页前先在隐藏态铺好列表，真正切过去时签名没变就直接复用：
      否则同一帧刚铺完又被 post-render 清空重铺，看起来就是闪一下 */
-  var _msig="music|"+__sigOfList(state.musicPlaylist)+"|"+(state.musicCur|0)+"|"+(state.musicMode||"")+"|"+String(state.musicBgImg||"").slice(0,40);
+  var _msig="music|"+__sigOfList(state.musicPlaylist)+"|"+(state.musicCur|0)+"|"+(state.musicMode||"")+"|"+String(state.musicBgImg||"").slice(0,40)+"|"+String(state.profile.musicMeName||"")+"|"+String(state.profile.musicPartnerName||"");
   if(!window.__rSig)window.__rSig={};
   if(window.__rSig["music"]===_msig){
     var _ml0=document.getElementById("m-list");
@@ -25447,8 +25448,8 @@ function renderMusicList(){
   // 双头像 + 昵称 + 相距/时长（左对方、右我）
   $("mu-av1").src=__avatarPickFor("music","partner");
   $("mu-av2").src=__avatarPickFor("music","me");
-  $("mu-name1").textContent=state.profile.partnerMpName||state.partner.name||"jsndxhyyx";
-  $("mu-name2").textContent=state.profile.mpName||state.me.name||"wxhggxhwm";
+  $("mu-name1").textContent=state.profile.musicPartnerName||state.profile.partnerMpName||state.partner.name||"jsndxhyyx";
+  $("mu-name2").textContent=state.profile.musicMeName||state.profile.mpName||state.me.name||"wxhggxhwm";
   (function(){var _n=String(state.musicRoomNote||"").trim();$("mu-dist").innerHTML=_n?esc(_n):("相距"+(state.profile.mpDist||0)+"公里，一起听了"+(state.profile.mpDur||"5小时20分钟"));})();
   const cov=state.musicCoverImg;
   function coverHtml(pic,fallback){const img=pic?'<img src="'+pic+'" alt="" data-mc="1" decoding="async">':fallback;return img+'<span class="mc-hint">📷</span>';}
@@ -28850,8 +28851,8 @@ window.__e11PaintNames=function(){
     put("name-partner",pt);put("set-partner-name",pt);
     put("gb-name","@"+(state.profile.partnerMpName||pt));
     put("lt-write-name",pt);put("call-name",pt);
-    put("mu-name1",state.profile.partnerMpName||pt);
-    put("mu-name2",state.profile.mpName||me);
+    put("mu-name1",state.profile.musicPartnerName||state.profile.partnerMpName||pt);
+    put("mu-name2",state.profile.musicMeName||state.profile.mpName||me);
     try{var cn=document.getElementById("cp2-nm-me");if(cn)cn.textContent=state.profile.cpMeName||"kk";}catch(_){}
     try{var cp=document.getElementById("cp2-nm-pn");if(cp)cp.textContent=state.profile.cpPartnerName||"11";}catch(_){}
   }catch(_ePaintName){}
