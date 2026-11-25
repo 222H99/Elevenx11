@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-224z46";
+window.__E11_BUILD="2026-11-25v43-225z47";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -2786,7 +2786,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-224z46">
+<meta name="app-build" content="2026-11-25v43-225z47">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -7847,8 +7847,14 @@ setTimeout(function(){
         try{if(st.diary&&st.diary.pages&&typeof st.diary.pages==="object")n+=Object.keys(st.diary.pages).length*2;}catch(_){}
         return n;
       }
-      var base=null,best=-1;
-      cands.forEach(function(c){var sc=score(c.st);if(sc>best){best=sc;base=c.st;}});
+      var base=null,best=-1,baseTs=-1;
+      /* v43-225：手动历史恢复也以“最新保存的那份”为主档，再并旧内容。
+         以前按条数挑主档，旧备份聊天更多就会把新的名字/头像/设置盖回去。 */
+      function _recTs(st){try{return Number(st&&(st.__savedAt||st.savedAt||st.ts||st.__ts))||0;}catch(_){return 0;}}
+      cands.forEach(function(c){
+        var ts=_recTs(c.st),sc=score(c.st);
+        if(ts>baseTs+1000||(Math.abs(ts-baseTs)<=1000&&sc>best)){baseTs=ts;best=sc;base=c.st;}
+      });
       if(!base)throw new Error("没有找到可恢复的存档");
       /* 旧代码整份 JSON 深拷贝，大图/表情档会被复制一遍，手机上明显拖时间。
          这里只复制顶层和数组；字符串图片共享，不再复制几 MB。 */
@@ -7889,9 +7895,11 @@ setTimeout(function(){
         ["settings","skin","profile"].forEach(function(k){
           var _skip=k==="skin"?["dark","themeMode"]:(k==="settings"?["entryPwd","unlocked"]:[]);
           var best=base[k]||{},bestN=_diffScore(base[k],_def[k],_skip);
+          var bestTs=Number(best&&best.__ts)||_recTs(base);
           cands.forEach(function(c){
-            var n=_diffScore(c.st[k],_def[k],_skip);
-            if(n>bestN){bestN=n;best=JSON.parse(JSON.stringify(c.st[k]));}
+            var o=c.st[k];if(!o||typeof o!=="object")return;
+            var n=_diffScore(o,_def[k],_skip),ts=Number(o.__ts)||_recTs(c.st);
+            if(ts>bestTs+1000||(Math.abs(ts-bestTs)<=1000&&n>bestN)){bestTs=ts;bestN=n;best=JSON.parse(JSON.stringify(o));}
           });
           if(!best||typeof best!=="object")return;
           var _keep={};
@@ -12059,11 +12067,45 @@ window.__e11ChatLogRestore=function(s,forceAll){
     return n;
   }catch(_eLogRestore){return 0;}
 };
+/* v43-225：只把聊天流水里“比当前最后一条更新”的消息补回来。
+   更新/退出若把最后一段聊天写丢，这里能接回后面的记录；
+   比当前更早的流水一律不碰，避免旧消息被重新塞进来、时间顺序又乱。 */
+window.__e11ChatLogRestoreRecent=function(s){
+  try{
+    if(!s||!Array.isArray(s.messages))return 0;
+    var a=window.__e11ChatLogRead();if(!a.length)return 0;
+    var clr=Number(s.__chatClearedAt)||0;
+    var latest=0;
+    s.messages.forEach(function(m){var t=Number(m&&m.time)||0;if(t>latest)latest=t;});
+    var exists={};s.messages.forEach(function(m){
+      if(m&&m.id)exists[String(m.id)+"|"+String(Number(m.time)||0)+"|"+String(m.text!==undefined?m.text:"")]=1;
+    });
+    var add=[];
+    a.forEach(function(x){
+      if(!x||!x.id)return;
+      var t=Number(x.time)||0;
+      if(!t||t<Date.now()-30*24*3600*1000)return;
+      if(latest&&t<=latest-60000)return;
+      if(clr&&t<=clr)return;
+      try{if(window.__e11IsDeleted&&window.__e11IsDeleted("messages",String(x.id)))return;}catch(_){}
+      var k=String(x.id)+"|"+String(t)+"|"+String(x.text!==undefined?x.text:"");
+      if(exists[k])return;
+      if(String(x.type||"text")==="image"&&!String(x.src||""))return;
+      exists[k]=1;add.push(x);
+    });
+    if(!add.length)return 0;
+    add.sort(function(x,y){return (Number(x.time)||0)-(Number(y.time)||0);});
+    add.forEach(function(x){
+      s.messages.push({id:String(x.id),from:x.from==="me"?"me":"partner",type:String(x.type||"text"),text:String(x.text!==undefined?x.text:""),src:String(x.src||""),time:Number(x.time)||Date.now(),read:x.from!=="me",kind:String(x.kind||""),quoteId:x.quoteId||null});
+    });
+    try{__e11NormalizeMessages(s);}catch(_){}
+    return add.length;
+  }catch(_){return 0;}
+};
 function migrate(s){
   try{__e11NormalizeMessages(s);}catch(_eMsgNorm){}
-  /* v43-223：聊天流水也不在每次 migrate 时自动并回来。
-     它只在一键恢复的显式动作里用，否则旧流水会把已删/旧时间消息重新塞回聊天，造成顺序和時間错乱。 */
-  try{if(window.__e11AllowChatLogAuto===true&&window.__e11ChatLogRestore)window.__e11ChatLogRestore(s);}catch(_eLogMig){}
+  /* v43-223：不再整份回塞聊天流水；v43-225 只补比当前最后一条更新的内容。 */
+  try{if(window.__e11ChatLogRestoreRecent)window.__e11ChatLogRestoreRecent(s);}catch(_eLogMig){}
   /* v43-107：删掉内置的“开启私密聊天”欢迎语，老存档也一起清掉。 */
   try{
     if(s&&Array.isArray(s.messages)){
@@ -39815,41 +39857,20 @@ body{margin:0;background:var(--bg,#fafafa);}
 </script>
 
 <script>
-/* v43-190z33f：每次更新后自动合并更新前的本机档，不再等用户点确认。
-   只补未删除内容；删除墓碑和清空聊天时间仍然优先，删掉的不复活。 */
+/* v43-225：更新后不再自动跑“深度恢复”。
+   这就是“更新完只剩好久以前的历史、后面的数据全没了”的根源：
+   每次版本号变化，启动会自己从全部旧备份里拼一份旧档并覆盖当前数据。
+   现在更新只保留本机最新档；恢复旧数据必须由你在设置里手动点。 */
 (function(){
   try{localStorage.removeItem("e11.trash.v1");}catch(_eTrashGone){}
-  /* v43-190：把现有登录复制一份独立备份，更新后即使主键没读出来也能自动进入。 */
+  /* 把现有登录复制一份独立备份，更新后即使主键没读出来也能自动进入。 */
   try{var _a=localStorage.getItem("e11.auth.v1");if(_a&&_a.length>2&&!localStorage.getItem("e11.auth.bak.v1"))localStorage.setItem("e11.auth.bak.v1",_a);}catch(_eAuthCopy){}
-  var KEY="e11.autoRestore."+(window.__E11_BUILD||"build");
-  /* v43-191：只把 done 当成“已经成功”。旧版 running/failed 会永久挡住下一次启动，
-     用户更新后中途退出一次，自动恢复就再也不会跑；现在失败/中断都会在下次进入重试。 */
-  try{if(localStorage.getItem(KEY)==="done")return;}catch(_){}
-  var tries=0;
-  var timer=setInterval(function(){
-    tries++;
-    try{
-      if(tries>160){clearInterval(timer);return;}
-      if(!(window.__stateReady&&window.__E11DeepRestore))return;
-      clearInterval(timer);
-      /* 首次安装没有本机旧档就不跑，避免空白设备多等一次云端。 */
-      if(!window.__e11BuildChanged&&!(window.__e11LocalHasArchive&&window.__e11LocalHasArchive()))return;
-      localStorage.setItem(KEY,"running");
-      setTimeout(function(){
-        try{toast("正在自动恢复更新前的数据…");}catch(_){}
-        window.__E11DeepRestore().then(function(r){
-          localStorage.setItem(KEY,"done");
-          try{
-            var a=r&&r.after||{};
-            toast("已自动恢复更新前数据：聊天 "+(a.messages||0)+" · 字卡 "+(a.cards||0)+" · 信件 "+(a.letters||0)+" · 留言 "+(a.guestbook||0)+" · 动态 "+(a.moments||0));
-          }catch(_){}
-        },function(e){
-          localStorage.setItem(KEY,"failed");
-          try{toast("自动恢复未完成："+String(e&&e.message||e).slice(0,70));}catch(_){}
-        });
-      },900);
-    }catch(_){}
-  },500);
+  /* 清掉以前留下的自动恢复状态，避免旧版标记继续影响新版本。 */
+  try{
+    Object.keys(localStorage).forEach(function(k){
+      if(k&&k.indexOf("e11.autoRestore.")===0)localStorage.removeItem(k);
+    });
+  }catch(_eAutoRestoreClean){}
 })();
 </script>
 </body>
