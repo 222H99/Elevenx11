@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-26v43-235z60f12";window.__E11_CODE=340;
+window.__E11_BUILD="2026-11-26v43-235z60f13";window.__E11_CODE=341;
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -1873,14 +1873,20 @@ body.env-open #btn-letters-back{visibility:hidden!important;pointer-events:none!
 .about-screen{position:fixed;inset:0;z-index:100002;display:none;flex-direction:column;
   background-image:none;background-color:#FFFFFF;}
 .about-screen.show{display:flex;}
-.about-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:40px 24px 20px;}
+.about-scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:40px 24px 128px;}
 .about-scroll h2{font-size:17px;font-weight:700;color:#1c1f26;margin:24px 0 10px;}
 .about-scroll h2:first-child{margin-top:0;}
 .about-scroll p{font-size:14px;line-height:1.7;color:#3a3d44;margin-bottom:8px;}
 .about-scroll ul{padding-left:18px;margin-bottom:8px;}
 .about-scroll li{font-size:14px;line-height:1.7;color:#3a3d44;margin-bottom:4px;}
 .about-scroll .about-note{font-size:13px;color:#8e8e93;margin-top:20px;text-align:center;line-height:1.6;}
-.about-agree{flex-shrink:0;padding:12px 24px calc(16px + env(safe-area-inset-bottom));background:rgba(255,255,255,.88);border-top:1px solid rgba(255,255,255,.7);}
+/* v43-235z60f13：声明页整页可滚动时，原来的 flex 页脚会被排到 852 舞台底部、甚至被浏览器条盖住。
+   现在把“同意并进入”直接固定在可视区底部，永远不随内容滚走。 */
+.about-agree{position:fixed!important;left:12px!important;right:12px!important;
+  bottom:calc(env(safe-area-inset-bottom) + 18px + var(--ui-extra,0px))!important;
+  z-index:100010!important;flex-shrink:0;padding:8px;border-radius:20px;
+  background:rgba(255,255,255,.90);border:1px solid rgba(255,255,255,.72);
+  box-shadow:0 10px 30px rgba(0,0,0,.16);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);}
 body.ui-dark .about-screen,html.ui-dark .about-screen{background-color:#000!important;color:#f2f2f7!important;}
 body.ui-dark .about-scroll h2,body.ui-dark .about-scroll p,body.ui-dark .about-scroll li{color:#f2f2f7!important;}
 body.ui-dark .about-scroll .about-note{color:rgba(255,255,255,.55)!important;}
@@ -2833,7 +2839,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-26v43-235z60f12">
+<meta name="app-build" content="2026-11-26v43-235z60f13">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
