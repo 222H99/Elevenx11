@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-218z40";
+window.__E11_BUILD="2026-11-25v43-219z41";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2760,7 +2760,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-218z40">
+<meta name="app-build" content="2026-11-25v43-219z41">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -7533,7 +7533,7 @@ setTimeout(function(){
         ks.forEach(function(k){try{if(k==="e11.lockPwd.v1")return;localStorage.removeItem(k);}catch(e){}});
       }catch(e){}
       try{localStorage.removeItem(LS_OWNER);}catch(e){}
-      try{localStorage.removeItem("e11.exit.v1");localStorage.removeItem("e11.core.v1");localStorage.removeItem("beautyVault:latest");localStorage.removeItem("e11.resetLocalOnly.v1");}catch(e){}
+      try{localStorage.removeItem("e11.exit.v1");localStorage.removeItem("e11.core.v1");localStorage.removeItem("beautyVault:latest");localStorage.removeItem("e11.keep4.v1");localStorage.removeItem("e11.resetLocalOnly.v1");}catch(e){}
       /* 刷新前页面可能把旧数据写进这两个应急键，必须一起清掉，否则下次启动会“复活”上一个账号的内容 */
       try{sessionStorage.removeItem("privateChat__emergency");sessionStorage.removeItem("bigPending__emergency");sessionStorage.removeItem("__forceIdbRestore");}catch(e){}
       /* 不删除数据库：001 的历史数据只活在旧库里；其他账号用独立 DB，切号后不会读到彼此 */
@@ -8810,11 +8810,12 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-218z40",
-  time:"2026-11-25 18:22",
+  date:"v43-219z41",
+  time:"2026-11-25 18:55",
   noticeKey:null,
-  lead:"2026-11-25 修改（v43-218z40）：应用图标、桌面卡片头像、一起听音乐弹窗中心图片、聊天个人资料名字，改完就立即落盘；退出网站再进入，保留的都是最后一次改的那张图、那个名字。",
+  lead:"2026-11-25 修改（v43-219z41）：设置「资料」里的我的名字、对方名字，以及主页图标、桌面卡片头像、一起听中心图/封面，改完立即保存；离开网站再自动写一份四项专用备份，下次进入恢复最后一次选择。",
   items:[
+    "退出再进四项变回旧的（v43-219z41）：离开网站时写的离站快照走的是文字核心，所有图片都会被清空，图标、桌面卡片头像、一起听中心图因此根本没进离站档，重进只能读更早的主库。现在单独加一份只含这四项的小备份：改完即写、切后台/关页面再写，启动时在旧档和外观档全部恢复完之后覆盖回来；图标同时压到 512 长边，避免大图把备份顶爆。我的名字/对方名字仍然和主页名各自独立，不会互相覆盖。",
     "退出再进四项变回旧的（v43-218z40）：应用图标以前被当成大图外置，退出时写库被打断就只剩编号；现在图标内联保存，单换或全部换都立即写主档。桌面卡片头像统一在写入头像时自动落盘；一起听音乐弹窗中心图/封面在原图和压缩完成两个阶段都保存；聊天名、主页名改成各自独立，启动时不再拿主页名覆盖聊天名。",
     "头像照片改完就丢（v43-217z39）：多个入口要先等头像/照片压缩完才写盘，选中原图后立刻退出、刷新或覆盖安装，读回的还是上一张。现在选中原图就同步写主档、外观保护档、图片保险箱和云端，压缩完成再替换成小图并再存一次；主页照片、情侣照片、一起听头像、音乐背景和通话背景同样处理。",
     "备份自己丢失（v43-193z33f）：配额满时旧代码删的是 meta 里第一份（最新那份），备份会一份接一份消失；完整档写失败也没有文字兜底。现在只删最旧一份，保留 6 份；完整档失败自动改存文字核心档。进入网站时最近 7 份备份全部按 id 合并，离开网站再自动写一份全量档。",
@@ -10522,6 +10523,102 @@ function __e11CoreWrite(st,force){
 /* v43-81：退出/切后台瞬间同步写一份“离站快照”。用文字核心 + 全局小键，
    不依赖异步 IndexedDB；下次进入优先读它，就是你离开前最后看到的那份数据。 */
 var __E11_EXIT_KEY="e11.exit.v1";
+/* v43-219：四项专用“最后一次选择”备份。
+   离站快照走的是文字核心，所有 data: 图片都会被清空；所以图标、桌面卡片头像、
+   一起听中心图/封面这些图，退出时根本没进离站档，重进只能读到更早的主库。
+   这里单独存一份只含这四项的小备份：改完立即写，切后台/关页面再写一次，
+   下次启动在全部旧档恢复之后覆盖回来。 */
+var __E11_KEEP4_KEY="e11.keep4.v1";
+function __e11Keep4Pack(root){
+  root=root||(typeof state!=="undefined"?state:null)||{};
+  var p=root.profile||{};
+  var ic=root.me1AppIcons||{};
+  var by={};try{Object.keys(ic.byId||{}).forEach(function(k){var v=ic.byId[k];if(v)by[k]=v;});}catch(_){}
+  return {
+    v:1,build:String(window.__E11_BUILD||""),ts:Date.now(),
+    meName:String((root.me&&root.me.name)||""),
+    partnerName:String((root.partner&&root.partner.name)||""),
+    homeName:String(p.mpName||""),
+    partnerHomeName:String(p.partnerMpName||""),
+    myDisplayName:String(p.myDisplayName||""),
+    partnerDisplayName:String(p.partnerDisplayName||""),
+    cardMeAvatar:String(p.cardMeAvatar||""),
+    cardPartnerAvatar:String(p.cardPartnerAvatar||""),
+    meAvatar:String(p.meAvatar||""),
+    partnerAvatar:String(p.partnerAvatar||""),
+    musicCoverImg:String(root.musicCoverImg||""),
+    musicDiscInnerImg:String(root.musicDiscInnerImg||""),
+    icons:{all:String(ic.all||""),byId:by}
+  };
+}
+function __e11Keep4Save(){
+  try{
+    if(window.__restoring)return false;
+    if(typeof state==="undefined"||!state)return false;
+    var o=__e11Keep4Pack(state);
+    var txt=JSON.stringify(o);
+    try{localStorage.setItem(__E11_KEEP4_KEY,txt);return true;}
+    catch(_eK4){
+      /* 大图把配额顶满时，先去掉重复的旧副本，只保当前四项，再试一次 */
+      try{localStorage.removeItem("bigPending");}catch(_){}
+      try{localStorage.removeItem(__E11_KEEP4_KEY);localStorage.setItem(__E11_KEEP4_KEY,txt);return true;}catch(_eK42){}
+    }
+  }catch(e){}
+  return false;
+}
+function __e11Keep4Read(){
+  try{
+    var o=JSON.parse(localStorage.getItem(__E11_KEEP4_KEY)||"null");
+    if(!o||!o.ts)return null;
+    var rst=Number(localStorage.getItem("e11.resetLocalOnly.v1"))||0;
+    if(rst&&rst>Number(o.ts))return null;
+    return o;
+  }catch(e){return null;}
+}
+function __e11Keep4Apply(root){
+  try{
+    var o=__e11Keep4Read();if(!o||!root||typeof root!=="object")return false;
+    root.me=root.me||{};root.partner=root.partner||{};root.profile=root.profile||{};
+    if(o.meName!==undefined){root.me.name=o.meName||"我";root.me.__nameEdited=1;}
+    if(o.partnerName!==undefined){root.partner.name=o.partnerName||"对方";root.partner.__nameEdited=1;}
+    if(o.homeName!==undefined)root.profile.mpName=o.homeName;
+    if(o.partnerHomeName!==undefined)root.profile.partnerMpName=o.partnerHomeName;
+    if(o.myDisplayName!==undefined)root.profile.myDisplayName=o.myDisplayName;
+    if(o.partnerDisplayName!==undefined)root.profile.partnerDisplayName=o.partnerDisplayName;
+    ["cardMeAvatar","cardPartnerAvatar","meAvatar","partnerAvatar"].forEach(function(k){
+      if(o[k]!==undefined)root.profile[k]=o[k];
+    });
+    ["musicCoverImg","musicDiscInnerImg"].forEach(function(k){
+      if(o[k]!==undefined)root[k]=o[k];
+    });
+    if(o.icons&&typeof o.icons==="object"){
+      var by=o.icons.byId||{};
+      root.me1AppIcons={all:String(o.icons.all||""),byId:Object.assign({},by)};
+    }
+    root.profile.__ts=Math.max(Number(root.profile.__ts)||0,Number(o.ts)||0);
+    root.__savedAt=Math.max(Number(root.__savedAt)||0,Number(o.ts)||0);
+    try{window.__e11Keep4Used=1;}catch(_){}
+    try{window.__applyMe1Icons&&window.__applyMe1Icons();}catch(_){}
+    try{typeof applySkin==="function"&&applySkin();}catch(_){}
+    try{typeof renderMe==="function"&&renderMe(true);}catch(_){}
+    try{typeof renderMusicBg==="function"&&renderMusicBg();}catch(_){}
+    try{window.__e11PaintNames&&window.__e11PaintNames();}catch(_){}
+    return true;
+  }catch(e){return false;}
+}
+function __e11Keep4ApplyAll(){
+  try{
+    var o=__e11Keep4Read();if(!o)return false;
+    var changed=false;
+    if(typeof state!=="undefined"&&state)changed=__e11Keep4Apply(state)||changed;
+    try{if(typeof s!=="undefined"&&s&&s!==state)changed=__e11Keep4Apply(s)||changed;}catch(_){}
+    return changed;
+  }catch(e){return false;}
+}
+window.__e11Keep4Save=__e11Keep4Save;
+window.__e11Keep4Read=__e11Keep4Read;
+window.__e11Keep4Apply=__e11Keep4Apply;
+window.__e11Keep4ApplyAll=__e11Keep4ApplyAll;
 function __e11ExitGlobals(){
   /* v43-118：离站快照也收全部美化/布局/偏好键，不再漏头像副本或新加的外观键。
      上限按本机 localStorage 的实际容量放宽；单键过大（音频/大图）仍跳过，避免快照写不进去。 */
@@ -11205,7 +11302,10 @@ window.__e11AppearanceTick=function(){
     window.__e11AppearanceTimer=setTimeout(function(){try{window.__e11AppearanceSaveNow();}catch(_){}},1000);
   }catch(_){}
 };
-window.addEventListener("pagehide",function(){try{window.__e11AppearanceSaveNow&&window.__e11AppearanceSaveNow();}catch(_){}});
+window.addEventListener("pagehide",function(){try{window.__e11AppearanceSaveNow&&window.__e11AppearanceSaveNow();}catch(_){}
+  /* v43-219：离开网站最后再写一份四项专用备份，图/名不经过会被清空的文字核心 */
+  try{window.__e11Keep4Save&&window.__e11Keep4Save();}catch(_){}
+});
 window.__e11AppearanceApply=function(){
   try{
     if(!(window.__e11BuildChanged||window.__e11UpdateGuardActive))return Promise.resolve(false);
@@ -11239,6 +11339,8 @@ window.__e11AppearanceApply=function(){
       if(pack.sizes){if(pack.sizes.app)st.me1AppSize=pack.sizes.app;if(pack.sizes.photos)st.me1PhotosSize=pack.sizes.photos;}
       p.__ts=Math.max(Number(p.__ts)||0,Number(pack.ts)||Date.now());
       st.__savedAt=Date.now();
+      /* v43-219：外观保护档如果比四项专用备份旧，别让它把用户最后选的图/名盖回去 */
+      try{var _k4=window.__e11Keep4Read&&window.__e11Keep4Read();if(_k4&&Number(_k4.ts)>Number(pack.ts||0)+300&&window.__e11Keep4Apply)window.__e11Keep4Apply(st);}catch(_k4Ap){}
       try{window.__applyMe1Icons&&window.__applyMe1Icons();}catch(_){}
       try{window.__applyMe1Sizes&&window.__applyMe1Sizes();}catch(_){}
       try{typeof applySkin==="function"&&applySkin();}catch(_){}
@@ -11420,6 +11522,8 @@ function __emergencySnapshot(){
     /* v43-99：__e11ExitSave 本身就会写一份文字核心；退出瞬间不再重复写两遍。 */
     if(!window.__e11ExitFast){try{__e11CoreWrite(state,true);}catch(_eCoreEm){}}
     try{window.__e11ExitSave&&window.__e11ExitSave(state);}catch(_eExitEm){}
+    /* v43-219：切后台/退出的同一条路径也写四项专用备份 */
+    try{window.__e11Keep4Save&&window.__e11Keep4Save();}catch(_eK4Em){}
     try{localStorage.setItem("privateChat",JSON.stringify({__idbOnly:1,__savedAt:state.__savedAt}));}catch(_eLs){}
   }catch(e){}
 }
@@ -12608,7 +12712,9 @@ async function init(){
       /* 兜底：6 秒后仍没恢复（比如没有外观档）才允许正常保存覆盖，避免永远不存新改动 */
       setTimeout(function(){try{window.__e11AppearanceReadyForSave=true;}catch(_eApReady){}},6000);
       try{localStorage.setItem("e11.buildSeen.v1",window.__E11_BUILD);}catch(_eSeenSet){}
-      try{window.__e11RepairBulkTombs&&window.__e11RepairBulkTombs(state);}catch(_eTombFix){}try{__ltReadApply();}catch(e){}try{__prefApply();}catch(e){}try{window.__perfApply&&window.__perfApply();}catch(_){}window.__stateReady=1;window.__e11DataReady=1;try{window.__e11BootLoading=0;}catch(_eBootLoad1){}
+      try{window.__e11RepairBulkTombs&&window.__e11RepairBulkTombs(state);}catch(_eTombFix){}try{__ltReadApply();}catch(e){}try{__prefApply();}catch(e){}try{window.__perfApply&&window.__perfApply();}catch(_){}
+      /* v43-219：全部旧档合并、外观恢复完成后，再把四项“最后一次选择”盖回来 */
+      try{if(window.__e11Keep4ApplyAll)window.__e11Keep4ApplyAll();}catch(_eK4Boot){}window.__stateReady=1;window.__e11DataReady=1;try{window.__e11BootLoading=0;}catch(_eBootLoad1){}
       /* v43-192：一起听会话跟主档一起恢复；更新/重开后仍保持“正在一起听”，不用重新邀请。 */
       try{musicSession=!!(state&&state.musicSession);}catch(_eMsSync){try{window.__e11MusicSession=!!(state&&state.musicSession);}catch(_eMsSync2){}}
       try{if(typeof refreshMiniPlayer==="function")refreshMiniPlayer();}catch(_eMsMini){}try{
@@ -13576,6 +13682,7 @@ window.__e11TextAutoSave=function(kind){
     if(kind==="name"&&state.profile)state.profile.__ts=Date.now();
     /* v43-218：名字是几个字，改完可能马上退出；越过 1.2 秒整库写盘节流，直接强制写一次 */
     try{window.__e11ForceUntil=Date.now()+2600;}catch(_taForce){}
+    try{window.__e11Keep4Save&&window.__e11Keep4Save();}catch(_taK4){}
     try{save();ok=true;}catch(_taSave){}
     try{__flushSave(true);}catch(_taFlush){}
     try{if(window.__e11SyncCfgSnapshot)window.__e11SyncCfgSnapshot();}catch(_taCfg){}
@@ -13596,6 +13703,8 @@ window.__e11MediaAutoSave=function(kind){
     if(kind==="avatar"){try{if(window.__avatarBakSync)window.__avatarBakSync();}catch(_maBak){}}
     /* v43-218：选完图立刻退出也要落盘，强制越过整库写盘的 1.2 秒节流 */
     try{window.__e11ForceUntil=Date.now()+2600;}catch(_maForce){}
+    /* v43-219：同时更新四项专用小备份，离站快照丢图也能从这份回来 */
+    try{window.__e11Keep4Save&&window.__e11Keep4Save();}catch(_maK4){}
     try{save();ok=true;}catch(_maSave){}
     try{__flushSave(true);}catch(_maFlush){}
     try{if(window.__cardMediaPersist)window.__cardMediaPersist();}catch(_maCard){}
@@ -35065,11 +35174,32 @@ setTimeout(function(){
     });
     inp.click();
   }
+  /* v43-219：图标只需要显示几十像素，原图动辄几 MB，会把 localStorage 备份顶爆。
+     选中后先按 512 长边重编码，再写一份；压缩完成前退出也已有原图备份兜底。 */
+  function __iconShrinkStore(id,raw){
+    try{
+      if(!raw||!window.__shrinkImg)return;
+      window.__shrinkImg(raw,512,0.82).then(function(small){
+        if(!small||small===raw)return;
+        var obj=state.me1AppIcons||{};
+        if(!id){
+          if(obj.all!==raw)return;
+          obj.all=small;state.me1AppIcons=obj;
+        }else{
+          if(!obj.byId||obj.byId[id]!==raw)return;
+          obj.byId[id]=small;
+        }
+        try{applyIcons();}catch(_){}
+        try{if(window.__e11MediaAutoSave)window.__e11MediaAutoSave("icon");else save();}catch(_){}
+      }).catch(function(){});
+    }catch(_){}
+  }
   function setIconAll(url){
     state.me1AppIcons={all:url,byId:{}};
     applyIcons();
     /* v43-218：图标选中就同步写主档和外观保护档，不等 260ms 防抖 */
     try{if(window.__e11MediaAutoSave)window.__e11MediaAutoSave("icon");else save();}catch(_){}
+    __iconShrinkStore("",url);
     toast("已替换全部应用图标");
   }
   function setIconOne(id,url){
@@ -35078,6 +35208,7 @@ setTimeout(function(){
     obj.byId[id]=url;state.me1AppIcons=obj;
     applyIcons();
     try{if(window.__e11MediaAutoSave)window.__e11MediaAutoSave("icon");else save();}catch(_){}
+    __iconShrinkStore(id,url);
     toast("已换好这个应用图标");
   }
   window.__applyMe1Icons=applyIcons;
