@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-213z35";
+window.__E11_BUILD="2026-11-25v43-214z36";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2759,7 +2759,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-213z35">
+<meta name="app-build" content="2026-11-25v43-214z36">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -26556,16 +26556,16 @@ var _163Warmed=false;
       __s163Store(q,_s163Cache[q]);
       cb(_s163Cache[q]);
     }
-    var _budget=function(){var left=(deadline?deadline-Date.now():2600);return Math.max(600,Math.min(2600,left));};
+    var _budget=function(){var left=(deadline?deadline-Date.now():1700);return Math.max(500,Math.min(1700,left));};
     function timed(url,opt){
       try{
         var ctl=new AbortController();
-        var t=setTimeout(function(){try{ctl.abort();}catch(e){}},3200);
+        var t=setTimeout(function(){try{ctl.abort();}catch(e){}},2000);
         return fetch(url,Object.assign({signal:ctl.signal},opt||{})).then(function(r){clearTimeout(t);return r.json();});
       }catch(e){return Promise.reject(e);}
     }
     /* 总预算：到点必给结论，不再让用户干等 */
-    var _total=deadline?Math.max(700,deadline-Date.now()):2800;
+    var _total=deadline?Math.max(600,deadline-Date.now()):1800;
     timer=setTimeout(function(){finish([]);},_total);
     /* A. 同源后端的搜索（返回 {songs:[{id,name,artist,cover}]}） */
     __s163BackendBase(function(base){
@@ -26637,10 +26637,10 @@ var _163Warmed=false;
     var full=((item.artist?item.artist+" ":"")+(item.name||"")).trim();
     var nameOnly=String(item.name||"").trim();
     var triedSecond=false;
-    var _dl=Date.now()+3600;   /* 两次查询共用同一个总预算，最坏也就 3.6 秒给结论 */
+    var _dl=Date.now()+2200;   /* 两次查询共用同一个总预算，最坏 2.2 秒给结论 */
     __search163(full,function(list){
       var hit=__pickSong(item,list);
-      if(!hit&&nameOnly&&full!==nameOnly&&!triedSecond&&Date.now()<_dl-500){triedSecond=true;__search163(nameOnly,function(l2){apply(__pickSong(item,l2));},_dl,item.artist);return;}
+      if(!hit&&nameOnly&&full!==nameOnly&&!triedSecond&&Date.now()<_dl-350){triedSecond=true;__search163(nameOnly,function(l2){apply(__pickSong(item,l2));},_dl,item.artist);return;}
       apply(hit);
     },_dl,item.artist);
     function apply(hit){
@@ -26664,10 +26664,10 @@ var _163Warmed=false;
         if(!it||it.neteaseId)continue;
         if(!(it.local||/^data:/.test(String(it.url||""))))continue;
         n++;
-        (function(song,k){setTimeout(function(){try{recognizeLocalSong(song);}catch(e){}},k*900);})(it,n);
+        (function(song,k){setTimeout(function(){try{recognizeLocalSong(song);}catch(e){}},k*220);})(it,n);
       }
     }catch(e){}
-  },1600);
+  },700);
 
   // ===== 本地音乐导入 =====
   $("m-import-local").addEventListener("click",()=>window.__nativePick("file-music-local"));
@@ -26858,7 +26858,7 @@ var _163Warmed=false;
   var body=document.getElementById('ny-body');
   var logged=false,view='login';
 
-  function call(path,data){
+  function call(path,data,timeoutMs){
     return new Promise(function(res,rej){
       if(typeof backendAddr!=="function"){rej(new Error('no backend'));return;}
       backendAddr(function(base){
@@ -26866,7 +26866,7 @@ var _163Warmed=false;
         if(!base){rej(new Error('no backend'));return;}
         try{window.__lastBase=base;}catch(e){}
         var ctl=null,to=null;
-        try{ctl=new AbortController();to=setTimeout(function(){try{ctl.abort();}catch(e){}},12000);}catch(e){}
+        try{ctl=new AbortController();to=setTimeout(function(){try{ctl.abort();}catch(e){}},Math.max(2500,Number(timeoutMs)||12000));}catch(e){}
         var hdr={'Content-Type':'application/json','x-wns-client':'1'};
         try{var __sid=localStorage.getItem('wnsSid');if(__sid)hdr['x-wns-sid']=__sid;}catch(_){}
         fetch(base+path,{method:'POST',mode:'cors',credentials:'omit',headers:hdr,
@@ -26934,13 +26934,15 @@ var _163Warmed=false;
     }
     return out;
   }
-  function __nyTryCookie(raw,ok,fail){
+  function __nyTryCookie(raw,ok,fail,deadline){
     var list=__nyCookieVariants(raw),i=0,last='';
     if(!list.length){fail('没有拿到 Cookie');return;}
+    var _dl=Number(deadline)|| (Date.now()+9000);
     function next(){
       if(i>=list.length){fail(last||'后端没有接受这个 Cookie');return;}
+      if(Date.now()>=_dl){fail(last||'登录同步超时，请刷新二维码重试');return;}
       var v=list[i++];
-      call('/api/netease/cookie',{cookie:v}).then(function(d){
+      call('/api/netease/cookie',{cookie:v},Math.min(4500,Math.max(1200,_dl-Date.now()))).then(function(d){
         if(d&&d.code===200&&d.profile){ok(d);return;}
         last=(d&&d.msg)||('后端返回 '+(d&&d.code||'错误'));
         next();
@@ -26954,11 +26956,13 @@ var _163Warmed=false;
 
   function __nyLocalStatus(cookie,ok,fail){
     var base=__nyQrBase();
-    fetch(base+'/login/status?cookie='+encodeURIComponent(cookie),{mode:'cors',credentials:'omit'})
-      .then(function(r){return r.json();}).then(function(d){
+    var ctl=null,to=null;
+    try{ctl=new AbortController();to=setTimeout(function(){try{ctl.abort();}catch(_){}},4200);}catch(_){}
+    fetch(base+'/login/status?cookie='+encodeURIComponent(cookie),{mode:'cors',credentials:'omit',signal:ctl?ctl.signal:undefined})
+      .then(function(r){if(to)clearTimeout(to);return r.json();}).then(function(d){
         var p=(d&&d.profile)||(d&&d.data&&d.data.profile)||null;
         if(p&&(p.nickname||p.userId))ok(p);else fail((d&&d.msg)||'这个 Cookie 在公共接口也登录不上');
-      }).catch(function(e){fail((e&&e.message)||'公共接口连不上');});
+      }).catch(function(e){if(to)clearTimeout(to);fail((e&&e.message)||'公共接口连不上');});
   }
   function __nyLocalPlaylists(profile,cb){
     var base=__nyQrBase();
@@ -27081,7 +27085,7 @@ var _163Warmed=false;
     function _qrGet(url,tries){
       return fetch(url,{mode:"cors",credentials:"omit",cache:"no-store"}).then(function(r){return r.json();}).catch(function(e){
         if(tries<=1)throw e;
-        return new Promise(function(res){setTimeout(res,700);}).then(function(){return _qrGet(url,tries-1);});
+        return new Promise(function(res){setTimeout(res,380);}).then(function(){return _qrGet(url,tries-1);});
       });
     }
     function beginPoll(){
@@ -27099,8 +27103,8 @@ var _163Warmed=false;
           })
           .catch(function(){if(token===__nyQrToken&&st){st.style.color="#8E8E93";st.textContent="网络不稳定，正在重试…";}});
       };
-      __nyQrTimer=setInterval(check,2000);
-      setTimeout(check,700);
+      __nyQrTimer=setInterval(check,1200);
+      setTimeout(check,320);
     }
     function showFallback(){
       if(!__nyQrKey)return false;
@@ -27110,7 +27114,7 @@ var _163Warmed=false;
       beginPoll();
       return true;
     }
-    _qrGet(base+"/login/qr/key",3)
+    _qrGet(base+"/login/qr/key",2)
       .then(function(k){
         if(token!==__nyQrToken)return;
         var key=(k&&k.data&&k.data.unikey)||"";
@@ -27136,30 +27140,25 @@ var _163Warmed=false;
     try{window.__nyLastQrCookie=cookie;}catch(e){}
     if(!cookie){if(st){st.style.color="#FF3B30";st.textContent="没有拿到登录 Cookie，请刷新二维码重试";}if(rb)rb.disabled=false;return;}
     try{localStorage.setItem('__nyCookieLocal',String(cookie).trim());}catch(_){}
-    /* 先走公共接口：本机 Cookie 能拿到 profile 就先算登录成功。
-       后端只是可选同步，它失败/超时不能把已经有效的扫码登录拦住。 */
-    __nyLocalStatus(cookie,function(profile){
+    if(st){st.style.color="#3478F6";st.textContent="扫码成功，正在同步账号…";}
+    var _done=false,_localDone=false,_backDone=false,_m2='',_mb='';
+    /* v43-214：公共接口和后端同时跑，谁先拿到有效 profile 就用谁；
+       两边都失败才判失败，避免后端先超时把本机刚扫成功的登录误判掉 */
+    function ok(profile){
+      if(_done)return;_done=true;__nyQrStop();
       try{__nyAcceptedLocal(profile);}catch(_){}
-      /* 后台顺手同步后端，失败不提示、不覆盖本机登录 */
+      /* __nyAcceptedLocal 已经会异步拉歌单并重画，不再重复请求一次 */
       try{__nyTryCookie(cookie,function(){},function(){});}catch(_){}
-      __nyLocalPlaylists(profile,function(pls){try{paintUser(profile,pls||[]);}catch(_){}});
-    },function(m2){
-      /* 公共接口不认时再试后端；后端接受才继续，否则给出明确失败 */
-      __nyTryCookie(cookie,function(d){
-        logged=true;__nyQrStop();
-        try{localStorage.setItem('wnsLoggedIn','1');localStorage.removeItem('__nyLocalLogout');}catch(_){}
-        try{window.__clear163UrlCache&&window.__clear163UrlCache();}catch(_){}
-        toast('网易云已登录：'+(d.profile.nickname||''));
-        paintUser(d.profile,null);refreshAcctBtn(d.profile);
-        call('/api/netease/playlists',{}).then(function(r){
-          if(r&&r.code===200)paintUser(d.profile,r.playlists||[]);
-          else paintUser(d.profile,[],(r&&r.msg)||'请稍后重试');
-        }).catch(function(e){paintUser(d.profile,[],(e&&e.message)||'连不上后端');});
-      },function(m){
-        if(st){st.style.color="#FF3B30";st.textContent="扫码成功，但这个 Cookie 没通过登录校验："+(m2||m||"请刷新二维码重试");}
-        if(rb){rb.disabled=false;rb.dataset.retry='1';rb.textContent='用刚扫的结果重试';}
-      });
-    });
+    }
+    function fail(m){
+      if(_done)return;_done=true;
+      if(st){st.style.color="#FF3B30";st.textContent="扫码成功，但这个 Cookie 没通过登录校验："+(_m2||_mb||m||"请刷新二维码重试");}
+      if(rb){rb.disabled=false;rb.dataset.retry='1';rb.textContent='用刚扫的结果重试';}
+    }
+    function maybeFail(){if(!_done&&_localDone&&_backDone)fail(_m2||_mb);}
+    __nyLocalStatus(cookie,ok,function(m2){_m2=m2;_localDone=true;maybeFail();});
+    __nyTryCookie(cookie,ok,function(mb){_mb=mb;_backDone=true;maybeFail();},Date.now()+6500);
+    setTimeout(function(){if(!_done)fail('登录同步超时，请刷新二维码重试');},9000);
   }
 function stxt(t){var e=document.getElementById('ny-st'); if(e)e.textContent=t;}
 
@@ -27721,6 +27720,10 @@ $("mb-confirm").addEventListener("click",(e)=>{e.stopPropagation();window.__e11S
       /* 先把选中的图立刻换上，不再等压缩——大图压缩要一两秒，用户会以为按钮失效。
          随后在后台压到 640px 再替换保存，既快又不把几 MB 原图塞进本机存档。 */
       state.musicDiscInnerImg=raw;renderMusicBg();
+      /* v43-214：选中就同步落盘，不能等后台压缩完才保存；否则大图压到一半退出/刷新就丢 */
+      try{window.__e11BgLocalSync&&window.__e11BgLocalSync();}catch(_){}
+      try{save();}catch(_){}
+      try{window.__bgPersistNow&&window.__bgPersistNow();}catch(_){}
       toast("已导入唱片中心背景，正在优化…");
       try{gCompress(raw,640,0.72).then(function(u){
         if(!u||u===raw||state.musicDiscInnerImg!==raw)return;
