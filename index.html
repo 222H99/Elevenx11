@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-211z35";
+window.__E11_BUILD="2026-11-25v43-212z35";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2759,7 +2759,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-211z35">
+<meta name="app-build" content="2026-11-25v43-212z35">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4673,7 +4673,7 @@ setTimeout(function(){
       <div class="set-sec-title">备份与导出</div>
       <div class="set-group">
         <div class="data-panel">
-          <button class="data-main-btn" id="btn-snapshots">自动备份（最近 7 次）</button>
+          <button class="data-main-btn" id="btn-snapshots">自动备份（整机全部数据 · 最近 7 次）</button>
           <div class="set-sub" id="snap-sub" style="margin:-2px 0 2px;line-height:1.5;">每天自动存一份，点开可查看或单独恢复</div>
           <button class="data-main-btn" id="btn-export">全量导出全部数据</button>
           <div class="data-grid">
@@ -4835,7 +4835,7 @@ setTimeout(function(){
       <div class="sheet-grip"></div>
       <div style="padding:6px 16px 18px;">
         <div class="edit-sheet-title">自动备份</div>
-        <div class="set-sub" id="bk-sub" style="margin:6px 0 10px;">只备份 Eleven×11 自己的聊天、资料、图片和设置，保留最近 7 次；不含手机其他应用，也不参与安卓系统整包备份</div>
+        <div class="set-sub" id="bk-sub" style="margin:6px 0 10px;">每次离开自动保存整机全部数据（聊天、资料、图片、设置、美化等），保留最近 7 次，进入时取最新一份</div>
         <div id="bk-list"></div>
         <button class="small-btn ghost" style="width:100%;margin-top:12px;" id="bk-now">立即备份一次</button>
       </div>
@@ -12314,9 +12314,9 @@ async function init(){
         /* v43-209：老存档里 settings 写 myDisplayName、主页写 mpName，两份可能不一致。
            启动时合成同一套：主页名优先，其次设置名，最后才用原有 name，三处不再各显示一个。 */
         var _hMe=String(root.profile.mpName||root.profile.myDisplayName||(root.me&&root.me.name)||"").trim();
-        if(_hMe){root.me=root.me||{};root.me.name=_hMe;root.profile.mpName=_hMe;root.profile.myDisplayName=_hMe;root.profile.cpMeName=_hMe;}
+        if(_hMe){root.me=root.me||{};root.me.name=_hMe;root.profile.mpName=_hMe;root.profile.myDisplayName=_hMe;}
         var _hPt=String(root.profile.partnerMpName||root.profile.partnerDisplayName||(root.partner&&root.partner.name)||"").trim();
-        if(_hPt){root.partner=root.partner||{};root.partner.name=_hPt;root.profile.partnerMpName=_hPt;root.profile.partnerDisplayName=_hPt;root.profile.cpPartnerName=_hPt;}
+        if(_hPt){root.partner=root.partner||{};root.partner.name=_hPt;root.profile.partnerMpName=_hPt;root.profile.partnerDisplayName=_hPt;}
       });
     }catch(_eNamesBak){}
     /* P0.5：主存档整个不见了（localStorage 和 IndexedDB 都没有可用记录）时，
@@ -25029,10 +25029,12 @@ function gCompress(d,max,q){return __shrinkImg(d,max||720,q||0.72);}
       state.musicRoomNote=(($("mu-e-note")&&$("mu-e-note").value)||"").trim();
       try{window.__e11MusicRoomTouch&&window.__e11MusicRoomTouch();}catch(_){}
     }else if(mode==="partner"){
-      window.__e11SetPartnerName(($("mu-e-name").value||"").trim());
+      state.profile.partnerMpName=($("mu-e-name").value||"").trim();
+      state.profile.partnerDisplayName=state.profile.partnerMpName;
       try{window.__e11MusicRoomTouch&&window.__e11MusicRoomTouch();}catch(_){}
     }else if(mode==="me"){
-      window.__e11SetMeName(($("mu-e-name").value||"").trim());
+      state.profile.mpName=($("mu-e-name").value||"").trim();
+      state.profile.myDisplayName=state.profile.mpName;
       try{window.__e11MusicRoomTouch&&window.__e11MusicRoomTouch();}catch(_){}
     }
     ov.classList.remove("show");
@@ -25132,7 +25134,11 @@ function refreshMiniPlayer(){
   /* 不能看 .open：切页时旧页要 110ms 后才撤 open，这期间小弹窗会被误判成“还在音乐页”而藏起来，
      之后 timeupdate 又只刷新已显示的弹窗，于是它就一直不见了。 */
   const _cur=window.__curView||"";
-  const show=state.musicCur>=0&&!state.miniClosed&&_cur!=="view-music";
+  /* v43-212：密码页/声明页还没放行时，小弹窗绝对不能提前露出来 */
+  var _passed=!!window.__lockPassed&&!document.body.classList.contains("auth-locked");
+  var _lockEl=document.getElementById("lock-screen");
+  if(_lockEl&&_lockEl.classList.contains("show"))_passed=false;
+  const show=_passed&&state.musicCur>=0&&!state.miniClosed&&_cur!=="view-music";
   mp.classList.toggle("show",show);
   if(!show)return;
   mp.classList.toggle("collapsed",!!state.miniCollapsed);
@@ -28795,9 +28801,7 @@ window.__e11SetMeName=function(v){
     var n=String(v==null?"":v).trim()||"我";
     state.me=state.me||{};state.me.name=n;
     state.profile=state.profile||{};
-    state.profile.mpName=n;state.profile.myDisplayName=n;
-    /* v43-211：情侣空间不再单独维护 kk/11 这套名字，和全局共用同一个名字 */
-    state.profile.cpMeName=n;
+    state.profile.myDisplayName=n;
     state.profile.__ts=Date.now();
     return n;
   }catch(_eMeName){return "我";}
@@ -28807,8 +28811,7 @@ window.__e11SetPartnerName=function(v){
     var n=String(v==null?"":v).trim()||"对方";
     state.partner=state.partner||{};state.partner.name=n;
     state.profile=state.profile||{};
-    state.profile.partnerMpName=n;state.profile.partnerDisplayName=n;
-    state.profile.cpPartnerName=n;
+    state.profile.partnerDisplayName=n;
     state.profile.__ts=Date.now();
     return n;
   }catch(_ePartName){return "对方";}
@@ -28843,16 +28846,14 @@ window.__e11PaintNames=function(){
     var me=String((state.me&&state.me.name)||"我");
     var pt=String((state.partner&&state.partner.name)||"对方");
     var put=function(id,val){var el=document.getElementById(id);if(el&&document.activeElement!==el)el.textContent=val;};
-    put("me-name",me);put("name-me",me);put("set-me-name",me);
+    put("name-me",me);put("set-me-name",me);
     put("name-partner",pt);put("set-partner-name",pt);
     put("gb-name","@"+(state.profile.partnerMpName||pt));
     put("lt-write-name",pt);put("call-name",pt);
     put("mu-name1",state.profile.partnerMpName||pt);
     put("mu-name2",state.profile.mpName||me);
-    try{var cn=document.getElementById("cp2-nm-me");if(cn)cn.textContent=me;}catch(_){}
-    try{var cp=document.getElementById("cp2-nm-pn");if(cp)cp.textContent=pt;}catch(_){}
-    /* 情侣空间大标题也一起用共享名字 */
-    try{var ct=document.getElementById("cp2-count-title");if(ct&&String(ct.textContent||"").indexOf(" 已经")>0)ct.textContent=me+" 已经";}catch(_){}
+    try{var cn=document.getElementById("cp2-nm-me");if(cn)cn.textContent=state.profile.cpMeName||"kk";}catch(_){}
+    try{var cp=document.getElementById("cp2-nm-pn");if(cp)cp.textContent=state.profile.cpPartnerName||"11";}catch(_){}
   }catch(_ePaintName){}
 };
 function __favArr(){if(!Array.isArray(state.favorites))state.favorites=[];return state.favorites;}
@@ -31823,8 +31824,8 @@ function flushBioForm(){
   const fl=Math.max(0,parseInt($("bio-followers").value)||0);
   const fg=Math.max(0,parseInt($("bio-following").value)||0);
   const bio=$("bio-text").value.trim();
-  if(bioSeg==="me"){if(nm)window.__e11SetMeName(nm);p.handle=hd;p.followers=fl;p.following=fg;p.bio=bio;}
-  else{if(nm)window.__e11SetPartnerName(nm);p.partnerHandle=hd;p.partnerFollowers=fl;p.partnerFollowing=fg;p.partnerBio=bio;}
+  if(bioSeg==="me"){p.mpName=nm;p.myDisplayName=nm;p.handle=hd;p.followers=fl;p.following=fg;p.bio=bio;}
+  else{p.partnerMpName=nm;p.partnerDisplayName=nm;p.partnerHandle=hd;p.partnerFollowers=fl;p.partnerFollowing=fg;p.partnerBio=bio;}
 }
 $("btn-mp-bio").addEventListener("click",function(){bioSeg=mpSide==="partner"?"partner":"me";fillBioForm();$("bio-overlay").classList.add("show");setTimeout(function(){$("bio-name").focus();},150);});
 /* v43-183z11：编辑资料内的“换背景”行已删除，背景统一从主页封面/换背景按钮进入。 */
@@ -32802,7 +32803,7 @@ function renderMe(){
   try{if(typeof __syncAvatarMirrors==="function")__syncAvatarMirrors();}catch(_eSyncMe){}
   /* 主页资料没变就不重复铺：切回主页不再每次重建色块、照片框和资料文本 */
   try{
-    var _sig=[state.profile.meAvatar||"",state.profile.mpName||state.me.name||"",state.profile.bio||"",state.profile.handle||"",state.profile.region||"",state.skin.meTopBg||0,state.skin.meTopImage||"",(state.me.photos||[])[0]||"",state.me1PhotosSize||""].join("~");
+    var _sig=[state.profile.meAvatar||"",state.profile.cardMeAvatar||"",state.profile.cpMeAvatar||"",(state.me&&state.me.avatar)||"",state.profile.mpName||state.me.name||"",state.profile.bio||"",state.profile.handle||"",state.profile.region||"",state.skin.meTopBg||0,state.skin.meTopImage||"",(state.me.photos||[])[0]||"",state.me1PhotosSize||""].join("~");
     if(window.__meSig===_sig){
       /* 资料没变可以跳过文字/色块重建，但照片框必须每次校验：
          异步读库、切页、编辑恢复后如果 DOM 被清空/图片失效，这里就是最后一道恢复点。 */
@@ -33071,9 +33072,8 @@ window.__scheduleCp2Render=function(){
 };
 function renderCouple(){
   try{__applyCoupleBg();}catch(e){}
-  /* v43-211：情侣空间与全局共用名字；cpMeName/cpPartnerName 只作为老存档镜像 */
-  var mn=(state.me&&state.me.name)||state.profile.mpName||state.profile.cpMeName||"kk";
-  var pn=(state.partner&&state.partner.name)||state.profile.partnerMpName||state.profile.cpPartnerName||"11";
+  var mn=state.profile.cpMeName||"kk";
+  var pn=state.profile.cpPartnerName||"11";
   // anniversary countdown
   var anniv=state.profile.anniv||"2025-06-01";
   var diff=Math.floor((Date.now()-new Date(anniv).getTime())/86400000);
@@ -33265,8 +33265,8 @@ window.__cp2Activate=__cp2Activate;
 // 情侣名字：点击编辑（默认 kk / 11）
 (function(){
   function openNameEdit(){
-    $("cp2-name-me-input").value=(state.me&&state.me.name)||state.profile.mpName||state.profile.cpMeName||"kk";
-    $("cp2-name-pn-input").value=(state.partner&&state.partner.name)||state.profile.partnerMpName||state.profile.cpPartnerName||"11";
+    $("cp2-name-me-input").value=state.profile.cpMeName||"kk";
+    $("cp2-name-pn-input").value=state.profile.cpPartnerName||"11";
     $("cp2-name-edit-overlay").classList.add("show");
     setTimeout(function(){try{$("cp2-name-me-input").focus();}catch(e){}},120);
   }
@@ -33274,12 +33274,9 @@ window.__cp2Activate=__cp2Activate;
   if($("cp2-name-edit-cancel"))$("cp2-name-edit-cancel").addEventListener("click",function(){$("cp2-name-edit-overlay").classList.remove("show");});
   $("cp2-name-edit-overlay").addEventListener("click",function(e){if(e.target===e.currentTarget)$("cp2-name-edit-overlay").classList.remove("show");});
   if($("cp2-name-edit-save"))$("cp2-name-edit-save").addEventListener("click",function(){
-    window.__e11SetMeName($("cp2-name-me-input").value.trim());
-    window.__e11SetPartnerName($("cp2-name-pn-input").value.trim());
-    save();try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_){}
-    try{window.__e11RefreshProfileSurfaces&&window.__e11RefreshProfileSurfaces();}catch(_){}
-    try{window.__e11PaintNames&&window.__e11PaintNames();}catch(_){}
-    toast("已保存，名字已同步到全部页面");
+    state.profile.cpMeName=$("cp2-name-me-input").value.trim()||"kk";
+    state.profile.cpPartnerName=$("cp2-name-pn-input").value.trim()||"11";
+    save();renderCouple();toast("已保存");
     $("cp2-name-edit-overlay").classList.remove("show");
   });
 })();
@@ -34420,7 +34417,8 @@ try{
   var _nt=null;
   function _meDraftSync(full){
     var _nm=$("me-name-edit").value.trim();
-    if(_nm)window.__e11SetMeName(_nm);else state.profile.mpName=_nm;
+    state.profile.mpName=_nm;
+    state.profile.myDisplayName=_nm;
     state.profile.handle=$("me-handle-edit").value.trim();
     state.profile.region=$("me-region-edit").value.trim();
     state.profile.bio=$("me-sign-edit").value.trim();
@@ -34448,8 +34446,8 @@ try{
   window.__meDraftSync=_meDraftSync;
 }catch(e){}
 $("me-edit-save").addEventListener("click",()=>{
-  var _svNm=$("me-name-edit").value.trim();if(_svNm)window.__e11SetMeName(_svNm);
-  else state.profile.mpName=_svNm;
+  var _svNm=$("me-name-edit").value.trim();
+  state.profile.mpName=_svNm;state.profile.myDisplayName=_svNm;
   state.profile.handle=$("me-handle-edit").value.trim();
   state.profile.region=$("me-region-edit").value.trim();
   state.profile.bio=$("me-sign-edit").value.trim();
