@@ -272,7 +272,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-26v43-235z60b3";
+window.__E11_BUILD="2026-11-26v43-235z60b4";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -2791,7 +2791,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-26v43-235z60b3">
+<meta name="app-build" content="2026-11-26v43-235z60b4">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3754,7 +3754,7 @@ html.kb-typing #rotate-guard,html.kb-typing body #rotate-guard{display:none!impo
 .data-danger .data-sub-btn{color:var(--danger,#FF3B30);border-color:rgba(255,59,48,.28);}
 </style>
 <style id="__e11_fill_bottom">
-/* v43-235z60b3：PWA/浏览器底部会留一条系统底栏高度的白底。
+/* v43-235z60b4：PWA/浏览器底部会留一条系统底栏高度的白底。
    app 只按 dvh 排（793）时，body 852 的下半截没人画，就是那条白。
    把画布和 app 都铺到 large viewport（852），底栏区域也由页面背景/壁纸填满；
    固定 dock 仍按真实可视视口贴底，不会被浏览器条压住。 */
@@ -13511,18 +13511,8 @@ function initKeyboardFix(){
       const bb=vc.querySelector(".bottombar");
       if(bb){bb.style.transform="";bb.style.paddingBottom="8px";}
       try{__chatPinNow();}catch(_){}
-      try{
-        requestAnimationFrame(function(){
-          try{
-            const bb2=vc.querySelector(".bottombar");if(!bb2)return;
-            const over2=bb2.getBoundingClientRect().bottom-visH;
-            if(over2>2){
-              const cur=parseFloat(vc.style.height)||_cssH;
-              vc.style.height=Math.max(160,Math.floor(cur-over2/(_scale||1)))+"px";
-            }
-          }catch(_){}
-        });
-      }catch(_){}
+      /* v43-235z60b4：不再用下一帧“发现底栏超出再改一次高度”的追高逻辑。
+         键盘动画期间每帧都改高度会一弹一弹；这里一次定高，等键盘停稳再校准。 */
     }catch(_){}
   }
   window.__e11KbFitChat=fitChatToKeyboard;
@@ -13575,12 +13565,15 @@ function initKeyboardFix(){
     }catch(_){}
   }
   window.__e11KbFitPanels=fitKeyboardPanels;
+  var __kbChatT=0;
+  function queueKbChat(delay){
+    try{if(__kbChatT){clearTimeout(__kbChatT);__kbChatT=0;}}catch(_){}
+    __kbChatT=setTimeout(function(){__kbChatT=0;try{fitChatToKeyboard();}catch(_){}},delay||140);
+  }
+  window.__e11QueueKbChat=queueKbChat;
   function scheduleKbFit(){
     fitKeyboardPanels();
-    fitChatToKeyboard();
-    setTimeout(fitChatToKeyboard,80);
-    setTimeout(fitChatToKeyboard,220);
-    setTimeout(fitChatToKeyboard,420);
+    queueKbChat(160);
     setTimeout(function(){try{fitKeyboardPanels();}catch(_){}},80);
     setTimeout(function(){try{fitKeyboardPanels();}catch(_){}},300);
   }
@@ -13613,8 +13606,11 @@ function initKeyboardFix(){
     const vc=document.getElementById("view-chat");
     const chatOpen=!!(vc&&vc.classList.contains("open"));
     if(chatOpen){
-      if(use)vc.style.paddingBottom=Math.round(use)+"px";else vc.style.paddingBottom="";
+      /* v43-235z60b4：聊天页交给 fitChatToKeyboard 统一收口，键盘高度稳定后一次性
+         定住视口高度；这里不再每帧改 padding，也不重复顶底栏，避免上下弹动。 */
       shiftFor(bb,0);
+      queueKbChat(140);
+      return;
     }else{
       if(vc)vc.style.paddingBottom="";
       shiftFor(bb,use);
@@ -13680,10 +13676,9 @@ function initKeyboardFix(){
     try{fitKeyboardPanels();}catch(_){}
     if(t&&t.id==="msg-input"){
       scheduleKbFit();
-      /* 键盘动画各机型 150~600ms 不等；多补几拍，输入栏不靠一次 resize 事件。 */
-      setTimeout(function(){try{fitChatToKeyboard();__chatPinNow();}catch(_){}},180);
-      setTimeout(function(){try{fitChatToKeyboard();__chatPinNow();}catch(_){}},420);
-      setTimeout(function(){try{fitChatToKeyboard();__chatPinNow();}catch(_){}},780);
+      /* 键盘动画各机型 150~600ms 不等；只在停稳后校准一次，避免一路追着动画改高度。 */
+      queueKbChat(220);
+      setTimeout(function(){try{fitChatToKeyboard();__chatPinNow();}catch(_){}},520);
     }
   },true);
   document.addEventListener("focusout",function(e){
