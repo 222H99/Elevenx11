@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-210z35";
+window.__E11_BUILD="2026-11-25v43-211z35";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2759,7 +2759,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-210z35">
+<meta name="app-build" content="2026-11-25v43-211z35">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4835,7 +4835,7 @@ setTimeout(function(){
       <div class="sheet-grip"></div>
       <div style="padding:6px 16px 18px;">
         <div class="edit-sheet-title">自动备份</div>
-        <div class="set-sub" id="bk-sub" style="margin:6px 0 10px;">每次离开网站自动存一份，保留最近 7 次；进入时直接取最新一份</div>
+        <div class="set-sub" id="bk-sub" style="margin:6px 0 10px;">只备份 Eleven×11 自己的聊天、资料、图片和设置，保留最近 7 次；不含手机其他应用，也不参与安卓系统整包备份</div>
         <div id="bk-list"></div>
         <button class="small-btn ghost" style="width:100%;margin-top:12px;" id="bk-now">立即备份一次</button>
       </div>
@@ -12314,9 +12314,9 @@ async function init(){
         /* v43-209：老存档里 settings 写 myDisplayName、主页写 mpName，两份可能不一致。
            启动时合成同一套：主页名优先，其次设置名，最后才用原有 name，三处不再各显示一个。 */
         var _hMe=String(root.profile.mpName||root.profile.myDisplayName||(root.me&&root.me.name)||"").trim();
-        if(_hMe){root.me=root.me||{};root.me.name=_hMe;root.profile.mpName=_hMe;root.profile.myDisplayName=_hMe;}
+        if(_hMe){root.me=root.me||{};root.me.name=_hMe;root.profile.mpName=_hMe;root.profile.myDisplayName=_hMe;root.profile.cpMeName=_hMe;}
         var _hPt=String(root.profile.partnerMpName||root.profile.partnerDisplayName||(root.partner&&root.partner.name)||"").trim();
-        if(_hPt){root.partner=root.partner||{};root.partner.name=_hPt;root.profile.partnerMpName=_hPt;root.profile.partnerDisplayName=_hPt;}
+        if(_hPt){root.partner=root.partner||{};root.partner.name=_hPt;root.profile.partnerMpName=_hPt;root.profile.partnerDisplayName=_hPt;root.profile.cpPartnerName=_hPt;}
       });
     }catch(_eNamesBak){}
     /* P0.5：主存档整个不见了（localStorage 和 IndexedDB 都没有可用记录）时，
@@ -24716,7 +24716,8 @@ try{
   var _tnb=document.getElementById("top-name-btn");if(_tnb)_tnb.addEventListener("click",_openPartnerHome);
   var _tav=document.getElementById("top-avatar-partner");if(_tav)_tav.addEventListener("click",function(e){
     try{e.preventDefault();e.stopPropagation();}catch(_){}
-    __chatAvatarPick("partner");
+    /* v43-211：聊天顶部头像是入口，不再弹换头像选择器；点一下直接进对方主页 */
+    _openPartnerHome();
   });
 }catch(e){}
 $("plus-cards").addEventListener("click",()=>{closePlus();__plusMark();showView("view-cards");});
@@ -28794,7 +28795,10 @@ window.__e11SetMeName=function(v){
     var n=String(v==null?"":v).trim()||"我";
     state.me=state.me||{};state.me.name=n;
     state.profile=state.profile||{};
-    state.profile.mpName=n;state.profile.myDisplayName=n;state.profile.__ts=Date.now();
+    state.profile.mpName=n;state.profile.myDisplayName=n;
+    /* v43-211：情侣空间不再单独维护 kk/11 这套名字，和全局共用同一个名字 */
+    state.profile.cpMeName=n;
+    state.profile.__ts=Date.now();
     return n;
   }catch(_eMeName){return "我";}
 };
@@ -28803,7 +28807,9 @@ window.__e11SetPartnerName=function(v){
     var n=String(v==null?"":v).trim()||"对方";
     state.partner=state.partner||{};state.partner.name=n;
     state.profile=state.profile||{};
-    state.profile.partnerMpName=n;state.profile.partnerDisplayName=n;state.profile.__ts=Date.now();
+    state.profile.partnerMpName=n;state.profile.partnerDisplayName=n;
+    state.profile.cpPartnerName=n;
+    state.profile.__ts=Date.now();
     return n;
   }catch(_ePartName){return "对方";}
 };
@@ -28843,8 +28849,10 @@ window.__e11PaintNames=function(){
     put("lt-write-name",pt);put("call-name",pt);
     put("mu-name1",state.profile.partnerMpName||pt);
     put("mu-name2",state.profile.mpName||me);
-    try{var cn=document.getElementById("cp2-nm-me");if(cn)cn.textContent=state.profile.cpMeName||me;}catch(_){}
-    try{var cp=document.getElementById("cp2-nm-pn");if(cp)cp.textContent=state.profile.cpPartnerName||pt;}catch(_){}
+    try{var cn=document.getElementById("cp2-nm-me");if(cn)cn.textContent=me;}catch(_){}
+    try{var cp=document.getElementById("cp2-nm-pn");if(cp)cp.textContent=pt;}catch(_){}
+    /* 情侣空间大标题也一起用共享名字 */
+    try{var ct=document.getElementById("cp2-count-title");if(ct&&String(ct.textContent||"").indexOf(" 已经")>0)ct.textContent=me+" 已经";}catch(_){}
   }catch(_ePaintName){}
 };
 function __favArr(){if(!Array.isArray(state.favorites))state.favorites=[];return state.favorites;}
@@ -33063,8 +33071,9 @@ window.__scheduleCp2Render=function(){
 };
 function renderCouple(){
   try{__applyCoupleBg();}catch(e){}
-  var mn=state.profile.cpMeName||"kk";
-  var pn=state.profile.cpPartnerName||"11";
+  /* v43-211：情侣空间与全局共用名字；cpMeName/cpPartnerName 只作为老存档镜像 */
+  var mn=(state.me&&state.me.name)||state.profile.mpName||state.profile.cpMeName||"kk";
+  var pn=(state.partner&&state.partner.name)||state.profile.partnerMpName||state.profile.cpPartnerName||"11";
   // anniversary countdown
   var anniv=state.profile.anniv||"2025-06-01";
   var diff=Math.floor((Date.now()-new Date(anniv).getTime())/86400000);
@@ -33256,8 +33265,8 @@ window.__cp2Activate=__cp2Activate;
 // 情侣名字：点击编辑（默认 kk / 11）
 (function(){
   function openNameEdit(){
-    $("cp2-name-me-input").value=state.profile.cpMeName||"kk";
-    $("cp2-name-pn-input").value=state.profile.cpPartnerName||"11";
+    $("cp2-name-me-input").value=(state.me&&state.me.name)||state.profile.mpName||state.profile.cpMeName||"kk";
+    $("cp2-name-pn-input").value=(state.partner&&state.partner.name)||state.profile.partnerMpName||state.profile.cpPartnerName||"11";
     $("cp2-name-edit-overlay").classList.add("show");
     setTimeout(function(){try{$("cp2-name-me-input").focus();}catch(e){}},120);
   }
@@ -33265,9 +33274,12 @@ window.__cp2Activate=__cp2Activate;
   if($("cp2-name-edit-cancel"))$("cp2-name-edit-cancel").addEventListener("click",function(){$("cp2-name-edit-overlay").classList.remove("show");});
   $("cp2-name-edit-overlay").addEventListener("click",function(e){if(e.target===e.currentTarget)$("cp2-name-edit-overlay").classList.remove("show");});
   if($("cp2-name-edit-save"))$("cp2-name-edit-save").addEventListener("click",function(){
-    state.profile.cpMeName=$("cp2-name-me-input").value.trim()||"kk";
-    state.profile.cpPartnerName=$("cp2-name-pn-input").value.trim()||"11";
-    save();renderCouple();toast("已保存");
+    window.__e11SetMeName($("cp2-name-me-input").value.trim());
+    window.__e11SetPartnerName($("cp2-name-pn-input").value.trim());
+    save();try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_){}
+    try{window.__e11RefreshProfileSurfaces&&window.__e11RefreshProfileSurfaces();}catch(_){}
+    try{window.__e11PaintNames&&window.__e11PaintNames();}catch(_){}
+    toast("已保存，名字已同步到全部页面");
     $("cp2-name-edit-overlay").classList.remove("show");
   });
 })();
