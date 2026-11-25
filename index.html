@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-209z35";
+window.__E11_BUILD="2026-11-25v43-210z35";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2759,7 +2759,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-209z35">
+<meta name="app-build" content="2026-11-25v43-210z35">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -28807,6 +28807,31 @@ window.__e11SetPartnerName=function(v){
     return n;
   }catch(_ePartName){return "对方";}
 };
+window.__e11PaintMeDraft=function(){
+  try{
+    var p=state.profile||{};
+    var me=String(p.mpName||(state.me&&state.me.name)||"");
+    var put=function(id,val){var el=document.getElementById(id);if(el&&document.activeElement!==el)el.textContent=val;};
+    put("me-name",me||"我的名字");
+    put("me-sign",p.bio||"写点个性签名…");
+    put("me-handle",p.handle?("@"+p.handle):"");
+    put("me-region-txt",p.region||"未知地区");
+    put("mom-name",me||"我的名字");
+    put("mp-handle",p.handle?("@"+p.handle):"");
+    put("mp-bio",p.bio||"这个人很懒，什么都没写");
+    /* 顶部名字条也同步，避免卡片改了、聊天标题还是旧名 */
+    try{window.__e11PaintNames&&window.__e11PaintNames();}catch(_){}
+  }catch(_eDraft){}
+};
+window.__e11RefreshProfileSurfaces=function(){
+  try{renderMe();}catch(_){}
+  try{renderMePhotos();}catch(_){}
+  try{renderMomentProfile();}catch(_){}
+  try{renderMoments();}catch(_){}
+  try{renderChat();}catch(_){}
+  try{renderCouple();}catch(_){}
+  try{renderTopStatus();}catch(_){}
+};
 window.__e11PaintNames=function(){
   try{
     var me=String((state.me&&state.me.name)||"我");
@@ -31685,8 +31710,8 @@ $("file-partner-cover").addEventListener("change",function(e){
   const r=new FileReader();
   r.onload=function(){
     if(!state.profile)state.profile={};
-    var _raw=String(r.result||"");state.profile.partnerCover=_raw;try{if(window.__e11BgLocalSync)window.__e11BgLocalSync();}catch(_){}save();__flushSave(true);try{window.__cardMediaPersist&&window.__cardMediaPersist();}catch(_){}renderMomentProfile();toast("对方封面已更新");
-    try{__shrinkImg(_raw,1000,0.8).then(function(c){if(!c||c===_raw||state.profile.partnerCover!==_raw)return;state.profile.partnerCover=c;try{if(window.__e11BgLocalSync)window.__e11BgLocalSync();}catch(_){}save();__flushSave(true);try{window.__cardMediaPersist&&window.__cardMediaPersist();}catch(_){}try{window.__e11PersistNow&&window.__e11PersistNow();}catch(_){}renderMomentProfile();});}catch(_){}
+    var _raw=String(r.result||"");state.profile.partnerCover=_raw;try{if(window.__e11BgLocalSync)window.__e11BgLocalSync();}catch(_){}save();__flushSave(true);try{window.__cardMediaPersist&&window.__cardMediaPersist();}catch(_){}try{window.__e11RefreshProfileSurfaces&&window.__e11RefreshProfileSurfaces();}catch(_){}toast("对方封面已更新");
+    try{__shrinkImg(_raw,1000,0.8).then(function(c){if(!c||c===_raw||state.profile.partnerCover!==_raw)return;state.profile.partnerCover=c;try{if(window.__e11BgLocalSync)window.__e11BgLocalSync();}catch(_){}save();__flushSave(true);try{window.__cardMediaPersist&&window.__cardMediaPersist();}catch(_){}try{window.__e11PersistNow&&window.__e11PersistNow();}catch(_){}try{window.__e11RefreshProfileSurfaces&&window.__e11RefreshProfileSurfaces();}catch(_eCovIn){}});}catch(_eCovOut){}
   };
   r.readAsDataURL(f);e.target.value="";
 });
@@ -31699,7 +31724,7 @@ document.querySelectorAll("#cover-sheet [data-cover]").forEach(b=>b.addEventList
   state.profile[__coverField()]=b.dataset.cover;
   save();try{if(window.__e11BgLocalSync)window.__e11BgLocalSync();}catch(_){}
   try{window.__cardMediaPersist&&window.__cardMediaPersist();}catch(_){}
-  renderMoments();try{renderMomentProfile();}catch(_){}
+  try{window.__e11RefreshProfileSurfaces&&window.__e11RefreshProfileSurfaces();}catch(_){}
   closeCoverSheet();toast(__coverLabel()+"主页背景已更新");
 }));
 $("cover-color").addEventListener("input",e=>{
@@ -31707,7 +31732,7 @@ $("cover-color").addEventListener("input",e=>{
   state.profile[__coverField()]=e.target.value;
   save();try{window.__e11BgLocalSync&&window.__e11BgLocalSync();}catch(_){}
   try{window.__cardMediaPersist&&window.__cardMediaPersist();}catch(_){}
-  renderMoments();try{renderMomentProfile();}catch(_){}
+  try{window.__e11RefreshProfileSurfaces&&window.__e11RefreshProfileSurfaces();}catch(_){}
 });
 (function(){
   $("btn-cover-img").addEventListener("click",function(){
@@ -31716,8 +31741,8 @@ $("cover-color").addEventListener("input",e=>{
       var target=__coverField();
       var r=new FileReader();r.onload=function(){
         if(!state.profile)state.profile={};
-        var _raw=String(r.result||"");state.profile[target]=_raw;save();try{window.__cardMediaPersist&&window.__cardMediaPersist();}catch(_){}renderMoments();try{renderMomentProfile();}catch(_){}toast(__coverLabel()+"主页背景已上传");
-        try{__shrinkImg(_raw,1000,0.8).then(function(c){if(!c||c===_raw||state.profile[target]!==_raw)return;state.profile[target]=c;save();try{window.__cardMediaPersist&&window.__cardMediaPersist();}catch(_){}renderMoments();try{renderMomentProfile();}catch(_){}__refreshBioCover();});}catch(_){}
+        var _raw=String(r.result||"");state.profile[target]=_raw;save();try{window.__cardMediaPersist&&window.__cardMediaPersist();}catch(_){}try{window.__e11RefreshProfileSurfaces&&window.__e11RefreshProfileSurfaces();}catch(_){}toast(__coverLabel()+"主页背景已上传");
+        try{__shrinkImg(_raw,1000,0.8).then(function(c){if(!c||c===_raw||state.profile[target]!==_raw)return;state.profile[target]=c;save();try{window.__cardMediaPersist&&window.__cardMediaPersist();}catch(_){}try{window.__e11RefreshProfileSurfaces&&window.__e11RefreshProfileSurfaces();}catch(_){}try{__refreshBioCover();}catch(_){}});}catch(_){}
         closeCoverSheet();
       };
       r.readAsDataURL(f);
@@ -31747,7 +31772,7 @@ $("btn-cover-clear").addEventListener("click",()=>{
   state.profile[__coverField()]="";
   save();try{window.__e11BgLocalSync&&window.__e11BgLocalSync();}catch(_){}
   try{window.__cardMediaPersist&&window.__cardMediaPersist();}catch(_){}
-  renderMoments();try{renderMomentProfile();}catch(_){}
+  try{window.__e11RefreshProfileSurfaces&&window.__e11RefreshProfileSurfaces();}catch(_){}
   closeCoverSheet();toast("已恢复"+__coverLabel()+"默认背景");
 });
 /* 主页全局背景（独立于封面栏，液态玻璃渐变/图片） */
@@ -31800,7 +31825,11 @@ $("bio-cancel").addEventListener("click",()=>$("bio-overlay").classList.remove("
 $("bio-overlay").addEventListener("click",e=>{if(e.target.id==="bio-overlay")$("bio-overlay").classList.remove("show");});
 $("bio-save").addEventListener("click",()=>{
   flushBioForm();
-  save();try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_){}renderMoments();renderTopStatus();bindSetting();
+  save();try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_){}
+  try{window.__e11PaintMeDraft&&window.__e11PaintMeDraft();}catch(_){}
+  /* v43-210：资料卡保存后主页/对方主页/聊天/情侣空间一起刷新，不再等下一次进页才变 */
+  try{window.__e11RefreshProfileSurfaces&&window.__e11RefreshProfileSurfaces();}catch(_){}
+  try{bindSetting();}catch(_){}
   if(typeof renderGuestbook==="function")renderGuestbook();
   closeCoverSheet();
   $("bio-overlay").classList.remove("show");toast("资料已更新");
@@ -34300,17 +34329,28 @@ $("me-av-edit").addEventListener("click",()=>window.__nativePick("file-me-av"));
 $("me-av").addEventListener("click",()=>window.__nativePick("file-me-av"));
 $("file-me-av").addEventListener("change",e=>{
   const f=e.target.files&&e.target.files[0];if(!f)return;
-  const rd=new FileReader();rd.onload=()=>{var raw=String(rd.result);toast("正在处理头像…");__avatarShrink(raw).then(function(c){
-    var _v=c||raw;
-    /* v43-166：以前只写 profile.meAvatar，但 __avatarPick 优先读 state.me.avatar；
-       只要以前设过真头像，state.me.avatar 就会一直赢，主页卡片头像看起来“换不了”。 */
-    __setAvatar("me",_v,"card");
-    save();try{__flushSave(true);}catch(_){}
-    try{window.__cardMediaPersist&&window.__cardMediaPersist();}catch(_){}
-    try{renderMe();}catch(_){}
-    try{renderMoments();}catch(_){}
-    toast("卡片头像已更新");
-  });};rd.readAsDataURL(f);e.target.value="";
+  const rd=new FileReader();rd.onload=()=>{
+    var raw=String(rd.result);
+    try{
+      /* v43-210：先拿原图立即换到卡片上，再后台压缩；不再让用户对着“正在处理头像…”等 */
+      __setAvatar("me",raw,"card");
+      try{renderMe();}catch(_){}
+      try{renderMomentProfile();}catch(_){}
+    }catch(_eAvNow){}
+    toast("头像已更新，正在优化…");
+    __avatarShrink(raw).then(function(c){
+      var _v=c||raw;
+      try{__setAvatar("me",_v,"card");}catch(_){}
+      try{save();__flushSave(true);}catch(_){}
+      try{window.__cardMediaPersist&&window.__cardMediaPersist();}catch(_){}
+      try{window.__e11RefreshProfileSurfaces&&window.__e11RefreshProfileSurfaces();}catch(_){}
+      toast("头像已更新");
+    }).catch(function(){
+      try{save();__flushSave(true);}catch(_){}
+      try{window.__e11RefreshProfileSurfaces&&window.__e11RefreshProfileSurfaces();}catch(_){}
+      toast("头像已更新");
+    });
+  };rd.readAsDataURL(f);e.target.value="";
 });
 $("cp2-av-me").addEventListener("click",()=>window.__nativePick("cp-file-av-me"));
 $("cp-file-av-me").addEventListener("change",e=>{
@@ -34374,8 +34414,14 @@ try{
     state.profile.bio=$("me-sign-edit").value.trim();
     state.profile.__ts=Date.now();
     try{if(window.__profileSaveSig)window.__profileSaveSig=JSON.stringify(state.profile);}catch(_){}
-    try{window.__e11PaintNames&&window.__e11PaintNames();}catch(_){}
-    if(full!==false){try{renderMe();}catch(e){}try{renderCouple();}catch(e){}}
+    try{window.__e11PaintMeDraft&&window.__e11PaintMeDraft();}catch(_){}
+    if(full!==false){
+      try{renderMe();}catch(e){}
+      try{renderMomentProfile();}catch(e){}
+      try{renderMePhotos();}catch(e){}
+      try{renderCouple();}catch(e){}
+      try{renderTopStatus();}catch(e){}
+    }
     try{if(window.__e11SyncProfileBackup)window.__e11SyncProfileBackup();}catch(_){}
     save();
     try{if(window.__e11SyncCfgSnapshot)window.__e11SyncCfgSnapshot();}catch(_){}
@@ -34399,7 +34445,10 @@ $("me-edit-save").addEventListener("click",()=>{
      只靠 save() 的指纹检测在极快退出/云端合并时可能来不及，会被旧资料盖回默认。 */
   state.profile.__ts=Date.now();
   try{window.__profileSaveSig=JSON.stringify(state.profile);}catch(_){}
-  save();try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_){}renderMe();renderChat();toast("已保存");
+  save();try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_){}
+  try{window.__e11PaintMeDraft&&window.__e11PaintMeDraft();}catch(_){}
+  try{window.__e11RefreshProfileSurfaces&&window.__e11RefreshProfileSurfaces();}catch(_){}
+  toast("已保存");
   $("me-edit-overlay").classList.remove("show");try{if(window.__e11ShieldApps)window.__e11ShieldApps(600);}catch(_){}
 });
 
