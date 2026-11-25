@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-214z36";
+window.__E11_BUILD="2026-11-25v43-215z37";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2759,7 +2759,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-214z36">
+<meta name="app-build" content="2026-11-25v43-215z37">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -7230,12 +7230,11 @@ setTimeout(function(){
         la.forEach(function(x){
           if(!x||!x.id)return;
           if(!ids[x.id]){ca.push(x);ids[x.id]=1;return;}
-          /* v43-145：同一条内容如果本机是未读、云端是已读，保留本机未读。 */
+          /* v43-215：同一条内容已经存在时，绝不再按旧备份把“已读”翻回“未读”。
+             以前这里会把旧档里的 unread 覆盖到当前已读状态，更新一次就红一次。
+             当前确实未读的条目不受影响；只有缺失条目补回来时才按它自己的未读标记显示。 */
           for(var _ui=0;_ui<ca.length;_ui++){
             var _uy=ca[_ui];if(!_uy||_uy.id!==x.id)continue;
-            if(k==="letters"&&x.read!==true&&_uy.read===true)_uy.read=false;
-            if(k==="moments"&&x.unread===true&&_uy.unread!==true){_uy.unread=true;_uy.unreadKind=x.unreadKind||_uy.unreadKind||"post";}
-            if(k==="guestbook"&&x.unread===true&&_uy.unread!==true)_uy.unread=true;
             break;
           }
           /* v43-74：同 id 时不能无条件让云端旧档赢。用户在字卡/分组里改过文字、换过分组，
@@ -10664,9 +10663,8 @@ function __e11MergeExitState(s,e){
         else{
           if(!old.src&&x.src){old.src=x.src;ch=true;}
           if(x.text!==undefined&&x.text!==old.text&&Number(x.time||0)>=Number(old.time||0)){old.text=x.text;ch=true;}
-          /* v43-145：离站快照里的未读标记也要并回，不能只并内容。 */
-          if(k==="letters"&&x.read!==true&&old.read===true){old.read=false;ch=true;}
-          if((k==="moments"||k==="guestbook")&&x.unread===true&&old.unread!==true){old.unread=true;if(x.unreadKind)old.unreadKind=x.unreadKind;ch=true;}
+          /* v43-215：离站快照只补缺失内容，已存在条目的已读/未读以当前状态为准，
+             不再用旧快照的 unread 翻红，也不替用户把当前未读强行标成已读。 */
         }
       });
       s[k]=a;
@@ -11096,6 +11094,7 @@ function __e11SmallObj(src,maxLen){
   return out;
 }
 window.__e11UpdateGuardSave=function(toBuild){
+  try{window.__e11AppearanceSaveNow&&window.__e11AppearanceSaveNow(true);}catch(_eApGuard){}
   try{
     var ss=__e11SmallObj(state.settings,4000),ks=__e11SmallObj(state.skin,4000);
     ss.__ts=Number(state.settings&&state.settings.__ts)||Date.now();
@@ -11124,6 +11123,125 @@ window.__e11UpdateGuardApply=function(){
     setTimeout(function(){try{localStorage.removeItem("e11.updateGuard.v1");}catch(_eUgDel3){}},1200);
     return true;
   }catch(_eUgApply){return false;}
+};
+/* v43-215：更新/覆盖安装前，单独把「头像、名字、背景、主页图标、照片框尺寸」压一份。
+   设置/美化已有 updateGuard，但它故意只存小字段，data: 图片全被排除；所以每次更新后
+   头像和背景最容易只剩云端旧图或默认图。这里把外观单独存 IndexedDB + 本机小备份，
+   更新后首次启动、云端合并完之后再恢复，不动聊天和已读状态。 */
+window.__e11AppearanceImgKey=function(k){return /avatar|cover|image|img|photo/i.test(String(k||""));};
+window.__e11AppearancePack=function(){
+  var st=(typeof state!=="undefined"&&state)||{};if(!st)return null;
+  var cp=function(o){try{return JSON.parse(JSON.stringify(o||{}));}catch(_){return {};}};
+  var me=st.me||{},pt=st.partner||{},p=st.profile||{};
+  var pack={
+    profile:cp(p),
+    me:{name:String(me.name||""),avatar:String(me.avatar||""),cover:String(me.cover||""),photos:cp(me.photos||[])},
+    partner:{name:String(pt.name||""),avatar:String(pt.avatar||""),cover:String(pt.cover||""),photos:cp(pt.photos||[])},
+    skin:cp(st.skin||{}),
+    music:{},
+    icons:cp(st.me1AppIcons||{}),
+    sizes:{app:Number(st.me1AppSize)||0,photos:Number(st.me1PhotosSize)||0}
+  };
+  ["musicBgImg","musicDiscBgImg","musicDiscInnerImg","musicCoverImg","musicDiscBg","callBgImg","momBgImg"].forEach(function(k){if(st[k]!==undefined)pack.music[k]=st[k];});
+  return pack;
+};
+window.__e11AppearanceSigOf=function(pack){
+  if(!pack)return "";
+  var vs=function(v){if(typeof v!=="string")return String(v);return v.length+"|"+v.slice(0,18)+"|"+v.slice(-24);};
+  var os=function(o){o=o||{};return Object.keys(o).sort().map(function(k){return k+"="+vs(o[k]);}).join("&");};
+  return [os(pack.profile),os(pack.me),os(pack.partner),os(pack.skin),os(pack.music),os(pack.icons),os(pack.sizes)].join("~");
+};
+window.__e11AppearanceSaveNow=function(force){
+  try{
+    /* 新版本刚启动、还没恢复外观之前，绝不能让首屏默认 state 把守卫档覆盖掉 */
+    if(!window.__e11AppearanceReadyForSave&&!force)return false;
+    var st=(typeof state!=="undefined"&&state)||null;if(!st)return false;
+    var pack=window.__e11AppearancePack();if(!pack)return false;
+    var ts=Date.now();pack.ts=ts;pack.build=String(window.__E11_BUILD||"");
+    window.__e11AppearanceSig=window.__e11AppearanceSigOf(pack);
+    /* 本机小备份：只放文字和能塞得下的小图，保证 IndexedDB 被清/被旧档覆盖时还有名字 */
+    var text={ts:ts,build:pack.build,profile:{},me:{name:pack.me.name,avatar:pack.me.avatar},partner:{name:pack.partner.name,avatar:pack.partner.avatar},sizes:pack.sizes,skin:{},music:{}};
+    Object.keys(pack.profile).forEach(function(k){var v=pack.profile[k];if(typeof v==="string"){if(v.indexOf("data:")!==0&&v.length<=4000)text.profile[k]=v;else if(window.__e11AppearanceImgKey(k)&&v.length<45000)text.profile[k]=v;}else if(typeof v==="number"||typeof v==="boolean")text.profile[k]=v;});
+    ["meAvatar","partnerAvatar","cardMeAvatar","cpMeAvatar","cpPartnerAvatar","cpPhotoAvatar","mpAv1","mpAv2","cover","partnerCover"].forEach(function(k){var v=pack.profile[k];if(typeof v==="string"&&v.length<45000)text.profile[k]=v;});
+    Object.keys(pack.skin).forEach(function(k){var v=pack.skin[k];if(typeof v==="string"&&v.indexOf("data:")!==0)text.skin[k]=v;else if(typeof v==="number"||typeof v==="boolean")text.skin[k]=v;});
+    Object.keys(pack.music).forEach(function(k){var v=pack.music[k];if(typeof v==="string"&&v.indexOf("data:")!==0)text.music[k]=v;});
+    try{localStorage.setItem("e11.appearanceText.v1",JSON.stringify(text));}catch(_){}
+    try{localStorage.setItem("e11.appearanceIcons.v1",JSON.stringify({ts:ts,build:pack.build,icons:pack.icons}));}catch(_i){}
+    /* 图片单独一条；配额不够就只保留 IDB 那份，不影响上面的文字 */
+    var media={ts:ts,build:pack.build,profile:{},me:{avatar:pack.me.avatar},partner:{avatar:pack.partner.avatar},skin:{},music:{},photos:pack.me.photos||[]};
+    Object.keys(pack.profile).forEach(function(k){var v=pack.profile[k];if(typeof v==="string"&&window.__e11AppearanceImgKey(k)&&v)media.profile[k]=v;});
+    Object.keys(pack.skin).forEach(function(k){var v=pack.skin[k];if(typeof v==="string"&&v)media.skin[k]=v;});
+    Object.keys(pack.music).forEach(function(k){var v=pack.music[k];if(typeof v==="string"&&v)media.music[k]=v;});
+    try{localStorage.setItem("e11.appearanceMedia.v1",JSON.stringify(media));}catch(_m){}
+    if(db){try{dbSet("e11Appearance.v1",{ts:ts,build:pack.build,pack:pack}).catch(function(){});}catch(_d){}}
+    return true;
+  }catch(_){return false;}
+};
+window.__e11AppearanceTick=function(){
+  try{
+    if(!window.__e11AppearanceReadyForSave||!window.__stateReady||window.__restoring||typeof state==="undefined"||!state)return;
+    var pack=window.__e11AppearancePack();if(!pack)return;
+    var sig=window.__e11AppearanceSigOf(pack);
+    if(sig===window.__e11AppearanceSig)return;
+    clearTimeout(window.__e11AppearanceTimer);
+    window.__e11AppearanceTimer=setTimeout(function(){try{window.__e11AppearanceSaveNow();}catch(_){}},1000);
+  }catch(_){}
+};
+window.addEventListener("pagehide",function(){try{window.__e11AppearanceSaveNow&&window.__e11AppearanceSaveNow();}catch(_){}});
+window.__e11AppearanceApply=function(){
+  try{
+    if(!(window.__e11BuildChanged||window.__e11UpdateGuardActive))return Promise.resolve(false);
+    var cur=String(window.__E11_BUILD||"");
+    try{if(localStorage.getItem("e11.appearanceAppliedBuild.v1")===cur)return Promise.resolve(false);}catch(_){}
+    function parse(k){try{return JSON.parse(localStorage.getItem(k)||"null");}catch(_){return null;}}
+    var text=parse("e11.appearanceText.v1"),icons=parse("e11.appearanceIcons.v1"),media=parse("e11.appearanceMedia.v1");
+    function mergePack(full){
+      var pack=full&&full.pack?full.pack:null;
+      if(!pack){pack={profile:{},me:{},partner:{},skin:{},music:{},icons:{},sizes:{}};}
+      pack.profile=Object.assign({},pack.profile||{});
+      pack.me=Object.assign({},pack.me||{});pack.partner=Object.assign({},pack.partner||{});
+      pack.skin=Object.assign({},pack.skin||{});pack.music=Object.assign({},pack.music||{});
+      if(!pack.icons||(!pack.icons.all&&!(pack.icons.byId&&Object.keys(pack.icons.byId).length))){if(icons&&icons.icons)pack.icons=icons.icons;}
+      if(!pack.sizes)pack.sizes={};
+      if(text){Object.keys(text.profile||{}).forEach(function(k){if(!pack.profile[k]&&!window.__e11AppearanceImgKey(k))pack.profile[k]=text.profile[k];});if(text.sizes&&!pack.sizes.app)pack.sizes=text.sizes;Object.keys(text.skin||{}).forEach(function(k){if(!pack.skin[k])pack.skin[k]=text.skin[k];});Object.keys(text.music||{}).forEach(function(k){if(!pack.music[k])pack.music[k]=text.music[k];});}
+      if(media){Object.keys(media.profile||{}).forEach(function(k){if(media.profile[k])pack.profile[k]=media.profile[k];});if(media.me&&media.me.avatar)pack.me.avatar=media.me.avatar;if(media.partner&&media.partner.avatar)pack.partner.avatar=media.partner.avatar;Object.keys(media.skin||{}).forEach(function(k){if(media.skin[k])pack.skin[k]=media.skin[k];});Object.keys(media.music||{}).forEach(function(k){if(media.music[k])pack.music[k]=media.music[k];});if(media.photos&&media.photos.length&&(!pack.me.photos||!pack.me.photos.length))pack.me.photos=media.photos;}
+      if(!pack.ts)pack.ts=Math.max((full&&full.ts)||0,(text&&text.ts)||0,(media&&media.ts)||0,(icons&&icons.ts)||0);
+      return pack;
+    }
+    function applyPack(pack){
+      var st=(typeof state!=="undefined"&&state)||null;if(!st||!pack)return false;
+      var p=st.profile=st.profile||{};
+      Object.keys(pack.profile||{}).forEach(function(k){var v=pack.profile[k];if(v===undefined)return;if(window.__e11AppearanceImgKey(k)&&v==="")return;p[k]=v;});
+      st.me=st.me||{};st.partner=st.partner||{};
+      ["name","avatar","cover","photos"].forEach(function(k){if(pack.me&&pack.me[k]!==undefined){if(k==="avatar"&&!pack.me[k])return;st.me[k]=pack.me[k];}});
+      ["name","avatar","cover","photos"].forEach(function(k){if(pack.partner&&pack.partner[k]!==undefined){if(k==="avatar"&&!pack.partner[k])return;st.partner[k]=pack.partner[k];}});
+      if(pack.skin){st.skin=Object.assign({},st.skin||{},pack.skin);st.skin.__ts=Math.max(Number(st.skin.__ts)||0,Number(pack.ts)||Date.now());}
+      Object.keys(pack.music||{}).forEach(function(k){st[k]=pack.music[k];});
+      if(pack.icons&&(pack.icons.all||(pack.icons.byId&&Object.keys(pack.icons.byId).length)))st.me1AppIcons=pack.icons;
+      if(pack.sizes){if(pack.sizes.app)st.me1AppSize=pack.sizes.app;if(pack.sizes.photos)st.me1PhotosSize=pack.sizes.photos;}
+      p.__ts=Math.max(Number(p.__ts)||0,Number(pack.ts)||Date.now());
+      st.__savedAt=Date.now();
+      try{window.__applyMe1Icons&&window.__applyMe1Icons();}catch(_){}
+      try{window.__applyMe1Sizes&&window.__applyMe1Sizes();}catch(_){}
+      try{typeof applySkin==="function"&&applySkin();}catch(_){}
+      try{typeof renderMe==="function"&&renderMe(true);}catch(_){}
+      try{typeof renderMePhotos==="function"&&renderMePhotos();}catch(_){}
+      try{typeof renderMomentProfile==="function"&&renderMomentProfile();}catch(_){}
+      try{typeof renderChat==="function"&&renderChat(true);}catch(_){}
+      try{typeof renderCouple==="function"&&renderCouple();}catch(_){}
+      try{typeof renderMusicBg==="function"&&renderMusicBg();}catch(_){}
+      try{window.__e11PaintNames&&window.__e11PaintNames();}catch(_){}
+      try{typeof renderTopStatus==="function"&&renderTopStatus();}catch(_){}
+      window.__e11AppearanceReadyForSave=true;
+      try{typeof save==="function"&&save();}catch(_){}
+      try{typeof __flushSave==="function"&&__flushSave(true);}catch(_){}
+      try{localStorage.setItem("e11.appearanceAppliedBuild.v1",cur);}catch(_){}
+      return true;
+    }
+    return __e11DbGetTimed("e11Appearance.v1",2600).then(function(full){
+      return applyPack(mergePack(full));
+    }).catch(function(){return applyPack(mergePack(null));});
+  }catch(_){return Promise.resolve(false);}
 };
 window.__prefApplyObject=__prefApplyObject;
 function __prefApply(){
@@ -11157,6 +11275,7 @@ function __prefReapplyAll(){
 
 function save(){
   try{window.__e11Dirty=1;}catch(_eDirty){}
+  try{window.__e11AppearanceTick&&window.__e11AppearanceTick();}catch(_eApTick){}
   /* v43-183z32：任何写盘前先按墓碑清一遍所有板块，删掉的条目不会被这份存档再写回去。 */
   try{if(window.__e11ApplyDeleted)window.__e11ApplyDeleted(state);}catch(_eSaveDel){}
   /* v43-183z21：社交内容一变就同步落一份独立小备份，保证“更新/旧档覆盖”后还能接回来。 */
@@ -12452,6 +12571,10 @@ async function init(){
          以前只在默认 state 上恢复一次，随后被 IDB 旧设置整份覆盖，表现就是“设置改完刷新又变回去”。 */
       try{var _e11SetBakApplied=window.__settingsBackupRestore&&window.__settingsBackupRestore();if(_e11SetBakApplied)window.__settingsBackup&&window.__settingsBackup(true);}catch(_eSetBak3){}
       try{var _e11UpGuard=window.__e11UpdateGuardApply&&window.__e11UpdateGuardApply();if(_e11UpGuard)window.__settingsBackup&&window.__settingsBackup(true);}catch(_eUpGuard3){}
+      try{window.__e11AppearanceApply&&window.__e11AppearanceApply();}catch(_eApBoot){}
+      setTimeout(function(){try{window.__e11AppearanceApply&&window.__e11AppearanceApply();}catch(_eApLate){}},2200);
+      /* 兜底：6 秒后仍没恢复（比如没有外观档）才允许正常保存覆盖，避免永远不存新改动 */
+      setTimeout(function(){try{window.__e11AppearanceReadyForSave=true;}catch(_eApReady){}},6000);
       try{localStorage.setItem("e11.buildSeen.v1",window.__E11_BUILD);}catch(_eSeenSet){}
       try{window.__e11RepairBulkTombs&&window.__e11RepairBulkTombs(state);}catch(_eTombFix){}try{__ltReadApply();}catch(e){}try{__prefApply();}catch(e){}try{window.__perfApply&&window.__perfApply();}catch(_){}window.__stateReady=1;window.__e11DataReady=1;try{window.__e11BootLoading=0;}catch(_eBootLoad1){}
       /* v43-192：一起听会话跟主档一起恢复；更新/重开后仍保持“正在一起听”，不用重新邀请。 */
@@ -14367,9 +14490,10 @@ window.__e11SocialAudit=function(){
       {k:"guestbook",unread:function(x){return x&&x.from==="partner"&&x.unread===true;}}
     ];
     var added=0,flags=0,sources=0;
-    var onceKey="e11.unreadRevive."+String(window.__E11_BUILD||window.__buildId||"");
+    /* v43-215：以前每一版都用一个新键 e11.unreadRevive.<build> 从旧备份“复活”未读，
+       于是每次更新都会把早就读过的信/留言/动态重新标红。这里彻底停止把已读翻回未读，
+       只保留补回缺失条目的能力；新补回来的条目仍按它原本的 unread 标记显示。 */
     var allowRevive=false;
-    try{allowRevive=localStorage.getItem(onceKey)!=="1";}catch(_){allowRevive=false;}
     function idOf(x){try{return x&&(x.id!==undefined?String(x.id):(x.key!==undefined?String(x.key):""));}catch(_){return "";}}
     function deleted(k,id){try{return window.__e11IsDeleted?window.__e11IsDeleted(k,id):!!(state.deletedIds&&state.deletedIds[k]&&state.deletedIds[k][id]);}catch(_){return false;}}
     function emptyMoment(x){return x&&x.from==="partner"&&!String(x.text||"").trim()&&!x.img&&!x.repostOf&&!(x.comments&&x.comments.length);}
