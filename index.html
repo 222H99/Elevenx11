@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-227z50";
+window.__E11_BUILD="2026-11-25v43-227z51";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -2786,7 +2786,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-227z50">
+<meta name="app-build" content="2026-11-25v43-227z51">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -10831,7 +10831,7 @@ function __e11ExitSave(st,force){
       try{c=Object.assign({},core);}catch(_){}
       if(_fullMsgs)c.messages=keep?_fullMsgs.slice(-keep):_fullMsgs;
       else if(c.messages)c.messages=[];
-      return JSON.stringify({app:"privateChat",exit:1,ts:_exitTs,state:c,globals:withGlobals?globals:{},mini:withGlobals?0:1,keep4:_exitK4||null});
+      return JSON.stringify({app:"privateChat",exit:1,v:2,ts:_exitTs,state:c,globals:withGlobals?globals:{},mini:withGlobals?0:1,keep4:_exitK4||null});
     };
     /* 每档都先直接覆盖；失败才移除旧快照再重试，绝不把上一份完好快照提前删掉。 */
     var _levels=[
@@ -10861,7 +10861,7 @@ function __e11ExitSave(st,force){
        文字档会把图片清空，只靠异步 IndexedDB 存图时，关页面太快图就可能没写完。
        这份完整档只在放得下时写（≤4.6MB），写不下就仍用文字档 + 四项图备份。 */
     try{
-      var _liteTxt=JSON.stringify({app:"privateChat",exit:1,ts:_exitTs,state:src});
+      var _liteTxt=JSON.stringify({app:"privateChat",exit:1,v:2,ts:_exitTs,state:src});
       if(_liteTxt.length<=4600000){localStorage.setItem("e11.session.lite.v1",_liteTxt);}
       else{try{localStorage.removeItem("e11.session.lite.v1");}catch(_eLiteRm){ }}
     }catch(_eLite){try{localStorage.removeItem("e11.session.lite.v1");}catch(_eLiteRm2){}}
@@ -10874,7 +10874,7 @@ function __e11ExitRead(){
   try{
     var raw=localStorage.getItem(__E11_EXIT_KEY);if(!raw)return null;
     var o=JSON.parse(raw);if(!o||!o.state)return null;
-    return {ts:Number(o.ts||o.state.__savedAt)||0,state:o.state,globals:o.globals||{},keep4:o.keep4||null};
+    return {ts:Number(o.ts||o.state.__savedAt)||0,v:Number(o.v)||0,state:o.state,globals:o.globals||{},keep4:o.keep4||null};
   }catch(e){return null;}
 }
 window.__e11ExitSave=__e11ExitSave;
@@ -11039,6 +11039,9 @@ function __e11ApplyExitExact(s,e){
 function __e11MergeExitState(s,e){
   try{
     if(!s||!e||!e.state)return false;
+    /* 旧版退出签名漏了很多板块，离站档可能停在更早一次退出；主库明显更新时不能拿它并集，
+       否则旧动态/旧信件/旧留言会被重新并回来。 */
+    if(window.__e11ExitStale)return false;
     if(window.__e11ExitExact)return __e11ApplyExitExact(s,e);
     var ex=e.state,ts=Number(e.ts||ex.__savedAt)||0;
     if(!ts)return false;
@@ -12227,7 +12230,7 @@ window.__e11ChatLogRestoreRecent=function(s){
 function migrate(s){
   try{__e11NormalizeMessages(s);}catch(_eMsgNorm){}
   /* v43-223：不再整份回塞聊天流水；v43-225 只补比当前最后一条更新的内容。 */
-  try{if(!window.__e11ExitExact&&window.__e11ChatLogRestoreRecent)window.__e11ChatLogRestoreRecent(s);}catch(_eLogMig){}
+  try{if(!(window.__e11ExitExact||window.__e11ExitStale)&&window.__e11ChatLogRestoreRecent)window.__e11ChatLogRestoreRecent(s);}catch(_eLogMig){}
   /* v43-107：删掉内置的“开启私密聊天”欢迎语，老存档也一起清掉。 */
   try{
     if(s&&Array.isArray(s.messages)){
@@ -12766,7 +12769,7 @@ async function init(){
      放在首屏后 2.5 秒直接跑，不再等到 5 秒/空闲。 */
   try{setTimeout(function(){
     try{
-      var _dn=(!window.__e11ExitExact&&window.__e11DiaryRestore)?window.__e11DiaryRestore():0;
+      var _dn=(!(window.__e11ExitExact||window.__e11ExitStale)&&window.__e11DiaryRestore)?window.__e11DiaryRestore():0;
       if(_dn){try{save();__flushSave(true);}catch(_){}try{window.__e11RefreshAllViews?window.__e11RefreshAllViews():renderAll();}catch(_){}try{toast("已找回之前丢失的日记历史");}catch(_){}}
     }catch(_){}
     try{window.__bkMergeNewest&&window.__bkMergeNewest(true);}catch(_){}
@@ -12848,15 +12851,25 @@ async function init(){
           var _idbTs=Number(s&&s.__savedAt)||0;
           /* v43-227：即使聊天太长被截成 mini，动态/信件/留言/卡片/图标/姓名这些也按离站档精确还原；
              只有聊天本身在 mini 时保留主档里的更早消息。 */
-          window.__e11ExitExact=!!(_exTs>=(_idbTs-5000)&&_exTs>0);
+          /* v43-227：226 及更早的离站档没有 v:2 标记，其退出签名漏了动态/信件/留言/图标/姓名，
+             很可能是更早一次退出留下的旧内容；主库存在时一律以主库为准。
+             用户用 227 正常退出一次后，新离站档带 v:2，才按“进入=离开时”精确还原。 */
+          var _legacyExit=!(_exitObj.v>=2);
+          window.__e11ExitExact=!!(!_legacyExit&&_exTs>=(_idbTs-5000)&&_exTs>0);
+          window.__e11ExitStale=!!((_legacyExit&&!!s)||(_idbTs>_exTs+5000&&_idbTs>0));
           window.__e11ExitMini=!!(_exitMeta&&Number(_exitMeta.mini)===1);
         }catch(_eExactFlag){window.__e11ExitExact=0;}
-        if(!s)s=_exitObj.state;
-        else __e11MergeExitState(s,_exitObj);
-        /* v43-221：离站快照里的四项要立刻落到最终采用的 s 上，后面 migrate 不会丢 */
-        if(_exitObj.keep4){try{__e11Keep4ApplyObj(s,_exitObj.keep4);window.__e11ExitKeep4Applied=1;}catch(_eExK4){window.__e11ExitKeep4=s.__e11Keep4Rev||1;}}
+        if(window.__e11ExitStale){
+          /* 主库比离站档新：以主库为准，不并旧离站档，也不套旧四项。 */
+          window.__e11ExitUsed=0;
+        }else{
+          if(!s)s=_exitObj.state;
+          else __e11MergeExitState(s,_exitObj);
+          /* v43-221：离站快照里的四项要立刻落到最终采用的 s 上，后面 migrate 不会丢 */
+          if(_exitObj.keep4){try{__e11Keep4ApplyObj(s,_exitObj.keep4);window.__e11ExitKeep4Applied=1;}catch(_eExK4){window.__e11ExitKeep4=s.__e11Keep4Rev||1;}}
+        }
         try{__bkApplyGlobals(_exitObj.globals||{},_exitObj.ts);}catch(_eExGlob){}
-        try{window.__e11ExitUsed=1;window.__e11ExitMergeCount=(window.__e11ExitMergeCount||0)+1;}catch(_eExFlag){}
+        try{if(!window.__e11ExitStale){window.__e11ExitUsed=1;window.__e11ExitMergeCount=(window.__e11ExitMergeCount||0)+1;}}catch(_eExFlag){}
       }
     }catch(_eExitMerge){}
     /* v43-224：同步完整离站档（带图）如果比文字离站档新，把缺失的图片/内容补回来。
@@ -12864,7 +12877,7 @@ async function init(){
     try{
       var _liteObj=JSON.parse(localStorage.getItem("e11.session.lite.v1")||"null");
       var _exitTsNow=_exitObj?Number(_exitObj.ts)||0:0;
-      if(_liteObj&&_liteObj.state&&Number(_liteObj.ts)>=_exitTsNow){
+      if(_liteObj&&_liteObj.state&&Number(_liteObj.ts)>=_exitTsNow&&!window.__e11ExitStale&&(!s||Number(_liteObj.v)>=2)){
         if(!s)s=_liteObj.state;
         else{
           var _om=window.__e11ExitMini;window.__e11ExitMini=0;
@@ -13071,7 +13084,7 @@ async function init(){
       /* v43-183k：本机删除墓碑先并进最终 state，再清一次；刷新/退出/旧档合并都不会复活已删内容。 */
       try{if(window.__e11DelLocalRestore)window.__e11DelLocalRestore(state);}catch(_eDelLocal){}
       /* v43-183z21：读档后先把独立社交备份里缺的条目接回来（墓碑会随后清掉已删的）。 */
-      try{if(!window.__e11ExitExact&&window.__e11SocialLocalMerge)window.__e11SocialLocalMerge(state,false);}catch(_eSocRec){}
+      try{if(!(window.__e11ExitExact||window.__e11ExitStale)&&window.__e11SocialLocalMerge)window.__e11SocialLocalMerge(state,false);}catch(_eSocRec){}
       /* v43-163：合并/迁移后最后再按墓碑清一次，防止默认分组 g1 这类内置内容被旧档补回来。 */
       try{__e11ApplyDeleted(state);}catch(_eLoadDel){}
       /* v43-166：先补齐模板数组，再按模板墓碑过滤；否则旧档没有 letterTpl 时，
@@ -13084,17 +13097,17 @@ async function init(){
       try{if(window.__userLookRestore)window.__userLookRestore();}catch(_eLookRestore2){}
       /* v43-128：设置小备份的 __ts 比 IndexedDB/云端更晚时，以备份为准。
          以前只在默认 state 上恢复一次，随后被 IDB 旧设置整份覆盖，表现就是“设置改完刷新又变回去”。 */
-      try{if(!window.__e11ExitExact){var _e11SetBakApplied=window.__settingsBackupRestore&&window.__settingsBackupRestore();if(_e11SetBakApplied)window.__settingsBackup&&window.__settingsBackup(true);}}catch(_eSetBak3){}
+      try{if(!(window.__e11ExitExact||window.__e11ExitStale)){var _e11SetBakApplied=window.__settingsBackupRestore&&window.__settingsBackupRestore();if(_e11SetBakApplied)window.__settingsBackup&&window.__settingsBackup(true);}}catch(_eSetBak3){}
       try{var _e11UpGuard=window.__e11UpdateGuardApply&&window.__e11UpdateGuardApply();if(_e11UpGuard)window.__settingsBackup&&window.__settingsBackup(true);}catch(_eUpGuard3){}
-      try{if(!window.__e11ExitExact)window.__e11AppearanceApply&&window.__e11AppearanceApply();}catch(_eApBoot){}
-      setTimeout(function(){try{if(!window.__e11ExitExact)window.__e11AppearanceApply&&window.__e11AppearanceApply();}catch(_eApLate){}},2200);
+      try{if(!(window.__e11ExitExact||window.__e11ExitStale))window.__e11AppearanceApply&&window.__e11AppearanceApply();}catch(_eApBoot){}
+      setTimeout(function(){try{if(!(window.__e11ExitExact||window.__e11ExitStale))window.__e11AppearanceApply&&window.__e11AppearanceApply();}catch(_eApLate){}},2200);
       /* 兜底：6 秒后仍没恢复（比如没有外观档）才允许正常保存覆盖，避免永远不存新改动 */
       setTimeout(function(){try{window.__e11AppearanceReadyForSave=true;}catch(_eApReady){}},6000);
       try{localStorage.setItem("e11.buildSeen.v1",window.__E11_BUILD);}catch(_eSeenSet){}
-      try{window.__e11RepairBulkTombs&&window.__e11RepairBulkTombs(state);}catch(_eTombFix){}try{__ltReadApply();}catch(e){}try{if(!window.__e11ExitExact)__prefApply();}catch(e){}try{window.__perfApply&&window.__perfApply();}catch(_){}
+      try{window.__e11RepairBulkTombs&&window.__e11RepairBulkTombs(state);}catch(_eTombFix){}try{__ltReadApply();}catch(e){}try{if(!(window.__e11ExitExact||window.__e11ExitStale))__prefApply();}catch(e){}try{window.__perfApply&&window.__perfApply();}catch(_){}
       /* v43-219：全部旧档合并、外观恢复完成后，再把四项“最后一次选择”盖回来 */
-      try{if((!window.__e11ExitExact||!window.__e11ExitKeep4Applied)&&window.__e11Keep4ApplyAll)window.__e11Keep4ApplyAll();}catch(_eK4Boot){}
-      try{if((!window.__e11ExitExact||!window.__e11ExitKeep4Applied)&&window.__e11Keep4ApplyDb)await window.__e11Keep4ApplyDb();}catch(_eK4DbBoot){}
+      try{if((!(window.__e11ExitExact||window.__e11ExitStale)||!window.__e11ExitKeep4Applied)&&window.__e11Keep4ApplyAll)window.__e11Keep4ApplyAll();}catch(_eK4Boot){}
+      try{if((!(window.__e11ExitExact||window.__e11ExitStale)||!window.__e11ExitKeep4Applied)&&window.__e11Keep4ApplyDb)await window.__e11Keep4ApplyDb();}catch(_eK4DbBoot){}
       /* v43-224：整机快照只负责“上次停在哪个页面/滚动位置”，不再整份覆盖数据。
          v43-222 让快照覆盖整份 state，但关闭页面时 IndexedDB 的异步写可能没写完，
          快照还是 10 秒前那份旧内容；它一旦覆盖，就出现“退出再进不是离开时的头像/名字/聊天”。
