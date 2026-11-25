@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-235z60f5";
+window.__E11_BUILD="2026-11-25v43-235z60f6";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -2786,7 +2786,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-235z60f5">
+<meta name="app-build" content="2026-11-25v43-235z60f6">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -38998,7 +38998,7 @@ body{margin:0;background:var(--bg,#fafafa);}
   }
   for(var j=0;j<kids.length;j++)root.appendChild(kids[j]);
   body.appendChild(root);
-  /* v43-235z60f5：100vw/100vh 探针。iOS Safari/PWA 的 innerHeight 会少报
+  /* v43-235z60f6：100vw/100vh 探针。iOS Safari/PWA 的 innerHeight 会少报
      底部工具栏的 59pt，但 CSS 的 100vh 是完整大视口；拿它纠正舞台。 */
   try{
     var _vp=document.createElement("div");_vp.id="__vp_probe";
@@ -39039,17 +39039,27 @@ body{margin:0;background:var(--bg,#fafafa);}
         if(_vpEl){
           var _pw=_vpEl.offsetWidth||0; if(_pw>=320&&_pw<=900&&_pw>w+2)w=_pw;
         }
+        /* 有些 iOS/安卓 WebView 把 screen.width 报成物理像素（1179/1080），
+           除以 dpr 后才是真正的 CSS 宽（393/360）。 */
+        var _sdprW=Number(window.devicePixelRatio)||1;
+        var _swRaw=Number(window.screen&&window.screen.width)||0;
+        if(_swRaw>w+2)_swRaw=_sdprW>1?_swRaw/_sdprW:_swRaw;
+        if(_swRaw>=320&&_swRaw<=900&&_swRaw>w+2)w=_swRaw;
       }catch(_ePw){}
       w=Math.max(300,Math.min(900,w));
       var _vvH=(vv&&vv.height)||0;
       var _innerH=window.innerHeight||0;
       var _clientH=document.documentElement.clientHeight||0;
-      var _screenH=(window.screen&&window.screen.height)||0;
+      var _screenH=0; /* v43-235z60f6：下面统一按 dpr 折算后再取最大值 */
       /* 某些 iPhone WebView 的 screen.height 会被浏览器栏/键盘残值带小；
          再用 outerHeight / availHeight 取一个靠谱的屏幕高度，避免整站只按半屏渲染。 */
       try{
+        var _sdprS=Number(window.devicePixelRatio)||1;
         var _sh=(window.screen&&window.screen.height)||0;
         var _ah=(window.screen&&window.screen.availHeight)||0;
+        /* iOS WebView 常把 screen.height 报成物理像素 2556；不折算会把整站拉到 1065pt */
+        if(_sh>1200&&_sdprS>1)_sh=_sh/_sdprS;
+        if(_ah>1200&&_sdprS>1)_ah=_ah/_sdprS;
         var _oh=window.outerHeight||0;
         _screenH=Math.max(_screenH,_sh,_ah,_oh,_innerH,_clientH);
       }catch(_eS){}
@@ -39081,12 +39091,20 @@ body{margin:0;background:var(--bg,#fafafa);}
         window.__uiStableH=h;window.__uiStableW=w;
       }
       var voffX=(vv&&vv.offsetLeft)||0, voffY=(vv&&vv.offsetTop)||0;
-      /* v43-235z60f5f1：键盘弹起不再拿 visualViewport 的矮高度当整页高度。
+      /* v43-235z60f6f1：键盘弹起不再拿 visualViewport 的矮高度当整页高度。
          以前键盘一弹 h=键盘高度，root 跟着缩；收起后 vv 又可能停在少一条的残值，
          页面就整体被挤上去、底部留白条。这里始终取屏幕/布局高度的最大值。 */
       var _vh100=0;
       try{var _vpEl2=document.getElementById("__vp_probe");if(_vpEl2)_vh100=_vpEl2.offsetHeight||0;}catch(_ePh){}
       var h=Math.max(window.__uiStableH||0,_innerH||0,_clientH||0,_vvH||0,_vh100);
+      /* v43-235z60f6：iOS 的 screen.height 经常是物理像素 2556，不是 CSS 的 852；
+         直接当 852 用会超出，直接忽略又少 59pt 白条。除以 dpr 后落在可视高度附近才采用。 */
+      try{
+        var _sdprH=Number(window.devicePixelRatio)||1;
+        var _shRaw=Number(window.screen&&window.screen.height)||0;
+        if(_shRaw>h+160&&_sdprH>1)_shRaw=_shRaw/_sdprH;
+        if(_shRaw>=h&&_shRaw<=h+200)h=_shRaw;
+      }catch(_eShH){}
       try{
         var _scrH=Number(window.screen&&window.screen.height)||0;
         var _ah2=Number(window.screen&&window.screen.availHeight)||0;
@@ -39146,7 +39164,7 @@ body{margin:0;background:var(--bg,#fafafa);}
       /* v43-152：这里原来每次 sync 都同步写一次 localStorage。
          visualViewport 滚动/键盘弹起时 sync 会按帧触发，等于每帧做一次 JSON 序列化+落盘，
          徒增卡顿；这个键当前没有任何读取方，直接去掉。 */
-      /* v43-235z60f5：全手机统一成 393×852 的同一套视图。
+      /* v43-235z60f6：全手机统一成 393×852 的同一套视图。
          以 852 设计高定比例 k，逻辑宽=屏宽/k，整体缩放后屏幕正好铺满；
          苹果/安卓、360/393/430 宽都按同一套排版，不再各机各长各短。 */
       var k=Math.min(1.25,Math.max(0.75,h/852));
