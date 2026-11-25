@@ -272,7 +272,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-26v43-236b11";
+window.__E11_BUILD="2026-11-26v43-236b12";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -2796,7 +2796,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-26v43-236b11">
+<meta name="app-build" content="2026-11-26v43-236b12">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -6791,7 +6791,12 @@ setTimeout(function(){
         var ids={};cur.forEach(function(x){if(x&&x.id)ids[String(x.id)]=1;});
         (Array.isArray(o[k])?o[k]:[]).forEach(function(x){
           if(!x||!x.id)return;var id=String(x.id);
-          if(ids[id])return;
+          if(ids[id]){
+            for(var _sl=0;_sl<cur.length;_sl++){
+              if(cur[_sl]&&String(cur[_sl].id)===id){__e11SocialCommentsUnion(cur[_sl],x);__e11SocialCommentsUnion(x,cur[_sl]);break;}
+            }
+            return;
+          }
           try{if(window.__e11IsDeleted&&window.__e11IsDeleted(k,id))return;}catch(_){}
           cur.push(x);ids[id]=1;n++;
         });
@@ -7301,6 +7306,31 @@ setTimeout(function(){
   window.__e11MergeDiary=__e11MergeDiary;
   function __e11MergeLocalDiary(st,localState){return __e11MergeDiary(st,localState);}
 
+  /* v43-236b12：同一条动态/信件/留言在云端、离站档、本机档里出现时，
+     以前只比 __ts 整条替换，里面新加的评论和逐层回复会被旧档吞掉。
+     评论只会增加不会减少，所以这里一律按 id 做并集，谁都不会丢。 */
+  function __e11SocialCommentsUnion(a,b){
+    try{
+      if(!a||!b||typeof a!=="object"||typeof b!=="object")return a;
+      var _mf=window.__e11MergeCommentTree||(typeof __e11MergeCommentTree==="function"?__e11MergeCommentTree:null);
+      ["comments","replies"].forEach(function(f){
+        var A=Array.isArray(a[f])?a[f]:null,B=Array.isArray(b[f])?b[f]:null;
+        if(!A&&!B)return;
+        if(_mf){a[f]=_mf(A||[],B||[]);return;}
+        var out=(A||[]).slice(),by={};out.forEach(function(c){if(c&&c.id)by[c.id]=c;});
+        (B||[]).forEach(function(c){if(c&&c.id&&!by[c.id]){by[c.id]=c;out.push(c);}});
+        a[f]=out;
+      });
+      ["likes"].forEach(function(f){
+        if(Array.isArray(b[f])&&b[f].length){
+          a[f]=Array.isArray(a[f])?a[f]:[];
+          b[f].forEach(function(x){if(a[f].indexOf(x)<0)a[f].push(x);});
+        }
+      });
+    }catch(_eSocUnion){}
+    return a;
+  }
+  window.__e11SocialCommentsUnion=__e11SocialCommentsUnion;
   function __e11MergeLocalSocial(st,localState){
     try{
       ["letters","guestbook","moments","cards","groups","redpackets","musicPlaylist","emojis","partnerEmojis"].forEach(function(k){
@@ -7310,6 +7340,9 @@ setTimeout(function(){
         la.forEach(function(x){
           if(!x||!x.id)return;
           if(!ids[x.id]){ca.push(x);ids[x.id]=1;return;}
+          for(var _su=0;_su<ca.length;_su++){
+            if(ca[_su]&&ca[_su].id===x.id){__e11SocialCommentsUnion(ca[_su],x);__e11SocialCommentsUnion(x,ca[_su]);break;}
+          }
           /* v43-215：同一条内容已经存在时，绝不再按旧备份把“已读”翻回“未读”。
              以前这里会把旧档里的 unread 覆盖到当前已读状态，更新一次就红一次。
              当前确实未读的条目不受影响；只有缺失条目补回来时才按它自己的未读标记显示。 */
@@ -8941,11 +8974,13 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-236b11",
-  time:"2026-11-26 02:50",
+  date:"v43-236b12",
+  time:"2026-11-26 03:20",
   noticeKey:null,
   lead:"2026-11-26 修改（v43-236b7）：双方新增的评论、动态、信件、留言现在会即时落盘，同一条动态里后补的评论也会和另一台设备按 id 合并，不再被旧数组长度判断漏掉；另外固定为先声明页、再密码页，信件返回/收起/取消三处顶栏统一高度。",
   items:[
+    "聊天键盘不再闪（v43-236b12）：真正闪的是整站舞台每一帧跟着键盘变矮、上移，顶栏即使没动也被反复重排。现在聊天打字时舞台保持全高、不再跟着缩放，只有聊天内容区收高，顶栏彻底静止。",
+    "评论、留言、信件不再丢（v43-236b12）：同一条动态/信件/留言在云端、离站档、本机档里出现时，以前是整条比时间戳替换，里面新加的评论和逐层回复会被旧档吞掉。现在评论、回复、点赞一律按 id 并集，哪份档都不会丢；发评论后立刻同步落盘。",
     "聊天键盘还是会闪（v43-236b11）：定高本身没闪，闪的是每一帧都在把消息列表重新拽到底，加上固定/清除反复切换。现在几何只随可视区平滑变一次，贴底改成 180ms 防抖只做一次；顶栏保持不动。",
     "聊天顶栏固定但会闪（v43-236b10）：上一版靠不停 scrollTo 把页面拉回顶部，和 Safari 抢滚动会闪。现在不再改滚动，而是让聊天页整页贴合 visualViewport：top 跟随可视区偏移、高度等于可视区高度，顶栏永远在可视区最上方，只有消息列表在变矮。",
     "聊天顶栏随键盘上移（v43-236b9）：iOS 聚焦输入框时会把整页往上顶，返回/头像/通话这一栏跟着跑出屏幕。现在聊天输入时把页面滚动锁回 0，并把残余的可视区平移量反向补到顶栏；顶栏位置不动，只有聊天记录区随键盘上沿收缩。",
@@ -11094,6 +11129,20 @@ function __e11ApplyExitExact(s,e){
           if(_allT)arr.sort(function(a,b){return (Number(a.time)||0)-(Number(b.time)||0);});
         }catch(_eSortM){}
       }
+      if(k==="letters"||k==="guestbook"||k==="moments"){
+        /* v43-236b12：离站档为准，但本机主档里同一条内容多出来的评论/回复必须并回来，
+           并且本机比离站档晚发、离站档没有的条目也要保留，更新/退出后不会“刚发的就没了”。
+           真正删除的条目由后面的墓碑过滤。 */
+        var _oldArr=Array.isArray(s[k])?s[k]:[],_exBy={},_add=[];
+        arr.forEach(function(x){if(x&&x.id)_exBy[String(x.id)]=x;});
+        _oldArr.forEach(function(x){
+          if(!x||!x.id)return;
+          var y=_exBy[String(x.id)];
+          if(!y){_add.push(x);return;}
+          __e11SocialCommentsUnion(y,x);__e11SocialCommentsUnion(x,y);
+        });
+        arr=_add.concat(arr);
+      }
       s[k]=arr;
     });
     var _oldTop={me:s.me,partner:s.partner,profile:s.profile,skin:s.skin,diary:s.diary};
@@ -11193,6 +11242,7 @@ function __e11MergeExitState(s,e){
         var old=by[x.id];
         if(!old){a.push(x);by[x.id]=x;ch=true;}
         else{
+          __e11SocialCommentsUnion(old,x);__e11SocialCommentsUnion(x,old);
           if(!old.src&&x.src){old.src=x.src;ch=true;}
           if(x.text!==undefined&&x.text!==old.text&&Number(x.time||0)>=Number(old.time||0)){old.text=x.text;ch=true;}
           /* v43-215：离站快照只补缺失内容，已存在条目的已读/未读以当前状态为准，
@@ -15347,6 +15397,7 @@ window.__e11SocialAudit=function(){
             a.push(x);by[id]=x;added++;
             return;
           }
+          __e11SocialCommentsUnion(cur,x);__e11SocialCommentsUnion(x,cur);
           /* 同一条内容补齐缺失的文字/正文，不覆盖本机已有的 */
           if(cfg.k==="letters"&&!String(cur.body||"").trim()&&String(x.body||"").trim())cur.body=x.body;
           if(cfg.k==="moments"&&!String(cur.text||"").trim()&&String(x.text||"").trim())cur.text=x.text;
@@ -32580,12 +32631,18 @@ function bindMomentFeed(){
       }else{
         myCid=uid();m3.comments.push({id:myCid,from:"me",text:txt,emoji:emo||undefined,time:Date.now(),likes:[],replies:[]});
       }
+      /* v43-236b12：这条动态自己被改过，本地时间戳要晚于云端旧档，合并时本机版本才不会被整条压掉 */
+      try{m3.__ts=Date.now();}catch(_eMomTs){}
       if(inp3)inp3.value="";momentDraft[mid2]="";momentFocusMid=null;
       /* 发送后把评论输入行收回，别让它一直挂在卡片底部 */
       try{if(ci3){ci3.classList.add("hidden");var _pi3=ci3.querySelector("input");if(_pi3)_pi3.placeholder="评论…";}}catch(_){}
       try{window.__e11MomentKbReset&&window.__e11MomentKbReset();}catch(_){}
       try{if(window.__commentEmoji)window.__commentEmoji[mid2]="";var eb2=card3?card3.querySelector('[data-memoji="'+mid2+'"]'):null;if(eb2)eb2.textContent="😊";}catch(_){}
       save();
+      /* 评论/回复这类“同一条内容里的新数据”必须立刻同步落盘，不能等 10 秒兜底或空闲写，
+         否则更新/被杀进程时这一段就丢 */
+      try{if(window.__e11ExitSave)window.__e11ExitSave(state,true);}catch(_eSocImmediate){}
+      try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_ePersistNowC){}
       /* 只更新这张卡的评论区；不重建整张动态、不滚屏，回复哪个就留在键盘上方哪个位置 */
       if(!__momentInPlaceRefresh(mid2,myCid)){
         if(!__refreshMomentCard(mid2))renderMoments();
@@ -39175,7 +39232,17 @@ body{margin:0;background:var(--bg,#fafafa);}
         window.__uiStableH=_baseH;window.__uiStableW=w;
       }
       var voffX=(vv&&vv.offsetLeft)||0, voffY=(vv&&vv.offsetTop)||0;
-      var h=_diaryOpen?(window.__uiStableH||_baseH):(_typing?_vvH:(window.__uiStableH||_baseH));
+      /* v43-236b12：聊天页打字时整站舞台不再跟着 visualViewport 每帧变矮/上移。
+         以前 root 高度和 top 每一帧都跟着键盘动画改，整站被反复重排，
+         顶栏就算“没动”也会一直闪。聊天页自己用 fitChatToKeyboard 贴着可视区收，
+         舞台保持全高、top 归零，屏幕上只有聊天内容区在变矮。 */
+      var _chatTyping=false;
+      try{
+        var _cvT=document.getElementById("view-chat");
+        _chatTyping=!!(_typing&&_cvT&&_cvT.classList.contains("open"));
+      }catch(_eChatTyping){}
+      var h=_diaryOpen?(window.__uiStableH||_baseH):((_typing&&!_chatTyping)?_vvH:(window.__uiStableH||_baseH));
+      if(_chatTyping){voffX=0;voffY=0;}
       /* 极少数 WebView 在键盘收起/切页时 visualViewport 会短暂给 0 或半截残值，
          整站按这个高度画就会只剩一条、下面一大块空白。这里退回稳定屏高。 */
       if(_typing&&(!_vvH||(_screenH&&_vvH<_screenH*0.28))){_typing=false;h=window.__uiStableH||_baseH;}
