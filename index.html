@@ -272,7 +272,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-26v43-235z60b4";
+window.__E11_BUILD="2026-11-26v43-235z60b5";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -1695,7 +1695,9 @@ body.ui-dark #overlay #sheet{background:rgba(38,38,42,.95);box-shadow:0 12px 34p
 /* 写信整页 */
 
 #lt-write-modal .lt-write-sheet{width:100%;max-width:100%;height:100%;max-height:100%;border-radius:0;display:flex;flex-direction:column;background:var(--paper-bg,#fff);background-image:var(--paper-img,none);background-size:cover;background-position:center;}
-#lt-write-modal .ltw-top{padding:10px 16px 6px;align-items:center;}
+#lt-write-modal .ltw-top{padding:10px 16px 6px;align-items:center;padding-top:calc(10px + var(--safe-top, env(safe-area-inset-top)));}
+#lt-write-modal .lt-write-sheet{padding-top:var(--safe-top, env(safe-area-inset-top));box-sizing:border-box;}
+#lt-write-modal .lt-write-foot{padding-bottom:calc(10px + env(safe-area-inset-bottom));}
 #lt-write-modal .ltw-title{flex:1;text-align:center;font-size:16px;font-weight:700;color:var(--ttext,#111);}
 #lt-write-modal .lt-write{flex:1;display:flex;flex-direction:column;padding:0 16px 10px;}
 #lt-write-modal .lt-write-sheet #lt-write-body{height:auto;min-height:0;max-height:none;flex:1;background:transparent;}
@@ -2791,7 +2793,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-26v43-235z60b4">
+<meta name="app-build" content="2026-11-26v43-235z60b5">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3754,13 +3756,15 @@ html.kb-typing #rotate-guard,html.kb-typing body #rotate-guard{display:none!impo
 .data-danger .data-sub-btn{color:var(--danger,#FF3B30);border-color:rgba(255,59,48,.28);}
 </style>
 <style id="__e11_fill_bottom">
-/* v43-235z60b4：PWA/浏览器底部会留一条系统底栏高度的白底。
+/* v43-235z60b5：PWA/浏览器底部会留一条系统底栏高度的白底。
    app 只按 dvh 排（793）时，body 852 的下半截没人画，就是那条白。
    把画布和 app 都铺到 large viewport（852），底栏区域也由页面背景/壁纸填满；
    固定 dock 仍按真实可视视口贴底，不会被浏览器条压住。 */
 html,body{height:100%;height:100lvh;min-height:100lvh;background:var(--bg,#fafafa);}
 @media (max-width:699px),(pointer:coarse){
-  .app{height:100%;height:100lvh!important;min-height:100lvh!important;}
+  /* 背景仍铺满 large viewport（填满底部系统栏），但 app 自身跟真实动态视口走。
+     键盘弹起时 app 正常收矮，输入栏不会被钉在 852 的高度上。 */
+  .app{height:100%;height:100dvh!important;min-height:0!important;max-height:100dvh!important;}
 }
 </style>
 </head>
@@ -13479,6 +13483,10 @@ function initKeyboardFix(){
       const vv=window.visualViewport;
       const innerH=window.innerHeight||0;
       const stable=__e11StableViewH();
+      /* v43-235z60b5：如果 WebView 已经把 innerHeight 缩到键盘上沿（adjustResize
+         或浏览器自己处理），说明布局视口已经在避让键盘，不能再把聊天页定成
+         vv 高度——两套尺寸同时改就是“一闪一闪”的根源。 */
+      if(innerH>0&&stable&&innerH<stable-40){_clear();return;}
       /* 只认可视区高度，不再把 offsetTop 算进来。页面被浏览器顶起时 offsetTop
          会把“键盘高度”算没，输入栏就正好藏到键盘后面。 */
       let visH=Math.max(0,Math.min(innerH||stable||0,(vv&&vv.height)||innerH||stable||0));
@@ -13511,7 +13519,7 @@ function initKeyboardFix(){
       const bb=vc.querySelector(".bottombar");
       if(bb){bb.style.transform="";bb.style.paddingBottom="8px";}
       try{__chatPinNow();}catch(_){}
-      /* v43-235z60b4：不再用下一帧“发现底栏超出再改一次高度”的追高逻辑。
+      /* v43-235z60b5：不再用下一帧“发现底栏超出再改一次高度”的追高逻辑。
          键盘动画期间每帧都改高度会一弹一弹；这里一次定高，等键盘停稳再校准。 */
     }catch(_){}
   }
@@ -13606,7 +13614,7 @@ function initKeyboardFix(){
     const vc=document.getElementById("view-chat");
     const chatOpen=!!(vc&&vc.classList.contains("open"));
     if(chatOpen){
-      /* v43-235z60b4：聊天页交给 fitChatToKeyboard 统一收口，键盘高度稳定后一次性
+      /* v43-235z60b5：聊天页交给 fitChatToKeyboard 统一收口，键盘高度稳定后一次性
          定住视口高度；这里不再每帧改 padding，也不重复顶底栏，避免上下弹动。 */
       shiftFor(bb,0);
       queueKbChat(140);
