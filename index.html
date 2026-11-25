@@ -24156,8 +24156,41 @@ function __mergeEmojiPack(cur,incoming){
   });
   return out;
 }
+/* v43-233：导入是“用户主动恢复”，备份里仍然存在的条目不能被旧删除墓碑挡住。
+   以前全量导入会把导出包 extras 里的 e11.deleted.v1 / e11.deleted.fp.v2 原样写回，
+   启动后 __e11ApplyDeleted 再按 id/内容指纹过滤一遍，结果备份里明明有信件、动态、留言，
+   导入后却全没了（聊天不走指纹，所以只有这三类消失）。
+   这里只解除“当前备份里确实存在的条目”的墓碑和指纹，不在备份里的删除记录继续保留。 */
+function __e11ImportClearBlocks(st){
+  try{
+    if(!st||typeof st!=="object")return;
+    var kinds=window.__e11DeleteKinds||["messages","letters","guestbook","moments","cards","groups","musicPlaylist","musicRoomMsgs","favorites","emojis","partnerEmojis","redpackets","surveyHistory"];
+    var loc={},fp={},fpChanged=false;
+    try{loc=JSON.parse(localStorage.getItem(window.__E11_DEL_KEY||"e11.deleted.v1")||"{}")||{};}catch(_){loc={};}
+    try{fp=JSON.parse(localStorage.getItem(window.__E11_DEL_FP_KEY||"e11.deleted.fp.v2")||"{}")||{};}catch(_){fp={};}
+    var sdel=(st.deletedIds&&typeof st.deletedIds==="object")?st.deletedIds:null;
+    kinds.forEach(function(k){
+      var arr=Array.isArray(st[k])?st[k]:[];
+      if(!arr.length)return;
+      var live={};
+      arr.forEach(function(x){
+        var id="";try{id=String(x&&(x.id!==undefined&&x.id!==null?x.id:(x.key!==undefined?x.key:"")));}catch(_){}
+        if(id)live[id]=1;
+        if(k==="letters"||k==="moments"||k==="guestbook"){
+          try{var h=window.__e11ContentFp&&window.__e11ContentFp(k,x);if(h&&fp[k]&&fp[k][h]!==undefined){delete fp[k][h];fpChanged=true;}}catch(_){}
+        }
+      });
+      if(loc[k])Object.keys(loc[k]).forEach(function(id){if(live[id])delete loc[k][id];});
+      if(sdel&&sdel[k])Object.keys(sdel[k]).forEach(function(id){if(live[id])delete sdel[k][id];});
+    });
+    try{localStorage.setItem(window.__E11_DEL_KEY||"e11.deleted.v1",JSON.stringify(loc));}catch(_){}
+    if(fpChanged){try{localStorage.setItem(window.__E11_DEL_FP_KEY||"e11.deleted.fp.v2",JSON.stringify(fp));}catch(_){}}
+  }catch(_){}
+}
+window.__e11ImportClearBlocks=__e11ImportClearBlocks;
 function __applyPartialBackup(data){
   var st=(data&&data.state&&typeof data.state==="object")?data.state:{};
+  try{__e11ImportClearBlocks(st);}catch(_){}
   var groups=(data&&data.groups)||[];
   var has=function(g){return groups.indexOf(g)>=0;};
   var changed=[];
@@ -24511,6 +24544,8 @@ function __importBackupText(txt,f){
         if(d.extras&&typeof d.extras==="object"){_norm={state:null,extras:d.extras,idb:d.idb||null};return;}
       })();
       if(!_norm)throw new Error("格式错误");
+      /* 导入前先解除本机旧墓碑：只解除备份里确实存在的条目，备份里没有的删除记录继续保留 */
+      try{__e11ImportClearBlocks(_norm.state);}catch(_){}
       /* 分类备份：只把选中的类别按 id 合并进当前数据，不覆盖其他内容 */
       if(data&&data.partial===true){
         __applyPartialBackup({state:_norm.state,groups:data.groups||[],idb:_norm.idb});
@@ -24580,6 +24615,8 @@ function __importBackupText(txt,f){
           });
         }
       }catch(_){}
+      /* extras 里可能又把旧的删除墓碑/指纹写回来了；按刚导入的 state 再解除一次 */
+      try{__e11ImportClearBlocks(state);}catch(_){}
       /* 整库恢复：IndexedDB 里的所有记录按备份原样写回（含大库存档本体），再刷新页面 */
       var _imported=state;
       /* 关键：给导入的数据打上「现在」的时间戳，否则重启时会被本机更新的存档按时间戳压回去，
