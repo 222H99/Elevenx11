@@ -11180,8 +11180,12 @@ window.__e11AppearanceSaveNow=function(force){
 window.__e11AppearanceTick=function(){
   try{
     if(!window.__e11AppearanceReadyForSave||!window.__stateReady||window.__restoring||typeof state==="undefined"||!state)return;
-    var pack=window.__e11AppearancePack();if(!pack)return;
-    var sig=window.__e11AppearanceSigOf(pack);
+    /* 轻量比对：save() 会非常频繁，这里不深拷贝整份资料，只比字段长度和首尾片段；
+       真正变化后 1 秒才做完整打包，避免每次发消息都克隆一遍大头像。 */
+    var st=state,p=st.profile||{},sk=st.skin||{},me=st.me||{},pt=st.partner||{};
+    var qv=function(v){if(typeof v!=="string")return String(v);return v.length+"|"+v.slice(0,14)+"|"+v.slice(-18);};
+    var qo=function(o){o=o||{};return Object.keys(o).sort().map(function(k){return k+"="+qv(o[k]);}).join("&");};
+    var sig=[qo(p),qv(me.name),qv(me.avatar),qv(pt.name),qv(pt.avatar),qo(sk),qv(st.musicBgImg),qv(st.musicDiscBgImg),qv(st.musicDiscInnerImg),qv(st.musicCoverImg),qv(st.callBgImg),qv(st.me1AppIcons&&st.me1AppIcons.all),qo(st.me1AppIcons&&st.me1AppIcons.byId),qv(st.me1AppSize),qv(st.me1PhotosSize)].join("~");
     if(sig===window.__e11AppearanceSig)return;
     clearTimeout(window.__e11AppearanceTimer);
     window.__e11AppearanceTimer=setTimeout(function(){try{window.__e11AppearanceSaveNow();}catch(_){}},1000);
