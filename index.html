@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-217z39";
+window.__E11_BUILD="2026-11-25v43-218z40";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2760,7 +2760,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-217z39">
+<meta name="app-build" content="2026-11-25v43-218z40">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -8810,11 +8810,12 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-217z39",
-  time:"2026-11-25 17:25",
+  date:"v43-218z40",
+  time:"2026-11-25 18:22",
   noticeKey:null,
-  lead:"2026-11-25 修改（v43-217z39）：头像、主页照片、情侣照片、一起听头像和照片背景改成选中原图就自动保存，不再等压缩完成；退出、刷新或覆盖安装后读到的都是最新一张。",
+  lead:"2026-11-25 修改（v43-218z40）：应用图标、桌面卡片头像、一起听音乐弹窗中心图片、聊天个人资料名字，改完就立即落盘；退出网站再进入，保留的都是最后一次改的那张图、那个名字。",
   items:[
+    "退出再进四项变回旧的（v43-218z40）：应用图标以前被当成大图外置，退出时写库被打断就只剩编号；现在图标内联保存，单换或全部换都立即写主档。桌面卡片头像统一在写入头像时自动落盘；一起听音乐弹窗中心图/封面在原图和压缩完成两个阶段都保存；聊天名、主页名改成各自独立，启动时不再拿主页名覆盖聊天名。",
     "头像照片改完就丢（v43-217z39）：多个入口要先等头像/照片压缩完才写盘，选中原图后立刻退出、刷新或覆盖安装，读回的还是上一张。现在选中原图就同步写主档、外观保护档、图片保险箱和云端，压缩完成再替换成小图并再存一次；主页照片、情侣照片、一起听头像、音乐背景和通话背景同样处理。",
     "备份自己丢失（v43-193z33f）：配额满时旧代码删的是 meta 里第一份（最新那份），备份会一份接一份消失；完整档写失败也没有文字兜底。现在只删最旧一份，保留 6 份；完整档失败自动改存文字核心档。进入网站时最近 7 份备份全部按 id 合并，离开网站再自动写一份全量档。",
     "更新后一起听被关掉（v43-192z33f）：页面末尾有一段“新页面第一次打开就强制 musicSession=false 并 save()”的旧逻辑。更新/退出后 sessionStorage 被清空，一起听会被判成没开始；而且 save 发生在启动读库前，还会把默认空档写回主库。现在启动阶段不再重置会话、不再写盘，只有点「关闭」才会把 miniClosed 置真，下一次才需要重新邀请。",
@@ -10334,6 +10335,17 @@ function __slimState(root){
   /* v43-39：聊天背景和桌面背景也保持内联。以前它们被换成 bigref，
      启动时如果本机大图没读回来，历史图片修复就会把旧背景补回来，看起来就是“一打开又变回以前那张”。 */
   var __KEEP_INLINE=function(k){return /^(avatar|meAvatar|cpMeAvatar|cpPartnerAvatar|cpPhotoAvatar|mpAv1|mpAv2|cpPhoto|cpPhotoCard|cpPhotoSub|cpRecord|cover|partnerCover|bgImage|meImage|meTopImage|gbImage|ltImage|gameImage|momImage|coupleImage|musicBgImg|musicDiscBgImg|musicDiscInnerImg|musicCoverImg|musicLyricBgImg|callBgImg|img|emoji)$/i.test(String(k||""));};
+  /* v43-218：主页图标只有 6 张 256px 小图，必须留在存档本体里。
+     以前 me1AppIcons.all/byId 的键名是 all/byId，不在上面的白名单，被换成 bigref；
+     写库还没完成就退出，回来后只剩编号，图标就变回默认或空白。 */
+  var __isAppIconVal=function(v){
+    try{
+      var ic=root&&root.me1AppIcons;if(!ic)return false;
+      if(ic.all&&ic.all===v)return true;
+      var by=ic.byId||{};for(var k in by){if(Object.prototype.hasOwnProperty.call(by,k)&&by[k]===v)return true;}
+    }catch(_){}
+    return false;
+  };
   function walk(v,key){
     try{
       if(v&&typeof v==="object"&&Array.isArray(v)&&root&&root.me&&root.me.photos===v)return v.slice();
@@ -10341,7 +10353,7 @@ function __slimState(root){
     }catch(_){}
     if(typeof v==="string"){
       /* 其他聊天图片/背景仍外置到 IndexedDB；头像/主页照片/表情保持内联。 */
-      if(__storedImg(v)&&!__KEEP_INLINE(key)){
+      if(__storedImg(v)&&!__KEEP_INLINE(key)&&!__isAppIconVal(v)){
         var id=__bigId(v);
         need(id,v);
         return __BIG_REF+id;
@@ -12439,12 +12451,26 @@ async function init(){
     try{
       [state,s].forEach(function(root){
         if(!root||!root.profile)return;
-        /* v43-209：老存档里 settings 写 myDisplayName、主页写 mpName，两份可能不一致。
-           启动时合成同一套：主页名优先，其次设置名，最后才用原有 name，三处不再各显示一个。 */
-        var _hMe=String(root.profile.mpName||root.profile.myDisplayName||(root.me&&root.me.name)||"").trim();
-        if(_hMe){root.me=root.me||{};root.me.name=_hMe;root.profile.mpName=_hMe;root.profile.myDisplayName=_hMe;}
-        var _hPt=String(root.profile.partnerMpName||root.profile.partnerDisplayName||(root.partner&&root.partner.name)||"").trim();
-        if(_hPt){root.partner=root.partner||{};root.partner.name=_hPt;root.profile.partnerMpName=_hPt;root.profile.partnerDisplayName=_hPt;}
+        /* v43-218：聊天名和主页名各自独立。
+           以前这里固定拿 profile.mpName 回写 state.me.name，主页名只要存在（默认也有 wxhggxhwm），
+           用户刚改的聊天名一重进就被它顶掉，看起来就是“聊天个人资料名字没保存”。
+           现在：聊天名改过（有标记或不是默认“我”）就保留聊天名；没改过才用主页名补。 */
+        var _chatName=String((root.me&&root.me.name)||"").trim();
+        var _homeName=String(root.profile.mpName||root.profile.myDisplayName||"").trim();
+        var _chatEdited=!!(root.me&&root.me.__nameEdited)||(_chatName&&_chatName!=="我");
+        var _hMe=_chatEdited?_chatName:(_homeName||_chatName);
+        if(_hMe){
+          root.me=root.me||{};root.me.name=_hMe;
+          if(!_homeName){root.profile.mpName=_hMe;root.profile.myDisplayName=_hMe;}
+        }
+        var _partName=String((root.partner&&root.partner.name)||"").trim();
+        var _partHome=String(root.profile.partnerMpName||root.profile.partnerDisplayName||"").trim();
+        var _partEdited=!!(root.partner&&root.partner.__nameEdited)||(_partName&&_partName!=="对方");
+        var _hPt=_partEdited?_partName:(_partHome||_partName);
+        if(_hPt){
+          root.partner=root.partner||{};root.partner.name=_hPt;
+          if(!_partHome){root.profile.partnerMpName=_hPt;root.profile.partnerDisplayName=_hPt;}
+        }
       });
     }catch(_eNamesBak){}
     /* P0.5：主存档整个不见了（localStorage 和 IndexedDB 都没有可用记录）时，
@@ -13542,6 +13568,22 @@ window.__cardMediaPersist=function(){
    以前多个入口要等 __avatarShrink/compress 完成才 save，压缩期间退出、刷新或覆盖安装，
    本机读回的还是上一张。这里在拿到原图、已经写进 state 后立刻把主档、外观保护档、
    图片保险箱和云端全部推一遍；压缩完再覆盖成小图并保存一次。 */
+window.__e11TextAutoSave=function(kind){
+  var ok=false;
+  try{
+    if(typeof state==="undefined"||!state)return false;
+    state.__savedAt=Date.now();
+    if(kind==="name"&&state.profile)state.profile.__ts=Date.now();
+    /* v43-218：名字是几个字，改完可能马上退出；越过 1.2 秒整库写盘节流，直接强制写一次 */
+    try{window.__e11ForceUntil=Date.now()+2600;}catch(_taForce){}
+    try{save();ok=true;}catch(_taSave){}
+    try{__flushSave(true);}catch(_taFlush){}
+    try{if(window.__e11SyncCfgSnapshot)window.__e11SyncCfgSnapshot();}catch(_taCfg){}
+    try{if(window.__e11SyncProfileBackup)window.__e11SyncProfileBackup();}catch(_taProf){}
+    try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_taNow){}
+  }catch(_taAll){}
+  return ok;
+};
 window.__e11MediaAutoSave=function(kind){
   var ok=false;
   try{
@@ -13552,6 +13594,8 @@ window.__e11MediaAutoSave=function(kind){
     if(kind==="avatar")state.profile.__mediaAvatarTs=Date.now();
     if(kind==="photo")state.profile.__mediaPhotoTs=Date.now();
     if(kind==="avatar"){try{if(window.__avatarBakSync)window.__avatarBakSync();}catch(_maBak){}}
+    /* v43-218：选完图立刻退出也要落盘，强制越过整库写盘的 1.2 秒节流 */
+    try{window.__e11ForceUntil=Date.now()+2600;}catch(_maForce){}
     try{save();ok=true;}catch(_maSave){}
     try{__flushSave(true);}catch(_maFlush){}
     try{if(window.__cardMediaPersist)window.__cardMediaPersist();}catch(_maCard){}
@@ -13564,6 +13608,8 @@ function __bgPersistNow(){
   /* 先同步小备份，再做异步主库/云端落盘：刷新/退出时至少这一份在 */
   try{window.__e11ForceUntil=Date.now()+2600;}catch(_eForceSet){}
   try{window.__e11BgLocalSync&&window.__e11BgLocalSync();}catch(_eBgPre){}
+  /* v43-218：背景/中心图/封面改动也立刻更新外观保护档，退出马上重进不会被旧档盖回。 */
+  try{window.__e11AppearanceSaveNow&&window.__e11AppearanceSaveNow(true);}catch(_eBgApp){}
   /* v43-183z：背景改动先同步写设置/美化小备份和皮肤时间戳。
      以前只等异步主库/云端，遇到 cloudPause/restore 直接 return，刷新就回旧背景。 */
   try{
@@ -14287,6 +14333,19 @@ function __setAvatar(who,v,surface){
     if(who==="me"){state.me=state.me||{};state.me.avatar=v;state.me.__avatarTs=now;}
     else{state.partner=state.partner||{};state.partner.avatar=v;state.partner.__avatarTs=now;}
   }
+  /* v43-218：任何场景的头像写入都立刻落盘，不再依赖调用方是否记得 save。
+     主页/桌面卡片、聊天、情侣、一起听、字卡头像都走这里，退出或覆盖安装前已经写进本机。 */
+  try{
+    if(window.__stateReady&&!window.__restoring){
+      if(window.__e11MediaAutoSave)window.__e11MediaAutoSave("avatar");
+      else{
+        try{save();}catch(_){}
+        try{__flushSave(true);}catch(_){}
+        try{window.__cardMediaPersist&&window.__cardMediaPersist();}catch(_){}
+        try{window.__e11AppearanceSaveNow&&window.__e11AppearanceSaveNow(true);}catch(_){}
+      }
+    }
+  }catch(_eAvNowSave){}
   return v;
 }
 /* 只补空位，不做双向镜像：任何一格已经有真头像，就绝不拿另一格覆盖。 */
@@ -21771,12 +21830,12 @@ function __scheduleNameSync(){clearTimeout(__nameSyncT);__nameSyncT=setTimeout(f
 },80);}
 $("set-me-name").addEventListener("input",e=>{
   window.__e11SetMeName(e.target.value);
-  save();try{if(window.__e11SyncProfileBackup)window.__e11SyncProfileBackup();}catch(_){}
+  try{if(window.__e11TextAutoSave)window.__e11TextAutoSave("name");else save();}catch(_){}
   __scheduleNameSync();
 });
 $("set-partner-name").addEventListener("input",e=>{
   window.__e11SetPartnerName(e.target.value);
-  save();try{if(window.__e11SyncProfileBackup)window.__e11SyncProfileBackup();}catch(_){}
+  try{if(window.__e11TextAutoSave)window.__e11TextAutoSave("name");else save();}catch(_){}
   __scheduleNameSync();
 });
 $("set-reply-times").addEventListener("change",e=>{state.settings.replyTimes=Math.max(1,Math.round(Number(e.target.value)||1));e.target.value=state.settings.replyTimes;save();});
@@ -27841,13 +27900,18 @@ function stxt(t){var e=document.getElementById('ny-st'); if(e)e.textContent=t;}
   $("music-cover-sheet").addEventListener("click",e=>{if(e.target===e.currentTarget)$("music-cover-sheet").classList.remove("show");});
   $("mc-close").addEventListener("click",()=>$("music-cover-sheet").classList.remove("show"));
   $("mc-import").addEventListener("click",()=>window.__nativePick("mc-file"));
-  $("mc-save").addEventListener("click",()=>{const u=$("mc-url").value.trim();if(!u)return;state.musicCoverImg=u;save();renderMusicList();refreshMusicMedia();toast("已更换封面");$("music-cover-sheet").classList.remove("show");});
+  $("mc-save").addEventListener("click",()=>{const u=$("mc-url").value.trim();if(!u)return;state.musicCoverImg=u;
+    try{if(window.__e11MediaAutoSave)window.__e11MediaAutoSave("music");else save();}catch(_){}
+    renderMusicList();refreshMusicMedia();toast("已更换封面");$("music-cover-sheet").classList.remove("show");});
   $("mc-file").addEventListener("change",e=>{
     const f=e.target.files&&e.target.files[0];if(!f)return;
     const rd=new FileReader();
     rd.onload=()=>{
-      var _raw=String(rd.result||"");state.musicCoverImg=_raw;save();renderMusicList();refreshMusicMedia();toast("已更换封面");$("music-cover-sheet").classList.remove("show");
-      try{__shrinkImg(_raw,800,0.8).then(function(c){if(!c||c===_raw||state.musicCoverImg!==_raw)return;state.musicCoverImg=c;save();renderMusicList();refreshMusicMedia();});}catch(_){}
+      var _raw=String(rd.result||"");state.musicCoverImg=_raw;
+      /* v43-218：一起听弹窗中心图/封面选中原图即落盘，再后台压缩替换 */
+      try{if(window.__e11MediaAutoSave)window.__e11MediaAutoSave("music");}catch(_){}
+      renderMusicList();refreshMusicMedia();toast("已更换封面");$("music-cover-sheet").classList.remove("show");
+      try{__shrinkImg(_raw,800,0.8).then(function(c){if(!c||c===_raw||state.musicCoverImg!==_raw)return;state.musicCoverImg=c;try{if(window.__e11MediaAutoSave)window.__e11MediaAutoSave("music");}catch(_){}renderMusicList();refreshMusicMedia();});}catch(_){}
     };
     rd.readAsDataURL(f);e.target.value="";
   });
@@ -28984,7 +29048,7 @@ function __partName(){try{return (state.partner&&state.partner.name)||"对方";}
 window.__e11SetMeName=function(v){
   try{
     var n=String(v==null?"":v).trim()||"我";
-    state.me=state.me||{};state.me.name=n;
+    state.me=state.me||{};state.me.name=n;state.me.__nameEdited=1;
     state.profile=state.profile||{};
     state.profile.myDisplayName=n;
     state.profile.__ts=Date.now();
@@ -28994,7 +29058,7 @@ window.__e11SetMeName=function(v){
 window.__e11SetPartnerName=function(v){
   try{
     var n=String(v==null?"":v).trim()||"对方";
-    state.partner=state.partner||{};state.partner.name=n;
+    state.partner=state.partner||{};state.partner.name=n;state.partner.__nameEdited=1;
     state.profile=state.profile||{};
     state.profile.partnerDisplayName=n;
     state.profile.__ts=Date.now();
@@ -32017,9 +32081,16 @@ $("btn-mp-bio").addEventListener("click",function(){bioSeg=mpSide==="partner"?"p
 document.querySelectorAll("#bio-seg .seg-btn").forEach(function(b){b.addEventListener("click",function(){flushBioForm();bioSeg=b.dataset.bseg;fillBioForm();});});
 $("bio-cancel").addEventListener("click",()=>$("bio-overlay").classList.remove("show"));
 $("bio-overlay").addEventListener("click",e=>{if(e.target.id==="bio-overlay")$("bio-overlay").classList.remove("show");});
+/* v43-218：资料卡里改名字/账号/签名也输入即落盘，不点保存直接退出也不会丢 */
+["bio-name","bio-handle","bio-followers","bio-following","bio-text"].forEach(function(id){
+  var el=$(id);if(!el||el._bioDirect)return;el._bioDirect=1;
+  el.addEventListener("input",function(){
+    try{flushBioForm();if(window.__e11TextAutoSave)window.__e11TextAutoSave("name");}catch(_){}
+  });
+});
 $("bio-save").addEventListener("click",()=>{
   flushBioForm();
-  save();try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_){}
+  try{if(window.__e11TextAutoSave)window.__e11TextAutoSave("name");else{save();try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_){}}}catch(_){}
   try{window.__e11PaintMeDraft&&window.__e11PaintMeDraft();}catch(_){}
   /* v43-210：资料卡保存后主页/对方主页/聊天/情侣空间一起刷新，不再等下一次进页才变 */
   try{window.__e11RefreshProfileSurfaces&&window.__e11RefreshProfileSurfaces();}catch(_){}
@@ -33457,7 +33528,8 @@ window.__cp2Activate=__cp2Activate;
   if($("cp2-chat-edit-save"))$("cp2-chat-edit-save").addEventListener("click",function(){
     var v=$("cp2-chat-edit-input").value.trim();
     if(chatTarget==="me")state.profile.cpChatMe=v; else state.profile.cpChatPartner=v;
-    save();renderCouple();toast("已保存");
+    try{if(window.__e11TextAutoSave)window.__e11TextAutoSave("name");else save();}catch(_){}
+    renderCouple();toast("已保存");
     $("cp2-chat-edit-overlay").classList.remove("show");
   });
 })();
@@ -33475,7 +33547,8 @@ window.__cp2Activate=__cp2Activate;
   if($("cp2-name-edit-save"))$("cp2-name-edit-save").addEventListener("click",function(){
     state.profile.cpMeName=$("cp2-name-me-input").value.trim()||"kk";
     state.profile.cpPartnerName=$("cp2-name-pn-input").value.trim()||"11";
-    save();renderCouple();toast("已保存");
+    try{if(window.__e11TextAutoSave)window.__e11TextAutoSave("name");else save();}catch(_){}
+    renderCouple();toast("已保存");
     $("cp2-name-edit-overlay").classList.remove("show");
   });
 })();
@@ -34638,8 +34711,7 @@ try{
       try{renderTopStatus();}catch(e){}
     }
     try{if(window.__e11SyncProfileBackup)window.__e11SyncProfileBackup();}catch(_){}
-    save();
-    try{if(window.__e11SyncCfgSnapshot)window.__e11SyncCfgSnapshot();}catch(_){}
+    try{if(window.__e11TextAutoSave)window.__e11TextAutoSave("name");else save();}catch(_){}
   }
   ["me-name-edit","me-handle-edit","me-region-edit","me-sign-edit"].forEach(function(id){
     var el=$(id);if(!el||el._direct)return;el._direct=1;
@@ -34660,7 +34732,7 @@ $("me-edit-save").addEventListener("click",()=>{
      只靠 save() 的指纹检测在极快退出/云端合并时可能来不及，会被旧资料盖回默认。 */
   state.profile.__ts=Date.now();
   try{window.__profileSaveSig=JSON.stringify(state.profile);}catch(_){}
-  save();try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_){}
+  try{if(window.__e11TextAutoSave)window.__e11TextAutoSave("name");else{save();try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_){}}}catch(_){}
   try{window.__e11PaintMeDraft&&window.__e11PaintMeDraft();}catch(_){}
   try{window.__e11RefreshProfileSurfaces&&window.__e11RefreshProfileSurfaces();}catch(_){}
   toast("已保存");
@@ -34995,13 +35067,18 @@ setTimeout(function(){
   }
   function setIconAll(url){
     state.me1AppIcons={all:url,byId:{}};
-    applyIcons();save();toast("已替换全部应用图标");
+    applyIcons();
+    /* v43-218：图标选中就同步写主档和外观保护档，不等 260ms 防抖 */
+    try{if(window.__e11MediaAutoSave)window.__e11MediaAutoSave("icon");else save();}catch(_){}
+    toast("已替换全部应用图标");
   }
   function setIconOne(id,url){
     if(!id){setIconAll(url);return;}
     var obj=state.me1AppIcons||{};obj.byId=obj.byId||{};
     obj.byId[id]=url;state.me1AppIcons=obj;
-    applyIcons();save();toast("已换好这个应用图标");
+    applyIcons();
+    try{if(window.__e11MediaAutoSave)window.__e11MediaAutoSave("icon");else save();}catch(_){}
+    toast("已换好这个应用图标");
   }
   window.__applyMe1Icons=applyIcons;
   window.__applyMe1Sizes=applyMe1Sizes;
@@ -35183,7 +35260,7 @@ setTimeout(function(){
       });
       if(window.__applyMe1Icons)window.__applyMe1Icons();
     }catch(e){}
-    try{save();__flushSave();}catch(e){try{save();}catch(_){}}toast("应用图标已恢复默认");
+    try{if(window.__e11MediaAutoSave)window.__e11MediaAutoSave("icon");else{save();__flushSave();}}catch(e){try{save();}catch(_){}}toast("应用图标已恢复默认");
   });
   document.getElementById('me1-done').addEventListener('click',function(){setEditing(false);});
   document.addEventListener('click',function(e){
