@@ -3,7 +3,7 @@
   "short_name": "11×11",
   "description": "两个人的私密空间：聊天、动态、信件、留言板、字卡、一起听",
   "id": "./",
-  "start_url": "./index.html",
+  "start_url": "./",
   "scope": "./",
   "display": "fullscreen",
   "display_override": [
