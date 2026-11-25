@@ -20,7 +20,7 @@ body{visibility:hidden;}
 @media (prefers-color-scheme:dark){html,body{background:#141416;}}
 </style>
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#00000000" id="theme-color-meta">
+<meta name="theme-color" content="#ffffff" id="theme-color-meta">
 <script>try{if(/iPad|iPhone|iPod/.test(navigator.userAgent)&&(navigator.standalone===true||matchMedia("(display-mode: standalone)").matches))document.documentElement.classList.add("ios-standalone");}catch(e){}</script>
 <script>
 /* ================= iOS 风格确认弹窗（网页和 APK 共用） ================= */
@@ -112,7 +112,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
   document.documentElement.style.background=bg;
   document.documentElement.setAttribute("data-boot",dark?"dark":"light");
   /* v43-173：首屏就把 theme-color 写成全透明，不再先闪白条/黑条。 */
-  try{var _tc=document.getElementById("theme-color-meta");if(_tc)_tc.setAttribute("content","#00000000");}catch(e){}
+  try{var _tc=document.getElementById("theme-color-meta");var _darkSys=false;try{_darkSys=!!(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches);}catch(_eDs){}_tc.setAttribute("content",_darkSys?"#000000":"#ffffff");}catch(e){}
   /* 第一帧就告诉系统「这块内容是深/浅色」：iOS 的顶栏（时间/信号/电量）会据此立刻上色，
      不用等到后面 applySkin() 再同步（那一段就是「顶栏很久才变过来」） */
   try{document.documentElement.style.colorScheme=dark?"dark":"light";}catch(e){}
@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-235z60f1";
+window.__E11_BUILD="2026-11-25v43-235z60f2";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -439,8 +439,8 @@ window.addEventListener("appinstalled",function(){window.__e11InstallPrompt=null
       name:"Eleven×11",short_name:"11×11",
       description:"两个人的私密空间：聊天、动态、信件、留言板、字卡、一起听",
       id:root,start_url:base,scope:root,
-      display:"standalone",display_override:["standalone","minimal-ui"],orientation:"any",
-      background_color:"#fafafa",theme_color:"#00000000",lang:"zh-CN",dir:"ltr",
+      display:"fullscreen",display_override:["fullscreen","standalone","minimal-ui"],orientation:"any",
+      background_color:"#fafafa",theme_color:"#ffffff",lang:"zh-CN",dir:"ltr",
       categories:["social","lifestyle"],prefer_related_applications:false,
       launch_handler:{client_mode:"navigate-existing"},
       icons:[
@@ -2786,7 +2786,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-235z60f1">
+<meta name="app-build" content="2026-11-25v43-235z60f2">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -14667,6 +14667,7 @@ function applySkin(){
   if(dark){
     // 夜间：整体深色 + 气泡自动压暗适配
     r.setProperty("--bg","#000000");
+    try{var _tcD=document.getElementById("theme-color-meta");if(_tcD)_tcD.setAttribute("content","#000000");}catch(_eTcD){}
     r.setProperty("--topbar","#000000");
     r.setProperty("--bottombar","#1C1C1E");
     r.setProperty("--ttext","#ffffff");
@@ -14686,6 +14687,7 @@ function applySkin(){
     r.setProperty("--parttext",__safeTextColor(s.partTextColor||autoText(partb),partb));
   }else{
     r.setProperty("--bg",s.bg);
+    try{var _tcL=document.getElementById("theme-color-meta");if(_tcL)_tcL.setAttribute("content","#ffffff");}catch(_eTcL){}
     r.setProperty("--topbar","#ffffff"); /* v43-103：白天顶栏固定纯白 */
     r.setProperty("--bottombar",s.bottombar);
     r.setProperty("--ttext","#111111");
@@ -39066,15 +39068,17 @@ body{margin:0;background:var(--bg,#fafafa);}
         window.__uiStableH=h;window.__uiStableW=w;
       }
       var voffX=(vv&&vv.offsetLeft)||0, voffY=(vv&&vv.offsetTop)||0;
-      /* v43-235z60f1f1：键盘弹起不再拿 visualViewport 的矮高度当整页高度。
+      /* v43-235z60f2f1：键盘弹起不再拿 visualViewport 的矮高度当整页高度。
          以前键盘一弹 h=键盘高度，root 跟着缩；收起后 vv 又可能停在少一条的残值，
          页面就整体被挤上去、底部留白条。这里始终取屏幕/布局高度的最大值。 */
       var h=Math.max(window.__uiStableH||0,_innerH||0,_clientH||0,_vvH||0);
       try{
-        var _stand=!!(window.navigator&&window.navigator.standalone)||
-          (window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches);
         var _scrH=Number(window.screen&&window.screen.height)||0;
-        if(_stand&&_scrH>=h&&_scrH<=h+160)h=_scrH;
+        var _ah2=Number(window.screen&&window.screen.availHeight)||0;
+        if(_ah2>_scrH&&_ah2<=h+160)_scrH=_ah2;
+        /* 不再只认 standalone：豆包内置浏览器/Safari 里 innerHeight 只有 793，
+           但 iPhone 屏幕 852，底部会空出 59pt 白条。差在 160 以内就按屏幕补满。 */
+        if(_scrH>=h&&_scrH<=h+160)h=_scrH;
       }catch(_eStand){}
       if(_screenH&&h>_screenH)h=_screenH;
       /* 极少数 WebView 在键盘收起/切页时 visualViewport 会短暂给 0 或半截残值，
