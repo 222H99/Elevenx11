@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-232z57";
+window.__E11_BUILD="2026-11-25v43-235z60";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -2786,7 +2786,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-232z57">
+<meta name="app-build" content="2026-11-25v43-235z60">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -33267,6 +33267,9 @@ window.__e11FlushNow=function(){
 window.__androidPause=function(){
   try{window.__diaryFlushNow&&window.__diaryFlushNow();}catch(_ePauseDiary){}
   try{if(window.__e11FlushNow)window.__e11FlushNow();}catch(_ePauseFlush){}
+  /* v43-235：检测到新版后用户直接退出/切后台，自动开始下载 APK；
+     下载完成由原生自动拉起安装器（后台受限时下次回到 App 继续安装）。 */
+  try{if(window.__e11AutoDownloadApk)window.__e11AutoDownloadApk();}catch(_ePauseUp){}
 };
 /* 每 20 秒只在数据真的变过时补一次本机快照，不改数据也能防住进程被系统回收。 */
 try{
@@ -37356,6 +37359,7 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
   var running=false;
   var manualQueued=false;
   var lastCheckAt=0;
+  var BOOT_AT=Date.now();
   function checkBtn(state){
     try{
       var b=document.getElementById("btn-check-update");if(!b)return;
@@ -37470,9 +37474,26 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
       try{location.replace(bustUrl(nb));}catch(e){try{location.reload();}catch(_){}}
     });
   }
+  /* v43-235：自动检查到新版后记住下载地址。用户直接退出/切后台时自动开始下载，
+     不再只是弹一个“下载更新”条；下载完成由原生自动拉起安装器。 */
+  function __e11AutoDownloadApk(){
+    try{
+      var pa=window.__e11PendingApk;
+      if(!pa||!pa.url||!window.AndroidUI||typeof AndroidUI.downloadApk!=="function")return false;
+      if(window.__e11ApkAutoBuild===pa.build)return false;
+      window.__e11ApkAutoBuild=pa.build;
+      window.__e11PendingApk=null;
+      try{window.__e11ExitSave&&window.__e11ExitSave(state,true);}catch(_){}
+      try{window.__e11PersistNow&&window.__e11PersistNow();}catch(_){}
+      try{AndroidUI.downloadApk(pa.url);}catch(_){return false;}
+      return true;
+    }catch(_){return false;}
+  }
+  window.__e11AutoDownloadApk=__e11AutoDownloadApk;
   function showApkUpdate(nb,apkUrl){
     try{
       if(localStorage.getItem("__apkSkipBuild")===nb&&Date.now()-(+localStorage.getItem("__apkSkipAt")||0)<6*3600*1000)return;
+      window.__e11PendingApk={build:nb,url:apkUrl,at:Date.now()};
       try{if(window.__e11UpdateGuardSave)window.__e11UpdateGuardSave(nb);}catch(_eApkGuard){}
       var bar=document.getElementById("apk-update-bar");
       if(!bar){
@@ -37487,6 +37508,7 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
       go.style.cssText="flex:none;border:0;border-radius:11px;padding:8px 12px;background:#fff;color:#111;font:700 12px -apple-system,sans-serif";
       go.onclick=function(){
         try{
+          window.__e11PendingApk=null;
           /* v43-209：下载覆盖安装前先强制落盘离站快照，最后几条聊天/字卡不会被新进程吞掉 */
           try{window.__e11ExitSave&&window.__e11ExitSave(state,true);}catch(_upSave){}
           try{window.__e11PersistNow&&window.__e11PersistNow();}catch(_upPersist){}
@@ -37497,44 +37519,60 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
       };
       var x=document.createElement("button");x.textContent="×";
       x.style.cssText="flex:none;border:0;background:transparent;color:#fff;font:400 18px -apple-system,sans-serif;padding:2px 4px";
-      x.onclick=function(){bar.style.display="none";try{localStorage.setItem("__apkSkipBuild",nb);localStorage.setItem("__apkSkipAt",String(Date.now()));}catch(_){}};
+      x.onclick=function(){bar.style.display="none";window.__e11PendingApk=null;try{localStorage.setItem("__apkSkipBuild",nb);localStorage.setItem("__apkSkipAt",String(Date.now()));}catch(_){}};
       bar.appendChild(tx);bar.appendChild(go);bar.appendChild(x);
     }catch(_){}
   }
   var __verInfoCache=null,__verInfoAt=0;
+  function __parseVerBody(body){
+    try{
+      var j=typeof body==="string"?JSON.parse(body):body;
+      var nb=String((j&&j.build)||"");if(!nb)return null;
+      var apk=String((j&&j.apk)||"");
+      if(apk&&!/^https?:/i.test(apk))apk=REMOTE_BASE+apk.replace(/^\/+/,"");
+      return {build:nb,apk:apk};
+    }catch(_){return null;}
+  }
+  /* v43-235：APK 里直接走原生的 versionInfo（2.5 秒连接 / 3.5 秒读取）。
+     以前先 fetch 跨域等 2.5 秒超时，再退到 api() 的 8 秒连接，点一次检查要十几秒。 */
+  function __nativeVer(){
+    try{
+      if(!window.AndroidUI)return null;
+      var raw="";
+      var u=REMOTE_VER+"?__v="+Date.now().toString(36);
+      if(typeof AndroidUI.versionInfo==="function")raw=AndroidUI.versionInfo(u);
+      else if(typeof AndroidUI.api==="function")raw=AndroidUI.api(u,"GET","{}","");
+      if(!raw)return null;
+      var out=JSON.parse(String(raw));
+      if(Number(out.status)!==200)return null;
+      return __parseVerBody(out.body);
+    }catch(_){return null;}
+  }
   async function remoteInfo(){
     /* v43-183z30：15 秒内复用上一次结果。手动点击如果正好撞上启动自动检查，
        不再排一次新请求、再等一个超时。 */
     if(__verInfoCache&&Date.now()-__verInfoAt<15000)return __verInfoCache;
+    if(apkMode()){
+      var nv=__nativeVer();
+      if(nv){__verInfoCache=nv;__verInfoAt=Date.now();return nv;}
+    }
     var url=(apkMode()?REMOTE_VER:"./version.json")+"?__v="+Date.now().toString(36);
     var ctrl=null,to=null;
     try{
       /* 5 秒足够拿到一个几十字节的 version.json；超时就给明确提示，不让按钮一直“检查中”。 */
-      if(typeof AbortController!=="undefined"){ctrl=new AbortController();to=setTimeout(function(){try{ctrl.abort();}catch(_){}},2500);}
+      if(typeof AbortController!=="undefined"){ctrl=new AbortController();to=setTimeout(function(){try{ctrl.abort();}catch(_){}},1800);}
       var r=await fetch(url,{cache:"no-store",credentials:"omit",signal:ctrl?ctrl.signal:undefined});
       if(!r||!r.ok)throw new Error("HTTP "+(r&&r.status));
       var j=await r.json();
-      var nb=String((j&&j.build)||"");
-      if(!nb)throw new Error("版本文件为空");
-      var apk=String((j&&j.apk)||"");
-      if(apk&&!/^https?:/i.test(apk))apk=REMOTE_BASE+apk.replace(/^\/+/,"");
-      __verInfoCache={build:nb,apk:apk};__verInfoAt=Date.now();
+      var info=__parseVerBody(j);
+      if(!info)throw new Error("版本文件为空");
+      __verInfoCache=info;__verInfoAt=Date.now();
       return __verInfoCache;
     }catch(e){
       /* APK 的 WebView 偶尔会拦跨域；退回原生 HttpURLConnection */
-      if(apkMode()&&window.AndroidUI&&typeof AndroidUI.api==="function"){
-        try{
-          var raw=AndroidUI.api(REMOTE_VER+"?__v="+Date.now().toString(36),"GET","{}","");
-          var out=JSON.parse(String(raw||"{}"));
-          if(Number(out.status)===200){
-            var jj=JSON.parse(String(out.body||"{}"));
-            var ab=String(jj.build||"");
-            var au=String(jj.apk||"");
-            if(au&&!/^https?:/i.test(au))au=REMOTE_BASE+au.replace(/^\/+/,"");
-            __verInfoCache={build:ab,apk:au};__verInfoAt=Date.now();
-            return __verInfoCache;
-          }
-        }catch(_){}
+      if(apkMode()){
+        var nv2=__nativeVer();
+        if(nv2){__verInfoCache=nv2;__verInfoAt=Date.now();return nv2;}
       }
       throw e;
     }finally{
@@ -37564,6 +37602,7 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
           if(apkUrl&&!manual)showApkUpdate(info.build,apkUrl);
           if(manual){
             if(apkUrl){
+              window.__e11PendingApk=null;
               try{toast("发现新版本 "+info.build+"，正在下载更新…");}catch(_){}
               try{var _apkBar=document.getElementById("apk-update-bar");if(_apkBar)_apkBar.style.display="none";}catch(_){}
               try{
@@ -37583,8 +37622,15 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
           try{toast("发现新版本 "+info.build+"，正在更新…");}catch(_){}
           forceUpdate(info.build,true);
         }else{
-          pendingBuild="";
-          scheduleAutoUpdate(info.build);
+          /* v43-235：冷启动/重新打开时发现新版，直接静默换到新版（有 8 秒 + 10 分钟防抖），
+             不再只提示“下次打开生效”，否则用户会感觉“退出后根本没自动更新”。
+             页面已经用了一阵/正在聊天时才只记下来，避免打断。 */
+          if(!apkMode()&&Date.now()-BOOT_AT<20000&&!recentTry(info.build)){
+            forceUpdate(info.build,false);
+          }else{
+            pendingBuild="";
+            scheduleAutoUpdate(info.build);
+          }
         }
       }else{
         clearAutoUpdate();
@@ -37614,6 +37660,7 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
   });
   document.addEventListener("visibilitychange",function(){
     if(document.hidden){
+      if(apkMode()){try{if(window.__e11AutoDownloadApk)window.__e11AutoDownloadApk();}catch(_eVisUp){}}
       if(pendingBuild){var b=pendingBuild;pendingBuild="";if(!apkMode())forceUpdate(b,true);}
     }else{
       if(pendingBuild){var _pb=pendingBuild;pendingBuild="";try{forceUpdate(_pb,true);}catch(_eAutoResume){}}
