@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-226z48";
+window.__E11_BUILD="2026-11-25v43-227z50";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -2786,7 +2786,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-226z48">
+<meta name="app-build" content="2026-11-25v43-227z50">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -10772,7 +10772,26 @@ function __e11ExitSave(st,force){
     var _dk=Object.keys(_dg),_dlast=0;
     try{_dk.forEach(function(k){var p=_dg[k]||{};_dlast=Math.max(_dlast,Number(p.writtenAt)||0,Number(p.mine&&p.mine.time)||0,Number(p.partner&&p.partner.time)||0);});}catch(_eDSig){}
     var _dcov=_sigst&&_sigst.diary&&_sigst.diary.cover?_sigst.diary.cover:null;
-    var _sig=[Number(window.__chatRev)||0,Number(_sigst&&_sigst.__savedAt)||0,(_sigst&&_sigst.messages&&_sigst.messages.length)||0,(_sigst&&_sigst.messages&&_sigst.messages.length?_sigst.messages[_sigst.messages.length-1].id:""),Number(_sigst&&_sigst.settings&&_sigst.settings.__ts)||0,Number(_sigst&&_sigst.skin&&_sigst.skin.__ts)||0,_dk.length,_dlast,_dcov?((_dcov.title||"")+"|"+(_dcov.img||"").length+"|"+(_dcov.done?1:0)):""].join("|");
+    /* 退出签名必须覆盖所有板块和图片：以前只签聊天/设置/皮肤/日记，
+       加信件、动态、留言、图标、卡片头像、一起听资料后退出会被判“没变”而不写离站档，
+       重进自然还是上一份旧数据。 */
+    var _arrSig=function(a){
+      try{
+        a=Array.isArray(a)?a:[];
+        var last=a[a.length-1]||{};
+        return a.length+"|"+String(last.id||"")+"|"+String(Number(last.time||last.__ts||last.ts)||0);
+      }catch(_){return "0";}
+    };
+    var _p=_sigst&&_sigst.profile||{},_ic=_sigst&&_sigst.me1AppIcons||{};
+    var _sig=[Number(window.__chatRev)||0,Number(_sigst&&_sigst.__savedAt)||0,Number(_sigst&&_sigst.settings&&_sigst.settings.__ts)||0,Number(_sigst&&_sigst.skin&&_sigst.skin.__ts)||0,Number(_p.__ts)||0,
+      _dlast,_dcov?((_dcov.title||"")+"|"+(_dcov.img||"").length+"|"+(_dcov.done?1:0)):"",
+      _arrSig(_sigst&&_sigst.messages),_arrSig(_sigst&&_sigst.cards),_arrSig(_sigst&&_sigst.letters),_arrSig(_sigst&&_sigst.guestbook),_arrSig(_sigst&&_sigst.moments),_arrSig(_sigst&&_sigst.redpackets),_arrSig(_sigst&&_sigst.favorites),_arrSig(_sigst&&_sigst.musicPlaylist),_arrSig(_sigst&&_sigst.musicRoomMsgs),
+      String(_p.me1ChatName||""),String(_p.me1PartnerName||""),String(_p.me1HomeName||""),String(_p.mpName||""),String(_sigst&&_sigst.me&&_sigst.me.name||""),String(_sigst&&_sigst.partner&&_sigst.partner.name||""),
+      (_p.cardMeAvatar||"").length,(_p.cardPartnerAvatar||"").length,(_p.meAvatar||"").length,(_p.partnerAvatar||"").length,
+      String(_ic.all||"").length,Object.keys(_ic.byId||{}).length,
+      String(_sigst&&_sigst.musicCoverImg||"").length,String(_sigst&&_sigst.musicDiscInnerImg||"").length,
+      String(_sigst&&_sigst.musicRoomName||""),String(_sigst&&_sigst.musicRoomNote||""),String(_sigst&&_sigst.musicRoomDistance||""),String(_sigst&&_sigst.musicRoomDuration||""),String(_sigst&&_sigst.musicRoomAvatar||"").length
+    ].join("|");
     if(!force&&_sig===window.__e11ExitSavedSig&&Date.now()-(Number(window.__e11ExitSavedAt)||0)<2500)return true;
     window.__e11ExitSavedSig=_sig;
     try{__e11DiarySnapshot(st||state);}catch(_eDiaryExit){}
@@ -10931,6 +10950,7 @@ function __e11ApplyExitExact(s,e){
       });
     }catch(_){}
     var cats=["messages","cards","letters","guestbook","moments","emojis","partnerEmojis","redpackets","musicPlaylist","musicRoomMsgs","favorites","groups","surveyHistory"];
+    var _oldMsgs=Array.isArray(s.messages)?s.messages.slice():[];
     cats.forEach(function(k){
       if(!Array.isArray(ex[k]))return;
       var arr=[];
@@ -10945,6 +10965,23 @@ function __e11ApplyExitExact(s,e){
         }
         arr.push(y);
       });
+      /* 聊天被截成 mini 时，只把主档里更早、离站档没有的消息补回；其它内容一律用离站档。 */
+      if(k==="messages"&&window.__e11ExitMini){
+        /* 聊天太长被截成 mini 时，把主档里更早、离站档没有的消息补回，
+           但必须放在前面并按时间排好；以前直接 append 会把旧消息排到最后，时间顺序全乱。 */
+        var ids={};arr.forEach(function(x){if(x&&x.id)ids[String(x.id)+"|"+String(Number(x.time)||0)]=1;});
+        var older=[];
+        _oldMsgs.forEach(function(x){
+          if(!x||!x.id)return;
+          if(ids[String(x.id)+"|"+String(Number(x.time)||0)])return;
+          older.push(x);
+        });
+        arr=older.concat(arr);
+        try{
+          var _allT=arr.every(function(x){return Number.isFinite(Number(x.time));});
+          if(_allT)arr.sort(function(a,b){return (Number(a.time)||0)-(Number(b.time)||0);});
+        }catch(_eSortM){}
+      }
       s[k]=arr;
     });
     var _oldTop={me:s.me,partner:s.partner,profile:s.profile,skin:s.skin,diary:s.diary};
@@ -10971,6 +11008,23 @@ function __e11ApplyExitExact(s,e){
         if(!_nd.cover.bg&&_od.cover.bg)_nd.cover.bg=_od.cover.bg;
       }
     }catch(_eExactImg){}
+    /* 一起听/音乐资料所有字段（名字、距离、时长、文案、封面、音量等）按离站档整份还原，
+       不能只挑几个字段，否则重进还是旧资料。 */
+    try{
+      Object.keys(ex).forEach(function(k){
+        if(/^music/i.test(k)&&k!=="musicPlaylist"&&k!=="musicRoomMsgs")s[k]=ex[k];
+      });
+    }catch(_eExMusic){}
+    /* 六个应用图标：文字档里的 data 图会被清空，不能拿空串覆盖；有真图才用，
+       最终再由离站档里的 keep4（图标原图）覆盖。 */
+    try{
+      if(ex.me1AppIcons&&typeof ex.me1AppIcons==="object"){
+        var _ia=String(ex.me1AppIcons.all||""),_iby=ex.me1AppIcons.byId||{};
+        if(_ia||Object.keys(_iby).length){s.me1AppIcons=JSON.parse(JSON.stringify(ex.me1AppIcons));}
+      }
+      if(ex.me1AppSize)s.me1AppSize=ex.me1AppSize;
+      if(ex.me1PhotosSize)s.me1PhotosSize=ex.me1PhotosSize;
+    }catch(_eExIcons){}
     ["musicBg","musicBgImg","musicCoverImg","musicDiscBgImg","musicDiscInnerImg","musicRoomNote","musicCur","musicVol","musicLoop","callBgImg","momBgImg"].forEach(function(k){
       if(ex[k]!==undefined)s[k]=ex[k];
     });
@@ -12792,12 +12846,15 @@ async function init(){
         try{
           var _exTs=Number(_exitObj.ts||_exitObj.state.__savedAt)||0;
           var _idbTs=Number(s&&s.__savedAt)||0;
-          window.__e11ExitExact=!!((!_exitMeta||Number(_exitMeta.mini)!==1)&&_exTs>=(_idbTs-5000)&&_exTs>0);
+          /* v43-227：即使聊天太长被截成 mini，动态/信件/留言/卡片/图标/姓名这些也按离站档精确还原；
+             只有聊天本身在 mini 时保留主档里的更早消息。 */
+          window.__e11ExitExact=!!(_exTs>=(_idbTs-5000)&&_exTs>0);
+          window.__e11ExitMini=!!(_exitMeta&&Number(_exitMeta.mini)===1);
         }catch(_eExactFlag){window.__e11ExitExact=0;}
         if(!s)s=_exitObj.state;
         else __e11MergeExitState(s,_exitObj);
         /* v43-221：离站快照里的四项要立刻落到最终采用的 s 上，后面 migrate 不会丢 */
-        if(_exitObj.keep4){try{__e11Keep4ApplyObj(s,_exitObj.keep4);}catch(_eExK4){window.__e11ExitKeep4=s.__e11Keep4Rev||1;}}
+        if(_exitObj.keep4){try{__e11Keep4ApplyObj(s,_exitObj.keep4);window.__e11ExitKeep4Applied=1;}catch(_eExK4){window.__e11ExitKeep4=s.__e11Keep4Rev||1;}}
         try{__bkApplyGlobals(_exitObj.globals||{},_exitObj.ts);}catch(_eExGlob){}
         try{window.__e11ExitUsed=1;window.__e11ExitMergeCount=(window.__e11ExitMergeCount||0)+1;}catch(_eExFlag){}
       }
@@ -12809,7 +12866,11 @@ async function init(){
       var _exitTsNow=_exitObj?Number(_exitObj.ts)||0:0;
       if(_liteObj&&_liteObj.state&&Number(_liteObj.ts)>=_exitTsNow){
         if(!s)s=_liteObj.state;
-        else __e11MergeExitState(s,{ts:Number(_liteObj.ts)||0,state:_liteObj.state});
+        else{
+          var _om=window.__e11ExitMini;window.__e11ExitMini=0;
+          __e11MergeExitState(s,{ts:Number(_liteObj.ts)||0,state:_liteObj.state});
+          window.__e11ExitMini=_om;
+        }
         try{window.__e11ExitUsed=1;}catch(_eLiteFlag){}
       }
     }catch(_eLiteMerge){}
@@ -13032,8 +13093,8 @@ async function init(){
       try{localStorage.setItem("e11.buildSeen.v1",window.__E11_BUILD);}catch(_eSeenSet){}
       try{window.__e11RepairBulkTombs&&window.__e11RepairBulkTombs(state);}catch(_eTombFix){}try{__ltReadApply();}catch(e){}try{if(!window.__e11ExitExact)__prefApply();}catch(e){}try{window.__perfApply&&window.__perfApply();}catch(_){}
       /* v43-219：全部旧档合并、外观恢复完成后，再把四项“最后一次选择”盖回来 */
-      try{if(!window.__e11ExitExact&&window.__e11Keep4ApplyAll)window.__e11Keep4ApplyAll();}catch(_eK4Boot){}
-      try{if(!window.__e11ExitExact&&window.__e11Keep4ApplyDb)await window.__e11Keep4ApplyDb();}catch(_eK4DbBoot){}
+      try{if((!window.__e11ExitExact||!window.__e11ExitKeep4Applied)&&window.__e11Keep4ApplyAll)window.__e11Keep4ApplyAll();}catch(_eK4Boot){}
+      try{if((!window.__e11ExitExact||!window.__e11ExitKeep4Applied)&&window.__e11Keep4ApplyDb)await window.__e11Keep4ApplyDb();}catch(_eK4DbBoot){}
       /* v43-224：整机快照只负责“上次停在哪个页面/滚动位置”，不再整份覆盖数据。
          v43-222 让快照覆盖整份 state，但关闭页面时 IndexedDB 的异步写可能没写完，
          快照还是 10 秒前那份旧内容；它一旦覆盖，就出现“退出再进不是离开时的头像/名字/聊天”。
