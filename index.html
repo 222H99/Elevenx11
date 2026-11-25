@@ -20,7 +20,7 @@ body{visibility:hidden;}
 @media (prefers-color-scheme:dark){html,body{background:#141416;}}
 </style>
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#00000000" id="theme-color-meta">
+<meta name="theme-color" content="#ffffff" id="theme-color-meta">
 <script>try{if(/iPad|iPhone|iPod/.test(navigator.userAgent)&&(navigator.standalone===true||matchMedia("(display-mode: standalone)").matches))document.documentElement.classList.add("ios-standalone");}catch(e){}</script>
 <script>
 /* ================= iOS 风格确认弹窗（网页和 APK 共用） ================= */
@@ -111,8 +111,12 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
   }catch(_eClamp){}
   document.documentElement.style.background=bg;
   document.documentElement.setAttribute("data-boot",dark?"dark":"light");
-  /* v43-173：首屏就把 theme-color 写成全透明，不再先闪白条/黑条。 */
-  try{var _tc=document.getElementById("theme-color-meta");if(_tc)_tc.setAttribute("content","#00000000");}catch(e){}
+  /* v43-235z60b：APK 顶栏保持透明；PWA/网页用默认顶栏，夜间黑、白天白。 */
+  window.__E11_APK=!!(window.AndroidUI)||/ElevenX11|Eleven11Apk/.test(navigator.userAgent||"");
+  try{
+    var _tc=document.getElementById("theme-color-meta");
+    if(_tc)_tc.setAttribute("content",window.__E11_APK?"#00000000":(dark?"#000000":"#ffffff"));
+  }catch(e){}
   /* 第一帧就告诉系统「这块内容是深/浅色」：iOS 的顶栏（时间/信号/电量）会据此立刻上色，
      不用等到后面 applySkin() 再同步（那一段就是「顶栏很久才变过来」） */
   try{document.documentElement.style.colorScheme=dark?"dark":"light";}catch(e){}
@@ -121,7 +125,8 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
   try{
     var _sb=document.createElement("meta");
     _sb.name="apple-mobile-web-app-status-bar-style";
-    _sb.content="black-translucent";
+    /* APK 保持状态栏透明覆盖；PWA/网页用系统默认顶栏，由 theme-color 给白天白、夜间黑 */
+    _sb.content=window.__E11_APK?"black-translucent":"default";
     document.head.appendChild(_sb);
     window.__sbMeta=_sb;
   }catch(e){}
@@ -267,7 +272,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-26v43-235z60";
+window.__E11_BUILD="2026-11-26v43-235z60b2";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -465,7 +470,7 @@ window.addEventListener("appinstalled",function(){window.__e11InstallPrompt=null
 <title>Eleven×11</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="application-name" content="Eleven×11">
 
 <meta name="apple-mobile-web-app-title" content="Eleven×11">
@@ -2786,7 +2791,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-26v43-235z60">
+<meta name="app-build" content="2026-11-26v43-235z60b2">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -14348,11 +14353,25 @@ function __topToneOf(src,cb){
     im.src=src;
   }catch(e){cb(null);}
 }
+function __e11SysBarColor(){
+  try{
+    if(window.__E11_APK)return "#00000000";
+    var dark=!!(document.body&&document.body.classList.contains("ui-dark"));
+    if(!dark){var de=document.documentElement;dark=de.getAttribute("data-theme")==="dark"||de.style.colorScheme==="dark";}
+    return dark?"#000000":"#ffffff";
+  }catch(e){return "#ffffff";}
+}
 function __setSysThemeColor(hex){
-  try{if(hex){var m=document.getElementById("theme-color-meta");if(m)m.setAttribute("content",hex);document.documentElement.style.setProperty("--sysbar-bg",hex);}}catch(e){}
+  /* v43-235z60b：不再跟随顶部壁纸色。APK 透明，PWA 白天白、夜间黑。 */
+  try{
+    var c=__e11SysBarColor();
+    var m=document.getElementById("theme-color-meta");if(m)m.setAttribute("content",c);
+    document.documentElement.style.setProperty("--sysbar-bg",c);
+    document.body.style.setProperty("--sysbar-bg",c);
+  }catch(e){}
 }
 function __sysThemeDefault(){
-  __setSysThemeColor("#00000000");
+  __setSysThemeColor(__e11SysBarColor());
 }
 /* 电量栏始终透明：theme-color 写 #00000000，body::before 不再盖白/黑色；
    图标仍按背景顶部亮度切黑/白。 */
@@ -14403,14 +14422,14 @@ function __syncSysBar(){
     var sb=document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
     /* 始终用 black-translucent，让壁纸从最顶端穿过时间/电量那一条；顶部安全区由 --safe-top 负责，不会压住按钮 */
     if(!sb){sb=document.createElement("meta");sb.name="apple-mobile-web-app-status-bar-style";document.head.appendChild(sb);window.__sbMeta=sb;}
-    if(sb)sb.setAttribute("content","black-translucent");
+    if(sb)sb.setAttribute("content",window.__E11_APK?"black-translucent":"default");
   }catch(e){}
   try{
     var tcs=document.querySelectorAll('meta[name="theme-color"]');
     /* 顶栏颜色真正跟 App 顶部导航栏一致：默认夜间纯黑、白天纯白；
        用户自定义顶栏背景时，状态栏/地址栏也跟着同一个颜色，避免上面多出一条色带。 */
     /* v43-103：按用户固定要求，顶栏/状态栏白天纯白、夜间纯黑，不再被自定义顶栏色带偏。 */
-    var _barColor="#00000000";
+    var _barColor=__e11SysBarColor();
     for(var i=0;i<tcs.length;i++){
       /* iOS 只认当前这一条 theme-color；带 media 的两条会互相抢，
          手动切夜间后状态栏/地址栏就不跟着变。去掉 media，只写当前模式的颜色。 */
@@ -14733,7 +14752,7 @@ function applySkin(){
       document.body.style.setProperty("background-color",_bg,"important");
       /* 状态区那一条必须跟顶部导航栏同色，不能铺成页面/壁纸底色，否则会多出一条色带 */
       var _tb=(r.getPropertyValue("--topbar")||"").trim();
-      var _sb=(dark?"#000000":"#ffffff");
+      var _sb=__e11SysBarColor();
       document.documentElement.style.setProperty("--sysbar-bg",_sb);
       document.body.style.setProperty("--sysbar-bg",_sb);
       try{__syncSysBar();}catch(_sbe){}
