@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-235z60f8";
+window.__E11_BUILD="2026-11-25v43-235z60f9";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -2786,7 +2786,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-235z60f8">
+<meta name="app-build" content="2026-11-25v43-235z60f9">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -14598,6 +14598,21 @@ function applySkin(){
   }catch(_eWallReset){}
   r.setProperty("--wallimg",_wallSrc?'url("'+wallUrl(_wallSrc)+'")':"none");
   r.setProperty("--walltint","rgba(0,0,0,0)");
+  /* v43-235z60f9：把壁纸同步到 html/body 的画布背景。
+     页面舞台只到可视高度时，底部安全区露出来的是画布背景；
+     以前这里是 body 的纯白，所以永远一条白。现在画布铺同一张壁纸。 */
+  try{
+    var _wpaint=_wallSrc?('url("'+wallUrl(_wallSrc)+'")'):"none";
+    [document.documentElement,document.body].forEach(function(_pn){
+      if(!_pn)return;
+      _pn.style.backgroundImage=_wpaint;
+      _pn.style.backgroundSize="cover";
+      _pn.style.backgroundPosition="center";
+      _pn.style.backgroundRepeat="no-repeat";
+      _pn.style.backgroundAttachment="fixed";
+      if(_wpaint==="none")_pn.style.backgroundColor="";
+    });
+  }catch(_eCanvasWall){}
   /* 夜间/白天切换时，音乐页「跟随主题」的底色要跟着重画 */
   try{if(typeof renderMusicBg==="function")renderMusicBg();}catch(_e){}
   /* 把壁纸留在内存里：聊天页隐藏再显示时 iOS 不会重新解码/重新铺一次（那一下就是白闪） */
@@ -38998,7 +39013,7 @@ body{margin:0;background:var(--bg,#fafafa);}
   }
   for(var j=0;j<kids.length;j++)root.appendChild(kids[j]);
   body.appendChild(root);
-  /* v43-235z60f8：100vw/100vh 探针。iOS Safari/PWA 的 innerHeight 会少报
+  /* v43-235z60f9：100vw/100vh 探针。iOS Safari/PWA 的 innerHeight 会少报
      底部工具栏的 59pt，但 CSS 的 100vh 是完整大视口；拿它纠正舞台。 */
   try{
     var _vp=document.createElement("div");_vp.id="__vp_probe";
@@ -39058,7 +39073,7 @@ body{margin:0;background:var(--bg,#fafafa);}
       var _vvH=(vv&&vv.height)||0;
       var _innerH=window.innerHeight||0;
       var _clientH=document.documentElement.clientHeight||0;
-      var _screenH=0; /* v43-235z60f8：下面统一按 dpr 折算后再取最大值 */
+      var _screenH=0; /* v43-235z60f9：下面统一按 dpr 折算后再取最大值 */
       /* 某些 iPhone WebView 的 screen.height 会被浏览器栏/键盘残值带小；
          再用 outerHeight / availHeight 取一个靠谱的屏幕高度，避免整站只按半屏渲染。 */
       try{
@@ -39099,13 +39114,13 @@ body{margin:0;background:var(--bg,#fafafa);}
         window.__uiStableH=h;window.__uiStableW=w;
       }
       var voffX=(vv&&vv.offsetLeft)||0, voffY=(vv&&vv.offsetTop)||0;
-      /* v43-235z60f8f1：键盘弹起不再拿 visualViewport 的矮高度当整页高度。
+      /* v43-235z60f9f1：键盘弹起不再拿 visualViewport 的矮高度当整页高度。
          以前键盘一弹 h=键盘高度，root 跟着缩；收起后 vv 又可能停在少一条的残值，
          页面就整体被挤上去、底部留白条。这里始终取屏幕/布局高度的最大值。 */
       var _vh100=0;
       try{var _vpEl2=document.getElementById("__vp_probe");if(_vpEl2)_vh100=_vpEl2.offsetHeight||0;}catch(_ePh){}
       var h=Math.max(window.__uiStableH||0,_innerH||0,_clientH||0,_vvH||0,_vh100);
-      /* v43-235z60f8：iOS 的 screen.height 经常是物理像素 2556，不是 CSS 的 852；
+      /* v43-235z60f9：iOS 的 screen.height 经常是物理像素 2556，不是 CSS 的 852；
          直接当 852 用会超出，直接忽略又少 59pt 白条。除以 dpr 后落在可视高度附近才采用。 */
       try{
         var _sdprH=Number(window.devicePixelRatio)||1;
@@ -39117,7 +39132,7 @@ body{margin:0;background:var(--bg,#fafafa);}
         try{_hCands.push(Number(window.screen&&window.screen.height)||0);}catch(_){}
         try{_hCands.push(Number(window.screen&&window.screen.availHeight)||0);}catch(_){}
         try{_hCands.push(Number(window.outerHeight)||0);}catch(_){}
-        /* v43-235z60f8：可视高度 + 顶部安全区 = 真正的整屏高（793+59=852）。
+        /* v43-235z60f9：可视高度 + 顶部安全区 = 真正的整屏高（793+59=852）。
            底部安全区已在 100vh 内时不再重复加。 */
         if(_sat>0)_hCands.push(h+_sat);
         if(_sab>0&&_sat<=0)_hCands.push(h+_sab);
@@ -39135,7 +39150,7 @@ body{margin:0;background:var(--bg,#fafafa);}
            但 iPhone 屏幕 852，底部会空出 59pt 白条。差在 160 以内就按屏幕补满。 */
         if(_scrH>=h&&_scrH<=h+160)h=_scrH;
       }catch(_eStand){}
-      /* v43-235z60f8：不再用偏小的 screenH 反向截断 h；
+      /* v43-235z60f9：不再用偏小的 screenH 反向截断 h；
          h 已经由 852/安全区候选限制在 +200 以内。 */
       /* 极少数 WebView 在键盘收起/切页时 visualViewport 会短暂给 0 或半截残值，
          整站按这个高度画就会只剩一条、下面一大块空白。这里退回稳定屏高。 */
@@ -39187,7 +39202,7 @@ body{margin:0;background:var(--bg,#fafafa);}
       /* v43-152：这里原来每次 sync 都同步写一次 localStorage。
          visualViewport 滚动/键盘弹起时 sync 会按帧触发，等于每帧做一次 JSON 序列化+落盘，
          徒增卡顿；这个键当前没有任何读取方，直接去掉。 */
-      /* v43-235z60f8：全手机统一成 393×852 的同一套视图。
+      /* v43-235z60f9：全手机统一成 393×852 的同一套视图。
          以 852 设计高定比例 k，逻辑宽=屏宽/k，整体缩放后屏幕正好铺满；
          苹果/安卓、360/393/430 宽都按同一套排版，不再各机各长各短。 */
       var k=Math.min(1.25,Math.max(0.75,h/852));
