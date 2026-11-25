@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-26v43-235z60f16";window.__E11_CODE=344;
+window.__E11_BUILD="2026-11-26v43-235z60f17";window.__E11_CODE=345;
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -2836,7 +2836,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-26v43-235z60f16">
+<meta name="app-build" content="2026-11-26v43-235z60f17">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -39259,6 +39259,11 @@ body{margin:0;background:var(--bg,#fafafa);}
       /* v43-235z60f11：全手机统一成 393×852 的同一套视图。
          以 852 设计高定比例 k，逻辑宽=屏宽/k，整体缩放后屏幕正好铺满；
          苹果/安卓、360/393/430 宽都按同一套排版，不再各机各长各短。 */
+      /* v43-235z60f17：舞台绝不超过真正看得见的 visualViewport。
+         底部浏览器条会占掉 59pt，按 852 排会把 Dock 排到白条下面。 */
+      try{
+        if(_vvH>0&&h>_vvH&&h-_vvH<160)h=_vvH;
+      }catch(_eCapVv){}
       /* v43-235z60f11：可视窗口（visualViewport）比布局视口矮时，
          差值就是底部被浏览器条盖住的高度。固定层底边收回这个差值。 */
       try{
