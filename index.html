@@ -272,7 +272,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-26v43-236b10";
+window.__E11_BUILD="2026-11-26v43-236b11";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -2796,7 +2796,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-26v43-236b10">
+<meta name="app-build" content="2026-11-26v43-236b11">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -8941,11 +8941,12 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-236b10",
-  time:"2026-11-26 02:40",
+  date:"v43-236b11",
+  time:"2026-11-26 02:50",
   noticeKey:null,
   lead:"2026-11-26 修改（v43-236b7）：双方新增的评论、动态、信件、留言现在会即时落盘，同一条动态里后补的评论也会和另一台设备按 id 合并，不再被旧数组长度判断漏掉；另外固定为先声明页、再密码页，信件返回/收起/取消三处顶栏统一高度。",
   items:[
+    "聊天键盘还是会闪（v43-236b11）：定高本身没闪，闪的是每一帧都在把消息列表重新拽到底，加上固定/清除反复切换。现在几何只随可视区平滑变一次，贴底改成 180ms 防抖只做一次；顶栏保持不动。",
     "聊天顶栏固定但会闪（v43-236b10）：上一版靠不停 scrollTo 把页面拉回顶部，和 Safari 抢滚动会闪。现在不再改滚动，而是让聊天页整页贴合 visualViewport：top 跟随可视区偏移、高度等于可视区高度，顶栏永远在可视区最上方，只有消息列表在变矮。",
     "聊天顶栏随键盘上移（v43-236b9）：iOS 聚焦输入框时会把整页往上顶，返回/头像/通话这一栏跟着跑出屏幕。现在聊天输入时把页面滚动锁回 0，并把残余的可视区平移量反向补到顶栏；顶栏位置不动，只有聊天记录区随键盘上沿收缩。",
     "信件顶栏按钮偏大（v43-236b8）：收起/信纸信封/回信/取消以前被撑到 44px，外框比「全部已读」大一圈。现在统一到 28px、12 号字，横向留白收窄，顶栏高度仍和信件主页返回栏一致。",
@@ -13525,7 +13526,7 @@ function initKeyboardFix(){
       const _ot=Math.max(0,Math.round(Number((vv&&vv.offsetTop)||0)||0));
       const _scale=1;
       const _cssH=Math.max(180,Math.round(visH));
-      if(vc.__kbTop===_ot&&vc.__kbH===_cssH&&vc.style.position==="fixed"){try{__chatPinNow();}catch(_){ }return;}
+      if(vc.__kbTop===_ot&&vc.__kbH===_cssH&&vc.style.position==="fixed"){return;}
       vc.__kbTop=_ot;vc.__kbH=_cssH;
       vc.style.paddingBottom="0px";
       vc.style.position="fixed";
@@ -13539,7 +13540,11 @@ function initKeyboardFix(){
       const hd=vc.querySelector(".topbar");if(hd)hd.style.transform="";
       const bb=vc.querySelector(".bottombar");
       if(bb){bb.style.transform="";bb.style.paddingBottom="8px";}
-      try{__chatPinNow();}catch(_){}
+      /* 贴底只做一次防抖，不在键盘动画每一帧都把列表拽到底，否则看起来就是一闪一闪 */
+      try{
+        clearTimeout(window.__e11KbPinT);
+        window.__e11KbPinT=setTimeout(function(){try{__chatPinNow();}catch(_){}},180);
+      }catch(_){try{__chatPinNow();}catch(__){}}
       /* v43-235z60b5：不再用下一帧“发现底栏超出再改一次高度”的追高逻辑。
          键盘动画期间每帧都改高度会一弹一弹；这里一次定高，等键盘停稳再校准。 */
     }catch(_){}
