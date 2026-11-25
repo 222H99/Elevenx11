@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-235z60";
+window.__E11_BUILD="2026-11-25v43-236z61";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -2786,7 +2786,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-235z60">
+<meta name="app-build" content="2026-11-25v43-236z61">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -8915,11 +8915,12 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-222z44",
-  time:"2026-11-25 20:05",
-  noticeKey:null,
-  lead:"2026-11-25 修改（v43-222z44）：自动备份改成只在你点「立即备份一次」时才写，退出/切后台/改图都不再自动备份。进入网站时直接恢复上一次退出时的整机状态：页面停在哪儿、聊天/信件/动态/设置/图和名字都按退出那一刻还原。",
+  date:"v43-236z61",
+  time:"2026-11-25 22:10",
+  noticeKey:"2026-11-25v43-236z61",
+  lead:"2026-11-25 修改（v43-236z61）：主页上的完整播放器会压住卡片头像，半透明还会和头像糊在一起。现在主页自动收成左下角一枚小唱片，不再挡资料卡；点它直接进音乐页，其他页面仍可拖动和展开。",
   items:[
+    "主页小播放器不再压头像（v43-236z61）：以前恢复上次拖到的位置后，完整播放器会停在资料卡正中间，挡住头像和名字。现在进入主页只显示一枚 46px 小唱片，固定在左下空白区；点它进入音乐页，离开主页后再按原来的位置和展开状态显示。",
     "自动备份改成只手动（v43-222z44）：退出网站、切后台、改图、改名字都不再偷偷写自动备份槽；只有设置 → 自动备份里点「立即备份一次」才真正写一份。已有的旧备份仍可手动恢复。",
     "进入网站不是上次退出状态（v43-222z44）：以前进站会先读主档，再并离站文字快照、配置小备份、外观档和自动备份，最后状态不一定等于退出那一刻。现在退出时把完整整机状态写进 IndexedDB，进入时最后用这份覆盖；上次停在哪一页、聊天/信件/动态/设置/图片/名字都按退出时还原。",
     "上次退出页面不回来（v43-222z44）：启动默认先落桌面，现在整机快照里记了当前页面，恢复后会补一次切页；聊天列表滚动位置也一起回来。",
@@ -26077,7 +26078,10 @@ function refreshMiniPlayer(){
   const show=_passed&&state.musicCur>=0&&!state.miniClosed&&_cur!=="view-music";
   mp.classList.toggle("show",show);
   if(!show)return;
-  mp.classList.toggle("collapsed",!!state.miniCollapsed);
+  /* 主页只留一枚小唱片：完整播放器会压住头像和名字，半透明还会和头像糊在一起 */
+  var _homeMini=_cur==="view-me";
+  mp.__autoCollapsed=!!(_homeMini&&!state.miniCollapsed);
+  mp.classList.toggle("collapsed",!!state.miniCollapsed||_homeMini);
   placeMini();
   const au=musicAudio();
   const s=state.musicPlaylist[state.musicCur];
@@ -26132,9 +26136,21 @@ function refreshMiniPlayer(){
 function placeMini(){
   if(window._mpDragging)return;
   const mp=$("mini-player");const p=state.miniPos;
-  const _k=p&&p.x!=null?("p:"+p.x+","+p.y):"d";
+  const _homeMini=(window.__curView||"")==="view-me";
+  const _col=mp.classList.contains("collapsed");
+  /* 位置缓存要带上“主页/其他页”和“展开/收起”，否则切页后沿用旧坐标又会压回头像 */
+  const _k=(_homeMini?"h":"v")+(_col?"c":"e")+(p&&p.x!=null?("p:"+p.x+","+p.y):"d");
   if(mp.__placeKey===_k)return;
   mp.__placeKey=_k;
+  if(_homeMini){
+    /* 主页固定在左下空白区，不碰资料卡和头像；小唱片直径 46px */
+    const _h=(window.visualViewport&&window.visualViewport.height)||window.innerHeight||document.documentElement.clientHeight||0;
+    mp.style.left="12px";mp.style.right="auto";
+    mp.style.top=Math.max(8,_h-(_col?182:252))+"px";
+    mp.style.transform="none";
+    return;
+  }
+  mp.style.right="auto";
   if(p&&p.x!=null){mp.style.left=p.x+"px";mp.style.top=p.y+"px";mp.style.transform="none";}
   else{mp.style.left="50%";mp.style.top="64%";mp.style.transform="translate(-50%,-50%)";}
 }
@@ -26961,6 +26977,8 @@ var _163Warmed=false;
   });
   $("mini-player").addEventListener("click",e=>{
     if(e.target.closest(".mp-play,.mp-close,.mp-c,.mp-collapse"))return;
+    /* 主页是系统自动收起的小唱片，点它不是展开，而是直接进音乐页 */
+    if((window.__curView||"")==="view-me"&&$("mini-player").__autoCollapsed){showView("view-music");return;}
     if(state.miniCollapsed){state.miniCollapsed=false;save();refreshMiniPlayer();return;}
     /* 点中间（封面/歌名/进度）＝播放/暂停；点卡片其他空白处才展开播放页 */
     if(e.target.closest(".mp-head,.mp-disc,.mp-prog,.mp-ctl")){togglePlay();refreshMiniPlayer();return;}
