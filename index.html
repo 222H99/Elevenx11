@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-228z52";
+window.__E11_BUILD="2026-11-25v43-229z53";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -2786,7 +2786,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-228z52">
+<meta name="app-build" content="2026-11-25v43-229z53">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -11175,8 +11175,34 @@ function __stateSig(){
   }catch(e){return "err:"+Date.now();}
 }
 function __writeLocalSnapshot(sig){
-  /* v43-82：localStorage 不再存“整库引用版”。整库可能有几 MB，既写不进又挤占配额，
-     这里是症状根源。只留一个很小的指针，真正数据放 IndexedDB；文字另有核心档兜底。 */
+  /* v43-229：保存方式改成和稳定版 bp109 一样——每次改动除了写 IndexedDB，
+     还同步把“去图后的整份 state（图片是 bigref 引用）”写进 localStorage 的 privateChat。
+     启动时比较这份和 IndexedDB 的 __savedAt，谁新用谁。
+     这样退出、更新、刷新、被系统杀掉，读到的都是最后一次改动后的那份，不再依赖离站档兜底。
+     放不下时才逐级降级：去图 → 去背景 → 小指针（真正数据仍在 IndexedDB）。 */
+  var txt=typeof sig==="string"?sig:"";
+  if(txt&&txt.charAt(0)==="{"){
+    try{
+      localStorage.setItem("privateChat",txt);
+      try{window.__e11LocalFullSavedAt=Date.now();}catch(_){}
+      return true;
+    }catch(_eFull){
+      try{
+        var _strip=txt.replace(/"data:[^"]*"/g,'""');
+        localStorage.setItem("privateChat",_strip);
+        try{window.__e11LocalFullSavedAt=Date.now();}catch(_){}
+        return true;
+      }catch(_eStrip){
+        try{
+          var _obj=JSON.parse(txt);
+          delete _obj.skin;delete _obj.musicBgImg;delete _obj.momBgImg;
+          localStorage.setItem("privateChat",JSON.stringify(_obj).replace(/"data:[^"]*"/g,'""'));
+          try{window.__e11LocalFullSavedAt=Date.now();}catch(_){}
+          return true;
+        }catch(_eLite){}
+      }
+    }
+  }
   try{
     var ptr=JSON.stringify({__idbOnly:1,__savedAt:Number(state&&state.__savedAt)||Date.now()});
     try{localStorage.setItem("privateChat",ptr);return true;}
@@ -12817,6 +12843,20 @@ async function init(){
     aboutLoadStatus("正在同步聊天记录…");
     var s=await dbGet("state");
     try{window.__e11DbHadState=!!s;}catch(_eDbHad){}
+    /* v43-229：先看 localStorage 里每次保存同步落下的整份快照，它比 IndexedDB 新就以它为准。
+       稳定版 bp109 用的就是这套“两份存档、谁新用谁”，不再让离站档/备份反过来盖最新数据。 */
+    var _lsFull=null;
+    try{
+      var _pcRaw=localStorage.getItem("privateChat");
+      if(_pcRaw){var _pc=JSON.parse(_pcRaw);if(_pc&&!_pc.__idbOnly&&(Array.isArray(_pc.messages)||_pc.profile||_pc.settings))_lsFull=_pc;}
+    }catch(_eLsFull){}
+    if(_lsFull){
+      var _pcTs=Number(_lsFull.__savedAt)||0,_idbTs0=Number(s&&s.__savedAt)||0;
+      if(_pcTs>_idbTs0+1||!s||(!s.messages&&_lsFull.messages)){
+        s=_lsFull;
+        try{window.__e11LocalFullUsed=1;}catch(_eLf){}
+      }
+    }
     /* 一键清除后，个别手机 IndexedDB 还没删完就重载：早于清除时间的旧主档一律不采用。
        这一行是“清除数据后旧内容又回来”的最后一道保险。 */
     try{
@@ -12861,8 +12901,8 @@ async function init(){
              很可能是更早一次退出留下的旧内容；主库存在时一律以主库为准。
              用户用 227 正常退出一次后，新离站档带 v:2，才按“进入=离开时”精确还原。 */
           var _legacyExit=!(_exitObj.v>=2);
-          window.__e11ExitExact=!!(!_legacyExit&&_exTs>=(_idbTs-5000)&&_exTs>0);
-          window.__e11ExitStale=!!((_legacyExit&&!!s)||(_idbTs>_exTs+5000&&_idbTs>0));
+          window.__e11ExitExact=!!(!window.__e11LocalFullUsed&&!_legacyExit&&_exTs>=(_idbTs-5000)&&_exTs>0);
+          window.__e11ExitStale=!!(window.__e11LocalFullUsed||(_legacyExit&&!!s)||(_idbTs>_exTs+5000&&_idbTs>0));
           window.__e11ExitMini=!!(_exitMeta&&Number(_exitMeta.mini)===1);
         }catch(_eExactFlag){window.__e11ExitExact=0;}
         if(window.__e11ExitStale){
