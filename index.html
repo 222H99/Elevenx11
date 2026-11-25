@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-223z45";
+window.__E11_BUILD="2026-11-25v43-224z46";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -2786,7 +2786,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-223z45">
+<meta name="app-build" content="2026-11-25v43-224z46">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -7566,7 +7566,7 @@ setTimeout(function(){
         ks.forEach(function(k){try{if(k==="e11.lockPwd.v1")return;localStorage.removeItem(k);}catch(e){}});
       }catch(e){}
       try{localStorage.removeItem(LS_OWNER);}catch(e){}
-      try{localStorage.removeItem("e11.exit.v1");localStorage.removeItem("e11.core.v1");localStorage.removeItem("beautyVault:latest");localStorage.removeItem("e11.keep4.v1");localStorage.removeItem("e11.session.meta.v1");localStorage.removeItem("e11.resetLocalOnly.v1");}catch(e){}
+      try{localStorage.removeItem("e11.exit.v1");localStorage.removeItem("e11.core.v1");localStorage.removeItem("beautyVault:latest");localStorage.removeItem("e11.keep4.v1");localStorage.removeItem("e11.session.meta.v1");localStorage.removeItem("e11.session.lite.v1");localStorage.removeItem("e11.resetLocalOnly.v1");}catch(e){}
       /* 刷新前页面可能把旧数据写进这两个应急键，必须一起清掉，否则下次启动会“复活”上一个账号的内容 */
       try{sessionStorage.removeItem("privateChat__emergency");sessionStorage.removeItem("bigPending__emergency");sessionStorage.removeItem("__forceIdbRestore");}catch(e){}
       /* 不删除数据库：001 的历史数据只活在旧库里；其他账号用独立 DB，切号后不会读到彼此 */
@@ -10830,7 +10830,15 @@ function __e11ExitSave(st,force){
     if(!_ok)return false;
     try{localStorage.setItem("e11.exit.meta.v1",JSON.stringify({ts:_exitTs,len:_txt.length,level:_used,mini:(_levels[_used]&&_levels[_used][0]!==null)?1:0,counts:{messages:_fullMsgs?_fullMsgs.length:0,cards:(core.cards||[]).length,letters:(core.letters||[]).length,moments:(core.moments||[]).length,guestbook:(core.guestbook||[]).length}}));}catch(_eMeta){}
     try{window.__e11ExitSavedAt=_exitTs;}catch(_){}
-    /* 整机快照走 IndexedDB，和离站文字档同时写；下次进入以它为准。 */
+    /* v43-224：再同步写一份“带图的完整离站档”到 localStorage。
+       文字档会把图片清空，只靠异步 IndexedDB 存图时，关页面太快图就可能没写完。
+       这份完整档只在放得下时写（≤4.6MB），写不下就仍用文字档 + 四项图备份。 */
+    try{
+      var _liteTxt=JSON.stringify({app:"privateChat",exit:1,ts:_exitTs,state:src});
+      if(_liteTxt.length<=4600000){localStorage.setItem("e11.session.lite.v1",_liteTxt);}
+      else{try{localStorage.removeItem("e11.session.lite.v1");}catch(_eLiteRm){ }}
+    }catch(_eLite){try{localStorage.removeItem("e11.session.lite.v1");}catch(_eLiteRm2){}}
+    /* 整机快照走 IndexedDB，只用于恢复上次页面/滚动；不再覆盖数据。 */
     try{window.__e11SessionSnap&&window.__e11SessionSnap(src,true);}catch(_eSessionExit){}
     return true;
   }catch(e){return false;}
@@ -10861,11 +10869,13 @@ function __e11SessionSnap(st,force){
     if(!force&&now-(Number(window.__e11SessionAt)||0)<12000)return Promise.resolve(false);
     window.__e11SessionAt=now;
     var src=st||(typeof state!=="undefined"?state:null);if(!src)return Promise.resolve(false);
-    try{src.__savedAt=now;}catch(_){}
+    /* v43-224：绝不能把实时 state 的 __savedAt 改成“现在”，否则一份旧内容会被伪装成最新，
+       之后主档比较时间就会选错。快照内容自己的保存时间单独记在 contentAt。 */
+    var contentAt=Number(src.__savedAt)||0;
     var ui=__e11SessionUI();
     try{localStorage.setItem("e11.session.meta.v1",JSON.stringify({ts:now,ui:ui,build:String(window.__E11_BUILD||"")}));}catch(_eSessionMeta){}
     var globals={};try{globals=__e11ExitGlobals();}catch(_){}
-    var snap={ts:now,build:String(window.__E11_BUILD||""),state:src,globals:globals,ui:ui};
+    var snap={ts:now,contentAt:contentAt,build:String(window.__E11_BUILD||""),state:src,globals:globals,ui:ui};
     return dbSet(__E11_SESSION_KEY,snap).then(function(){return true;}).catch(function(){return false;});
   }catch(e){return Promise.resolve(false);}
 }
@@ -11589,6 +11599,16 @@ function save(){
     }
   }catch(_eCoreSave){}
   try{if(window.__e11BeautySave)window.__e11BeautySave(state,false);}catch(_eBeautySave){}
+  /* v43-224：每次改动后 1.2 秒把最新状态同步写进离站档；
+     以前只靠 10 秒兜底 + 关页面事件，系统直接杀掉 App 时最后几秒的改动会丢。 */
+  try{
+    if(!window.__restoring&&window.__stateReady){
+      clearTimeout(window.__e11SaveExitT);
+      window.__e11SaveExitT=setTimeout(function(){
+        try{if(!document.hidden&&!window.__restoring&&window.__stateReady&&window.__e11ExitSave)window.__e11ExitSave(state);}catch(_eSaveExit){}
+      },1200);
+    }
+  }catch(_eSaveExitSet){}
   /* v43-68：资料单独打修改时间。以前 profile 没有 __ts，云端只要存着一份非空的默认资料，
      本机改过的昵称/签名就会被 applySnapshot 判成“云端有内容”而恢复默认。 */
   try{
@@ -12623,6 +12643,7 @@ async function init(){
     try{dbGet("emojiLib").then(function(b){if(b)window.__emojiLibDb=b;}).catch(function(){});}catch(_eEmojiDb){}
     aboutLoadStatus("正在同步聊天记录…");
     var s=await dbGet("state");
+    try{window.__e11DbHadState=!!s;}catch(_eDbHad){}
     /* 一键清除后，个别手机 IndexedDB 还没删完就重载：早于清除时间的旧主档一律不采用。
        这一行是“清除数据后旧内容又回来”的最后一道保险。 */
     try{
@@ -12665,6 +12686,17 @@ async function init(){
         try{window.__e11ExitUsed=1;window.__e11ExitMergeCount=(window.__e11ExitMergeCount||0)+1;}catch(_eExFlag){}
       }
     }catch(_eExitMerge){}
+    /* v43-224：同步完整离站档（带图）如果比文字离站档新，把缺失的图片/内容补回来。
+       只做合并、不整份替换，避免旧档覆盖。 */
+    try{
+      var _liteObj=JSON.parse(localStorage.getItem("e11.session.lite.v1")||"null");
+      var _exitTsNow=_exitObj?Number(_exitObj.ts)||0:0;
+      if(_liteObj&&_liteObj.state&&Number(_liteObj.ts)>=_exitTsNow){
+        if(!s)s=_liteObj.state;
+        else __e11MergeExitState(s,{ts:Number(_liteObj.ts)||0,state:_liteObj.state});
+        try{window.__e11ExitUsed=1;}catch(_eLiteFlag){}
+      }
+    }catch(_eLiteMerge){}
     /* v43-121：把“点保存时同步写下的配置快照”补回主档。
        注意此时真正会被采用的是变量 s（IndexedDB 档），所以要同时落到 s 和 state；
        只改 state 会在后面 state=migrate(s) 时又被旧资料盖回去。
@@ -12886,28 +12918,21 @@ async function init(){
       /* v43-219：全部旧档合并、外观恢复完成后，再把四项“最后一次选择”盖回来 */
       try{if(window.__e11Keep4ApplyAll)window.__e11Keep4ApplyAll();}catch(_eK4Boot){}
       try{if(window.__e11Keep4ApplyDb)await window.__e11Keep4ApplyDb();}catch(_eK4DbBoot){}
-      /* v43-222：最后一次退出的整机快照最后覆盖。旧档、外观档、备份、四项都不再决定最终状态；
-         只有这份快照确实比当前主档新才用，避免写到一半中断时把数据倒回更早。 */
+      /* v43-224：整机快照只负责“上次停在哪个页面/滚动位置”，不再整份覆盖数据。
+         v43-222 让快照覆盖整份 state，但关闭页面时 IndexedDB 的异步写可能没写完，
+         快照还是 10 秒前那份旧内容；它一旦覆盖，就出现“退出再进不是离开时的头像/名字/聊天”。
+         数据现在只认同步写的离站文字档 + 主档合并；快照只在主档和离站档都读不到时兜底。 */
       try{
         if(typeof db!=="undefined"&&db){
           var _sessSnap=await dbGet(__E11_SESSION_KEY);
-          if(_sessSnap&&Number(_sessSnap.ts)&&_sessSnap.state){
-            var _curSaved=Number(state&&state.__savedAt)||0;
-            if(Number(_sessSnap.ts)>=_curSaved-1500){
+          if(_sessSnap&&_sessSnap.state){
+            window.__e11SessionUI=_sessSnap.ui||null;
+            var _needSessFallback=!window.__e11DbHadState&&!window.__e11ExitUsed&&!window.__e11CoreUsed;
+            if(_needSessFallback&&Number(_sessSnap.ts)){
               var _sessState=_sessSnap.state;
-              /* 快照比主档还旧、且主档明显有更多更新的聊天时，不用它覆盖，避免旧档复活。
-                 正常退出时快照的消息不会比主档旧。 */
-              try{
-                var _curMsgs=(state&&Array.isArray(state.messages))?state.messages:[];
-                var _snMsgs=(_sessState&&Array.isArray(_sessState.messages))?_sessState.messages:[];
-                var _mxT=function(a){var m=0;a.forEach(function(x){var t=Number(x&&x.time)||0;if(t>m)m=t;});return m;};
-                var _ct=_mxT(_curMsgs),_st=_mxT(_snMsgs);
-                if(_curMsgs.length>_snMsgs.length&&_ct>_st+3600000){throw new Error("session-old");}
-              }catch(_eSessOld){if(String(_eSessOld&&_eSessOld.message)==="session-old")throw _eSessOld;}
               try{_sessState=await __hydrateBig(_sessState);}catch(_eSessHyd){}
               state=migrate(_sessState);
               window.__e11SessionUsed=1;
-              window.__e11SessionUI=_sessSnap.ui||null;
               try{__bkApplyGlobals(_sessSnap.globals||{},_sessSnap.ts);}catch(_eSessGlob){}
               try{window.__applyMe1Icons&&window.__applyMe1Icons();}catch(_eSessIcon){}
               try{typeof applySkin==="function"&&applySkin();}catch(_eSessSkin){}
