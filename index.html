@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-227z51";
+window.__E11_BUILD="2026-11-25v43-228z52";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -2786,7 +2786,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-227z51">
+<meta name="app-build" content="2026-11-25v43-228z52">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -10192,9 +10192,15 @@ function __bkPaint(){
           try{window.__e11ExitAllowEarly=1;window.__e11ExitSave(st,true);}catch(_eExitRstPre){}
           try{window.__e11ExitAllowEarly=0;}catch(_){}
           try{window.__restoring=1;}catch(_){}
+          /* v43-228：恢复后把当前页面内存里的 state 也换成这份备份并禁止旧页面再写离站档。
+             以前这里只写 IndexedDB 就 reload，reload 触发的 pagehide 又拿“恢复前”的旧 state
+             覆盖了刚写好的离站档，重进自然不是刚恢复的那份。 */
+          try{if(window.__e11SetState)window.__e11SetState(st);else state=st;}catch(_eSetRstState){}
           return dbSet("state",st).then(function(){
             try{localStorage.setItem("privateChat",JSON.stringify({__idbOnly:1,__savedAt:Number(st&&st.__savedAt)||Date.now()}));}catch(_){}
             try{sessionStorage.setItem("__forceIdbRestore","1");}catch(_){}
+            /* 离站档已在上面按恢复后的 st 写好；从现在到 reload 之间禁止旧 state 再覆盖它。 */
+            try{window.__e11ExitPreserve=1;}catch(_eRstPreserve){}
             toast("已恢复，正在重新打开…");
             setTimeout(function(){location.reload();},600);
           });
