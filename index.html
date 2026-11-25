@@ -272,7 +272,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-26v43-236b6";
+window.__E11_BUILD="2026-11-26v43-236b7";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -2796,7 +2796,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-26v43-236b6">
+<meta name="app-build" content="2026-11-26v43-236b7">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -8941,11 +8941,15 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-222z44",
-  time:"2026-11-25 20:05",
+  date:"v43-236b7",
+  time:"2026-11-26 02:10",
   noticeKey:null,
-  lead:"2026-11-25 修改（v43-222z44）：自动备份改成只在你点「立即备份一次」时才写，退出/切后台/改图都不再自动备份。进入网站时直接恢复上一次退出时的整机状态：页面停在哪儿、聊天/信件/动态/设置/图和名字都按退出那一刻还原。",
+  lead:"2026-11-26 修改（v43-236b7）：双方新增的评论、动态、信件、留言现在会即时落盘，同一条动态里后补的评论也会和另一台设备按 id 合并，不再被旧数组长度判断漏掉；另外固定为先声明页、再密码页，信件返回/收起/取消三处顶栏统一高度。",
   items:[
+    "双方评论/动态/信件/留言不自动保存（v43-236b7）：以前退出签名只比较数组长度和最后一条 id，同一条动态里新加的评论、同一条信件/留言的修改都不会触发落盘，系统杀掉 App 就丢。现在按内容深度签名，并且社交内容一变就立刻写一份离站档。",
+    "另一台设备的评论进不来（v43-236b7）：合并动态/信件时，同 id 条目以前整条直接跳过，后加的评论、回复永远不进来。现在按 id 深度并集，评论和逐层回复都会补进来，点赞也合并，只加不删。",
+    "先声明页再密码（v43-236b7）：密码页以前会在数据校验阶段先弹一下再被声明页盖住。现在声明页没点「同意并进入」之前绝不显示密码页，顺序固定为声明 → 密码 → 主页。",
+    "信件顶栏不在一个高度（v43-236b7）：写信页的安全区被算了两遍，「取消」比信件主页的返回低一截，「收起」又没算安全区。现在三处统一按 10px + 安全区、44px 控件高度排，实测中心线一致。",
     "自动备份改成只手动（v43-222z44）：退出网站、切后台、改图、改名字都不再偷偷写自动备份槽；只有设置 → 自动备份里点「立即备份一次」才真正写一份。已有的旧备份仍可手动恢复。",
     "进入网站不是上次退出状态（v43-222z44）：以前进站会先读主档，再并离站文字快照、配置小备份、外观档和自动备份，最后状态不一定等于退出那一刻。现在退出时把完整整机状态写进 IndexedDB，进入时最后用这份覆盖；上次停在哪一页、聊天/信件/动态/设置/图片/名字都按退出时还原。",
     "上次退出页面不回来（v43-222z44）：启动默认先落桌面，现在整机快照里记了当前页面，恢复后会补一次切页；聊天列表滚动位置也一起回来。",
@@ -10889,7 +10893,7 @@ function __e11ExitSave(st,force){
     var _p=_sigst&&_sigst.profile||{},_ic=_sigst&&_sigst.me1AppIcons||{};
     var _sig=[Number(window.__chatRev)||0,Number(_sigst&&_sigst.__savedAt)||0,Number(_sigst&&_sigst.settings&&_sigst.settings.__ts)||0,Number(_sigst&&_sigst.skin&&_sigst.skin.__ts)||0,Number(_p.__ts)||0,
       _dlast,_dcov?((_dcov.title||"")+"|"+(_dcov.img||"").length+"|"+(_dcov.done?1:0)):"",
-      _arrSig(_sigst&&_sigst.messages),_arrSig(_sigst&&_sigst.cards),_arrSig(_sigst&&_sigst.letters),_arrSig(_sigst&&_sigst.guestbook),_arrSig(_sigst&&_sigst.moments),_arrSig(_sigst&&_sigst.redpackets),_arrSig(_sigst&&_sigst.favorites),_arrSig(_sigst&&_sigst.musicPlaylist),_arrSig(_sigst&&_sigst.musicRoomMsgs),
+      _arrSig(_sigst&&_sigst.messages),_arrSig(_sigst&&_sigst.cards),__e11SocialDeepSig(_sigst),_arrSig(_sigst&&_sigst.redpackets),_arrSig(_sigst&&_sigst.favorites),_arrSig(_sigst&&_sigst.musicPlaylist),_arrSig(_sigst&&_sigst.musicRoomMsgs),
       String(_p.me1ChatName||""),String(_p.me1PartnerName||""),String(_p.me1HomeName||""),String(_p.mpName||""),String(_sigst&&_sigst.me&&_sigst.me.name||""),String(_sigst&&_sigst.partner&&_sigst.partner.name||""),
       (_p.cardMeAvatar||"").length,(_p.cardPartnerAvatar||"").length,(_p.meAvatar||"").length,(_p.partnerAvatar||"").length,
       String(_ic.all||"").length,Object.keys(_ic.byId||{}).length,
@@ -11849,9 +11853,14 @@ function save(){
   /* v43-183z21：社交内容一变就同步落一份独立小备份，保证“更新/旧档覆盖”后还能接回来。 */
   try{
     var _socArr=(typeof state!=="undefined"&&state)||{};
-    var _socSig=[(_socArr.letters||[]).length,(_socArr.guestbook||[]).length,(_socArr.moments||[]).length,
-      ((_socArr.guestbook||[]).slice(-1)[0]||{}).id||"",((_socArr.letters||[]).slice(-1)[0]||{}).id||"",((_socArr.moments||[]).slice(-1)[0]||{}).id||""].join("|");
-    if(window.__e11SocialSig!==_socSig){window.__e11SocialSig=_socSig;window.__e11SocialSnap&&window.__e11SocialSnap(_socArr);}
+    var _socSig=__e11SocialDeepSig(_socArr);
+    if(window.__e11SocialSig!==_socSig){
+      window.__e11SocialSig=_socSig;
+      window.__e11SocialSnap&&window.__e11SocialSnap(_socArr);
+      /* 同一条动态里新增的评论不会改变数组长度，旧逻辑因此不写离站档；
+         这里社交内容一变就立即同步写一份，App 被系统杀掉也不会丢。 */
+      try{if(window.__e11ExitSave)window.__e11ExitSave(_socArr,true);}catch(_eSocFlush){}
+    }
   }catch(_eSocSnap){}
   /* 重置/恢复中禁止任何写盘：否则刷新前旧页面会把刚清掉的内容再写回来 */
   if(window.__restoring)return;
@@ -24154,6 +24163,41 @@ $("btn-export-social")&&$("btn-export-social").addEventListener("click",function
 $("btn-export-emoji")&&$("btn-export-emoji").addEventListener("click",function(){__exportPartial("emoji");});
 
 /* 分类备份导入：按 id 合并，不覆盖未选中的数据 */
+function __e11MergeCommentTree(cur,incoming){
+  var out=(cur||[]).slice(),by={};
+  out.forEach(function(c){if(c&&c.id)by[c.id]=c;});
+  (incoming||[]).forEach(function(c){
+    if(!c||!c.id)return;
+    var old=by[c.id];
+    if(!old){out.push(c);by[c.id]=c;return;}
+    if(!old.text&&c.text)old.text=c.text;
+    if(old.emoji===undefined&&c.emoji)old.emoji=c.emoji;
+    if(!old.time&&c.time)old.time=c.time;
+    if(Array.isArray(c.likes)&&c.likes.length){
+      old.likes=old.likes||[];
+      c.likes.forEach(function(l){if(old.likes.indexOf(l)<0)old.likes.push(l);});
+    }
+    if(c.toMe===true)old.toMe=true;
+    if(Array.isArray(c.replies)&&c.replies.length)old.replies=__e11MergeCommentTree(old.replies||[],c.replies);
+  });
+  return out;
+}
+function __e11SocialDeepSig(st){
+  var n=0,sum=0,lastId="",lastTime=0,len=0;
+  function walk(list){
+    (list||[]).forEach(function(x){
+      if(!x)return;
+      n++;len++;
+      var id=String(x.id||""),tx=String(x.text||x.body||"");
+      sum=(sum*33+id.length*7+tx.length*13+((Number(x.time)||0)%100000)+((x.unread?1:0)*17))>>>0;
+      lastId=id;lastTime=Number(x.time||x.__ts)||0;
+      var ch=x.comments||x.replies;
+      if(ch&&ch.length)walk(ch);
+    });
+  }
+  walk(st&&st.letters);walk(st&&st.guestbook);walk(st&&st.moments);
+  return len+"|"+n+"|"+sum+"|"+lastId+"|"+lastTime;
+}
 function __mergeListById(cur,incoming,keyFn){
   var out=(cur||[]).slice(),by={},bysrc={};
   out.forEach(function(x,i){var k=keyFn(x);if(k)by[k]=x;});
@@ -24168,6 +24212,14 @@ function __mergeListById(cur,incoming,keyFn){
         for(var kk in x)if(Object.prototype.hasOwnProperty.call(x,kk)&&kk!=="id")old[kk]=x[kk];
         delete old.__missing;
       }
+      /* v43-236b7：动态/信件同一条目里后加的评论、回复以前被整个跳过，
+         另一台设备看到的评论就永远进不来。这里按 id 深度并集，只加不删。 */
+      try{
+        if(Array.isArray(x.comments)&&x.comments.length)old.comments=__e11MergeCommentTree(old.comments||[],x.comments);
+        if(Array.isArray(x.replies)&&x.replies.length)old.replies=__e11MergeCommentTree(old.replies||[],x.replies);
+        if(x.unread&&!old.unread){old.unread=true;old.unreadKind=x.unreadKind||old.unreadKind;}
+        if(x.read&&!old.read)old.read=true;
+      }catch(_eDeepMerge){}
       return;
     }
     out.push(x);if(k)by[k]=x;
