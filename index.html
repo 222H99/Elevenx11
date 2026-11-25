@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-235z60f10";window.__E11_CODE=338;
+window.__E11_BUILD="2026-11-25v43-235z60f11";window.__E11_CODE=339;
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -294,7 +294,7 @@ window.__E11_BUILD="2026-11-25v43-235z60f10";window.__E11_CODE=338;
     setTimeout(go,1200);
   }catch(_){}
 })();
-/* v43-235z60f10：进入即最新版。
+/* v43-235z60f11：进入即最新版。
    不再等首屏空闲 350ms 才查版本，也不等旧 Service Worker 的 450ms 缓存。
    页面一启动就查 version.json（带时间戳 no-store）；只要线上 versionCode 更高，
    就立刻注销旧 SW、清掉旧 shell 缓存、带时间戳重进一次。
@@ -1866,6 +1866,10 @@ body.env-open #btn-letters-back{visibility:hidden!important;pointer-events:none!
 #about-x{display:none;position:fixed;top:calc(10px + var(--safe-top, env(safe-area-inset-top)));right:14px;z-index:100005;width:38px;height:38px;border:0;border-radius:50%;background:rgba(120,120,128,.28);color:#fff;font-size:24px;line-height:36px;text-align:center;padding:0;cursor:pointer;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);}
 #about-x.show{display:block;}
 .about-x-dark{background:rgba(255,255,255,.18)!important;}
+/* v43-235z60f11：舞台高度可能比真正可视窗口高（底部被浏览器条盖住）。
+   声明页/公告页/锁屏是 fixed+inset:0，会跟着撑到被盖住的区域，底部按钮就看不见。
+   用 --ui-extra 把这三层底边收回可视区。 */
+.announce-screen,.about-screen,.lock-screen{bottom:var(--ui-extra,0px)!important;}
 .about-screen{position:fixed;inset:0;z-index:100002;display:none;flex-direction:column;
   background-image:none;background-color:#FFFFFF;}
 .about-screen.show{display:flex;}
@@ -2829,7 +2833,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-235z60f10">
+<meta name="app-build" content="2026-11-25v43-235z60f11">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4083,7 +4087,7 @@ setTimeout(function(){
           </div>
           <div id="cp2-recover-list"></div>
         </div>
-      </div>      <div id="me-dock-wrap" style="position:fixed;left:0;right:0;bottom:calc(14px + env(safe-area-inset-bottom));display:flex;justify-content:center;z-index:998;pointer-events:none;">
+      </div>      <div id="me-dock-wrap" style="position:fixed;left:0;right:0;bottom:calc(14px + env(safe-area-inset-bottom) + var(--ui-extra,0px));display:flex;justify-content:center;z-index:998;pointer-events:none;">
         <div id="me-dock-bar" style="display:flex;justify-content:center;align-items:center;gap:14px;width:calc(100% - 32px);max-width:360px;padding:10px 24px;border-radius:28px;background:transparent;-webkit-backdrop-filter:blur(26px) saturate(180%);backdrop-filter:blur(26px) saturate(180%);border:1px solid rgba(255,255,255,.85);box-shadow:0 12px 32px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.95);pointer-events:auto;">
           <div style="width:64px;flex:0 0 auto;"><button class="me-app" id="me-nav-music"><span class="me-app-ic"><img class="me-app-img" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20fill='%239BA0A8'%20d='M12%203v10.55A4%204%200%201%200%2014%2017V7h4V3h-6z'/%3E%3C/svg%3E"></span><span class="me-app-lb">音乐</span></button></div>
           <div style="width:64px;flex:0 0 auto;"><button class="me-app" id="me-nav-settings"><span class="me-app-ic"><img class="me-app-img" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAAEEklEQVR4nO3dy1IbOxSGUeVUHjLDTM5TMWHIW5IBdoUiduNLq/Vra61pKkFofy038YXWAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACDQj9EL4MPL69v7I3/v/9+/zPATmzHYoyF/JewP/41ewMr2innvf2tmgqYUQVOKoClF0IO45+1D0IW4SARNMYKmFEHfaMWH8xm/Z88ufePSUPd4Vq5XLM+u7dq6Znkm0gm94dpwX17f3p8JMvXk21pX6pq/muKqG+HWAd5zch0dRY+1pZ/U0Ysb5d7wtoaccrJdW+Mj60uOOnZhozwT4OdBp4T81V5rTI06clGjpEaYKjFqPxSeiPl+iXsm6JY5mFmk7d3yQacNZEZJe7h00EmDmF3KXi4bdMoAKknY02WDpiZBU4qgKUXQlLJs0InPcs0uYU+XDbq1jAFUkbKXSwdNPcsHnXKyzCxpD5cPurWsgcwmbe8ETSmCPkk7aWaQuGc/Ry+AbTO8CyaJoIN8d+J9/XOB/yvuIWOkEYHs9bA9Ku602w730CcjPmJgzxjSwhpF0AP0im/vi2RGgm7Hns5HBHdk1Gn38YI+0JGhrXpSLx/0USfMiMCO+ppJp/TyQR9h5Gm52km91Dd7Vu2e+RbJHxS5p9JPrCQ9FK6m1+dqfyfi9NhbSsgpp/PZCvtS7h46ZWhc13NG5YJOkXY6t5a5pr2VCtrpPI9esyoVNAi6g+SH9uS17UHQlCJoShE0pQiaUgRNKYKmFEFTiqApRdCUIujFVH+9i6A7qB5NslJBV3+dQiW9ZlUqaLalPHJ4x8odUj49KCWeNL1nM3zwRxgZV8LF1do6e1D6Xd9nWxvqJN1HyoVb7pYjTcIFk7CGoywf9BEny8igjvjaKadza4I+zIioVzqZzwR9oCMDWzHm1gTdWqv3ecorfnbfmaAH6BXcy+vb+6on81nU1TXarL80yC8M+muJ/4dO9jnGewNZ/TS+JO4KGy0tknPkqetKE7moUdKiSZcYtR8KT8R8v8Q9EzSlCLplnjSzSNu75YNOG8iMkvZw6aCTBjG7lL1cOmjqWTbolBOlkoQ9XTZoahI0pQiaUgRNKcsGnfg6hNkl7OmyQbeWMYAqUvZy6aBbyxnEzJL2cPmgW8sayGzS9k7QJ2mD6Wmv7zVxz+IWNNqjz3ZdGm7CM2ef7bnGxJhbE/RF9w75u+GODnvv9aXG3Jqgr7plyI8M9qi4e73hNjnm1gS9aWvIzwy2Z9TPBtfrez6KHwo3XBvgs4NNDuPS2lI+RP4WUyyyol6n9Czh9eKEphRBU4qgC1n9dqM1QVOMoClF0JQi6EHc7/Yh6CJcIB8EPZAI92dDQ1R7GScAAAAAAAAAAAAAAAAAAAAAAAAAAABw1R9owq38gTOcsgAAAABJRU5ErkJggg=="></span><span class="me-app-lb">设置</span></button></div>
@@ -14641,7 +14645,7 @@ function applySkin(){
   }catch(_eWallReset){}
   r.setProperty("--wallimg",_wallSrc?'url("'+wallUrl(_wallSrc)+'")':"none");
   r.setProperty("--walltint","rgba(0,0,0,0)");
-  /* v43-235z60f10：把壁纸同步到 html/body 的画布背景。
+  /* v43-235z60f11：把壁纸同步到 html/body 的画布背景。
      页面舞台只到可视高度时，底部安全区露出来的是画布背景；
      以前这里是 body 的纯白，所以永远一条白。现在画布铺同一张壁纸。 */
   try{
@@ -39056,7 +39060,7 @@ body{margin:0;background:var(--bg,#fafafa);}
   }
   for(var j=0;j<kids.length;j++)root.appendChild(kids[j]);
   body.appendChild(root);
-  /* v43-235z60f10：100vw/100vh 探针。iOS Safari/PWA 的 innerHeight 会少报
+  /* v43-235z60f11：100vw/100vh 探针。iOS Safari/PWA 的 innerHeight 会少报
      底部工具栏的 59pt，但 CSS 的 100vh 是完整大视口；拿它纠正舞台。 */
   try{
     var _vp=document.createElement("div");_vp.id="__vp_probe";
@@ -39116,7 +39120,7 @@ body{margin:0;background:var(--bg,#fafafa);}
       var _vvH=(vv&&vv.height)||0;
       var _innerH=window.innerHeight||0;
       var _clientH=document.documentElement.clientHeight||0;
-      var _screenH=0; /* v43-235z60f10：下面统一按 dpr 折算后再取最大值 */
+      var _screenH=0; /* v43-235z60f11：下面统一按 dpr 折算后再取最大值 */
       /* 某些 iPhone WebView 的 screen.height 会被浏览器栏/键盘残值带小；
          再用 outerHeight / availHeight 取一个靠谱的屏幕高度，避免整站只按半屏渲染。 */
       try{
@@ -39157,13 +39161,13 @@ body{margin:0;background:var(--bg,#fafafa);}
         window.__uiStableH=h;window.__uiStableW=w;
       }
       var voffX=(vv&&vv.offsetLeft)||0, voffY=(vv&&vv.offsetTop)||0;
-      /* v43-235z60f10f1：键盘弹起不再拿 visualViewport 的矮高度当整页高度。
+      /* v43-235z60f11f1：键盘弹起不再拿 visualViewport 的矮高度当整页高度。
          以前键盘一弹 h=键盘高度，root 跟着缩；收起后 vv 又可能停在少一条的残值，
          页面就整体被挤上去、底部留白条。这里始终取屏幕/布局高度的最大值。 */
       var _vh100=0;
       try{var _vpEl2=document.getElementById("__vp_probe");if(_vpEl2)_vh100=_vpEl2.offsetHeight||0;}catch(_ePh){}
       var h=Math.max(window.__uiStableH||0,_innerH||0,_clientH||0,_vvH||0,_vh100);
-      /* v43-235z60f10：iOS 的 screen.height 经常是物理像素 2556，不是 CSS 的 852；
+      /* v43-235z60f11：iOS 的 screen.height 经常是物理像素 2556，不是 CSS 的 852；
          直接当 852 用会超出，直接忽略又少 59pt 白条。除以 dpr 后落在可视高度附近才采用。 */
       try{
         var _sdprH=Number(window.devicePixelRatio)||1;
@@ -39175,7 +39179,7 @@ body{margin:0;background:var(--bg,#fafafa);}
         try{_hCands.push(Number(window.screen&&window.screen.height)||0);}catch(_){}
         try{_hCands.push(Number(window.screen&&window.screen.availHeight)||0);}catch(_){}
         try{_hCands.push(Number(window.outerHeight)||0);}catch(_){}
-        /* v43-235z60f10：可视高度 + 顶部安全区 = 真正的整屏高（793+59=852）。
+        /* v43-235z60f11：可视高度 + 顶部安全区 = 真正的整屏高（793+59=852）。
            底部安全区已在 100vh 内时不再重复加。 */
         if(_sat>0)_hCands.push(h+_sat);
         if(_sab>0&&_sat<=0)_hCands.push(h+_sab);
@@ -39193,7 +39197,7 @@ body{margin:0;background:var(--bg,#fafafa);}
            但 iPhone 屏幕 852，底部会空出 59pt 白条。差在 160 以内就按屏幕补满。 */
         if(_scrH>=h&&_scrH<=h+160)h=_scrH;
       }catch(_eStand){}
-      /* v43-235z60f10：不再用偏小的 screenH 反向截断 h；
+      /* v43-235z60f11：不再用偏小的 screenH 反向截断 h；
          h 已经由 852/安全区候选限制在 +200 以内。 */
       /* 极少数 WebView 在键盘收起/切页时 visualViewport 会短暂给 0 或半截残值，
          整站按这个高度画就会只剩一条、下面一大块空白。这里退回稳定屏高。 */
@@ -39245,9 +39249,20 @@ body{margin:0;background:var(--bg,#fafafa);}
       /* v43-152：这里原来每次 sync 都同步写一次 localStorage。
          visualViewport 滚动/键盘弹起时 sync 会按帧触发，等于每帧做一次 JSON 序列化+落盘，
          徒增卡顿；这个键当前没有任何读取方，直接去掉。 */
-      /* v43-235z60f10：全手机统一成 393×852 的同一套视图。
+      /* v43-235z60f11：全手机统一成 393×852 的同一套视图。
          以 852 设计高定比例 k，逻辑宽=屏宽/k，整体缩放后屏幕正好铺满；
          苹果/安卓、360/393/430 宽都按同一套排版，不再各机各长各短。 */
+      /* v43-235z60f11：可视窗口（visualViewport）比布局视口矮时，
+         差值就是底部被浏览器条盖住的高度。固定层底边收回这个差值。 */
+      try{
+        var _visH=h;
+        if(_innerH>0)_visH=Math.min(_visH,_innerH);
+        if(_vvH>0)_visH=Math.min(_visH,_vvH);
+        if(_clientH>0)_visH=Math.min(_visH,_clientH);
+        var _extra=Math.max(0,Math.min(160,Math.round(h-_visH)));
+        document.documentElement.style.setProperty("--ui-extra",_extra+"px");
+        window.__uiExtra=_extra;
+      }catch(_eExtra){}
       var k=Math.min(1.25,Math.max(0.75,h/852));
       var rw=Math.round(w/k), rh=852;
       var left=0, top=0;
