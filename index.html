@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-225z47";
+window.__E11_BUILD="2026-11-25v43-226z48";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -2786,7 +2786,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-225z47">
+<meta name="app-build" content="2026-11-25v43-226z48">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -10915,9 +10915,77 @@ window.__e11QuickSnap=function(){
 };
 /* 把离站快照并进主存档：设置/皮肤/资料整份以离站为准，聊天按 id 并集；
    同一条消息保留主库里的图片 src，只补文字/状态，避免“为了恢复设置把表情图冲没”。 */
+/* v43-226：有完整的离站档时，它就是这个页面离开时的最终状态。
+   主库/旧备份里多出来的东西一律不带进来，只按同 id 把图片补回，保证“进入=离开时”。 */
+function __e11ApplyExitExact(s,e){
+  try{
+    if(!s||!e||!e.state)return false;
+    var ex=e.state,ts=Number(e.ts||ex.__savedAt)||0;
+    /* 先把旧档里的图片按 id 记下来，文字用离站档覆盖后再补图 */
+    var oldImg={};
+    try{
+      ["messages","cards","letters","guestbook","moments","emojis","partnerEmojis","redpackets","musicPlaylist","musicRoomMsgs","favorites","groups"].forEach(function(k){
+        if(!Array.isArray(s[k]))return;
+        oldImg[k]={};
+        s[k].forEach(function(x){if(x&&x.id)oldImg[k][String(x.id)]=x;});
+      });
+    }catch(_){}
+    var cats=["messages","cards","letters","guestbook","moments","emojis","partnerEmojis","redpackets","musicPlaylist","musicRoomMsgs","favorites","groups","surveyHistory"];
+    cats.forEach(function(k){
+      if(!Array.isArray(ex[k]))return;
+      var arr=[];
+      ex[k].forEach(function(x){
+        if(!x||typeof x!=="object")return;
+        var y=Object.assign({},x);
+        var old=oldImg[k]&&oldImg[k][String(y.id||"")];
+        if(old){
+          if(!y.src&&old.src)y.src=old.src;
+          if(!y.emojiId&&old.emojiId)y.emojiId=old.emojiId;
+          if(!y.photos&&old.photos)y.photos=old.photos;
+        }
+        arr.push(y);
+      });
+      s[k]=arr;
+    });
+    var _oldTop={me:s.me,partner:s.partner,profile:s.profile,skin:s.skin,diary:s.diary};
+    ["settings","skin","profile","me","partner","diary"].forEach(function(k){
+      if(ex[k]!==undefined)s[k]=JSON.parse(JSON.stringify(ex[k]));
+    });
+    /* 离站文字档会把头像/封面/照片清成空串；这些图从主档按字段补回，文字仍以离站档为准。
+       四项（图标/卡片头像/一起听图/名字）稍后还会被 keep4 的最新值再盖一次。 */
+    try{
+      ["me","partner"].forEach(function(k){
+        var o=_oldTop[k]||{},n=s[k]||{};
+        ["avatar","cover","photos"].forEach(function(f){
+          if((n[f]===undefined||n[f]===null||n[f]===""||(Array.isArray(n[f])&&!n[f].length))&&o[f])n[f]=o[f];
+        });
+      });
+      var _op=_oldTop.profile||{},_np=s.profile=s.profile||{};
+      Object.keys(_op).forEach(function(k){
+        if(!/avatar|cover|img|photo/i.test(k))return;
+        if((_np[k]===undefined||_np[k]===null||_np[k]==="")&&_op[k])_np[k]=_op[k];
+      });
+      var _od=_oldTop.diary||{},_nd=s.diary=s.diary||{};
+      if(_nd.cover&&_od.cover){
+        if(!_nd.cover.img&&_od.cover.img)_nd.cover.img=_od.cover.img;
+        if(!_nd.cover.bg&&_od.cover.bg)_nd.cover.bg=_od.cover.bg;
+      }
+    }catch(_eExactImg){}
+    ["musicBg","musicBgImg","musicCoverImg","musicDiscBgImg","musicDiscInnerImg","musicRoomNote","musicCur","musicVol","musicLoop","callBgImg","momBgImg"].forEach(function(k){
+      if(ex[k]!==undefined)s[k]=ex[k];
+    });
+    try{s.deletedIds=JSON.parse(JSON.stringify(ex.deletedIds||{}));}catch(_){s.deletedIds={};}
+    s.__chatClearedAt=Number(ex.__chatClearedAt)||0;
+    s.musicRoomClearedAt=Number(ex.musicRoomClearedAt)||0;
+    s.__savedAt=Math.max(Number(s.__savedAt)||0,ts);
+    try{__e11NormalizeMessages(s);}catch(_){}
+    return true;
+  }catch(_){return false;}
+}
 function __e11MergeExitState(s,e){
   try{
     if(!s||!e||!e.state)return false;
+    if(window.__e11ExitExact)return __e11ApplyExitExact(s,e);
     var ex=e.state,ts=Number(e.ts||ex.__savedAt)||0;
     if(!ts)return false;
     var nowTs=Date.now();
@@ -12105,7 +12173,7 @@ window.__e11ChatLogRestoreRecent=function(s){
 function migrate(s){
   try{__e11NormalizeMessages(s);}catch(_eMsgNorm){}
   /* v43-223：不再整份回塞聊天流水；v43-225 只补比当前最后一条更新的内容。 */
-  try{if(window.__e11ChatLogRestoreRecent)window.__e11ChatLogRestoreRecent(s);}catch(_eLogMig){}
+  try{if(!window.__e11ExitExact&&window.__e11ChatLogRestoreRecent)window.__e11ChatLogRestoreRecent(s);}catch(_eLogMig){}
   /* v43-107：删掉内置的“开启私密聊天”欢迎语，老存档也一起清掉。 */
   try{
     if(s&&Array.isArray(s.messages)){
@@ -12644,7 +12712,7 @@ async function init(){
      放在首屏后 2.5 秒直接跑，不再等到 5 秒/空闲。 */
   try{setTimeout(function(){
     try{
-      var _dn=window.__e11DiaryRestore?window.__e11DiaryRestore():0;
+      var _dn=(!window.__e11ExitExact&&window.__e11DiaryRestore)?window.__e11DiaryRestore():0;
       if(_dn){try{save();__flushSave(true);}catch(_){}try{window.__e11RefreshAllViews?window.__e11RefreshAllViews():renderAll();}catch(_){}try{toast("已找回之前丢失的日记历史");}catch(_){}}
     }catch(_){}
     try{window.__bkMergeNewest&&window.__bkMergeNewest(true);}catch(_){}
@@ -12720,6 +12788,12 @@ async function init(){
       if(_exitMeta)_exitObj=__e11ExitRead();
       else if(!s)_exitObj=__e11ExitRead();
       if(_exitObj&&_exitObj.state){
+        /* v43-226：离站档完整且不比主档旧时，作为唯一权威，后续不再让任何旧备份补内容。 */
+        try{
+          var _exTs=Number(_exitObj.ts||_exitObj.state.__savedAt)||0;
+          var _idbTs=Number(s&&s.__savedAt)||0;
+          window.__e11ExitExact=!!((!_exitMeta||Number(_exitMeta.mini)!==1)&&_exTs>=(_idbTs-5000)&&_exTs>0);
+        }catch(_eExactFlag){window.__e11ExitExact=0;}
         if(!s)s=_exitObj.state;
         else __e11MergeExitState(s,_exitObj);
         /* v43-221：离站快照里的四项要立刻落到最终采用的 s 上，后面 migrate 不会丢 */
@@ -12936,7 +13010,7 @@ async function init(){
       /* v43-183k：本机删除墓碑先并进最终 state，再清一次；刷新/退出/旧档合并都不会复活已删内容。 */
       try{if(window.__e11DelLocalRestore)window.__e11DelLocalRestore(state);}catch(_eDelLocal){}
       /* v43-183z21：读档后先把独立社交备份里缺的条目接回来（墓碑会随后清掉已删的）。 */
-      try{if(window.__e11SocialLocalMerge)window.__e11SocialLocalMerge(state,false);}catch(_eSocRec){}
+      try{if(!window.__e11ExitExact&&window.__e11SocialLocalMerge)window.__e11SocialLocalMerge(state,false);}catch(_eSocRec){}
       /* v43-163：合并/迁移后最后再按墓碑清一次，防止默认分组 g1 这类内置内容被旧档补回来。 */
       try{__e11ApplyDeleted(state);}catch(_eLoadDel){}
       /* v43-166：先补齐模板数组，再按模板墓碑过滤；否则旧档没有 letterTpl 时，
@@ -12949,17 +13023,17 @@ async function init(){
       try{if(window.__userLookRestore)window.__userLookRestore();}catch(_eLookRestore2){}
       /* v43-128：设置小备份的 __ts 比 IndexedDB/云端更晚时，以备份为准。
          以前只在默认 state 上恢复一次，随后被 IDB 旧设置整份覆盖，表现就是“设置改完刷新又变回去”。 */
-      try{var _e11SetBakApplied=window.__settingsBackupRestore&&window.__settingsBackupRestore();if(_e11SetBakApplied)window.__settingsBackup&&window.__settingsBackup(true);}catch(_eSetBak3){}
+      try{if(!window.__e11ExitExact){var _e11SetBakApplied=window.__settingsBackupRestore&&window.__settingsBackupRestore();if(_e11SetBakApplied)window.__settingsBackup&&window.__settingsBackup(true);}}catch(_eSetBak3){}
       try{var _e11UpGuard=window.__e11UpdateGuardApply&&window.__e11UpdateGuardApply();if(_e11UpGuard)window.__settingsBackup&&window.__settingsBackup(true);}catch(_eUpGuard3){}
-      try{window.__e11AppearanceApply&&window.__e11AppearanceApply();}catch(_eApBoot){}
-      setTimeout(function(){try{window.__e11AppearanceApply&&window.__e11AppearanceApply();}catch(_eApLate){}},2200);
+      try{if(!window.__e11ExitExact)window.__e11AppearanceApply&&window.__e11AppearanceApply();}catch(_eApBoot){}
+      setTimeout(function(){try{if(!window.__e11ExitExact)window.__e11AppearanceApply&&window.__e11AppearanceApply();}catch(_eApLate){}},2200);
       /* 兜底：6 秒后仍没恢复（比如没有外观档）才允许正常保存覆盖，避免永远不存新改动 */
       setTimeout(function(){try{window.__e11AppearanceReadyForSave=true;}catch(_eApReady){}},6000);
       try{localStorage.setItem("e11.buildSeen.v1",window.__E11_BUILD);}catch(_eSeenSet){}
-      try{window.__e11RepairBulkTombs&&window.__e11RepairBulkTombs(state);}catch(_eTombFix){}try{__ltReadApply();}catch(e){}try{__prefApply();}catch(e){}try{window.__perfApply&&window.__perfApply();}catch(_){}
+      try{window.__e11RepairBulkTombs&&window.__e11RepairBulkTombs(state);}catch(_eTombFix){}try{__ltReadApply();}catch(e){}try{if(!window.__e11ExitExact)__prefApply();}catch(e){}try{window.__perfApply&&window.__perfApply();}catch(_){}
       /* v43-219：全部旧档合并、外观恢复完成后，再把四项“最后一次选择”盖回来 */
-      try{if(window.__e11Keep4ApplyAll)window.__e11Keep4ApplyAll();}catch(_eK4Boot){}
-      try{if(window.__e11Keep4ApplyDb)await window.__e11Keep4ApplyDb();}catch(_eK4DbBoot){}
+      try{if(!window.__e11ExitExact&&window.__e11Keep4ApplyAll)window.__e11Keep4ApplyAll();}catch(_eK4Boot){}
+      try{if(!window.__e11ExitExact&&window.__e11Keep4ApplyDb)await window.__e11Keep4ApplyDb();}catch(_eK4DbBoot){}
       /* v43-224：整机快照只负责“上次停在哪个页面/滚动位置”，不再整份覆盖数据。
          v43-222 让快照覆盖整份 state，但关闭页面时 IndexedDB 的异步写可能没写完，
          快照还是 10 秒前那份旧内容；它一旦覆盖，就出现“退出再进不是离开时的头像/名字/聊天”。
@@ -14958,6 +15032,8 @@ window.__recoverMediaFromBackups=__recoverMediaFromBackups;
    3) 删除过的条目仍按墓碑跳过，不会把用户删掉的东西复活。 */
 window.__e11SocialAudit=function(){
   try{
+    /* v43-226：离站档是权威时不再做社交对账，旧信件/留言/动态不能补进来 */
+    if(window.__e11ExitExact)return Promise.resolve(0);
     if(window.__e11StrictNoRestore&&window.__e11StrictNoRestore())return Promise.resolve(0);
     if(window.__socialAuditing)return Promise.resolve(0);
     if(!window._dbReady||typeof __bkMeta!=="function"||typeof dbGet!=="function")return Promise.resolve(0);
