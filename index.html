@@ -113,37 +113,6 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
   document.documentElement.setAttribute("data-boot",dark?"dark":"light");
   /* v43-235z60b：APK 顶栏保持透明；PWA/网页用默认顶栏，夜间黑、白天白。 */
   window.__E11_APK=!!(window.AndroidUI)||/ElevenX11|Eleven11Apk/.test(navigator.userAgent||"");
-  /* v43-235z60b7：全面屏 iPhone 的 PWA 里 env(safe-area-inset-top) 有时返回 0，
-     顶部栏就直接钻到电量栏/灵动岛下面。按屏幕高度和设备类型兜底一个 59px 状态栏，
-     所有 .v-head / .topbar 都会一起下移。APK 有自己的原生安全区，不套用。 */
-  try{
-    var _nUA=String(navigator.userAgent||"");
-    var _nDpr=Number(window.devicePixelRatio)||1;
-    var _nScreenH=(Number(window.screen&&window.screen.height)||0)/(_nDpr>1?_nDpr:1);
-    var _safeFallback=0;
-    if(window.__E11_APK){
-      /* 安卓 APK 直接读原生状态栏高度；拿不到时按 28dp 兜底，
-         保证顶栏永远不会画到电量/时间下面。 */
-      try{if(window.AndroidUI&&typeof AndroidUI.getStatusBarHeight==="function"){
-        var _nh=parseInt(AndroidUI.getStatusBarHeight(),10)||0;
-        if(_nh>0)_safeFallback=Math.min(60,_nh);
-      }}catch(_eNh){}
-      if(!_safeFallback)_safeFallback=28;
-    }else if(/iPhone|iPod/.test(_nUA)){
-      /* 所有 iPhone：刘海/灵动岛机型 59，老款传统状态栏 20。 */
-      _safeFallback=_nScreenH>=780?59:(_nScreenH>=700?47:20);
-    }else if(/iPad/.test(_nUA)){
-      _safeFallback=24;
-    }else if(/Android/.test(_nUA)){
-      /* 安卓 PWA / 浏览器：safe-area 不给值时也补 28。 */
-      _safeFallback=28;
-    }
-    if(_safeFallback>0){
-      document.documentElement.style.setProperty("--native-safe-top",_safeFallback+"px");
-      document.documentElement.classList.add("e11-notch");
-    }
-  }catch(_eNotch){}
-
   try{
     var _tc=document.getElementById("theme-color-meta");
     if(_tc)_tc.setAttribute("content",window.__E11_APK?"#00000000":(dark?"#000000":"#ffffff"));
@@ -303,7 +272,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-26v43-235z60b7";
+window.__E11_BUILD="2026-11-26v43-235z60b5";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -2824,7 +2793,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-26v43-235z60b7">
+<meta name="app-build" content="2026-11-26v43-235z60b5">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3787,7 +3756,7 @@ html.kb-typing #rotate-guard,html.kb-typing body #rotate-guard{display:none!impo
 .data-danger .data-sub-btn{color:var(--danger,#FF3B30);border-color:rgba(255,59,48,.28);}
 </style>
 <style id="__e11_fill_bottom">
-/* v43-235z60b7：PWA/浏览器底部会留一条系统底栏高度的白底。
+/* v43-235z60b5：PWA/浏览器底部会留一条系统底栏高度的白底。
    app 只按 dvh 排（793）时，body 852 的下半截没人画，就是那条白。
    把画布和 app 都铺到 large viewport（852），底栏区域也由页面背景/壁纸填满；
    固定 dock 仍按真实可视视口贴底，不会被浏览器条压住。 */
@@ -13514,7 +13483,7 @@ function initKeyboardFix(){
       const vv=window.visualViewport;
       const innerH=window.innerHeight||0;
       const stable=__e11StableViewH();
-      /* v43-235z60b7：如果 WebView 已经把 innerHeight 缩到键盘上沿（adjustResize
+      /* v43-235z60b5：如果 WebView 已经把 innerHeight 缩到键盘上沿（adjustResize
          或浏览器自己处理），说明布局视口已经在避让键盘，不能再把聊天页定成
          vv 高度——两套尺寸同时改就是“一闪一闪”的根源。 */
       if(innerH>0&&stable&&innerH<stable-40){_clear();return;}
@@ -13550,7 +13519,7 @@ function initKeyboardFix(){
       const bb=vc.querySelector(".bottombar");
       if(bb){bb.style.transform="";bb.style.paddingBottom="8px";}
       try{__chatPinNow();}catch(_){}
-      /* v43-235z60b7：不再用下一帧“发现底栏超出再改一次高度”的追高逻辑。
+      /* v43-235z60b5：不再用下一帧“发现底栏超出再改一次高度”的追高逻辑。
          键盘动画期间每帧都改高度会一弹一弹；这里一次定高，等键盘停稳再校准。 */
     }catch(_){}
   }
@@ -13645,7 +13614,7 @@ function initKeyboardFix(){
     const vc=document.getElementById("view-chat");
     const chatOpen=!!(vc&&vc.classList.contains("open"));
     if(chatOpen){
-      /* v43-235z60b7：聊天页交给 fitChatToKeyboard 统一收口，键盘高度稳定后一次性
+      /* v43-235z60b5：聊天页交给 fitChatToKeyboard 统一收口，键盘高度稳定后一次性
          定住视口高度；这里不再每帧改 padding，也不重复顶底栏，避免上下弹动。 */
       shiftFor(bb,0);
       queueKbChat(140);
