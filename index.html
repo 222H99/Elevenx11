@@ -272,7 +272,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-26v43-236b7";
+window.__E11_BUILD="2026-11-26v43-236b8";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -1695,8 +1695,8 @@ body.ui-dark #overlay #sheet{background:rgba(38,38,42,.95);box-shadow:0 12px 34p
 /* 写信整页 */
 
 #lt-write-modal .lt-write-sheet{width:100%;max-width:100%;height:100%;max-height:100%;border-radius:0;display:flex;flex-direction:column;background:var(--paper-bg,#fff);background-image:var(--paper-img,none);background-size:cover;background-position:center;}
-#lt-write-modal .ltw-top{padding:10px 12px 10px;padding-top:calc(10px + var(--safe-top, env(safe-area-inset-top)));align-items:center;box-sizing:border-box;}
-#lt-write-modal .ltw-top .small-btn{min-height:44px;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;}
+#lt-write-modal .ltw-top{padding:10px 12px 10px;padding-top:calc(10px + var(--safe-top, env(safe-area-inset-top)));min-height:calc(64px + var(--safe-top, env(safe-area-inset-top)));align-items:center;box-sizing:border-box;}
+#lt-write-modal .ltw-top .small-btn{min-height:28px;height:28px;padding:0 9px;font-size:12px;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;}
 #lt-write-modal .lt-write-sheet{padding:0;box-sizing:border-box;}
 #lt-write-modal .sheet-grip{display:none;}
 #lt-write-modal .lt-write-foot{padding-bottom:calc(10px + env(safe-area-inset-bottom));}
@@ -1757,9 +1757,9 @@ body.ui-dark #overlay #sheet{background:rgba(38,38,42,.95);box-shadow:0 12px 34p
 .env-card .ev-page{display:flex;flex-direction:column;min-height:100%;}
 body.env-open #btn-letters-back{visibility:hidden!important;pointer-events:none!important;}
 .env-card .ev-main{border-radius:18px;padding:14px 16px;margin:0 0 12px;background-color:#ffffff;border:1px solid rgba(0,0,0,.06);box-shadow:0 6px 18px rgba(0,0,0,.05);}
-.env-card .ev-page-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:8px;padding:10px 12px 10px;padding-top:calc(10px + var(--safe-top, env(safe-area-inset-top)));box-sizing:border-box;background:rgba(255,255,255,.74);-webkit-backdrop-filter:blur(16px) saturate(150%);backdrop-filter:blur(16px) saturate(150%);border-bottom:1px solid rgba(0,0,0,.06);}
+.env-card .ev-page-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:8px;padding:10px 12px 10px;padding-top:calc(10px + var(--safe-top, env(safe-area-inset-top)));min-height:calc(64px + var(--safe-top, env(safe-area-inset-top)));box-sizing:border-box;background:rgba(255,255,255,.74);-webkit-backdrop-filter:blur(16px) saturate(150%);backdrop-filter:blur(16px) saturate(150%);border-bottom:1px solid rgba(0,0,0,.06);}
 .env-card .ev-page-title{flex:1;text-align:center;font-size:16px;font-weight:700;color:var(--ttext,#1C1C1E);}
-.env-card .ev-page-head .small-btn{min-height:44px;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;}
+.env-card .ev-page-head .small-btn{min-height:28px;height:28px;padding:0 9px;font-size:12px;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;}
 .env-card .ev-head-sp{width:56px;}
 .env-card .ev-scroll{flex:1;padding:16px;}
 .env-card .ev-sig{margin-top:12px;text-align:right;font-size:12.5px;line-height:1.7;color:var(--sub,#8E8E93);}
@@ -2796,7 +2796,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-26v43-236b7">
+<meta name="app-build" content="2026-11-26v43-236b8">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -8941,11 +8941,12 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-236b7",
-  time:"2026-11-26 02:10",
+  date:"v43-236b8",
+  time:"2026-11-26 02:20",
   noticeKey:null,
   lead:"2026-11-26 修改（v43-236b7）：双方新增的评论、动态、信件、留言现在会即时落盘，同一条动态里后补的评论也会和另一台设备按 id 合并，不再被旧数组长度判断漏掉；另外固定为先声明页、再密码页，信件返回/收起/取消三处顶栏统一高度。",
   items:[
+    "信件顶栏按钮偏大（v43-236b8）：收起/信纸信封/回信/取消以前被撑到 44px，外框比「全部已读」大一圈。现在统一到 28px、12 号字，横向留白收窄，顶栏高度仍和信件主页返回栏一致。",
     "双方评论/动态/信件/留言不自动保存（v43-236b7）：以前退出签名只比较数组长度和最后一条 id，同一条动态里新加的评论、同一条信件/留言的修改都不会触发落盘，系统杀掉 App 就丢。现在按内容深度签名，并且社交内容一变就立刻写一份离站档。",
     "另一台设备的评论进不来（v43-236b7）：合并动态/信件时，同 id 条目以前整条直接跳过，后加的评论、回复永远不进来。现在按 id 深度并集，评论和逐层回复都会补进来，点赞也合并，只加不删。",
     "先声明页再密码（v43-236b7）：密码页以前会在数据校验阶段先弹一下再被声明页盖住。现在声明页没点「同意并进入」之前绝不显示密码页，顺序固定为声明 → 密码 → 主页。",
@@ -30479,7 +30480,7 @@ function paperFor(l){
 function envThreadHTML(root,l){
   var reps=(state.letters||[]).filter(function(x){return x.replyTo===root.id&&x.id!==root.id;}).sort(function(a,b){return (a.time||0)-(b.time||0);});
   var canReply=(root.from==="partner");
-  var html='<div class="ev-page"><div class="ev-page-head"><button class="small-btn ghost" id="env-card-close" style="font-size:13px;padding:5px 12px;">收起</button><button class="small-btn ghost" id="env-card-bg" style="font-size:13px;padding:5px 10px;margin-left:6px;">信纸/信封</button><div class="ev-page-title">'+(canReply?"来信":"我的信")+'</div>'+(canReply?'<button class="small-btn" id="env-reply-open" style="font-size:13px;padding:5px 14px;">回信</button>':'<span class="ev-head-sp"></span>')+'</div><div class="ev-scroll">';
+  var html='<div class="ev-page"><div class="ev-page-head"><button class="small-btn ghost" id="env-card-close">收起</button><button class="small-btn ghost" id="env-card-bg" style="margin-left:6px;">信纸/信封</button><div class="ev-page-title">'+(canReply?"来信":"我的信")+'</div>'+(canReply?'<button class="small-btn" id="env-reply-open">回信</button>':'<span class="ev-head-sp"></span>')+'</div><div class="ev-scroll">';
   html+='<div class="ev-main'+((paperFor(root))?' ev-user-paper':'')+'" style="'+paperCssOf(paperFor(root))+'">';
   if(root.subject)html+='<div class="ev-title">'+esc(root.subject)+'</div>';
   html+=letterTextHTML(__letterTextOf(root));
