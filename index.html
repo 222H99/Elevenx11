@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-216z38";
+window.__E11_BUILD="2026-11-25v43-217z39";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2760,7 +2760,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-216z38">
+<meta name="app-build" content="2026-11-25v43-217z39">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -8810,11 +8810,12 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-193z33f",
-  time:"2026-11-25 21:30",
+  date:"v43-217z39",
+  time:"2026-11-25 17:25",
   noticeKey:null,
-  lead:"2026-11-25 修改（v43-193z33f）：最近 7 份完整备份保留，进入网站时全部合并；离开网站自动写一份全量备份，配额不足自动退成文字核心档，备份不再自己消失。",
+  lead:"2026-11-25 修改（v43-217z39）：头像、主页照片、情侣照片、一起听头像和照片背景改成选中原图就自动保存，不再等压缩完成；退出、刷新或覆盖安装后读到的都是最新一张。",
   items:[
+    "头像照片改完就丢（v43-217z39）：多个入口要先等头像/照片压缩完才写盘，选中原图后立刻退出、刷新或覆盖安装，读回的还是上一张。现在选中原图就同步写主档、外观保护档、图片保险箱和云端，压缩完成再替换成小图并再存一次；主页照片、情侣照片、一起听头像、音乐背景和通话背景同样处理。",
     "备份自己丢失（v43-193z33f）：配额满时旧代码删的是 meta 里第一份（最新那份），备份会一份接一份消失；完整档写失败也没有文字兜底。现在只删最旧一份，保留 6 份；完整档失败自动改存文字核心档。进入网站时最近 7 份备份全部按 id 合并，离开网站再自动写一份全量档。",
     "更新后一起听被关掉（v43-192z33f）：页面末尾有一段“新页面第一次打开就强制 musicSession=false 并 save()”的旧逻辑。更新/退出后 sessionStorage 被清空，一起听会被判成没开始；而且 save 发生在启动读库前，还会把默认空档写回主库。现在启动阶段不再重置会话、不再写盘，只有点「关闭」才会把 miniClosed 置真，下一次才需要重新邀请。",
     "更新退出后数据没保存（v43-191z33f）：离站快照以前把聊天和 2.6MB 全局外观拼成一个键，手机配额一满整份写失败。现在按体积逐级降级，先写完整、再写不带外观、最后至少保留最近 40 条聊天，保证退出时有一份能落盘。",
@@ -13536,6 +13537,28 @@ window.__cardMediaPersist=function(){
   try{if(window.__e11SyncProfileBackup)window.__e11SyncProfileBackup();}catch(_eCardProf){}
   try{if(window.__cardFaceSyncNow)window.__cardFaceSyncNow();}catch(_eCardFace2){}
   try{if(window.__flushSave)window.__flushSave(true);}catch(_eCardFlush){}
+};
+/* v43-217：头像/照片/背景选完原图就同步落盘。
+   以前多个入口要等 __avatarShrink/compress 完成才 save，压缩期间退出、刷新或覆盖安装，
+   本机读回的还是上一张。这里在拿到原图、已经写进 state 后立刻把主档、外观保护档、
+   图片保险箱和云端全部推一遍；压缩完再覆盖成小图并保存一次。 */
+window.__e11MediaAutoSave=function(kind){
+  var ok=false;
+  try{
+    if(typeof state==="undefined"||!state)return false;
+    state.__savedAt=Date.now();
+    state.profile=state.profile||{};
+    state.profile.__mediaTs=Date.now();
+    if(kind==="avatar")state.profile.__mediaAvatarTs=Date.now();
+    if(kind==="photo")state.profile.__mediaPhotoTs=Date.now();
+    if(kind==="avatar"){try{if(window.__avatarBakSync)window.__avatarBakSync();}catch(_maBak){}}
+    try{save();ok=true;}catch(_maSave){}
+    try{__flushSave(true);}catch(_maFlush){}
+    try{if(window.__cardMediaPersist)window.__cardMediaPersist();}catch(_maCard){}
+    try{if(window.__e11AppearanceSaveNow)window.__e11AppearanceSaveNow(true);}catch(_maApp){}
+    try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_maCloud){}
+  }catch(_maAll){}
+  return ok;
 };
 function __bgPersistNow(){
   /* 先同步小备份，再做异步主库/云端落盘：刷新/退出时至少这一份在 */
@@ -23064,7 +23087,13 @@ $("file-avatar").addEventListener("change",e=>{
   const r=new FileReader();
   r.onload=()=>{
     var _who=$("file-avatar").dataset.who,_surface=$("file-avatar").dataset.surface||"chat",_raw=String(r.result||"");
-    toast("正在处理头像…");
+    /* v43-217：先写原图并立刻落盘，再后台压缩；压缩途中退出/刷新不会退回旧头像 */
+    try{
+      __setAvatar(_who,_raw,_surface);
+      try{__mediaVaultPut("avatar:"+_who,_raw);}catch(_){}
+      try{if(window.__e11MediaAutoSave)window.__e11MediaAutoSave("avatar");}catch(_){}
+    }catch(_){}
+    toast("头像已更新，正在优化…");
     /* 先压到 320px 再写 state；不要先把几 MB 原图存进去再压一次 */
     __avatarShrink(_raw).then(function(c){
       var _v=c||_raw;
@@ -24820,6 +24849,8 @@ $("cb-file").addEventListener("change",function(e){
   var f=this.files&&this.files[0];if(!f)return;
   var rd=new FileReader();
   rd.onload=function(){var raw=String(rd.result);
+    /* v43-217：通话背景先落盘再压缩 */
+    try{state.callBgImg=raw;applyCallMode();__bgPersistNow();}catch(_){}
     gCompress(raw).then(function(u){state.callBgImg=u;applyCallMode();__bgPersistNow();toast("通话背景已更新");$("call-bg-sheet").classList.remove("show");});
   };
   rd.readAsDataURL(f);e.target.value="";
@@ -25186,7 +25217,15 @@ function gCompress(d,max,q){return __shrinkImg(d,max||720,q||0.72);}
       var who=pair[1],rd=new FileReader();
       rd.onload=function(){
         var raw=String(rd.result);
-        toast("正在处理头像…");
+        /* v43-217：一起听头像选中原图就写对应场景并落盘，压缩失败也不会退回旧图 */
+        try{
+          if(who==="partner")state.profile.mpAv1=raw;else state.profile.mpAv2=raw;
+          try{__mediaVaultPut("avatar:"+who,raw);}catch(_){}
+          try{if(window.__e11MediaAutoSave)window.__e11MediaAutoSave("avatar");}catch(_){}
+          try{window.__e11MusicRoomTouch&&window.__e11MusicRoomTouch();}catch(_){}
+          renderMusicList();
+        }catch(_){}
+        toast("头像已更新，正在优化…");
         __avatarShrink(raw).then(function(c){
           if(who==="partner")state.profile.mpAv1=c||raw;else state.profile.mpAv2=c||raw;
           try{window.__e11MusicRoomTouch&&window.__e11MusicRoomTouch();}catch(_){}
@@ -27881,7 +27920,10 @@ $("mb-confirm").addEventListener("click",(e)=>{e.stopPropagation();window.__e11S
   $("mb-file").addEventListener("change",e=>{
     const f=e.target.files&&e.target.files[0];if(!f)return;
     const rd=new FileReader();
-    rd.onload=()=>{var raw=rd.result;var apply=function(u){state.musicBgImg=u;state.musicBg=0;renderMusicBg();__bgPersistNow();toast("已导入背景");$("music-bg-sheet").classList.remove("show");
+    rd.onload=()=>{var raw=rd.result;
+      /* v43-217：音乐背景选中原图先落盘，再后台压缩替换 */
+      try{state.musicBgImg=raw;state.musicBg=0;renderMusicBg();__bgPersistNow();}catch(_){}
+      var apply=function(u){state.musicBgImg=u;state.musicBg=0;renderMusicBg();__bgPersistNow();toast("已导入背景");$("music-bg-sheet").classList.remove("show");
       setTimeout(function(){if(!db)return;dbGet("state").then(function(v){return __hydrateBig(v);}).then(function(v){if(!v||String(v.musicBgImg||"").slice(0,10)!==String(u).slice(0,10)){toast("背景没能保存，请换一张更小的图片");}}).catch(function(){});},600);
     };try{gCompress(raw).then(apply);}catch(_){apply(raw);}};
     rd.readAsDataURL(f);
@@ -33103,7 +33145,15 @@ $("file-me-photo").addEventListener("change",e=>{
   const rd=new FileReader();rd.onload=()=>{
     if(!state.me.photos)state.me.photos=[];
     var _raw=String(rd.result);
-    toast("正在处理照片…");
+    /* v43-217：照片框选中原图立刻落盘，再后台压到 720；压缩期间退出/刷新不会回旧照片 */
+    try{
+      state.me.photos[0]=_raw;
+      __mePhotoBackupWrite(_raw);
+      try{__mediaVaultPut("photo:0",_raw);}catch(_){}
+      try{if(window.__e11MediaAutoSave)window.__e11MediaAutoSave("photo");}catch(_){}
+      renderMePhotos();
+    }catch(_){}
+    toast("照片已更新，正在优化…");
     __shrinkImg(_raw,720,0.78).then(function(c){
       var v=c||_raw;
       state.me.photos[0]=v;
@@ -33308,7 +33358,7 @@ window.__cp2Activate=__cp2Activate;
     card.addEventListener("click",function(e){
       // photo area tap directly changes photo
       if(e.target.closest("#cp2-count-photo")){
-        window.__pickLocalFile("image/*",function(files){var f=files&&files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){var raw=String(rd.result);state.profile.cpPhoto=raw;try{__mediaVaultPut("profile:cpPhoto",raw);}catch(_){}renderCouple();cq(raw).then(function(c){if(state.profile.cpPhoto===raw)state.profile.cpPhoto=c;try{__mediaVaultPut("profile:cpPhoto",c);}catch(_){}save();renderCouple();if(typeof preloadCp2Images==="function")preloadCp2Images();});};rd.readAsDataURL(f);});
+        window.__pickLocalFile("image/*",function(files){var f=files&&files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){var raw=String(rd.result);state.profile.cpPhoto=raw;try{__mediaVaultPut("profile:cpPhoto",raw);}catch(_){}try{if(window.__e11MediaAutoSave)window.__e11MediaAutoSave("photo");}catch(_){}renderCouple();cq(raw).then(function(c){if(state.profile.cpPhoto===raw)state.profile.cpPhoto=c;try{__mediaVaultPut("profile:cpPhoto",c);}catch(_){}save();renderCouple();if(typeof preloadCp2Images==="function")preloadCp2Images();});};rd.readAsDataURL(f);});
         return;
       }
       openEdit();
@@ -33319,7 +33369,9 @@ window.__cp2Activate=__cp2Activate;
   if($("cp2-edit-photo"))$("cp2-edit-photo").addEventListener("click",function(){window.__nativePick("file-cp2-photo");});
   $("file-cp2-photo").addEventListener("change",function(e){
     var f=e.target.files&&e.target.files[0];if(!f)return;
-    var rd=new FileReader();rd.onload=function(){var raw=String(rd.result);state.profile.cpPhoto=raw;try{__mediaVaultPut("profile:cpPhoto",raw);}catch(_){}renderCouple();cq(raw).then(function(c){if(state.profile.cpPhoto===raw)state.profile.cpPhoto=c;try{__mediaVaultPut("profile:cpPhoto",c);}catch(_){}save();renderCouple();if(typeof preloadCp2Images==="function")preloadCp2Images();toast("照片已更换");});};rd.readAsDataURL(f);e.target.value="";
+    var rd=new FileReader();rd.onload=function(){var raw=String(rd.result);state.profile.cpPhoto=raw;try{__mediaVaultPut("profile:cpPhoto",raw);}catch(_){}
+      try{if(window.__e11MediaAutoSave)window.__e11MediaAutoSave("photo");}catch(_){}
+      renderCouple();cq(raw).then(function(c){if(state.profile.cpPhoto===raw)state.profile.cpPhoto=c;try{__mediaVaultPut("profile:cpPhoto",c);}catch(_){}save();renderCouple();if(typeof preloadCp2Images==="function")preloadCp2Images();toast("照片已更换");});};rd.readAsDataURL(f);e.target.value="";
   });
   if($("cp2-edit-save"))$("cp2-edit-save").addEventListener("click",function(){
     state.profile.cpTitle=$("cp2-edit-title").value.trim();
@@ -33357,7 +33409,9 @@ window.__cp2Activate=__cp2Activate;
   }
   try{window.optimizeCp2Images=optimizeCp2Images;}catch(e){}
   function pick(idx){
-    window.__pickLocalFile("image/*",function(files){var f=files&&files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){var raw=String(rd.result);if(idx===0)state.profile.cpPhotoCard=raw;else if(idx===1)state.profile.cpPhotoSub=raw;else state.profile.cpRecord=raw;renderCouple();toast("照片已更换");compressImg(raw,800,0.75).then(function(c){var guard=(idx===0)?(state.profile.cpPhotoCard===raw):((idx===1)?(state.profile.cpPhotoSub===raw):(state.profile.cpRecord===raw));if(!guard)return;if(idx===0)state.profile.cpPhotoCard=c;else if(idx===1)state.profile.cpPhotoSub=c;else state.profile.cpRecord=c;save();renderCouple();if(typeof preloadCp2Images==="function")preloadCp2Images();});};rd.readAsDataURL(f);});
+    window.__pickLocalFile("image/*",function(files){var f=files&&files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){var raw=String(rd.result);if(idx===0)state.profile.cpPhotoCard=raw;else if(idx===1)state.profile.cpPhotoSub=raw;else state.profile.cpRecord=raw;
+      try{if(window.__e11MediaAutoSave)window.__e11MediaAutoSave("photo");}catch(_){}
+      renderCouple();toast("照片已更新，正在优化…");compressImg(raw,800,0.75).then(function(c){var guard=(idx===0)?(state.profile.cpPhotoCard===raw):((idx===1)?(state.profile.cpPhotoSub===raw):(state.profile.cpRecord===raw));if(!guard)return;if(idx===0)state.profile.cpPhotoCard=c;else if(idx===1)state.profile.cpPhotoSub=c;else state.profile.cpRecord=c;save();renderCouple();if(typeof preloadCp2Images==="function")preloadCp2Images();});};rd.readAsDataURL(f);});
   }
   var cm=$("cp2-photo-main");if(cm)cm.addEventListener("click",function(){pick(0);});
   var cs=$("cp2-photo-sub");if(cs)cs.addEventListener("click",function(){pick(1);});
@@ -33369,7 +33423,9 @@ window.__cp2Activate=__cp2Activate;
   var rpo=$("cp2-record-edit-overlay");if(rpo)rpo.addEventListener("click",function(e){if(e.target===e.currentTarget)rpo.classList.remove("show");});
   // 情侣空间头像：点击各自更换（独立字段，不与其他页共用）
   function pickAv(who){
-    window.__pickLocalFile("image/*",function(files){var f=files&&files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){var raw=String(rd.result);toast("正在处理头像…");__avatarShrink(raw).then(function(c){var v=c||raw;if(who==="me")state.profile.cpMeAvatar=v;else state.profile.cpPartnerAvatar=v;save();renderCouple();toast("情侣头像已更换");if(typeof preloadCp2Images==="function")preloadCp2Images();});};rd.readAsDataURL(f);});
+    window.__pickLocalFile("image/*",function(files){var f=files&&files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){var raw=String(rd.result);
+      try{if(who==="me")state.profile.cpMeAvatar=raw;else state.profile.cpPartnerAvatar=raw;try{__mediaVaultPut("avatar:"+who,raw);}catch(_){}try{if(window.__e11MediaAutoSave)window.__e11MediaAutoSave("avatar");}catch(_){}renderCouple();}catch(_){}
+      toast("头像已更新，正在优化…");__avatarShrink(raw).then(function(c){var v=c||raw;if(who==="me")state.profile.cpMeAvatar=v;else state.profile.cpPartnerAvatar=v;save();renderCouple();toast("情侣头像已更换");if(typeof preloadCp2Images==="function")preloadCp2Images();});};rd.readAsDataURL(f);});
   }
   var line=$("cp2-line");
   if(line)line.addEventListener("click",function(){
@@ -34486,6 +34542,8 @@ $("file-me-av").addEventListener("change",e=>{
     try{
       /* v43-210：先拿原图立即换到卡片上，再后台压缩；不再让用户对着“正在处理头像…”等 */
       __setAvatar("me",raw,"card");
+      try{__mediaVaultPut("avatar:me",raw);}catch(_){}
+      try{if(window.__e11MediaAutoSave)window.__e11MediaAutoSave("avatar");}catch(_){}
       try{renderMe();}catch(_){}
       try{renderMomentProfile();}catch(_){}
     }catch(_eAvNow){}
@@ -34507,7 +34565,9 @@ $("file-me-av").addEventListener("change",e=>{
 $("cp2-av-me").addEventListener("click",()=>window.__nativePick("cp-file-av-me"));
 $("cp-file-av-me").addEventListener("change",e=>{
   const f=e.target.files&&e.target.files[0];if(!f)return;
-  const rd=new FileReader();rd.onload=()=>{var raw=String(rd.result);toast("正在处理头像…");__avatarShrink(raw).then(function(c){
+  const rd=new FileReader();rd.onload=()=>{var raw=String(rd.result);
+    try{__setAvatar("me",raw,"couple");try{__mediaVaultPut("avatar:me",raw);}catch(_){}try{if(window.__e11MediaAutoSave)window.__e11MediaAutoSave("avatar");}catch(_){}renderCouple();}catch(_){}
+    toast("头像已更新，正在优化…");__avatarShrink(raw).then(function(c){
     var _v=c||raw;
     __setAvatar("me",_v,"couple");
     save();try{__flushSave(true);}catch(_){}
@@ -34526,7 +34586,9 @@ $("cp-file-av-me").addEventListener("change",e=>{
 })();
 $("cp-file-av-partner").addEventListener("change",e=>{
   const f=e.target.files&&e.target.files[0];if(!f)return;
-  const rd=new FileReader();rd.onload=()=>{var raw=String(rd.result);toast("正在处理头像…");__avatarShrink(raw).then(function(c){
+  const rd=new FileReader();rd.onload=()=>{var raw=String(rd.result);
+    try{__setAvatar("partner",raw,"couple");try{__mediaVaultPut("avatar:partner",raw);}catch(_){}try{if(window.__e11MediaAutoSave)window.__e11MediaAutoSave("avatar");}catch(_){}renderCouple();}catch(_){}
+    toast("头像已更新，正在优化…");__avatarShrink(raw).then(function(c){
     var _v=c||raw;
     __setAvatar("partner",_v,"couple");
     save();try{__flushSave(true);}catch(_){}
