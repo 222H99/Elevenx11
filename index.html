@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-221z43";
+window.__E11_BUILD="2026-11-25v43-222z44";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -2786,7 +2786,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-221z43">
+<meta name="app-build" content="2026-11-25v43-222z44">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -7566,7 +7566,7 @@ setTimeout(function(){
         ks.forEach(function(k){try{if(k==="e11.lockPwd.v1")return;localStorage.removeItem(k);}catch(e){}});
       }catch(e){}
       try{localStorage.removeItem(LS_OWNER);}catch(e){}
-      try{localStorage.removeItem("e11.exit.v1");localStorage.removeItem("e11.core.v1");localStorage.removeItem("beautyVault:latest");localStorage.removeItem("e11.keep4.v1");localStorage.removeItem("e11.resetLocalOnly.v1");}catch(e){}
+      try{localStorage.removeItem("e11.exit.v1");localStorage.removeItem("e11.core.v1");localStorage.removeItem("beautyVault:latest");localStorage.removeItem("e11.keep4.v1");localStorage.removeItem("e11.session.meta.v1");localStorage.removeItem("e11.resetLocalOnly.v1");}catch(e){}
       /* 刷新前页面可能把旧数据写进这两个应急键，必须一起清掉，否则下次启动会“复活”上一个账号的内容 */
       try{sessionStorage.removeItem("privateChat__emergency");sessionStorage.removeItem("bigPending__emergency");sessionStorage.removeItem("__forceIdbRestore");}catch(e){}
       /* 不删除数据库：001 的历史数据只活在旧库里；其他账号用独立 DB，切号后不会读到彼此 */
@@ -8843,11 +8843,14 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-221z43",
-  time:"2026-11-25 19:35",
+  date:"v43-222z44",
+  time:"2026-11-25 20:05",
   noticeKey:null,
-  lead:"2026-11-25 修改（v43-221z43）：退出/更新后还是旧值这一轮继续修：离站快照直接带四项，恢复旧自动备份不再被当前旧值覆盖，版本更新首启清掉旧缓存。信件收藏显示真名，收藏夹分为聊天、动态、信件、留言。",
+  lead:"2026-11-25 修改（v43-222z44）：自动备份改成只在你点「立即备份一次」时才写，退出/切后台/改图都不再自动备份。进入网站时直接恢复上一次退出时的整机状态：页面停在哪儿、聊天/信件/动态/设置/图和名字都按退出那一刻还原。",
   items:[
+    "自动备份改成只手动（v43-222z44）：退出网站、切后台、改图、改名字都不再偷偷写自动备份槽；只有设置 → 自动备份里点「立即备份一次」才真正写一份。已有的旧备份仍可手动恢复。",
+    "进入网站不是上次退出状态（v43-222z44）：以前进站会先读主档，再并离站文字快照、配置小备份、外观档和自动备份，最后状态不一定等于退出那一刻。现在退出时把完整整机状态写进 IndexedDB，进入时最后用这份覆盖；上次停在哪一页、聊天/信件/动态/设置/图片/名字都按退出时还原。",
+    "上次退出页面不回来（v43-222z44）：启动默认先落桌面，现在整机快照里记了当前页面，恢复后会补一次切页；聊天列表滚动位置也一起回来。",
     "退出/更新后还是旧值（v43-221z43）：以前四项只写另一条异步备份，页面被系统杀掉时可能还没写完；现在离开网站写的离站快照本身就带图标、卡片头像、一起听图、我的名字/对方名字，重进先读这份。恢复旧自动备份时，也不再拿当前 localStorage 里的旧四项去盖备份里的新四项。版本号变化后第一次打开会清掉旧 Service Worker 缓存并重载一次，避免“更新了但跑的还是旧代码”。",
     "退出再进图/名没保存、恢复自动备份不是最新（v43-220z42）：四项专用备份现在同时写 IndexedDB 和本机小备份，每次改完、切后台、关页面都写；自动备份的每一份也带上这份四项数据，手动恢复时一起还原，不会再只恢复文字、图片回到旧档。改完图或名字，自动备份立即在后台补一份，不再等退出时异步写盘被打断。",
     "信件收藏显示代码（v43-220z42）：收藏夹里的信件正文以前直接显示 {{me}}、{{partner}}、[[SIG]] 原文。现在渲染时换成真实名字，并补上「To 对方 / 我 留」的抬头，旧收藏也一起生效。",
@@ -9595,7 +9598,7 @@ function __e11ReadScopeDb(name){
           if(!odb.objectStoreNames.contains(STORE)){try{odb.close();}catch(_){}finish(null);return;}
           var tx=odb.transaction(STORE,"readonly"),st=tx.objectStore(STORE);
           var out={};
-          var keys=["state","bk_snap_meta","bk_slot_0","bk_slot_1","bk_slot_2","bk_slot_3","bk_slot_4","bk_slot_5","bk_slot_6","bk_best"];
+          var keys=["state","bk_snap_meta","bk_slot_0","bk_slot_1","bk_slot_2","bk_slot_3","bk_slot_4","bk_slot_5","bk_slot_6","bk_best","e11.session.v1"];
           var pending=keys.length;
           keys.forEach(function(k){
             var g=st.get(k);
@@ -9988,15 +9991,9 @@ window.__bkSaveNow=function(){try{return __bkSave(true);}catch(_){return null;}}
 /* v43-111：离开网站/切后台时，除了同步文字快照，再尽力写一份完整自动备份（含图片/表情/字卡/设置）。
    5 秒内只触发一次，避免 visibilitychange + pagehide 连写两遍拖慢退出。 */
 window.__e11FullBackupSoon=function(force){
-  try{
-    if(window.__restoring||!window.__stateReady)return;
-    var now=Date.now();
-    if(!force&&now-(Number(window.__bkExitAt)||0)<5000)return;
-    window.__bkExitAt=now;
-    /* force：退出瞬间数据确实变过，直接写完整档（不再等 5 秒节流，也不再被旧时间戳跳过）。
-       下次进来自动恢复的就是这份“离开前”的数据。 */
-    try{if(window.__bkSave)window.__bkSave(true,force?undefined:{onlyIfDirty:1}).catch(function(){});}catch(_){}
-  }catch(_){}
+  /* v43-222：用户要求自动备份只在点「立即备份一次」时发生。
+     退出网站、改图、改名字都不再偷偷写备份槽；整机状态改走 e11.session.v1。 */
+  return false;
 };
 /* v43-205：用户在“只恢复近 30 天”后，进站自动合并也不能再把 30 天前的旧档翻出来。 */
 window.__e11ItemTime=function(x){
@@ -10098,6 +10095,10 @@ window.__bkMergeNewest=function(force){
   }catch(_){window.__bkMerging=0;return 0;}
 };
 function __bkAuto(){
+  /* v43-222：自动备份已关闭，只有备份面板里的手动按钮会写槽。 */
+  return;
+}
+function __bkAutoLegacy(){
   try{__bkSave(false).then(function(r){if(r==="ok"||r==="core")try{__bkPaint();}catch(e){}}).catch(function(e){
     try{if(e&&(e.name==="QuotaExceededError")){__bkMeta().then(function(m){
       /* v43-193：配额满时只丢最旧的一份，保留其余 6 份；旧代码误删 meta[0]（最新那份），
@@ -10576,6 +10577,8 @@ function __e11CoreWrite(st,force){
 /* v43-81：退出/切后台瞬间同步写一份“离站快照”。用文字核心 + 全局小键，
    不依赖异步 IndexedDB；下次进入优先读它，就是你离开前最后看到的那份数据。 */
 var __E11_EXIT_KEY="e11.exit.v1";
+/* v43-222：上一次退出时的整机快照。自动备份改成只手动点，退出/进入就以这份为准。 */
+var __E11_SESSION_KEY="e11.session.v1";
 /* v43-219：四项专用“最后一次选择”备份。
    离站快照走的是文字核心，所有 data: 图片都会被清空；所以图标、桌面卡片头像、
    一起听中心图/封面这些图，退出时根本没进离站档，重进只能读到更早的主库。
@@ -10821,6 +10824,8 @@ function __e11ExitSave(st,force){
     if(!_ok)return false;
     try{localStorage.setItem("e11.exit.meta.v1",JSON.stringify({ts:_exitTs,len:_txt.length,level:_used,mini:(_levels[_used]&&_levels[_used][0]!==null)?1:0,counts:{messages:_fullMsgs?_fullMsgs.length:0,cards:(core.cards||[]).length,letters:(core.letters||[]).length,moments:(core.moments||[]).length,guestbook:(core.guestbook||[]).length}}));}catch(_eMeta){}
     try{window.__e11ExitSavedAt=_exitTs;}catch(_){}
+    /* 整机快照走 IndexedDB，和离站文字档同时写；下次进入以它为准。 */
+    try{window.__e11SessionSnap&&window.__e11SessionSnap(src,true);}catch(_eSessionExit){}
     return true;
   }catch(e){return false;}
 }
@@ -10833,6 +10838,45 @@ function __e11ExitRead(){
 }
 window.__e11ExitSave=__e11ExitSave;
 window.__e11ExitRead=__e11ExitRead;
+function __e11SessionUI(){
+  var v="";try{v=window.__curView||"";}catch(_){}
+  if(!v){try{var o=document.querySelector(".view.open");if(o)v=o.id||"";}catch(_){}}
+  var ui={view:v||"view-me",hash:String(location.hash||""),ts:Date.now()};
+  try{ui.scrollY=Number(window.scrollY)||0;}catch(_){ui.scrollY=0;}
+  try{var ml=document.getElementById("msglist");if(ml)ui.msgScroll=Number(ml.scrollTop)||0;}catch(_){ui.msgScroll=0;}
+  return ui;
+}
+function __e11SessionSnap(st,force){
+  try{
+    if(typeof db==="undefined"||!db)return Promise.resolve(false);
+    if(window.__restoring)return Promise.resolve(false);
+    var now=Date.now();
+    if(now-(Number(window.__e11SessionAt)||0)<1500)return Promise.resolve(false);
+    if(!force&&now-(Number(window.__e11SessionAt)||0)<12000)return Promise.resolve(false);
+    window.__e11SessionAt=now;
+    var src=st||(typeof state!=="undefined"?state:null);if(!src)return Promise.resolve(false);
+    try{src.__savedAt=now;}catch(_){}
+    var ui=__e11SessionUI();
+    try{localStorage.setItem("e11.session.meta.v1",JSON.stringify({ts:now,ui:ui,build:String(window.__E11_BUILD||"")}));}catch(_eSessionMeta){}
+    var globals={};try{globals=__e11ExitGlobals();}catch(_){}
+    var snap={ts:now,build:String(window.__E11_BUILD||""),state:src,globals:globals,ui:ui};
+    return dbSet(__E11_SESSION_KEY,snap).then(function(){return true;}).catch(function(){return false;});
+  }catch(e){return Promise.resolve(false);}
+}
+window.__e11SessionSnap=__e11SessionSnap;
+window.__e11SessionApplyUI=function(){
+  try{
+    var ui=window.__e11SessionUI||null;if(!ui)return;
+    setTimeout(function(){
+      try{if(ui.view&&typeof showView==="function")showView(ui.view);}catch(_){}
+      setTimeout(function(){
+        try{if(ui.view&&typeof showView==="function")showView(ui.view);}catch(_){}
+        try{if(ui.msgScroll){var ml=document.getElementById("msglist");if(ml)ml.scrollTop=ui.msgScroll;}}catch(_){}
+        try{if(ui.scrollY)window.scrollTo(0,ui.scrollY);}catch(_){}
+      },500);
+    },700);
+  }catch(_){}
+};
 /* v43-191：每次改动写库成功后，最多隔 10 秒同步写一份离站快照。
    这样即使 App 被系统直接杀掉、来不及触发 pagehide，更新/退出前的最后改动也已经在本机。 */
 window.__e11QuickSnap=function(){
@@ -10842,6 +10886,7 @@ window.__e11QuickSnap=function(){
     if(n-(Number(window.__e11QuickSnapAt)||0)<10000)return;
     window.__e11QuickSnapAt=n;
     __e11ExitSave(typeof state!=="undefined"?state:null);
+    try{window.__e11SessionSnap&&window.__e11SessionSnap(typeof state!=="undefined"?state:null,false);}catch(_){}
   }catch(_){}
 };
 /* 把离站快照并进主存档：设置/皮肤/资料整份以离站为准，聊天按 id 并集；
@@ -12832,7 +12877,33 @@ async function init(){
       try{window.__e11RepairBulkTombs&&window.__e11RepairBulkTombs(state);}catch(_eTombFix){}try{__ltReadApply();}catch(e){}try{__prefApply();}catch(e){}try{window.__perfApply&&window.__perfApply();}catch(_){}
       /* v43-219：全部旧档合并、外观恢复完成后，再把四项“最后一次选择”盖回来 */
       try{if(window.__e11Keep4ApplyAll)window.__e11Keep4ApplyAll();}catch(_eK4Boot){}
-      try{if(window.__e11Keep4ApplyDb)await window.__e11Keep4ApplyDb();}catch(_eK4DbBoot){}window.__stateReady=1;window.__e11DataReady=1;try{window.__e11BootLoading=0;}catch(_eBootLoad1){}
+      try{if(window.__e11Keep4ApplyDb)await window.__e11Keep4ApplyDb();}catch(_eK4DbBoot){}
+      /* v43-222：最后一次退出的整机快照最后覆盖。旧档、外观档、备份、四项都不再决定最终状态；
+         只有这份快照确实比当前主档新才用，避免写到一半中断时把数据倒回更早。 */
+      try{
+        if(typeof db!=="undefined"&&db){
+          var _sessSnap=await dbGet(__E11_SESSION_KEY);
+          if(_sessSnap&&Number(_sessSnap.ts)&&_sessSnap.state){
+            var _curSaved=Number(state&&state.__savedAt)||0;
+            if(Number(_sessSnap.ts)>=_curSaved-1500){
+              var _sessState=_sessSnap.state;
+              try{_sessState=await __hydrateBig(_sessState);}catch(_eSessHyd){}
+              state=migrate(_sessState);
+              window.__e11SessionUsed=1;
+              window.__e11SessionUI=_sessSnap.ui||null;
+              try{__bkApplyGlobals(_sessSnap.globals||{},_sessSnap.ts);}catch(_eSessGlob){}
+              try{window.__applyMe1Icons&&window.__applyMe1Icons();}catch(_eSessIcon){}
+              try{typeof applySkin==="function"&&applySkin();}catch(_eSessSkin){}
+              try{typeof renderMe==="function"&&renderMe(true);}catch(_eSessMe){}
+              try{typeof renderMusicBg==="function"&&renderMusicBg();}catch(_eSessMusic){}
+              try{window.__e11PaintNames&&window.__e11PaintNames();}catch(_eSessName){}
+            }
+          }
+        }
+      }catch(_eSessBoot){}
+      window.__stateReady=1;window.__e11DataReady=1;try{window.__e11BootLoading=0;}catch(_eBootLoad1){}
+      /* v43-222：主档正常路径没有走最后的 showView，整机快照里的页面在这里补回来 */
+      try{if(window.__e11SessionUI&&window.__e11SessionApplyUI)window.__e11SessionApplyUI();}catch(_eSessUIApply){}
       /* v43-192：一起听会话跟主档一起恢复；更新/重开后仍保持“正在一起听”，不用重新邀请。 */
       try{musicSession=!!(state&&state.musicSession);}catch(_eMsSync){try{window.__e11MusicSession=!!(state&&state.musicSession);}catch(_eMsSync2){}}
       try{if(typeof refreshMiniPlayer==="function")refreshMiniPlayer();}catch(_eMsMini){}try{
@@ -12985,7 +13056,7 @@ try{window.__scheduleCp2Render&&window.__scheduleCp2Render();}catch(e){}
        以前只在启动时检查一次，连续用几天不重进就一直没有新备份。 */
     try{setInterval(function(){if(!document.hidden&&window.__stateReady){try{__bkAuto();}catch(_){}}},10*60*1000);}catch(_eBkTimer){}
   }catch(e){window._dbReady=true;aboutLoadStatus("加载完成（离线模式）");try{window.__e11ExitPreserve=1;window.__viewReady=1;window.__stateReady=1;window.__e11DataReady=1;window.__e11BootLoading=0;}catch(_eFallbackReady){}try{__storageGuard();}catch(_eG2){}
-      try{if(window.__rebuildSocialNotices)window.__rebuildSocialNotices();}catch(e){}try{if(typeof showView==="function")showView((window.__bootView&&window.__bootView())||(window.__wantChatOnReady?"view-chat":"view-me"));}catch(_e2){}try{window.__bootDone&&window.__bootDone();}catch(_e3){}try{renderAll();}catch(_e){}try{setTimeout(function(){if(window.__prewarmChat)window.__prewarmChat();},260);}catch(_e3){}}
+      try{if(window.__rebuildSocialNotices)window.__rebuildSocialNotices();}catch(e){}try{if(typeof showView==="function")showView((window.__bootView&&window.__bootView())||(window.__wantChatOnReady?"view-chat":"view-me"));}catch(_e2){}try{window.__e11SessionApplyUI&&window.__e11SessionApplyUI();}catch(_eSessionUI){}try{window.__bootDone&&window.__bootDone();}catch(_e3){}try{renderAll();}catch(_e){}try{setTimeout(function(){if(window.__prewarmChat)window.__prewarmChat();},260);}catch(_e3){}}
   try{setTimeout(function(){
     window.__idle(function(){
       try{if(typeof catchUpSocial==="function")catchUpSocial();}catch(e){}
@@ -24998,6 +25069,8 @@ function __rememberView(id){
 }
 window.__rememberView=__rememberView;
 function __bootView(){
+  /* v43-222：整机快照里有上一次退出的页面，优先回到那一页。 */
+  try{if(window.__e11SessionUI&&window.__e11SessionUI.view&&String(window.__e11SessionUI.view).indexOf("view-")===0)return window.__e11SessionUI.view;}catch(_){}
   /* 从桌面图标/最近任务冷启动，一律先落桌面（view-me）。
      上次停在聊天也不覆盖这个默认；只有通知点开（pendingOpenChat）或显式 #chat
      才直接进聊天，避免普通启动被“上次页面”带回聊天/设置。 */
