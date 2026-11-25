@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-237z62";
+window.__E11_BUILD="2026-11-25v43-238z63";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -493,6 +493,8 @@ html.ui-dark,body.ui-dark{background:#000000 !important;}
 :root{
   /* v43-181：原生值异常/旧包返回物理像素时，最多按 60px 留白，避免高密度机型顶栏出现巨大空白。 */
   --safe-top:min(max(env(safe-area-inset-top), var(--native-safe-top,0px)), 60px);
+  /* v43-238：APK 全屏铺到导航栏下面后，用原生返回的导航栏高度避开手势条；网页端仍用 env。 */
+  --safe-bottom:max(env(safe-area-inset-bottom,0px), var(--native-safe-bottom,0px));
   --accent:#3478F6;
   --bg:#ffffff;
   --mybubble:#3478F6;
@@ -590,7 +592,7 @@ body.e11-has-mom-wall #view-moments .v-head{background:transparent !important;bo
   .avatar{width:30px;height:30px;}
   .top-name{font-size:12px;}
   .top-status{font-size:11px;}
-  .bottombar{padding:4px 10px;padding-bottom:calc(4px + env(safe-area-inset-bottom));}
+  .bottombar{padding:4px 10px;padding-bottom:calc(4px + var(--safe-bottom));}
   .bb-btn{width:34px;height:34px;min-height:34px;}
   .input-wrap{min-height:34px;}
   .msg-input{font-size:15px;padding:6px 10px;}
@@ -599,7 +601,7 @@ body.e11-has-mom-wall #view-moments .v-head{background:transparent !important;bo
   .bubble{padding:6px 12px;font-size:14px;}
 }
 /* ===== 消息列表 ===== */
-.chat-new-pill{position:fixed;left:50%;bottom:calc(74px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:6px;padding:7px 14px;border:none;border-radius:999px;background:rgba(29,29,31,.72);color:#fff;font-size:13px;font-weight:500;letter-spacing:.2px;backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%);box-shadow:0 6px 20px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.18);cursor:pointer;}
+.chat-new-pill{position:fixed;left:50%;bottom:calc(74px + var(--safe-bottom));transform:translateX(-50%);z-index:60;display:flex;align-items:center;gap:6px;padding:7px 14px;border:none;border-radius:999px;background:rgba(29,29,31,.72);color:#fff;font-size:13px;font-weight:500;letter-spacing:.2px;backdrop-filter:blur(18px) saturate(170%);-webkit-backdrop-filter:blur(18px) saturate(170%);box-shadow:0 6px 20px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.18);cursor:pointer;}
 .chat-new-pill[hidden]{display:none;}
 .chat-new-pill:active{opacity:.8;}
 .msglist{contain:layout style paint;flex:1 1 0;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;overflow-anchor:none;scroll-behavior:auto;padding:14px 12px 12px;display:flex;flex-direction:column;gap:4px;background:transparent;-webkit-overflow-scrolling:touch;}
@@ -951,7 +953,7 @@ body.e11-kb-on #view-chat .bottombar{padding-bottom:8px !important;}
 .bottombar{
   flex:0 0 auto;background:transparent;border-top:none;
   display:flex;align-items:flex-end;gap:6px;padding:8px 12px 8px 10px;
-  padding-bottom:calc(8px + env(safe-area-inset-bottom));z-index:20;
+  padding-bottom:calc(8px + var(--safe-bottom));z-index:20;
 }
 .bb-btn{
   width:40px;height:40px;min-height:40px;border:none;color:var(--accent);
@@ -1130,7 +1132,7 @@ body.ui-dark .sp-tabs button.on{background:rgba(52,120,246,.20);color:#6ea8ff;}
 #song-push-sheet .sp-note-wrap{position:relative;margin-top:10px;}
 #song-push-sheet .sp-note-wrap input{width:100%;box-sizing:border-box;margin-bottom:0;padding-right:52px;background:rgba(118,118,128,.08);border-color:transparent;border-radius:12px;font-size:13px;}
 #song-push-sheet #sp-note-count{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:10.5px;color:var(--sub,#8E8E93);}
-#song-push-sheet .sp-foot{padding:8px 16px calc(env(safe-area-inset-bottom) + 12px);flex:0 0 auto;background:linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,.30) 30%,rgba(255,255,255,.42));-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);}
+#song-push-sheet .sp-foot{padding:8px 16px calc(var(--safe-bottom) + 12px);flex:0 0 auto;background:linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,.30) 30%,rgba(255,255,255,.42));-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);}
 #song-push-sheet .sp-foot button{width:100%;padding:12px;border:0;border-radius:13px;background:rgba(118,118,128,.10);color:var(--ttext,#111);font-size:14px;font-weight:600;}
 body.ui-dark #song-push-sheet{background:linear-gradient(145deg,rgba(58,60,70,.65),rgba(28,29,36,.50)) !important;border-color:rgba(255,255,255,.16) !important;}
 body.ui-dark #song-push-sheet .sp-h-t{color:#f2f2f7;}
@@ -1186,7 +1188,7 @@ body.ui-dark #song-push-sheet .sp-foot button{background:rgba(118,118,128,.24);c
 .ml-now-list .it.on{background:rgba(52,120,246,.14);color:#2f6fe0;font-weight:600;}
 .ml-now-list .it:active{background:rgba(0,0,0,.06);}
 /* 歌词 / 聊天 切换胶囊 */
-.ml-tabs{position:absolute;left:50%;bottom:calc(12px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:6;display:flex;align-items:center;gap:4px;padding:4px;border-radius:999px;background:rgba(255,255,255,.62);-webkit-backdrop-filter:blur(14px) saturate(150%);backdrop-filter:blur(14px) saturate(150%);box-shadow:0 3px 14px rgba(0,0,0,.10);}
+.ml-tabs{position:absolute;left:50%;bottom:calc(12px + var(--safe-bottom));transform:translateX(-50%);z-index:6;display:flex;align-items:center;gap:4px;padding:4px;border-radius:999px;background:rgba(255,255,255,.62);-webkit-backdrop-filter:blur(14px) saturate(150%);backdrop-filter:blur(14px) saturate(150%);box-shadow:0 3px 14px rgba(0,0,0,.10);}
 .ml-tabs button{width:56px;height:32px;border:none;border-radius:999px;background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#8E8E93;padding:0;}
 .ml-tabs button.on{background:rgba(52,120,246,.14);color:#3478F6;}
 .ml-tabs svg{width:18px;height:18px;}
@@ -1201,13 +1203,13 @@ body.ui-dark #song-push-sheet .sp-foot button{background:rgba(118,118,128,.24);c
 .mlc-tip{font-size:11px;color:#8E8E93;text-align:center;padding:4px 0;}
 .mlc-typing{display:none;flex:0 0 auto;min-height:16px;line-height:16px;font-size:11px;color:#8E8E93;padding:0 16px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .mlc-typing.on{display:block;}
-.mlc-bar{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:8px 12px calc(58px + env(safe-area-inset-bottom));}
+.mlc-bar{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:8px 12px calc(58px + var(--safe-bottom));}
 .mlc-field{flex:1;min-width:0;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.82);border:1px solid rgba(0,0,0,.06);border-radius:20px;padding:7px 10px;box-shadow:0 2px 8px rgba(0,0,0,.05);}
 .mlc-field input{flex:1;min-width:0;border:none;background:transparent;font-size:13.5px;outline:none;color:#1c1f26;}
 .mlc-field .emb{border:none;background:transparent;font-size:16px;line-height:1;cursor:pointer;padding:0;}
 .mlc-btn{flex:0 0 auto;width:38px;height:38px;border-radius:50%;border:none;background:rgba(255,255,255,.82);box-shadow:0 2px 8px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#5b616b;}
 .mlc-btn svg{width:19px;height:19px;}
-.mlc-emojis{display:none;position:absolute;right:12px;bottom:calc(64px + env(safe-area-inset-bottom));z-index:7;background:rgba(255,255,255,.95);border-radius:14px;padding:8px;box-shadow:0 6px 20px rgba(0,0,0,.14);grid-template-columns:repeat(5,44px);gap:6px;max-height:250px;overflow-y:auto;}
+.mlc-emojis{display:none;position:absolute;right:12px;bottom:calc(64px + var(--safe-bottom));z-index:7;background:rgba(255,255,255,.95);border-radius:14px;padding:8px;box-shadow:0 6px 20px rgba(0,0,0,.14);grid-template-columns:repeat(5,44px);gap:6px;max-height:250px;overflow-y:auto;}
 .mlc-emojis.show{display:grid;}
 .mlc-emojis span{font-size:17px;padding:3px;text-align:center;cursor:pointer;}
 .ml-body{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:6px 24px calc(44vh);scroll-behavior:smooth;}
@@ -1215,7 +1217,7 @@ body.ui-dark #song-push-sheet .sp-foot button{background:rgba(118,118,128,.24);c
 .ml-line.on{color:#111;font-weight:700;font-size:17px;}
 .ml-empty{padding:40px 0;text-align:center;font-size:13px;color:#8E8E93;}
 /* 歌词背景弹层 */
-.ml-bgsheet{position:fixed;left:0;right:0;bottom:0;z-index:150;display:none;flex-direction:column;background:#fff;border-radius:20px 20px 0 0;box-shadow:0 -10px 34px rgba(0,0,0,.16);padding:16px 16px calc(18px + env(safe-area-inset-bottom));}
+.ml-bgsheet{position:fixed;left:0;right:0;bottom:0;z-index:150;display:none;flex-direction:column;background:#fff;border-radius:20px 20px 0 0;box-shadow:0 -10px 34px rgba(0,0,0,.16);padding:16px 16px calc(18px + var(--safe-bottom));}
 .ml-bgsheet.show{display:flex;}
 .ml-bgsheet .t{font-size:15px;font-weight:600;color:#1c1f26;margin-bottom:12px;}
 .ml-bgsheet .row{display:flex;gap:8px;margin-bottom:8px;}
@@ -1223,7 +1225,7 @@ body.ui-dark #song-push-sheet .sp-foot button{background:rgba(118,118,128,.24);c
 .ml-bgsheet .row button.pri{background:rgba(52,120,246,.12);color:#3478F6;}
 /* 一起听背景弹层 */
 .mb-sheet{position:fixed;left:0;right:0;bottom:0;z-index:120;display:none;flex-direction:column;border-radius:20px 20px 0 0;overflow:hidden;
-  background:rgba(255,255,255,.96);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);box-shadow:0 -8px 30px rgba(0,0,0,.18);padding-bottom:env(safe-area-inset-bottom);}
+  background:rgba(255,255,255,.96);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);box-shadow:0 -8px 30px rgba(0,0,0,.18);padding-bottom:var(--safe-bottom);}
 .mb-sheet.show{display:flex;animation:mbUp .24s cubic-bezier(.22,.9,.28,1);}
 @keyframes mbUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
 .mb-head{padding:16px 18px 8px;font-size:15px;font-weight:700;color:var(--ttext,#1c1f26);text-align:center;}
@@ -1266,8 +1268,8 @@ body.ui-dark .mv-song-artist{color:rgba(255,255,255,.55);}
 .emoji-panel{
   /* 面板停在底部工具栏上沿：以前 bottom:0 会把表情键、加号、发送键整排盖住，
      第二次点表情/点加号实际命中的是 ep-grid，看起来就是“点不动”。 */
-  position:absolute;left:0;right:0;bottom:calc(56px + env(safe-area-inset-bottom));z-index:40;background:var(--panel);
-  border-top:1px solid var(--line);transform:translateY(calc(100% + 56px + env(safe-area-inset-bottom)));transition:transform .22s ease;
+  position:absolute;left:0;right:0;bottom:calc(56px + var(--safe-bottom));z-index:40;background:var(--panel);
+  border-top:1px solid var(--line);transform:translateY(calc(100% + 56px + var(--safe-bottom)));transition:transform .22s ease;
   display:flex;flex-direction:column;max-height:42%;
   /* 键盘弹起时舞台会缩到约 500 高，42% 只剩 210，标题/页签吃掉后表情格只剩一行。
      给面板一个 300 的最小上限：键盘没来得及收起也能看到 2~3 行表情。 */
@@ -1378,7 +1380,7 @@ body:not(.app-ready) #view-chat{visibility:hidden !important;}
 @keyframes viewFade{from{opacity:0}to{opacity:1}}
 .v-head{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:10px 8px;background:var(--topbar);color:var(--ttext);border-bottom:1px solid var(--line);padding-top:calc(10px + var(--safe-top, env(safe-area-inset-top)));}
 .v-title{font-size:17px;font-weight:600;flex:1;}
-.v-body{flex:1;overflow-y:auto;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch;}
+.v-body{flex:1;overflow-y:auto;padding:16px;padding-bottom:calc(16px + var(--safe-bottom));-webkit-overflow-scrolling:touch;}
 .back-btn{min-width:44px;min-height:44px;width:36px;height:36px;border:none;background:transparent;color:var(--accent);display:flex;align-items:center;justify-content:center;border-radius:10px;cursor:pointer;}
 /* ===== 字卡板块 ===== */
 .ck-tabs{display:flex;gap:6px;padding:10px 14px 10px;background:var(--bg,#fff);border-bottom:1px solid rgba(0,0,0,.06);flex:0 0 auto;}
@@ -1478,7 +1480,7 @@ body:not(.app-ready) #view-chat{visibility:hidden !important;}
 .set-tab.on{background:var(--accent);color:#fff;}
 .set-pages{flex:1;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;overscroll-behavior-x:contain;}
 .set-pages::-webkit-scrollbar{display:none;}
-.set-page{flex:0 0 100%;width:100%;box-sizing:border-box;scroll-snap-align:start;overflow-y:auto;overflow-anchor:none;padding:16px;padding-bottom:calc(16px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch;}
+.set-page{flex:0 0 100%;width:100%;box-sizing:border-box;scroll-snap-align:start;overflow-y:auto;overflow-anchor:none;padding:16px;padding-bottom:calc(16px + var(--safe-bottom));-webkit-overflow-scrolling:touch;}
 #view-settings .set-page .switch,#view-settings .set-page .set-input,#view-settings .set-page .small-btn,#view-settings .set-page .set-avatar-row{touch-action:pan-y;}
 #view-settings .set-page input[type=range]{touch-action:none;}
 .set-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);}
@@ -1507,7 +1509,7 @@ body:not(.app-ready) #view-chat{visibility:hidden !important;}
 .del-choice-btn{display:block;width:100%;border:0;border-radius:13px;padding:13px 14px;margin:8px 0 0;font-size:16px;font-family:inherit;background:var(--panel2,#f2f2f7);color:var(--ttext,#1c1c1e);cursor:pointer;text-align:center;}
 .del-choice-btn.danger{color:#FF3B30;font-weight:600;}
 .del-choice-btn.cancel{color:#007AFF;margin-top:12px;}
-#del-multi-bar{position:fixed;left:14px;right:14px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:2147482900;display:none;align-items:center;gap:8px;padding:10px 12px;border-radius:18px;background:rgba(28,28,30,.92);color:#fff;box-shadow:0 10px 34px rgba(0,0,0,.28);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);}
+#del-multi-bar{position:fixed;left:14px;right:14px;bottom:calc(16px + var(--safe-bottom));z-index:2147482900;display:none;align-items:center;gap:8px;padding:10px 12px;border-radius:18px;background:rgba(28,28,30,.92);color:#fff;box-shadow:0 10px 34px rgba(0,0,0,.28);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);}
 #del-multi-bar.show{display:flex;}
 #del-multi-count{flex:1;font-size:13px;color:rgba(255,255,255,.82);}
 #del-multi-bar .small-btn.ghost{background:rgba(255,255,255,.12);color:#fff;border-color:transparent;}
@@ -1546,7 +1548,7 @@ input[type=file][hidden]{display:block !important;position:fixed !important;left
 #rp-claim-overlay,#survey-answer-overlay{position:fixed;z-index:1200;}
 .overlay.show{display:flex;}
 .sheet{
-  max-width:520px;width:100%;background:var(--field);border-radius:16px 16px 0 0;padding:8px 0 calc(8px + env(safe-area-inset-bottom));
+  max-width:520px;width:100%;background:var(--field);border-radius:16px 16px 0 0;padding:8px 0 calc(8px + var(--safe-bottom));
 }
 .sheet-grip{width:40px;height:4px;border-radius:2px;background:#D1D1D6;margin:6px auto 10px;}
 /* 红包金额输入会弹数字键盘：弹层自身限高并允许滚动，键盘收起/弹起时不会把确认按钮挤出屏幕 */
@@ -1619,7 +1621,7 @@ body.ui-dark #overlay #sheet{background:rgba(38,38,42,.95);box-shadow:0 12px 34p
 #call-overlay.video{background:#000;}
 #call-overlay.video .call-video-stage{display:block;}
 #call-overlay.video .call-main{position:relative;z-index:2;height:100%;justify-content:flex-start;gap:6px;padding:calc(48px + var(--safe-top, env(safe-area-inset-top))) 24px 0;}
-#call-overlay.video .call-controls{position:absolute;left:0;right:0;bottom:calc(26px + env(safe-area-inset-bottom));justify-content:center;margin-top:0;}
+#call-overlay.video .call-controls{position:absolute;left:0;right:0;bottom:calc(26px + var(--safe-bottom));justify-content:center;margin-top:0;}
 #call-overlay.video .call-status{font-size:13px;opacity:.85;}
 #call-overlay.video .call-timer{font-size:15px;}
 #call-overlay.video .call-avatar{display:none;}
@@ -1646,7 +1648,7 @@ body.ui-dark #overlay #sheet{background:rgba(38,38,42,.95);box-shadow:0 12px 34p
 .call-btn.accept{background:rgba(52,199,89,.92);color:#fff;border-color:rgba(255,255,255,.4);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 8px 20px rgba(52,199,89,.4);}
 .call-btn.muted{background:rgba(120,120,128,.4);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.3);}
-.call-mini{position:absolute;right:14px;bottom:calc(76px + env(safe-area-inset-bottom));z-index:70;width:58px;height:58px;border-radius:50%;
+.call-mini{position:absolute;right:14px;bottom:calc(76px + var(--safe-bottom));z-index:70;width:58px;height:58px;border-radius:50%;
   background:rgba(255,255,255,.5);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);
   border:1px solid rgba(255,255,255,.7);box-shadow:inset 0 1px 0 rgba(255,255,255,.75),0 8px 24px rgba(0,0,0,.18);
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:grab;color:#111;touch-action:none;
@@ -1817,7 +1819,7 @@ body.env-open #btn-letters-back{visibility:hidden!important;pointer-events:none!
 .an-gt{display:block;font-size:12px;letter-spacing:.5px;color:#3478F6;font-weight:700;margin:14px 0 6px;}
 .an-gt:first-child{margin-top:0;}
 .an-foot-note{margin:16px 0 4px;padding-top:12px;border-top:1px dashed rgba(0,0,0,.08);font-size:12px;line-height:1.7;color:#9096a0;}
-.an-foot{padding:12px 22px calc(16px + env(safe-area-inset-bottom));background:rgba(255,255,255,.9);}
+.an-foot{padding:12px 22px calc(16px + var(--safe-bottom));background:rgba(255,255,255,.9);}
 .an-btn{display:block;width:100%;padding:13px 0;border:none;border-radius:15px;background:linear-gradient(135deg,#3478F6,#5AC8FA);color:#fff;font-size:15px;font-weight:600;cursor:pointer;}
 /* ===== 作者声明页（开屏前） ===== */
 #about-x{display:none;position:fixed;top:calc(10px + var(--safe-top, env(safe-area-inset-top)));right:14px;z-index:100005;width:38px;height:38px;border:0;border-radius:50%;background:rgba(120,120,128,.28);color:#fff;font-size:24px;line-height:36px;text-align:center;padding:0;cursor:pointer;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);}
@@ -1833,7 +1835,7 @@ body.env-open #btn-letters-back{visibility:hidden!important;pointer-events:none!
 .about-scroll ul{padding-left:18px;margin-bottom:8px;}
 .about-scroll li{font-size:14px;line-height:1.7;color:#3a3d44;margin-bottom:4px;}
 .about-scroll .about-note{font-size:13px;color:#8e8e93;margin-top:20px;text-align:center;line-height:1.6;}
-.about-agree{flex-shrink:0;padding:12px 24px calc(16px + env(safe-area-inset-bottom));background:rgba(255,255,255,.88);border-top:1px solid rgba(255,255,255,.7);}
+.about-agree{flex-shrink:0;padding:12px 24px calc(16px + var(--safe-bottom));background:rgba(255,255,255,.88);border-top:1px solid rgba(255,255,255,.7);}
 body.ui-dark .about-screen,html.ui-dark .about-screen{background-color:#000!important;color:#f2f2f7!important;}
 body.ui-dark .about-scroll h2,body.ui-dark .about-scroll p,body.ui-dark .about-scroll li{color:#f2f2f7!important;}
 body.ui-dark .about-scroll .about-note{color:rgba(255,255,255,.55)!important;}
@@ -2050,9 +2052,9 @@ o{opacity:1;transform:translateY(0);}}
 .me-topbar{position:relative;z-index:5;display:flex;align-items:center;justify-content:center;padding:calc(16px + var(--safe-top,0px)) 18px 8px;}
 .me-title{font-size:clamp(15px,4.2vw,17px);font-weight:700;color:var(--ttext);letter-spacing:.5px;}
 .me-bgdot{position:fixed;right:18px;top:calc(16px + var(--safe-top,0px));width:36px;height:36px;border-radius:50%;border:none;background:none;color:var(--ttext);font-size:clamp(11px,3.2vw,13px);letter-spacing:2px;line-height:1;cursor:pointer;z-index:999;touch-action:manipulation;}
-.me-scroll{position:relative;z-index:1;flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:center;padding:4px 0 calc(132px + env(safe-area-inset-bottom));}
+.me-scroll{position:relative;z-index:1;flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;align-items:center;padding:4px 0 calc(132px + var(--safe-bottom));}
 /* v43-183g：主页内容超出时优先滚动，不再把整页缩成小号；给底部 Dock 留出滚动余量 */
-#view-me .me-scroll.fit-scroll{padding-bottom:calc(132px + env(safe-area-inset-bottom));}
+#view-me .me-scroll.fit-scroll{padding-bottom:calc(132px + var(--safe-bottom));}
 #view-me .me-scroll.fit-scroll .me-pager{flex:0 0 auto;}
 .me-bg-sec{font-size:clamp(11px,3.2vw,13px);font-weight:700;color:var(--sub,#7c7f95);margin-bottom:2px;}
 .me-widget{position:relative;width:100%;max-width:88vw;margin:clamp(14px,4vw,18px) auto clamp(8px,2.5vw,12px);border-radius:clamp(22px,6vw,28px);overflow:hidden;display:flex;flex-direction:column;align-items:center;border:1px solid var(--glassborder,rgba(255,255,255,.6));box-shadow:none;cursor:pointer;color:var(--ttext);}
@@ -2177,7 +2179,7 @@ body.ui-dark .invite-btn.no{background:rgba(255,255,255,.10);color:rgba(255,255,
    传球键留在原布局里，页面可以正常上滑找到它，不改动画布大小。 */
 #view-game .game-actions{
   position:sticky;bottom:0;z-index:7;margin:8px 14px 0;
-  padding:8px 0 calc(8px + env(safe-area-inset-bottom));
+  padding:8px 0 calc(8px + var(--safe-bottom));
   background:linear-gradient(180deg,rgba(255,255,255,0),var(--bg,#fff) 26%);
   border-radius:16px 16px 0 0;
 }
@@ -2286,7 +2288,7 @@ body.ui-dark .invite-btn.no{background:rgba(255,255,255,.10);color:rgba(255,255,
 .msg-sel::after{content:"";position:absolute;inset:-3px -6px;border-radius:14px;background:rgba(10,132,255,.08);border:1px solid rgba(10,132,255,.45);pointer-events:none;}
 .msg-sel::before{content:"✓";position:absolute;z-index:6;left:-5px;top:50%;transform:translateY(-50%);width:24px;height:24px;line-height:24px;text-align:center;border-radius:50%;background:#0A84FF;color:#fff;font-size:14px;font-weight:700;pointer-events:none;box-shadow:0 2px 8px rgba(10,132,255,.35);}
 .msg-sel.me::before{left:auto;right:0;}
-#msgsel-bar{display:none;align-items:center;gap:8px;padding:9px 10px calc(9px + env(safe-area-inset-bottom));overflow-x:auto;background:rgba(28,28,30,.94);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid rgba(255,255,255,.08);}
+#msgsel-bar{display:none;align-items:center;gap:8px;padding:9px 10px calc(9px + var(--safe-bottom));overflow-x:auto;background:rgba(28,28,30,.94);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid rgba(255,255,255,.08);}
 body.msgsel-on #msgsel-bar{display:flex;}
 body.msgsel-on #view-chat .bottombar{display:none;}
 #msgsel-bar .msb-count{flex:1;font-size:12px;color:#8E8E93;text-align:center;white-space:nowrap;}
@@ -2373,7 +2375,7 @@ body.msgsel-on #view-chat .bottombar{display:none;}
 .rp-rec .st-pending{color:#FF9500;}
 .rp-rec button{border:none;background:var(--accent);color:#fff;border-radius:14px;padding:5px 10px;font-size:12px;cursor:pointer;}
 .rp-rec button.ghost-btn{background:transparent;color:var(--danger);border:1px solid var(--danger);}
-#notify-prompt{position:fixed;left:14px;right:14px;bottom:calc(96px + env(safe-area-inset-bottom));z-index:2200;display:none;flex-direction:column;gap:8px;background:rgba(255,255,255,.92);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border-radius:22px;padding:16px 18px;box-shadow:0 12px 34px rgba(0,0,0,.18);}
+#notify-prompt{position:fixed;left:14px;right:14px;bottom:calc(96px + var(--safe-bottom));z-index:2200;display:none;flex-direction:column;gap:8px;background:rgba(255,255,255,.92);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border-radius:22px;padding:16px 18px;box-shadow:0 12px 34px rgba(0,0,0,.18);}
 #notify-prompt.show{display:flex;}
 #notify-prompt .np-t{font-size:15px;font-weight:700;color:#1a1a1a;}
 #notify-prompt .np-s{font-size:12px;color:#666;line-height:1.5;}
@@ -2473,7 +2475,7 @@ body.vrec-on .bottombar{opacity:0;pointer-events:none;}
 /* ================= 日记本 ================= */
 #diary-view{position:fixed;inset:0;z-index:120;display:none;flex-direction:column;
   background:radial-gradient(120% 80% at 50% 0%,#2b241f 0%,#17130f 55%,#0d0b09 100%);
-  padding:calc(12px + var(--safe-top, env(safe-area-inset-top))) 12px calc(14px + env(safe-area-inset-bottom));}
+  padding:calc(12px + var(--safe-top, env(safe-area-inset-top))) 12px calc(14px + var(--safe-bottom));}
 #diary-view.show{display:flex;}
 .diary-head{display:flex;align-items:center;justify-content:space-between;color:#E9DFD2;font-size:15px;font-weight:600;padding:2px 4px 10px;}
 .diary-head button{background:rgba(255,255,255,.12);border:none;color:#F4EADB;width:34px;height:34px;border-radius:17px;font-size:16px;}
@@ -2786,7 +2788,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-237z62">
+<meta name="app-build" content="2026-11-25v43-238z63">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3673,7 +3675,7 @@ body.auth-locked #app,
 body.auth-locked .lock-screen,
 body.auth-locked #announce-screen,
 body.auth-locked .announce-screen{display:none!important;}
-.auth-gate{position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;padding:26px 18px;padding-bottom:calc(26px + env(safe-area-inset-bottom));background:#fafafa;color:#111;}
+.auth-gate{position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;padding:26px 18px;padding-bottom:calc(26px + var(--safe-bottom));background:#fafafa;color:#111;}
 .auth-gate.show{display:flex;}
 body.ui-dark .auth-gate{background:#000;color:#f5f5f7;}
 .auth-card{position:relative;width:100%;max-width:360px;background:#fff;border:1px solid rgba(0,0,0,.07);border-radius:22px;padding:24px 20px 20px;box-shadow:0 14px 44px rgba(0,0,0,.10);}
@@ -4022,7 +4024,7 @@ setTimeout(function(){
         <span style="width:6px;height:6px;border-radius:50%;background:#fff;opacity:.4;" data-p="1"></span>
       </div>
       <div id="cp2-trash" style="display:none;"></div>
-      <div id="cp2-editbar" style="position:fixed;left:0;right:0;bottom:calc(96px + env(safe-area-inset-bottom));z-index:999;display:none;justify-content:center;pointer-events:none;">
+      <div id="cp2-editbar" style="position:fixed;left:0;right:0;bottom:calc(96px + var(--safe-bottom));z-index:999;display:none;justify-content:center;pointer-events:none;">
         <div style="display:flex;gap:8px;padding:8px 12px;border-radius:22px;background:rgba(255,255,255,.85);-webkit-backdrop-filter:blur(16px) saturate(160%);backdrop-filter:blur(16px) saturate(160%);border:1px solid rgba(255,255,255,.6);box-shadow:0 8px 24px rgba(0,0,0,.15);pointer-events:auto;">
           <button id="cp2-recover" style="border:none;background:rgba(255,255,255,.45);color:var(--ttext);font-size:13px;padding:7px 12px;border-radius:16px;cursor:pointer;font-weight:600;">恢复组件</button>
           <button id="cp2-reset-layout" style="border:none;background:rgba(255,255,255,.45);color:var(--ttext);font-size:13px;padding:7px 12px;border-radius:16px;cursor:pointer;font-weight:600;">恢复默认布局</button>
@@ -4033,14 +4035,14 @@ setTimeout(function(){
         </div>
       </div>
       <div id="cp2-recover-overlay" style="position:fixed;left:0;right:0;bottom:0;z-index:1200;display:none;align-items:flex-end;justify-content:center;">
-        <div style="width:100%;max-width:360px;background:rgba(28,30,36,.6);-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);border-radius:24px 24px 0 0;padding:16px 18px;padding-bottom:calc(16px + env(safe-area-inset-bottom));">
+        <div style="width:100%;max-width:360px;background:rgba(28,30,36,.6);-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);border-radius:24px 24px 0 0;padding:16px 18px;padding-bottom:calc(16px + var(--safe-bottom));">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
             <span style="color:#fff;font-size:15px;font-weight:700;">恢复组件</span>
             <button id="cp2-recover-close" style="border:none;background:rgba(255,255,255,.15);color:#fff;width:28px;height:28px;border-radius:50%;font-size:14px;cursor:pointer;line-height:1;">×</button>
           </div>
           <div id="cp2-recover-list"></div>
         </div>
-      </div>      <div id="me-dock-wrap" style="position:fixed;left:0;right:0;bottom:calc(14px + env(safe-area-inset-bottom));display:flex;justify-content:center;z-index:998;pointer-events:none;">
+      </div>      <div id="me-dock-wrap" style="position:fixed;left:0;right:0;bottom:calc(14px + var(--safe-bottom));display:flex;justify-content:center;z-index:998;pointer-events:none;">
         <div id="me-dock-bar" style="display:flex;justify-content:center;align-items:center;gap:14px;width:calc(100% - 32px);max-width:360px;padding:10px 24px;border-radius:28px;background:transparent;-webkit-backdrop-filter:blur(26px) saturate(180%);backdrop-filter:blur(26px) saturate(180%);border:1px solid rgba(255,255,255,.85);box-shadow:0 12px 32px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.95);pointer-events:auto;">
           <div style="width:64px;flex:0 0 auto;"><button class="me-app" id="me-nav-music"><span class="me-app-ic"><img class="me-app-img" src="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%3E%3Cpath%20fill='%239BA0A8'%20d='M12%203v10.55A4%204%200%201%200%2014%2017V7h4V3h-6z'/%3E%3C/svg%3E"></span><span class="me-app-lb">音乐</span></button></div>
           <div style="width:64px;flex:0 0 auto;"><button class="me-app" id="me-nav-settings"><span class="me-app-ic"><img class="me-app-img" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAAEEklEQVR4nO3dy1IbOxSGUeVUHjLDTM5TMWHIW5IBdoUiduNLq/Vra61pKkFofy038YXWAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACDQj9EL4MPL69v7I3/v/9+/zPATmzHYoyF/JewP/41ewMr2innvf2tmgqYUQVOKoClF0IO45+1D0IW4SARNMYKmFEHfaMWH8xm/Z88ufePSUPd4Vq5XLM+u7dq6Znkm0gm94dpwX17f3p8JMvXk21pX6pq/muKqG+HWAd5zch0dRY+1pZ/U0Ysb5d7wtoaccrJdW+Mj60uOOnZhozwT4OdBp4T81V5rTI06clGjpEaYKjFqPxSeiPl+iXsm6JY5mFmk7d3yQacNZEZJe7h00EmDmF3KXi4bdMoAKknY02WDpiZBU4qgKUXQlLJs0InPcs0uYU+XDbq1jAFUkbKXSwdNPcsHnXKyzCxpD5cPurWsgcwmbe8ETSmCPkk7aWaQuGc/Ry+AbTO8CyaJoIN8d+J9/XOB/yvuIWOkEYHs9bA9Ku602w730CcjPmJgzxjSwhpF0AP0im/vi2RGgm7Hns5HBHdk1Gn38YI+0JGhrXpSLx/0USfMiMCO+ppJp/TyQR9h5Gm52km91Dd7Vu2e+RbJHxS5p9JPrCQ9FK6m1+dqfyfi9NhbSsgpp/PZCvtS7h46ZWhc13NG5YJOkXY6t5a5pr2VCtrpPI9esyoVNAi6g+SH9uS17UHQlCJoShE0pQiaUgRNKYKmFEFTiqApRdCUIujFVH+9i6A7qB5NslJBV3+dQiW9ZlUqaLalPHJ4x8odUj49KCWeNL1nM3zwRxgZV8LF1do6e1D6Xd9nWxvqJN1HyoVb7pYjTcIFk7CGoywf9BEny8igjvjaKadza4I+zIioVzqZzwR9oCMDWzHm1gTdWqv3ecorfnbfmaAH6BXcy+vb+6on81nU1TXarL80yC8M+muJ/4dO9jnGewNZ/TS+JO4KGy0tknPkqetKE7moUdKiSZcYtR8KT8R8v8Q9EzSlCLplnjSzSNu75YNOG8iMkvZw6aCTBjG7lL1cOmjqWTbolBOlkoQ9XTZoahI0pQiaUgRNKcsGnfg6hNkl7OmyQbeWMYAqUvZy6aBbyxnEzJL2cPmgW8sayGzS9k7QJ2mD6Wmv7zVxz+IWNNqjz3ZdGm7CM2ef7bnGxJhbE/RF9w75u+GODnvv9aXG3Jqgr7plyI8M9qi4e73hNjnm1gS9aWvIzwy2Z9TPBtfrez6KHwo3XBvgs4NNDuPS2lI+RP4WUyyyol6n9Czh9eKEphRBU4qgC1n9dqM1QVOMoClF0JQi6EHc7/Yh6CJcIB8EPZAI92dDQ1R7GScAAAAAAAAAAAAAAAAAAAAAAAAAAABw1R9owq38gTOcsgAAAABJRU5ErkJggg=="></span><span class="me-app-lb">设置</span></button></div>
@@ -14321,6 +14323,26 @@ function __applyNativeSafeTop(){
   return false;
 }
 window.__applyNativeSafeTop=__applyNativeSafeTop;
+
+/* v43-238：底部导航栏透明后，网页按原生实际导航栏高度留出安全区。
+   只在 APK 里生效；网页/PWA 继续用 env(safe-area-inset-bottom)。 */
+function __applyNativeSafeBottom(){
+  try{
+    if(!window.AndroidUI||typeof AndroidUI.getNavigationBarHeight!=="function")return false;
+    var h=parseInt(AndroidUI.getNavigationBarHeight(),10)||0;
+    if(h>90){
+      var _d=window.devicePixelRatio||1;
+      if(_d>1)h=Math.round(h/_d);
+    }
+    if(h<0)h=0;if(h>90)h=90;
+    if(h>0){
+      document.documentElement.style.setProperty("--native-safe-bottom",h+"px");
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+window.__applyNativeSafeBottom=__applyNativeSafeBottom;
 var __topToneCache={};
 function __topToneOf(src,cb){
   if(!src){cb(null);return;}
@@ -14394,6 +14416,7 @@ window.__refreshStatusIcons=__refreshStatusIcons;
 /* 顶栏（时间/信号/电量、浏览器工具条）只跟随「手机系统」明暗，不跟 App 内主题走 */
 function __syncSysBar(){
   try{__applyNativeSafeTop();}catch(_eSafeBar){}
+  try{__applyNativeSafeBottom();}catch(_eSafeBarB){}
   /* 夜间模式就是夜间：顶栏也按 App 当前明暗走，不再被手机系统反过来染成另一种颜色 */
   var sysDark;
   try{
@@ -14528,6 +14551,7 @@ function __safeTextColor(want,bg){
 }
 function applySkin(){
   try{__applyNativeSafeTop();}catch(_eNativeSafe){}
+  try{__applyNativeSafeBottom();}catch(_eNativeSafeB){}
   const r=document.documentElement.style,s=state.skin;
   const dark=__effectiveDark();
   /* APK 系统栏/导航栏/WebView 底色同步：浅色主题不再保留黑底，减少启动和切页时的黑白闪 */
@@ -23944,7 +23968,7 @@ function __e11ShowExportSheet(blob,fname,mode,rawText){
     var old=document.getElementById("e11-export-sheet");if(old){try{old.remove();}catch(_){}}
     var url=URL.createObjectURL(blob);
     var wrap=document.createElement("div");wrap.id="e11-export-sheet";
-    wrap.style.cssText="position:fixed;left:12px;right:12px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:12060;display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:16px;background:var(--card,#fff);color:var(--text,#1c1c1e);border:1px solid var(--line,rgba(0,0,0,.10));box-shadow:0 12px 36px rgba(0,0,0,.22);font-size:13px;";
+    wrap.style.cssText="position:fixed;left:12px;right:12px;bottom:calc(78px + var(--safe-bottom));z-index:12060;display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:16px;background:var(--card,#fff);color:var(--text,#1c1c1e);border:1px solid var(--line,rgba(0,0,0,.10));box-shadow:0 12px 36px rgba(0,0,0,.22);font-size:13px;";
     wrap.innerHTML='<div style="flex:1;min-width:0;line-height:1.35;"><div style="font-weight:600;">备份已生成</div><div style="font-size:11px;opacity:.62;margin-top:2px;">没自动保存？点右边按钮再存一次</div></div>'+
       '<a id="e11-export-save" href="'+url+'" download="'+String(fname||"Eleven11_backup.json").replace(/"/g,"&quot;")+'" style="flex:none;display:inline-flex;align-items:center;justify-content:center;height:34px;padding:0 14px;border-radius:10px;background:#0A84FF;color:#fff;font-size:13px;font-weight:600;text-decoration:none;">保存文件</a>'+
       '<button id="e11-export-copy" style="flex:none;height:34px;padding:0 10px;border-radius:10px;border:1px solid var(--line,rgba(0,0,0,.12));background:transparent;color:var(--text,#1c1c1e);font-size:12px;">复制</button>'+
@@ -27777,7 +27801,7 @@ var _163Warmed=false;
   var css=[
     '.ny-ov{position:fixed;inset:0;background:rgba(0,0,0,.42);display:none;align-items:flex-end;justify-content:center;z-index:2300;}',
     '.ny-ov.show{display:flex;}',
-    '.ny-card{width:100%;max-width:430px;max-height:86vh;background:#fff;border-radius:20px 20px 0 0;overflow:hidden;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom);}',
+    '.ny-card{width:100%;max-width:430px;max-height:86vh;background:#fff;border-radius:20px 20px 0 0;overflow:hidden;display:flex;flex-direction:column;padding-bottom:var(--safe-bottom);}',
     '.ny-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 10px;font-size:15px;font-weight:600;color:#1c1c1e;}',
     '.ny-x{border:0;background:#F2F2F7;color:#8E8E93;width:28px;height:28px;border-radius:50%;font-size:15px;line-height:1;}',
     '.ny-body{padding:0 18px 20px;overflow-y:auto;-webkit-overflow-scrolling:touch;}',
@@ -31494,7 +31518,7 @@ function __fitGuestbookKb(){
     if(list){
       var _safe=0;
       try{_safe=Math.round(m.kbH/(scale||1));}catch(_){_safe=m.kbH;}
-      list.style.paddingBottom="calc("+(18+_safe)+"px + env(safe-area-inset-bottom))";
+      list.style.paddingBottom="calc("+(18+_safe)+"px + var(--safe-bottom))";
     }
     /* 输入框在顶部卡片里，正常情况下本来就在键盘上方；留言卡回复框在列表底部，
        点开时在键盘下面。这里统一把当前输入框滚到键盘上沿以上。 */
@@ -32348,7 +32372,7 @@ function __fitMomentKb(){
     if(vb){
       var _safe=0;
       try{_safe=Math.round(m.kbH/(scale||1));}catch(_){_safe=m.kbH;}
-      vb.style.paddingBottom="calc("+(16+_safe)+"px + env(safe-area-inset-bottom))";
+      vb.style.paddingBottom="calc("+(16+_safe)+"px + var(--safe-bottom))";
     }
     try{window.__momentKeepVisible&&window.__momentKeepVisible(inp);}catch(_){}
   }catch(_){}
@@ -34441,7 +34465,7 @@ window.__dockTopPx=function(){
         try{
           var _dt=window.__dockTopPx?window.__dockTopPx():0;
           editbar.style.top="auto";
-          editbar.style.bottom=_dt?Math.round(window.innerHeight-_dt+10)+"px":"calc(96px + env(safe-area-inset-bottom))";
+          editbar.style.bottom=_dt?Math.round(window.innerHeight-_dt+10)+"px":"calc(96px + var(--safe-bottom))";
         }catch(e){}
       }
     }
@@ -37045,7 +37069,7 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
       if(!pill){
         pill=document.createElement("div");
         pill.id="stt-pill";
-        pill.style.cssText="position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 92px);transform:translateX(-50%);z-index:99998;display:flex;align-items:center;gap:10px;background:rgba(20,20,22,.92);color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:8px 12px;box-shadow:0 10px 28px rgba(0,0,0,.32);font-size:13px;max-width:86vw;";
+        pill.style.cssText="position:fixed;left:50%;bottom:calc(var(--safe-bottom) + 92px);transform:translateX(-50%);z-index:99998;display:flex;align-items:center;gap:10px;background:rgba(20,20,22,.92);color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:8px 12px;box-shadow:0 10px 28px rgba(0,0,0,.32);font-size:13px;max-width:86vw;";
         var dot=document.createElement("span");
         dot.style.cssText="width:8px;height:8px;border-radius:50%;background:#ff453a;box-shadow:0 0 0 4px rgba(255,69,58,.18);flex:none;";
         var tx=document.createElement("span");tx.id="stt-pill-text";tx.style.cssText="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;";
@@ -37516,7 +37540,7 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
       var bar=document.getElementById("apk-update-bar");
       if(!bar){
         bar=document.createElement("div");bar.id="apk-update-bar";
-        bar.style.cssText="position:fixed;left:12px;right:12px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:100000;display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:16px;background:rgba(28,28,30,.94);color:#fff;font:500 13px -apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;box-shadow:0 10px 34px rgba(0,0,0,.38);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)";
+        bar.style.cssText="position:fixed;left:12px;right:12px;bottom:calc(16px + var(--safe-bottom));z-index:100000;display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:16px;background:rgba(28,28,30,.94);color:#fff;font:500 13px -apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;box-shadow:0 10px 34px rgba(0,0,0,.38);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)";
         document.body.appendChild(bar);
       }
       bar.innerHTML='';
@@ -37797,7 +37821,7 @@ button,[role="button"],[onclick],.switch,.sheet-item,.set-row,.nav-item,.tab-ite
 #diary-view.writing .diary-stage{flex:1;min-height:0;}
 #diary-view.writing .diary-book{width:100%;height:100%;max-height:100%;}
 #diary-view.writing .diary-tools .dce-row{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;}
-#diary-view.writing .diary-tools{padding-bottom:calc(10px + env(safe-area-inset-bottom));}
+#diary-view.writing .diary-tools{padding-bottom:calc(10px + var(--safe-bottom));}
 #diary-view.writing .diary-book{height:100%;max-height:100%;}
 #diary-view.writing .diary-paper{border-radius:0;}
 #diary-view.writing .dp-mine{flex:0 0 auto;display:block;min-height:0;}
@@ -37826,7 +37850,7 @@ button,[role="button"],[onclick],.switch,.sheet-item,.set-row,.nav-item,.tab-ite
 .dp-sign .dpr-hint{opacity:.55;}
 #diary-reply-sheet{position:fixed;inset:0;z-index:9999;display:none;align-items:flex-end;justify-content:center;background:rgba(20,16,12,.30);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);}
 #diary-reply-sheet.show{display:flex;}
-.dr-card{width:100%;max-width:520px;background:#FBF7EF;border-radius:22px 22px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom));box-shadow:0 -12px 34px rgba(60,40,25,.18);}
+.dr-card{width:100%;max-width:520px;background:#FBF7EF;border-radius:22px 22px 0 0;padding:16px 16px calc(18px + var(--safe-bottom));box-shadow:0 -12px 34px rgba(60,40,25,.18);}
 .dr-head{display:flex;align-items:center;justify-content:space-between;font-size:15px;font-weight:600;color:#3B3025;letter-spacing:.04em;}
 .dr-head button{border:none;background:rgba(120,95,80,.10);width:28px;height:28px;border-radius:50%;color:#6B5A4C;font-size:14px;line-height:1;cursor:pointer;}
 .dr-sub{font-size:11px;color:#9A8778;margin:4px 0 10px;}
@@ -39184,7 +39208,7 @@ body{margin:0;background:var(--bg,#fafafa);}
           /* 固定栏是 position:fixed；手机端 #ui-root 没有 transform，
              包含块就是真实视口，不需要按舞台高度差动态加减 bottom。
              部分 WebView 的 visualViewport 会给键盘/工具栏残值，动态补偿会让固定栏上下乱跑。 */
-          _dw.style.bottom="calc(14px + env(safe-area-inset-bottom))";
+          _dw.style.bottom="calc(14px + var(--safe-bottom))";
         }
       }catch(_eDockBottom){}
       window.__uiScale=k;
