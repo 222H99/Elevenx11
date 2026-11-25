@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-215z37";
+window.__E11_BUILD="2026-11-25v43-216z38";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -682,21 +682,22 @@ body.ui-dark input::placeholder,body.ui-dark textarea::placeholder{color:rgba(25
 body.ui-dark .set-sub,body.ui-dark .msg-day,body.ui-dark .msg-time,body.ui-dark .sq-opt-hint,
 body.ui-dark .bi-opts,body.ui-dark .invite-sub,body.ui-dark .m-sub,body.ui-dark .gb-time{color:rgba(255,255,255,.55) !important;}
 body.ui-dark .msg-sys,body.ui-dark .msg-recall{color:rgba(255,255,255,.62) !important;}
-body.ui-dark .small-btn.ghost,body.ui-dark .top-btn{color:var(--ttext);}
+body.ui-dark .small-btn.ghost{color:var(--ttext);}
+body.ui-dark .top-btn{color:var(--accent,#3478F6) !important;}
 /* 夜间输入栏的表情/加号也保持和发送键同一个蓝色，不再变白 */
-body.ui-dark .bb-btn{color:#FFFFFF !important;}
+body.ui-dark .bb-btn{color:var(--accent,#3478F6) !important;}
 /* 夜间输入栏玻璃改成深色，别再用白玻璃糊成一片白 */
 body.ui-dark .input-wrap{background:rgba(30,30,32,.72) !important;border-color:rgba(255,255,255,.14) !important;box-shadow:inset 0 1px 0 rgba(255,255,255,.10) !important;}
 body.ui-dark .bb-btn{background:rgba(30,30,32,.72) !important;box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 2px 8px rgba(0,0,0,.25) !important;}
 /* 笑脸 / 加号：白天跟发送键同蓝，夜间改白色 */
 #btn-emoji .icon,#btn-plus .icon{stroke:var(--accent,#3478F6);color:var(--accent,#3478F6);}
-body.ui-dark #btn-emoji .icon,body.ui-dark #btn-plus .icon{stroke:#FFFFFF !important;color:#FFFFFF !important;}
+body.ui-dark #btn-emoji .icon,body.ui-dark #btn-plus .icon{stroke:var(--accent,#3478F6) !important;color:var(--accent,#3478F6) !important;}
 /* 顶栏返回 / 通话圆钮同样改深玻璃 */
 body.ui-dark .top-btn{background:rgba(30,30,32,.72) !important;box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 2px 8px rgba(0,0,0,.25) !important;}
 /* 主页（动态页）顶栏：返回圆钮、发动态按钮同样夜间深玻璃 + 白色内容 */
 body.ui-dark #view-moments #btn-moments-back{background:rgba(30,30,32,.72) !important;border-color:rgba(255,255,255,.14) !important;box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 2px 8px rgba(0,0,0,.25) !important;}
-body.ui-dark #view-moments #btn-moments-back .icon{stroke:#FFFFFF !important;color:#FFFFFF !important;}
-body.ui-dark #view-moments #btn-moment-post{background:rgba(30,30,32,.72) !important;color:#FFFFFF !important;border-color:rgba(255,255,255,.14) !important;box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 2px 8px rgba(0,0,0,.25) !important;}
+body.ui-dark #view-moments #btn-moments-back .icon{stroke:var(--accent,#3478F6) !important;color:var(--accent,#3478F6) !important;}
+body.ui-dark #view-moments #btn-moment-post{background:rgba(30,30,32,.72) !important;color:var(--accent,#3478F6) !important;border-color:rgba(255,255,255,.14) !important;box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 2px 8px rgba(0,0,0,.25) !important;}
 /* ===== 聊天页性能模式 =====
    聊天页是常驻可见层，顶栏/输入栏/圆钮上的毛玻璃会和「键盘弹出、列表滚动」叠在一起重复合成，
    在 iPhone 上表现为掉帧和进页那一下发闪。这里把聊天页内部的毛玻璃全部关掉，
@@ -724,7 +725,7 @@ body.ui-dark .me-name,body.ui-dark .me-handle,body.ui-dark .me-sign,body.ui-dark
 body.ui-dark .me-app,.ui-dark .me-app{color:#fff !important;}
 body.ui-dark .me-name,body.ui-dark .me-handle,body.ui-dark .me-sign,body.ui-dark .me-region{
   text-shadow:0 1px 4px rgba(0,0,0,.6),0 0 2px rgba(0,0,0,.45) !important;}
-body.ui-dark .me-edit{color:#fff !important;}
+body.ui-dark .me-edit{color:var(--accent,#3478F6) !important;}
 /* 提示条也跟随主题：夜间变浅色玻璃条、深色字，不再一条死黑 */
 body.ui-dark .toast{background:rgba(255,255,255,.92) !important;color:#111 !important;box-shadow:0 8px 24px rgba(0,0,0,.45);}
 /* 来消息浮窗 / 邀请弹窗 / 来电遮罩：夜间统一转深底白字 */
@@ -989,11 +990,11 @@ body.e11-kb-on #view-chat .bottombar{padding-bottom:8px !important;}
   background:var(--accent);
   background-image:linear-gradient(135deg,rgba(255,255,255,.35),rgba(255,255,255,.06) 55%);
   border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 4px 12px rgba(52,120,246,.35);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5);
   transition:transform .12s ease,box-shadow .12s ease;
   -webkit-tap-highlight-color:transparent;
 }
-.send-btn:active{transform:scale(.86);box-shadow:0 1px 4px rgba(52,120,246,.22);}
+.send-btn:active{transform:scale(.86);box-shadow:none;}
 .send-btn:disabled{background:#C7C7CC;color:#fff;cursor:default;box-shadow:none;background-image:none;}
 .send-btn .icon{stroke-width:2;width:calc(22px * var(--ui-inv-k,1));height:calc(22px * var(--ui-inv-k,1));}
 /* 加号/发送键视觉固定 40px：430 宽全局放大到 1.1 倍时，不再被放大成 44px；
@@ -2032,13 +2033,13 @@ o{opacity:1;transform:translateY(0);}}
 .me-w-top{position:relative;width:100%;height:clamp(130px,38vw,170px);background:var(--me-bg,#e8ecf2);background-size:cover;background-position:center;}
 .me-avwrap{position:relative;width:clamp(82px,24vw,96px);height:clamp(82px,24vw,96px);margin:calc(-1*clamp(46px,13vw,52px)) auto 0;z-index:2;}
 .me-av{width:clamp(82px,24vw,96px);height:clamp(82px,24vw,96px);border-radius:50%;object-fit:cover;border:3px solid var(--glassborder,rgba(255,255,255,.9));box-shadow:0 6px 18px rgba(0,0,0,.22);background:var(--panel);cursor:pointer;}
-.me-av-edit{position:absolute;right:-6px;bottom:0;width:26px;height:26px;border-radius:50%;background:rgba(52,120,246,.92);color:#fff;font-size:clamp(10px,3vw,12px);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.2);}
+.me-av-edit{position:absolute;right:-6px;bottom:0;width:26px;height:26px;border-radius:50%;background:var(--accent,#3478F6);color:#fff;font-size:clamp(10px,3vw,12px);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.2);}
 .me-w-bot{width:100%;padding:10px 18px 26px;text-align:center;background:transparent;}
 .me-handle{font-size:clamp(11px,3.2vw,13px);font-weight:600;color:var(--ttext);opacity:.8;margin-top:2px;text-shadow:0 1px 3px rgba(255,255,255,.6);}
 .me-name{font-size:clamp(18px,5.2vw,22px);font-weight:800;color:var(--ttext);letter-spacing:.3px;text-shadow:0 1px 3px rgba(255,255,255,.7);}
 .me-sign{font-size:clamp(12px,3.6vw,14px);color:var(--ttext);opacity:.72;margin-top:5px;line-height:1.5;word-break:break-word;text-shadow:0 1px 3px rgba(255,255,255,.7);}
 .me-region{font-size:clamp(12px,3.6vw,14px);color:var(--ttext);opacity:.58;margin-top:3px;text-shadow:0 1px 3px rgba(255,255,255,.7);}
-.me-edit{position:absolute;top:12px;right:12px;border:none;background:var(--glassinner,rgba(255,255,255,.55));-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:#3478F6;font-size:clamp(12px,3.4vw,13px);padding:6px 12px;border-radius:16px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.8);}
+.me-edit{position:absolute;top:12px;right:12px;border:none;background:var(--glassinner,rgba(255,255,255,.55));-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:var(--accent,#3478F6);font-size:clamp(12px,3.4vw,13px);padding:6px 12px;border-radius:16px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.8);}
 .me-showcase{position:relative;z-index:2;width:100%;max-width:calc(100vw - 44px);margin:22px auto 0;display:flex;gap:10px;align-items:stretch;}
 .me-pager{display:flex;width:100%;margin:0 auto;overflow-x:scroll;overflow-y:hidden;z-index:2;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;flex:0 0 auto;}
 .me-pager::-webkit-scrollbar{display:none;width:0;height:0;}
@@ -2759,7 +2760,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-215z37">
+<meta name="app-build" content="2026-11-25v43-216z38">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -25167,7 +25168,9 @@ function gCompress(d,max,q){return __shrinkImg(d,max||720,q||0.72);}
       try{window.__e11MusicRoomTouch&&window.__e11MusicRoomTouch();}catch(_){}
     }
     ov.classList.remove("show");
-    save();try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_){}requestAnimationFrame(function(){try{renderMusicList();}catch(e){}});
+    save();try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_){}
+    try{window.__e11PaintMusicRoomNote();}catch(_){}
+    requestAnimationFrame(function(){try{renderMusicList();}catch(e){}});
     toast("已保存");
   });
   $("music-edit-cancel").addEventListener("click",function(){ov.classList.remove("show");});
@@ -25557,12 +25560,20 @@ function __verifyMusicCustomMedia(){
     });
   }catch(_){}
 }
+window.__e11PaintMusicRoomNote=function(){
+  try{
+    var n=String(state.musicRoomNote||"").trim();
+    var txt=n?esc(n):("相距"+(state.profile.mpDist||0)+"公里，一起听了"+(state.profile.mpDur||"5小时20分钟"));
+    var mu=$("mu-dist");if(mu)mu.innerHTML=txt;
+    var ml=$("ml-dist");if(ml)ml.innerHTML=txt+'<span class="pen">✎</span>';
+  }catch(_){}
+};
 function renderMusicList(){
   renderMusicBg();
   try{__verifyMusicCustomMedia();}catch(_){}
   /* 进音乐页前先在隐藏态铺好列表，真正切过去时签名没变就直接复用：
      否则同一帧刚铺完又被 post-render 清空重铺，看起来就是闪一下 */
-  var _msig="music|"+__sigOfList(state.musicPlaylist)+"|"+(state.musicCur|0)+"|"+(state.musicMode||"")+"|"+String(state.musicBgImg||"").slice(0,40)+"|"+String(state.profile.musicMeName||"")+"|"+String(state.profile.musicPartnerName||"");
+  var _msig="music|"+__sigOfList(state.musicPlaylist)+"|"+(state.musicCur|0)+"|"+(state.musicMode||"")+"|"+String(state.musicBgImg||"").slice(0,40)+"|"+String(state.profile.musicMeName||"")+"|"+String(state.profile.musicPartnerName||"")+"|"+String(state.musicRoomNote||"")+"|"+(state.profile.mpDist||0)+"|"+String(state.profile.mpDur||"");
   if(!window.__rSig)window.__rSig={};
   if(window.__rSig["music"]===_msig){
     var _ml0=document.getElementById("m-list");
@@ -25578,7 +25589,7 @@ function renderMusicList(){
   $("mu-av2").src=__avatarPickFor("music","me");
   $("mu-name1").textContent=state.profile.musicPartnerName||state.profile.partnerMpName||state.partner.name||"jsndxhyyx";
   $("mu-name2").textContent=state.profile.musicMeName||state.profile.mpName||state.me.name||"wxhggxhwm";
-  (function(){var _n=String(state.musicRoomNote||"").trim();$("mu-dist").innerHTML=_n?esc(_n):("相距"+(state.profile.mpDist||0)+"公里，一起听了"+(state.profile.mpDur||"5小时20分钟"));})();
+  try{window.__e11PaintMusicRoomNote();}catch(_){}
   const cov=state.musicCoverImg;
   function coverHtml(pic,fallback){const img=pic?'<img src="'+pic+'" alt="" data-mc="1" decoding="async">':fallback;return img+'<span class="mc-hint">📷</span>';}
   if(cur>=0){
@@ -27764,13 +27775,13 @@ function stxt(t){var e=document.getElementById('ny-st'); if(e)e.textContent=t;}
     state.musicRoomNote=String($("mr-note-input").value||"").trim();try{window.__e11MusicRoomTouch&&window.__e11MusicRoomTouch();}catch(_){}save();
     $("mr-note-sheet").classList.remove("show");
     var _n=state.musicRoomNote;
-    $("ml-dist").innerHTML=(_n?esc(_n):("相距"+(state.profile.mpDist||0)+"公里，一起听了"+(state.profile.mpDur||"5小时20分钟")))+'<span class="pen">✎</span>';
+    try{window.__e11PaintMusicRoomNote();}catch(_){}
     toast(_n?"已换成你写的文案":"已恢复默认文案");
   });
   $("mr-note-reset").addEventListener("click",function(){
     state.musicRoomNote="";try{window.__e11MusicRoomTouch&&window.__e11MusicRoomTouch();}catch(_){}save();
     $("mr-note-sheet").classList.remove("show");
-    $("ml-dist").innerHTML="相距"+(state.profile.mpDist||0)+"公里，一起听了"+(state.profile.mpDur||"5小时20分钟")+'<span class="pen">✎</span>';
+    try{window.__e11PaintMusicRoomNote();}catch(_){}
     toast("已恢复默认文案");
   });
   /* 歌词页的 ✕ 和音乐页右上角的「··（背景）」位置重叠：
