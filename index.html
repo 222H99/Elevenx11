@@ -267,7 +267,33 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-220z42";
+window.__E11_BUILD="2026-11-25v43-221z43";
+/* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
+   首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
+(function(){
+  try{
+    if(!("serviceWorker" in navigator))return;
+    var prev=localStorage.getItem("e11.buildSeen.v1");
+    if(!prev||prev===window.__E11_BUILD)return;
+    if(sessionStorage.getItem("e11.buildReloaded.v1"))return;
+    sessionStorage.setItem("e11.buildReloaded.v1",window.__E11_BUILD);
+    var done=false;
+    function go(){
+      if(done)return;done=true;
+      try{location.reload();}catch(_){}
+    }
+    var regs=[];
+    try{
+      navigator.serviceWorker.getRegistrations().then(function(rs){
+        regs=rs||[];
+        return Promise.all(regs.map(function(r){try{return r.unregister();}catch(_){return null;}}));
+      }).catch(function(){});
+    }catch(_){}
+    var clear=[];try{if(window.caches&&caches.keys)clear.push(caches.keys().then(function(ks){return Promise.all((ks||[]).map(function(k){return caches.delete(k);}));}));}catch(_){}
+    Promise.all(clear).then(go).catch(go);
+    setTimeout(go,1200);
+  }catch(_){}
+})();
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2760,7 +2786,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-220z42">
+<meta name="app-build" content="2026-11-25v43-221z43">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -8817,11 +8843,12 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-220z42",
-  time:"2026-11-25 19:10",
+  date:"v43-221z43",
+  time:"2026-11-25 19:35",
   noticeKey:null,
-  lead:"2026-11-25 修改（v43-220z42）：图标、桌面卡片头像、一起听中心图/封面、我的名字/对方名字这四项，自动备份和本机备份都会带图；恢复哪一份备份，就恢复那份里的四项。信件收藏显示 To 名字 / 名字 留，收藏夹新增聊天、动态、信件、留言分类。",
+  lead:"2026-11-25 修改（v43-221z43）：退出/更新后还是旧值这一轮继续修：离站快照直接带四项，恢复旧自动备份不再被当前旧值覆盖，版本更新首启清掉旧缓存。信件收藏显示真名，收藏夹分为聊天、动态、信件、留言。",
   items:[
+    "退出/更新后还是旧值（v43-221z43）：以前四项只写另一条异步备份，页面被系统杀掉时可能还没写完；现在离开网站写的离站快照本身就带图标、卡片头像、一起听图、我的名字/对方名字，重进先读这份。恢复旧自动备份时，也不再拿当前 localStorage 里的旧四项去盖备份里的新四项。版本号变化后第一次打开会清掉旧 Service Worker 缓存并重载一次，避免“更新了但跑的还是旧代码”。",
     "退出再进图/名没保存、恢复自动备份不是最新（v43-220z42）：四项专用备份现在同时写 IndexedDB 和本机小备份，每次改完、切后台、关页面都写；自动备份的每一份也带上这份四项数据，手动恢复时一起还原，不会再只恢复文字、图片回到旧档。改完图或名字，自动备份立即在后台补一份，不再等退出时异步写盘被打断。",
     "信件收藏显示代码（v43-220z42）：收藏夹里的信件正文以前直接显示 {{me}}、{{partner}}、[[SIG]] 原文。现在渲染时换成真实名字，并补上「To 对方 / 我 留」的抬头，旧收藏也一起生效。",
     "收藏夹没有分类（v43-220z42）：收藏夹新增「全部 / 聊天 / 动态 / 信件 / 留言」分类，和搜索的分类一致，可跟搜索、标签叠加筛选。",
@@ -10127,7 +10154,12 @@ function __bkPaint(){
              旧备份没有 keep4 字段时，退回 globals 里的 e11.keep4.v1。 */
           try{
             var _k4=v.keep4||null;
-            if(!_k4&&v.globals&&v.globals["e11.keep4.v1"]){try{_k4=JSON.parse(v.globals["e11.keep4.v1"]);}catch(_){_k4=null;}}
+            /* 旧备份没有 keep4 时，必须用这份备份自己的四项；绝不能回退到当前 localStorage 的旧值，
+               那会把备份里明明更新的图标/名字又盖回旧档。 */
+            try{
+              var _bkK4Pack=__e11Keep4Pack&&__e11Keep4Pack(st);
+              if(_bkK4Pack&&(!_k4||Number(_bkK4Pack.rev||0)>=Number(_k4.rev||0)))_k4=_bkK4Pack;
+            }catch(_eBkK4Pack){}
             if(_k4&&_k4.ts){
               try{localStorage.setItem("e11.keep4.v1",JSON.stringify(_k4));}catch(_eK4Ls){}
               try{if(typeof dbSet==="function")dbSet("e11.keep4.v2",_k4).catch(function(){});}catch(_eK4Db){}
@@ -10753,13 +10785,17 @@ function __e11ExitSave(st,force){
     }catch(_){}
     var globals={};
     try{globals=__e11ExitGlobals();}catch(_eGlobals){}
+    /* v43-221：离站快照是最可靠的同步落盘路径，四项也直接塞进这份里。
+       以前四项只写 IndexedDB/localStorage 的另一条异步路径，页面被系统杀掉时可能还没写完。 */
+    var _exitK4=null;
+    try{if(typeof __e11Keep4Pack==="function")_exitK4=__e11Keep4Pack(src);}catch(_eK4ExitPack){}
     var _fullMsgs=Array.isArray(core.messages)?core.messages.slice():null;
     var _make=function(keep,withGlobals){
       var c=core;
       try{c=Object.assign({},core);}catch(_){}
       if(_fullMsgs)c.messages=keep?_fullMsgs.slice(-keep):_fullMsgs;
       else if(c.messages)c.messages=[];
-      return JSON.stringify({app:"privateChat",exit:1,ts:_exitTs,state:c,globals:withGlobals?globals:{},mini:withGlobals?0:1});
+      return JSON.stringify({app:"privateChat",exit:1,ts:_exitTs,state:c,globals:withGlobals?globals:{},mini:withGlobals?0:1,keep4:_exitK4||null});
     };
     /* 每档都先直接覆盖；失败才移除旧快照再重试，绝不把上一份完好快照提前删掉。 */
     var _levels=[
@@ -10792,7 +10828,7 @@ function __e11ExitRead(){
   try{
     var raw=localStorage.getItem(__E11_EXIT_KEY);if(!raw)return null;
     var o=JSON.parse(raw);if(!o||!o.state)return null;
-    return {ts:Number(o.ts||o.state.__savedAt)||0,state:o.state,globals:o.globals||{}};
+    return {ts:Number(o.ts||o.state.__savedAt)||0,state:o.state,globals:o.globals||{},keep4:o.keep4||null};
   }catch(e){return null;}
 }
 window.__e11ExitSave=__e11ExitSave;
@@ -12546,7 +12582,7 @@ async function init(){
        旧逻辑 <2 会把旧快照救回来，表现就是“我删掉的东西又自己回来了”。 */
     if((!s||!s.messages)&&(!state||!state.messages)){
       try{var _c0=__e11CoreRead();if(_c0&&_c0.state)state=migrate(_c0.state),window.__e11CoreUsed=1;}catch(_cF0){}
-      try{var _e0=__e11ExitRead();if(_e0&&_e0.state){state=migrate(_e0.state);__bkApplyGlobals(_e0.globals||{},_e0.ts);window.__e11ExitUsed=1;window.__e11ForceExit=1;}}catch(_eF1){}
+      try{var _e0=__e11ExitRead();if(_e0&&_e0.state){state=migrate(_e0.state);if(_e0.keep4){try{__e11Keep4ApplyObj(state,_e0.keep4);}catch(_eK4F1){}}__bkApplyGlobals(_e0.globals||{},_e0.ts);window.__e11ExitUsed=1;window.__e11ForceExit=1;}}catch(_eF1){}
       try{var _em0=sessionStorage.getItem("privateChat__emergency");if(_em0)state=migrate(JSON.parse(_em0));}catch(_eF2){}
       try{var _pm0=localStorage.getItem("privateChat");if(_pm0){var _po0=JSON.parse(_pm0);if(_po0&&!_po0.__idbOnly)state=migrate(_po0);}}catch(_eF3){}
     }
@@ -12570,6 +12606,8 @@ async function init(){
       if(_exitObj&&_exitObj.state){
         if(!s)s=_exitObj.state;
         else __e11MergeExitState(s,_exitObj);
+        /* v43-221：离站快照里的四项要立刻落到最终采用的 s 上，后面 migrate 不会丢 */
+        if(_exitObj.keep4){try{__e11Keep4ApplyObj(s,_exitObj.keep4);}catch(_eExK4){window.__e11ExitKeep4=s.__e11Keep4Rev||1;}}
         try{__bkApplyGlobals(_exitObj.globals||{},_exitObj.ts);}catch(_eExGlob){}
         try{window.__e11ExitUsed=1;window.__e11ExitMergeCount=(window.__e11ExitMergeCount||0)+1;}catch(_eExFlag){}
       }
