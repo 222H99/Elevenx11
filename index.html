@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-230z54";
+window.__E11_BUILD="2026-11-25v43-231z55";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -2786,7 +2786,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-230z54">
+<meta name="app-build" content="2026-11-25v43-231z55">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -10201,7 +10201,12 @@ function __bkPaint(){
              覆盖了刚写好的离站档，重进自然不是刚恢复的那份。 */
           try{if(window.__e11SetState)window.__e11SetState(st);else state=st;}catch(_eSetRstState){}
           return dbSet("state",st).then(function(){
-            try{localStorage.setItem("privateChat",JSON.stringify({__idbOnly:1,__savedAt:Number(st&&st.__savedAt)||Date.now()}));}catch(_){}
+            /* v43-231：恢复完立刻把“恢复后的整份 state”写成本地全量快照。
+               以前这里只写 __idbOnly 指针，恢复后马上退出/覆盖更新时，本地还留着恢复前的旧档。 */
+            try{
+              if(window.__e11WriteLocalFrom&&window.__e11WriteLocalFrom(st)){}
+              else localStorage.setItem("privateChat",JSON.stringify({__idbOnly:1,__savedAt:Number(st&&st.__savedAt)||Date.now()}));
+            }catch(_eRstLocal){}
             try{sessionStorage.setItem("__forceIdbRestore","1");}catch(_){}
             /* 离站档已在上面按恢复后的 st 写好；从现在到 reload 之间禁止旧 state 再覆盖它。 */
             try{window.__e11ExitPreserve=1;}catch(_eRstPreserve){}
@@ -11178,6 +11183,15 @@ function __stateSig(){
     })||"";
   }catch(e){return "err:"+Date.now();}
 }
+/* v43-231：恢复备份、更新前等场景需要“按指定 state 写整份本地快照”，
+   不能只写一个 __idbOnly 指针；否则退出后立刻更新/重开时，本地那份还是恢复前的旧档。 */
+window.__e11WriteLocalFrom=function(obj){
+  try{
+    if(!obj)return false;
+    var _s=__slimState(obj).slim;
+    return __writeLocalSnapshot(JSON.stringify(_s));
+  }catch(_){return false;}
+};
 function __writeLocalSnapshot(sig){
   /* v43-229：保存方式改成和稳定版 bp109 一样——每次改动除了写 IndexedDB，
      还同步把“去图后的整份 state（图片是 bigref 引用）”写进 localStorage 的 privateChat。
