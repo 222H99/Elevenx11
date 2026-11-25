@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-25v43-208z35";
+window.__E11_BUILD="2026-11-25v43-209z35";
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
    旧云档/自动备份/社交备份不再自动补齐，避免删掉的内容被“找回” */
 window.__E11_STRICT_LAST=1;window.__E11AllowRecover=0;
@@ -2363,7 +2363,12 @@ body.msgsel-on #view-chat .bottombar{display:none;}
 #survey-answer-overlay{background:transparent;isolation:isolate;}
 #survey-answer-overlay.show{background:rgba(0,0,0,.32);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);}
 #survey-answer-overlay .sheet{box-shadow:0 18px 54px rgba(0,0,0,.28);}
-body.ui-dark #survey-create-overlay,body.ui-dark #survey-answer-overlay{background:#000;}
+/* v43-209：深色主题只把“创建问卷”铺黑；查看结果必须保持透明遮罩，
+   否则背后的聊天页被整块黑色盖住，用户看到的就是全黑。
+   回答层用半透明暗遮罩 + 模糊，聊天内容仍然透得出来。 */
+body.ui-dark #survey-create-overlay{background:#000;}
+body.ui-dark #survey-answer-overlay{background:transparent !important;}
+body.ui-dark #survey-answer-overlay.show{background:rgba(0,0,0,.46) !important;}
 
 #survey-create-sheet,#survey-answer-sheet{position:relative;display:flex;flex-direction:column;background:var(--field,#fff);}
 #survey-create-sheet{max-height:min(calc(100% - 8px),84vh);}
@@ -2754,7 +2759,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-25v43-208z35">
+<meta name="app-build" content="2026-11-25v43-209z35">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -8646,8 +8651,9 @@ function msgPreviewText(m){
   if(m.type==="survey")return "【问卷】";
   if(m.type==="redpacket")return "【红包】";
   if(m.type==="invite"){
-    if(m.inv==="music")return "【一起听歌邀请】";
-    if(m.inv==="draw")return "【一起画画邀请】";
+    var _it=__e11InviteType(m);
+    if(_it==="music")return "【一起听歌邀请】";
+    if(_it==="draw")return "【一起画画邀请】";
     return "【邀请】";
   }
   if(m.type==="song")return "【推歌】"+__songName(m.song);
@@ -11502,6 +11508,17 @@ function __e11MsgOrder(a,b){
 }
 window.__e11TimeMs=__e11TimeMs;
 window.__e11MsgOrder=__e11MsgOrder;
+function __e11InviteType(m){
+  try{
+    if(!m)return "draw";
+    if(m.inv==="music"||m.inv==="draw")return m.inv;
+    var raw=String(m.text||m.label||m.kind||m.inviteType||m.invType||"").toLowerCase();
+    if(/music|song|listen|听歌|一起听|🎧|耳机/.test(raw))return "music";
+    if(/draw|paint|画|🎨/.test(raw))return "draw";
+  }catch(_){}
+  return "draw";
+}
+window.__e11InviteType=__e11InviteType;
 function __e11NormalizeMessages(s){
   if(!s||!s.messages)return;
   if(!Array.isArray(s.messages)){
@@ -11531,6 +11548,8 @@ function __e11NormalizeMessages(s){
     }
     if(m.type==="text"&&m.text===undefined)m.text=String(m.txt!==undefined?m.txt:(m.content!==undefined?m.content:(m.message!==undefined?m.message:(m.body!==undefined?m.body:""))));
     if(m.type==="image"&&!m.src&&(m.image||m.url))m.src=m.image||m.url;
+    /* 邀请类型只认 music/draw；老存档或云端合并丢字段时按文字/图标兜底，别一律当画画 */
+    if(m.type==="invite")m.inv=__e11InviteType(m);
     if(seen[id]){
       var prev=seen[id];
       /* 只有“同 id + 同时间 + 同内容”才算同一条消息。
@@ -11547,6 +11566,8 @@ function __e11NormalizeMessages(s){
       var keep=takeNew?m:prev,other=takeNew?prev:m;
       if(!keep.src&&other.src)keep.src=other.src;
       if(other.kind&&!keep.kind)keep.kind=other.kind;
+      if(!keep.inv&&other.inv)keep.inv=other.inv;
+      if(!keep.status&&other.status)keep.status=other.status;
       out[out.indexOf(prev)]=keep;seen[id]=keep;
       return;
     }
@@ -12290,8 +12311,12 @@ async function init(){
     try{
       [state,s].forEach(function(root){
         if(!root||!root.profile)return;
-        if(root.profile.myDisplayName)root.me=root.me||{},root.me.name=root.profile.myDisplayName;
-        if(root.profile.partnerDisplayName)root.partner=root.partner||{},root.partner.name=root.profile.partnerDisplayName;
+        /* v43-209：老存档里 settings 写 myDisplayName、主页写 mpName，两份可能不一致。
+           启动时合成同一套：主页名优先，其次设置名，最后才用原有 name，三处不再各显示一个。 */
+        var _hMe=String(root.profile.mpName||root.profile.myDisplayName||(root.me&&root.me.name)||"").trim();
+        if(_hMe){root.me=root.me||{};root.me.name=_hMe;root.profile.mpName=_hMe;root.profile.myDisplayName=_hMe;}
+        var _hPt=String(root.profile.partnerMpName||root.profile.partnerDisplayName||(root.partner&&root.partner.name)||"").trim();
+        if(_hPt){root.partner=root.partner||{};root.partner.name=_hPt;root.profile.partnerMpName=_hPt;root.profile.partnerDisplayName=_hPt;}
       });
     }catch(_eNamesBak){}
     /* P0.5：主存档整个不见了（localStorage 和 IndexedDB 都没有可用记录）时，
@@ -14574,7 +14599,7 @@ function quoteBlock(m){
   else if(q.type==="voice"){body='【语音 '+(Math.max(1,Math.round(Number(q.dur)||1)))+'″】';}
   else if(q.type==="survey"){body='【问卷】';}
   else if(q.type==="redpacket"){body='【红包】';}
-  else if(q.type==="invite"){body=q.inv==="music"?'【一起听歌邀请】':(q.inv==="draw"?'【一起画画邀请】':'【邀请】');}
+  else if(q.type==="invite"){body=__e11InviteType(q)==="music"?'【一起听歌邀请】':'【一起画画邀请】';}
   else{body=esc(q.text||"");}
   return '<div class="quote">'+body+'</div>';
 }
@@ -14775,7 +14800,7 @@ function __msgRowRaw(m){
     if(m.type==="invite"){
       const isMe=m.from==="me";
       const side=isMe?"me":"partner";
-      const isMusic=m.inv==="music";
+      const isMusic=__e11InviteType(m)==="music";
       const tTitle=isMusic?"🎵 一起听歌":"🎨 一起接力画画";
       const tSub=isMusic?(isMe?"你邀请对方一起听歌":"对方邀请你一起听歌"):(isMe?"你邀请对方一起画画":"对方邀请你一起画画");
       let act;
@@ -14919,19 +14944,19 @@ function __bindInviteButtons(row){
     row.querySelectorAll("[data-inv-ok]").forEach(function(b){if(b.__ib)return;b.__ib=1;b.addEventListener("click",function(e){
       e.stopPropagation();var m=msgById(b.getAttribute("data-inv-ok"));if(!m)return;
       m.status="accepted";save();try{__refreshRecallRow(m.id);}catch(_){}
-      if(m.inv==="music"){musicSession=true;state.musicSession=true;try{save();}catch(_){};try{musicInviteShown=false;pendingMusicInvId=null;musicInviteClose();}catch(_){};var au=musicAudio();if(au.paused&&state.musicCur>=0)au.play().catch(function(){});toast("你们开始一起听歌了");showView("view-music");}
+      if(__e11InviteType(m)==="music"){musicSession=true;state.musicSession=true;state.miniClosed=false;try{if(!(Number(state.musicCur)>=0)&&Array.isArray(state.musicPlaylist)&&state.musicPlaylist.length)state.musicCur=0;}catch(_eInvCur){};try{save();}catch(_){};try{window.__e11MiniPersist&&window.__e11MiniPersist();}catch(_){};try{musicInviteShown=false;pendingMusicInvId=null;musicInviteClose();}catch(_){};var au=musicAudio();if(au.paused&&state.musicCur>=0)au.play().catch(function(){});toast("你们开始一起听歌了");showView("view-music");}
       else{game.agreed=true;window.__gameReturn="view-chat";showView("view-game");initGameCanvas();toast("接受邀请，一起画吧");}
     });});
     row.querySelectorAll("[data-inv-no]").forEach(function(b){if(b.__ib)return;b.__ib=1;b.addEventListener("click",function(e){
       e.stopPropagation();var m=msgById(b.getAttribute("data-inv-no"));if(!m)return;
       m.status="declined";save();try{__refreshRecallRow(m.id);}catch(_){}
-      var _s=pushMsg("me","sys",m.inv==="music"?"你拒绝了听歌邀请":"你拒绝了画画邀请");try{__appendChatMsg(_s);}catch(_){renderChat();}
+      var _s=pushMsg("me","sys",__e11InviteType(m)==="music"?"你拒绝了听歌邀请":"你拒绝了画画邀请");try{__appendChatMsg(_s);}catch(_){renderChat();}
       save();toast("已拒绝");
     });});
     row.querySelectorAll("[data-inv-cancel]").forEach(function(b){if(b.__ib)return;b.__ib=1;b.addEventListener("click",function(e){
       e.stopPropagation();var m=msgById(b.getAttribute("data-inv-cancel"));if(!m)return;
       m.status="cancelled";save();
-      try{if(m.inv==="music"){musicInviteShown=false;pendingMusicInvId=null;musicInviteClose();clearTimeout(musicAutoAccept);}else{drawInviteShown=false;pendingDrawInvId=null;drawInviteClose();clearTimeout(drawAutoAccept);}}catch(_){}
+      try{if(__e11InviteType(m)==="music"){musicInviteShown=false;pendingMusicInvId=null;musicInviteClose();clearTimeout(musicAutoAccept);}else{drawInviteShown=false;pendingDrawInvId=null;drawInviteClose();clearTimeout(drawAutoAccept);}}catch(_){}
       try{__refreshRecallRow(m.id);}catch(_){}
       save();toast("已取消邀请");
     });});
@@ -16361,6 +16386,15 @@ function openSurveyAnswer(id){
   if(Date.now()-(window.__surveyClosedAt||0)<600)return;
   /* 问卷只能由用户点开；不能再套聊天入场守卫，否则刚进聊天就点「查看」会被静默吞掉，看起来像点了没反应/闪一下 */
   const m=msgById(id);if(!m)return;const s=surveyOf(m);if(!s)return;
+  /* v43-209：问卷是“盖在聊天上”的详情层，不是独立页。打开前先把聊天页铺到下面，
+     否则从动态/通知/别的页面点“查看结果”，背后就是空舞台的一片纯黑。 */
+  try{
+    var _svc=document.getElementById("view-chat");
+    if(!_svc||!_svc.classList.contains("open")||window.__curView!=="view-chat"){
+      showView("view-chat");
+      setTimeout(function(){try{window.__chatForceVisible&&window.__chatForceVisible();}catch(_){}},60);
+    }
+  }catch(_eSurveyChat){}
   $("survey-answer-title").textContent="📋 "+(s.title||"问卷");
   const _answered=!!s.answeredBy, _isMe=m.from==="me";
   /* 已作答（或是我自己发的问卷）：只读展示，题目和答案都能反复看 */
@@ -18516,7 +18550,7 @@ function __lsMsgText(m){
     if(m.type==="redpacket"){var r={};try{r=JSON.parse(m.text||"{}");}catch(_){}
       return "🧧 红包"+(r.amount?(" · "+r.amount+" 元"):"")+(r.note?(" · "+r.note):"");}
     if(m.type==="song"&&m.song)return "🎵 推歌 · "+__songName(m.song);
-    if(m.type==="invite")return m.inv==="music"?"🎧 一起听歌邀请":(m.inv==="draw"?"🎨 一起画画邀请":"🎟 邀请");
+    if(m.type==="invite")return __e11InviteType(m)==="music"?"🎧 一起听歌邀请":"🎨 一起画画邀请";
     if(m.type==="poke")return "👋 拍了拍";
     if(m.type==="survey")return "📋 问卷";
     if(m.type==="sys")return String(m.text||"");
@@ -18537,7 +18571,7 @@ function __lsQuote(m){
     else if(q.type==="voice")t="🎙 语音 "+Math.max(1,Math.round(Number(q.dur)||1))+"″";
     else if(q.type==="survey")t="[问卷]";
     else if(q.type==="redpacket")t="[红包]";
-    else if(q.type==="invite")t=q.inv==="music"?"[一起听歌邀请]":(q.inv==="draw"?"[一起画画邀请]":"[邀请]");
+    else if(q.type==="invite")t=__e11InviteType(q)==="music"?"[一起听歌邀请]":"[一起画画邀请]";
     else t=String(q.text||msgPreviewText(q)||"").replace(/\s+/g," ").trim();
     if(!t)t="[消息]";
     return {text:t.slice(0,160),q:q};
@@ -18565,7 +18599,7 @@ function __lsCardSpec(m,K){
       return {kind:"song",w:Math.round(250*K),h:Math.round(76*K),kicker:isMe?"💌 你推给了 TA":"💌 TA 推给你",title:String(__songName(sg)||"未命名歌曲"),sub:String(sg.artist||"点击听这首歌"),note:String(m.note||"")};
     }
     if(m.type==="invite"){
-      var music=m.inv==="music";
+      var music=__e11InviteType(m)==="music";
       var title=music?"一起听歌":"一起接力画画";
       var sub=music?(isMe?"你邀请对方一起听歌":"对方邀请你一起听歌"):(isMe?"你邀请对方一起画画":"对方邀请你一起画画");
       var st3="等待对方回复";
@@ -21572,17 +21606,21 @@ $("game-sheet-import").addEventListener("click",function(){
   window.__pickLocalFile("image/*",function(files){var f=files&&files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){setSkinImg("gameImage",String(rd.result),renderGameBgSwatches);toast("画画背景已更换");};rd.readAsDataURL(f);});
 });
 var __nameSyncT=null;
-function __scheduleNameSync(){clearTimeout(__nameSyncT);__nameSyncT=setTimeout(function(){bindSetting();renderTopStatus();renderChat();},260);}
+function __scheduleNameSync(){clearTimeout(__nameSyncT);__nameSyncT=setTimeout(function(){
+  window.__e11PaintNames&&window.__e11PaintNames();
+  try{bindSetting();}catch(_){}
+  try{renderTopStatus();}catch(_){}
+  try{renderMe();}catch(_){}
+  try{renderCouple();}catch(_){}
+  try{renderChat();}catch(_){}
+},80);}
 $("set-me-name").addEventListener("input",e=>{
-  state.me.name=e.target.value.trim()||"我";
-  /* v43-122：设置页“个人信息”的名字也写进 profile 小快照，退出再进能恢复 */
-  state.profile=state.profile||{};state.profile.myDisplayName=state.me.name;state.profile.__ts=Date.now();
+  window.__e11SetMeName(e.target.value);
   save();try{if(window.__e11SyncProfileBackup)window.__e11SyncProfileBackup();}catch(_){}
   __scheduleNameSync();
 });
 $("set-partner-name").addEventListener("input",e=>{
-  state.partner.name=e.target.value||"对方";
-  state.profile=state.profile||{};state.profile.partnerDisplayName=state.partner.name;state.profile.__ts=Date.now();
+  window.__e11SetPartnerName(e.target.value);
   save();try{if(window.__e11SyncProfileBackup)window.__e11SyncProfileBackup();}catch(_){}
   __scheduleNameSync();
 });
@@ -24287,6 +24325,9 @@ function showView(id){
       if(id==="view-chat"&&_was&&_was!=="view-chat"){window.__chatBackGuardUntil=Date.now()+650;window.__e11BackLock=Date.now();}
     }catch(_){}
     try{__rememberView(id);}catch(_){}
+    /* v43-209：每次切页都重算听歌小弹窗；从一起听页退回聊天/主页时，
+       以前没人再调 refreshMiniPlayer，弹窗就永远隐藏。 */
+    try{if(typeof refreshMiniPlayer==="function")refreshMiniPlayer();}catch(_eMiniView){}
     /* 所有页面切换统一用旧页淡出：旧页不立刻撤，先在原位淡掉，
        目标页在下面已经画好；返回聊天、返回主页都不会再有一帧空白/亮暗突变。 */
     if(_fadeFrom){
@@ -24811,7 +24852,9 @@ function musicInviteOpen(dir,type){
       if(accept){
         try{var _ia=pushMsg("partner","sys","✅ 对方接受了听歌邀请");__appendChatMsg(_ia);}catch(_){}
         musicInviteShown=false;pendingMusicInvId=null;musicInviteClose();toast("对方接受了听歌邀请");
-        musicSession=true;state.musicSession=true;save();
+        musicSession=true;state.musicSession=true;state.miniClosed=false;
+        try{if(!(Number(state.musicCur)>=0)&&Array.isArray(state.musicPlaylist)&&state.musicPlaylist.length)state.musicCur=0;}catch(_eInvCur2){}
+        save();try{window.__e11MiniPersist&&window.__e11MiniPersist();}catch(_eMiniInv2){}
         const au=musicAudio();
         showView("view-music");
         if(au.paused&&state.musicCur>=0)au.play().catch(()=>{});
@@ -24841,10 +24884,10 @@ function __resumePendingInvites(){
     var list=state.messages||[],first=null;
     for(var i=0;i<list.length;i++){
       var m=list[i];
-      if(m&&m.type==="invite"&&m.from==="partner"&&m.status==="pending"&&(m.inv==="music"||m.inv==="draw")&&!__inviteSeenIds[m.id]){first=m;break;}
+      if(m&&m.type==="invite"&&m.from==="partner"&&m.status==="pending"&&!__inviteSeenIds[m.id]){m.inv=__e11InviteType(m);first=m;break;}
     }
     if(!first)return;
-    if(first.inv==="draw"){pendingDrawInvId=first.id;drawInviteShown=true;drawInviteOpen("partner");}
+    if(__e11InviteType(first)==="draw"){pendingDrawInvId=first.id;drawInviteShown=true;drawInviteOpen("partner");}
     else{pendingMusicInvId=first.id;musicInviteShown=true;musicInviteOpen("partner","music");}
   }catch(_eResumeInv){}
 }
@@ -24985,10 +25028,10 @@ function gCompress(d,max,q){return __shrinkImg(d,max||720,q||0.72);}
       state.musicRoomNote=(($("mu-e-note")&&$("mu-e-note").value)||"").trim();
       try{window.__e11MusicRoomTouch&&window.__e11MusicRoomTouch();}catch(_){}
     }else if(mode==="partner"){
-      state.profile.partnerMpName=($("mu-e-name").value||"").trim();
+      window.__e11SetPartnerName(($("mu-e-name").value||"").trim());
       try{window.__e11MusicRoomTouch&&window.__e11MusicRoomTouch();}catch(_){}
     }else if(mode==="me"){
-      state.profile.mpName=($("mu-e-name").value||"").trim();
+      window.__e11SetMeName(($("mu-e-name").value||"").trim());
       try{window.__e11MusicRoomTouch&&window.__e11MusicRoomTouch();}catch(_){}
     }
     ov.classList.remove("show");
@@ -25066,18 +25109,22 @@ window.__e11MiniPersist=function(){
     }));
   }catch(_eMiniPersist){}
 };
-window.__e11MiniRestore=function(st){
+window.__e11MiniRestore=function(st,force){
   try{
-    st=st||state;if(!st)return;
+    st=st||state;if(!st)return false;
     var b=JSON.parse(localStorage.getItem("e11.mini.v1")||"null");
-    if(!b)return;
-    if(b.closed===true){st.miniClosed=true;return;}
-    if(b.on&&!st.miniClosed&&Array.isArray(st.musicPlaylist)&&st.musicPlaylist.length){
+    if(!b)return false;
+    /* 只有用户在本机真的点过小弹窗 × 才收起。云端旧档里的 miniClosed、
+       启动时默认 false 都不算数——否则更新/退出后弹窗又被旧档关掉。 */
+    if(b.closed===true){st.miniClosed=true;return false;}
+    if(b.on&&Array.isArray(st.musicPlaylist)&&st.musicPlaylist.length){
       var cur=Number(st.musicCur);
       if(!(cur>=0&&cur<st.musicPlaylist.length))st.musicCur=Math.max(0,Math.min(Number(b.cur)||0,st.musicPlaylist.length-1));
       st.miniClosed=false;
+      return true;
     }
   }catch(_eMiniRestore){}
+  return false;
 };
 function refreshMiniPlayer(){
   const mp=$("mini-player");
@@ -28740,6 +28787,41 @@ function __sigOfList(arr){
    一渲染就 ReferenceError，整页空白。这里补成安全的空字符串。 */
 function __meName(){try{return (state.me&&state.me.name)||(state.profile&&(state.profile.myName||state.profile.nameMe))||"我";}catch(e){return "我";}}
 function __partName(){try{return (state.partner&&state.partner.name)||"对方";}catch(e){return "对方";}}
+/* v43-209：名字只留一套真相。设置页、资料卡、主页、聊天、信件、留言都读 state.me.name /
+   state.partner.name，编辑任意一处都写回同一组字段，避免“这里改了那里没变”。 */
+window.__e11SetMeName=function(v){
+  try{
+    var n=String(v==null?"":v).trim()||"我";
+    state.me=state.me||{};state.me.name=n;
+    state.profile=state.profile||{};
+    state.profile.mpName=n;state.profile.myDisplayName=n;state.profile.__ts=Date.now();
+    return n;
+  }catch(_eMeName){return "我";}
+};
+window.__e11SetPartnerName=function(v){
+  try{
+    var n=String(v==null?"":v).trim()||"对方";
+    state.partner=state.partner||{};state.partner.name=n;
+    state.profile=state.profile||{};
+    state.profile.partnerMpName=n;state.profile.partnerDisplayName=n;state.profile.__ts=Date.now();
+    return n;
+  }catch(_ePartName){return "对方";}
+};
+window.__e11PaintNames=function(){
+  try{
+    var me=String((state.me&&state.me.name)||"我");
+    var pt=String((state.partner&&state.partner.name)||"对方");
+    var put=function(id,val){var el=document.getElementById(id);if(el&&document.activeElement!==el)el.textContent=val;};
+    put("me-name",me);put("name-me",me);put("set-me-name",me);
+    put("name-partner",pt);put("set-partner-name",pt);
+    put("gb-name","@"+(state.profile.partnerMpName||pt));
+    put("lt-write-name",pt);put("call-name",pt);
+    put("mu-name1",state.profile.partnerMpName||pt);
+    put("mu-name2",state.profile.mpName||me);
+    try{var cn=document.getElementById("cp2-nm-me");if(cn)cn.textContent=state.profile.cpMeName||me;}catch(_){}
+    try{var cp=document.getElementById("cp2-nm-pn");if(cp)cp.textContent=state.profile.cpPartnerName||pt;}catch(_){}
+  }catch(_ePaintName){}
+};
 function __favArr(){if(!Array.isArray(state.favorites))state.favorites=[];return state.favorites;}
 function __favHas(id){return __favArr().some(function(x){return x.id===id;});}
 /* ---- 动态 / 信件 / 留言 的五角星收藏 ---- */
@@ -31708,8 +31790,8 @@ function flushBioForm(){
   const fl=Math.max(0,parseInt($("bio-followers").value)||0);
   const fg=Math.max(0,parseInt($("bio-following").value)||0);
   const bio=$("bio-text").value.trim();
-  if(bioSeg==="me"){if(nm)p.mpName=nm;p.handle=hd;p.followers=fl;p.following=fg;p.bio=bio;}
-  else{if(nm)p.partnerMpName=nm;p.partnerHandle=hd;p.partnerFollowers=fl;p.partnerFollowing=fg;p.partnerBio=bio;}
+  if(bioSeg==="me"){if(nm)window.__e11SetMeName(nm);p.handle=hd;p.followers=fl;p.following=fg;p.bio=bio;}
+  else{if(nm)window.__e11SetPartnerName(nm);p.partnerHandle=hd;p.partnerFollowers=fl;p.partnerFollowing=fg;p.partnerBio=bio;}
 }
 $("btn-mp-bio").addEventListener("click",function(){bioSeg=mpSide==="partner"?"partner":"me";fillBioForm();$("bio-overlay").classList.add("show");setTimeout(function(){$("bio-name").focus();},150);});
 /* v43-183z11：编辑资料内的“换背景”行已删除，背景统一从主页封面/换背景按钮进入。 */
@@ -34284,27 +34366,32 @@ try{
 try{
   /* v43-121：四个资料字段都做输入即存。用户改完直接退出/杀进程，不点“确认保存”也不会丢。 */
   var _nt=null;
-  function _meDraftSync(){
-    state.profile.mpName=$("me-name-edit").value.trim();
+  function _meDraftSync(full){
+    var _nm=$("me-name-edit").value.trim();
+    if(_nm)window.__e11SetMeName(_nm);else state.profile.mpName=_nm;
     state.profile.handle=$("me-handle-edit").value.trim();
     state.profile.region=$("me-region-edit").value.trim();
     state.profile.bio=$("me-sign-edit").value.trim();
     state.profile.__ts=Date.now();
     try{if(window.__profileSaveSig)window.__profileSaveSig=JSON.stringify(state.profile);}catch(_){}
-    try{renderMe();}catch(e){}
+    try{window.__e11PaintNames&&window.__e11PaintNames();}catch(_){}
+    if(full!==false){try{renderMe();}catch(e){}try{renderCouple();}catch(e){}}
     try{if(window.__e11SyncProfileBackup)window.__e11SyncProfileBackup();}catch(_){}
     save();
     try{if(window.__e11SyncCfgSnapshot)window.__e11SyncCfgSnapshot();}catch(_){}
   }
   ["me-name-edit","me-handle-edit","me-region-edit","me-sign-edit"].forEach(function(id){
     var el=$(id);if(!el||el._direct)return;el._direct=1;
-    el.addEventListener("input",function(){clearTimeout(_nt);_nt=setTimeout(_meDraftSync,180);});
-    el.addEventListener("blur",function(){clearTimeout(_nt);_meDraftSync();try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_){}});
+    /* v43-209：输入时只轻量刷新文字节点并防抖落盘，不再每次按键整页 renderMe，
+       头像/签名/照片不会被反复重算，打字不再卡。失焦或保存时才做完整重绘。 */
+    el.addEventListener("input",function(){clearTimeout(_nt);_nt=setTimeout(function(){_meDraftSync(false);},90);});
+    el.addEventListener("blur",function(){clearTimeout(_nt);_meDraftSync(true);try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_){}});
   });
   window.__meDraftSync=_meDraftSync;
 }catch(e){}
 $("me-edit-save").addEventListener("click",()=>{
-  state.profile.mpName=$("me-name-edit").value.trim();
+  var _svNm=$("me-name-edit").value.trim();if(_svNm)window.__e11SetMeName(_svNm);
+  else state.profile.mpName=_svNm;
   state.profile.handle=$("me-handle-edit").value.trim();
   state.profile.region=$("me-region-edit").value.trim();
   state.profile.bio=$("me-sign-edit").value.trim();
@@ -34347,6 +34434,10 @@ function renderAll(){
   renderTopStatus();
   /* 刷新/重开后按本机当前歌曲恢复一起听小弹窗；关掉过就保持关闭 */
   try{refreshMiniPlayer();}catch(_eMiniAll){}
+  /* v43-209：启动时曲库/云端档可能还没 hydrate 完，恢复小弹窗要再补两次；
+     只按本机 e11.mini.v1 恢复，云端旧档不能把它关掉。 */
+  setTimeout(function(){try{if(window.__e11MiniRestore&&window.__e11MiniRestore(state))refreshMiniPlayer();}catch(_eMiniR1){}},1200);
+  setTimeout(function(){try{if(window.__e11MiniRestore&&window.__e11MiniRestore(state))refreshMiniPlayer();}catch(_eMiniR2){}},4200);
   /* 启动时不铺整张聊天列表：默认停在主页，聊天行晚一点（空闲时）再预铺，避免刚点开就卡一下 */
   try{
     var _vc=document.getElementById("view-chat");
@@ -35822,7 +35913,10 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
   var rec=null,active=false,want=false,baseText="",pill=null;
   function inp(){return document.getElementById("msg-input");}
   function lang(){try{return (state&&state.settings&&state.settings.sttLang)||"zh-CN";}catch(_){return "zh-CN";}}
-  function supported(){return !!(window.SpeechRecognition||window.webkitSpeechRecognition);}
+  function supported(){
+    if(window.SpeechRecognition||window.webkitSpeechRecognition)return true;
+    try{return !!(window.AndroidUI&&AndroidUI.hasNativeSpeech&&AndroidUI.hasNativeSpeech());}catch(_){return false;}
+  }
   function setPill(on,text){
     try{
       if(!on){if(pill&&pill.parentNode)pill.parentNode.removeChild(pill);pill=null;return;}
@@ -35842,14 +35936,80 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
       var t=document.getElementById("stt-pill-text");if(t)t.textContent=text||"正在听…";
     }catch(_){}
   }
+  var nativeDone="",nativePartial="",nativeBase="";
   function stop(){
     want=false;active=false;
     try{if(rec)rec.stop();}catch(_){}
+    try{if(window.AndroidUI&&AndroidUI.stopNativeSpeech)AndroidUI.stopNativeSpeech();}catch(_eNS){}
     rec=null;setPill(false);
+  }
+  function nativePaint(done,partial){
+    var el=inp();if(!el)return;
+    var txt=String(done||"")+String(partial||"");
+    var cur=String(nativeBase||"");
+    var all=txt.replace(/^\s+|\s+$/g,"");
+    if(cur&&all&&!/\s$/.test(cur)&&!/^[，。！？、,.!?]/.test(all))cur+=" ";
+    el.value=cur+all;
+    try{el.dispatchEvent(new Event("input",{bubbles:true}));}catch(_){}
+  }
+  window.__nativeSpeechResult=function(text,final){
+    if(!active)return;
+    text=String(text||"").trim();
+    if(final){
+      nativeDone=(nativeDone?nativeDone+" ":"")+text;
+      nativePaint(nativeDone,"");
+      active=false;want=false;setPill(false);
+      return;
+    }
+    nativePartial=text;
+    nativePaint(nativeDone,nativePartial);
+    setPill(true,"正在听："+text.slice(-28));
+  };
+  window.__nativeSpeech=function(evt){
+    if(evt==="ready"&&active)setPill(true,"正在听，点「结束」停止");
+  };
+  window.__nativeSpeechError=function(code){
+    if(!active&&!want)return;
+    active=false;want=false;setPill(false);
+    code=String(code||"");
+    if(code==="perm"){
+      toast("麦克风权限还没允许，去系统设置打开");
+      try{if(window.AndroidUI&&AndroidUI.openAppSettings){__iosConfirm("要现在打开系统设置，把麦克风打开吗？",{okText:"打开设置",cancelText:"稍后"}).then(function(yes){if(yes){try{AndroidUI.openAppSettings();}catch(_){}}});}}catch(_eNSP){}
+      return;
+    }
+    if(code==="unavailable"){toast("这台手机没有可用的系统听写服务，先用键盘输入");return;}
+    if(code==="7"||code==="no-speech"){toast("没听清，再说一次");return;}
+    if(code==="9"||code==="6"){toast("系统听写需要网络，检查网络后再试");return;}
+    toast("听写失败："+(code||"未知错误"));
+  };
+  function beginNative(){
+    if(active){stop();return true;}
+    var el=inp();if(!el){toast("先进聊天页再试");return false;}
+    try{window.__dndBlurInput&&window.__dndBlurInput();}catch(_){}
+    nativeBase=String(el.value||"");nativeDone="";nativePartial="";
+    want=true;active=true;setPill(true,"正在准备麦克风…");
+    try{
+      if(window.AndroidUI&&AndroidUI.hasMicPermission&&!AndroidUI.hasMicPermission()){
+        AndroidUI.requestMicPermission&&AndroidUI.requestMicPermission();
+        var n=0,t=setInterval(function(){
+          n++;
+          try{if(AndroidUI.hasMicPermission()){clearInterval(t);AndroidUI.startNativeSpeech&&AndroidUI.startNativeSpeech(lang());setPill(true,"正在听，点「结束」停止");return;}}catch(_){}
+          if(n>15){clearInterval(t);active=false;want=false;setPill(false);toast("麦克风权限还没打开，去系统设置允许后重试");}
+        },200);
+      }else{
+        AndroidUI.startNativeSpeech&&AndroidUI.startNativeSpeech(lang());
+      }
+    }catch(e){active=false;want=false;setPill(false);toast("听写启动失败，再点一次");return false;}
+    return true;
   }
   function begin(){
     var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-    if(!SR){toast("这个浏览器/WebView 不支持系统听写；请用 Chrome、Safari 或安装最新 APK");return false;}
+    /* Android WebView 没有 Web Speech API，旧版直接报“不支持/没权限”。
+       现在优先调原生 SpeechRecognizer，听写结果回填到同一个输入框。 */
+    if(!SR){
+      try{if(window.AndroidUI&&AndroidUI.hasNativeSpeech&&AndroidUI.hasNativeSpeech())return beginNative();}catch(_eNative){}
+      toast("这个浏览器/WebView 不支持系统听写；请用 Chrome、Safari 或安装最新 APK");return false;
+    }
     if(active){stop();return true;}
     var el=inp();if(!el){toast("先进聊天页再试");return false;}
     try{window.__dndBlurInput&&window.__dndBlurInput();}catch(_){}
@@ -36226,6 +36386,9 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
       go.style.cssText="flex:none;border:0;border-radius:11px;padding:8px 12px;background:#fff;color:#111;font:700 12px -apple-system,sans-serif";
       go.onclick=function(){
         try{
+          /* v43-209：下载覆盖安装前先强制落盘离站快照，最后几条聊天/字卡不会被新进程吞掉 */
+          try{window.__e11ExitSave&&window.__e11ExitSave(state,true);}catch(_upSave){}
+          try{window.__e11PersistNow&&window.__e11PersistNow();}catch(_upPersist){}
           if(window.AndroidUI&&typeof AndroidUI.downloadApk==="function")AndroidUI.downloadApk(apkUrl);
           else if(window.AndroidUI&&typeof AndroidUI.openUrl==="function")AndroidUI.openUrl(apkUrl);
           else location.href=apkUrl;
@@ -36303,6 +36466,9 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
               try{toast("发现新版本 "+info.build+"，正在下载更新…");}catch(_){}
               try{var _apkBar=document.getElementById("apk-update-bar");if(_apkBar)_apkBar.style.display="none";}catch(_){}
               try{
+                /* v43-209：手动检查更新同样先强制快照再下载 */
+                try{window.__e11ExitSave&&window.__e11ExitSave(state,true);}catch(_upSave2){}
+                try{window.__e11PersistNow&&window.__e11PersistNow();}catch(_upPersist2){}
                 if(window.AndroidUI&&typeof AndroidUI.downloadApk==="function")AndroidUI.downloadApk(apkUrl);
                 else if(window.AndroidUI&&typeof AndroidUI.openUrl==="function")AndroidUI.openUrl(apkUrl);
                 else location.href=apkUrl;
@@ -38692,7 +38858,7 @@ body{margin:0;background:var(--bg,#fafafa);}
         var st=$("mic-perm-sub");if(!st)return;
         var native=false,ok=false;
         try{native=!!(window.AndroidUI&&AndroidUI.hasMicPermission);ok=native&&AndroidUI.hasMicPermission();}catch(_eMicStatus){}
-        if(native)st.textContent=ok?"系统已允许麦克风（可直接按住说话）":"系统还没允许麦克风，点「检查权限」申请";
+        if(native)st.textContent=ok?"系统已允许麦克风（可直接按住说话）":"系统还没允许麦克风，点「检查权限」申请；被系统永久拒绝时点「检查权限」会直接打开设置";
         else st.textContent="浏览器需要在弹窗里允许麦克风";
       }catch(_eMicStatus2){}
     }
@@ -38709,7 +38875,7 @@ body{margin:0;background:var(--bg,#fafafa);}
           status("正在申请系统麦克风权限…");
           try{AndroidUI.requestMicPermission();}catch(_eMicReq){}
           await new Promise(function(res){
-            var n=0,t=setInterval(function(){n++;try{if(AndroidUI.hasMicPermission()){clearInterval(t);res();return;}}catch(_eMicPoll){}if(n>75){clearInterval(t);res();}},200);
+            var n=0,t=setInterval(function(){n++;try{if(AndroidUI.hasMicPermission()){clearInterval(t);res();return;}}catch(_eMicPoll){}/* v43-209：只等 2.4 秒；系统永久拒绝时不再让用户干等 15 秒，马上给“去设置”入口 */if(n>12){clearInterval(t);res();}},200);
           });
         }
         nativeOk=native&&AndroidUI.hasMicPermission();
