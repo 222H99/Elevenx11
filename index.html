@@ -267,7 +267,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-26v43-235z60f13";window.__E11_CODE=341;
+window.__E11_BUILD="2026-11-26v43-235z60f14";window.__E11_CODE=342;
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -1869,6 +1869,12 @@ body.env-open #btn-letters-back{visibility:hidden!important;pointer-events:none!
 /* v43-235z60f11：舞台高度可能比真正可视窗口高（底部被浏览器条盖住）。
    声明页/公告页/锁屏是 fixed+inset:0，会跟着撑到被盖住的区域，底部按钮就看不见。
    用 --ui-extra 把这三层底边收回可视区。 */
+/* v43-235z60f14：顶部再固定一个入口，不依赖页面底部是否被浏览器条/滚动吞掉 */
+#about-agree-top{position:fixed;top:calc(env(safe-area-inset-top) + 10px);left:50%;transform:translateX(-50%);
+  z-index:100011;display:none;border:0;border-radius:999px;padding:11px 26px;
+  background:linear-gradient(135deg,#3478F6,#5AC8FA);color:#fff;font-size:15px;font-weight:700;
+  box-shadow:0 8px 22px rgba(52,120,246,.35);cursor:pointer;}
+.about-screen.show #about-agree-top{display:block;}
 .announce-screen,.about-screen,.lock-screen{bottom:var(--ui-extra,0px)!important;}
 .about-screen{position:fixed;inset:0;z-index:100002;display:none;flex-direction:column;
   background-image:none;background-color:#FFFFFF;}
@@ -2839,7 +2845,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-26v43-235z60f13">
+<meta name="app-build" content="2026-11-26v43-235z60f14">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -5919,6 +5925,7 @@ setTimeout(function(){
 </div>
 <div class="about-screen" id="about-screen">
   <button id="about-x" aria-label="关闭作者声明" title="关闭">×</button>
+  <button id="about-agree-top" type="button">同意并进入</button>
   <div class="about-scroll">
     <h2>关于本站</h2>
     <p>Eleven×11 是一款仿 iMessage 风格的字卡网站。所有聊天数据都保存在你自己的浏览器里，不上传到任何服务器，也不会被任何人获取。</p>
@@ -33202,6 +33209,10 @@ function initAbout(){
   btn.textContent="同意并进入";
   btn.style.opacity="1";
   btn.style.cursor="pointer";
+  try{
+    var _topBtn=document.getElementById("about-agree-top");
+    if(_topBtn&&!_topBtn.__bound){_topBtn.__bound=1;_topBtn.addEventListener("click",function(){try{btn.click();}catch(_){}});}
+  }catch(_eTopBtn){}
   var _dbReady=true;
   /* 有些旧保存路径会异步把 .show 撤掉；只要用户还没点同意，就确保声明页一直在最上层。 */
   var _keepAbout=function(){
