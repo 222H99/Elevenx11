@@ -292,7 +292,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-27v44-236b44";
+window.__E11_BUILD="2026-11-27v44-236b45";
 /* v43-236b37：以前版本一变就「清缓存 + location.reload()」，慢网/真机上等于多白屏 1~3 秒。
    现在页面本身就是新代码，不再重载；只让 Service Worker 在空闲时自己更新、清掉旧缓存，
    下次开启自然就是新版。 */
@@ -648,6 +648,7 @@ body.e11-has-mom-wall #view-moments .v-head{background:transparent !important;bo
 .chat-new-pill:active{opacity:.8;}
 .msglist{contain:layout style paint;flex:1 1 0;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;overflow-anchor:none;scroll-behavior:auto;padding:14px 12px 12px;display:flex;flex-direction:column;gap:4px;background:transparent;-webkit-overflow-scrolling:touch;}
 /* 聊天记录为空时给一句提示，避免点进聊天只看到一大块空白，以为页面坏了 */
+#msglist>.msg-row:first-child{margin-top:auto!important;}
 #msglist:empty::after{content:"还没有聊天记录，发一句试试";display:block;margin:auto;color:#8E8E93;font-size:13px;line-height:1.6;text-align:center;padding:24px 0;}
 .msg-day{text-align:center;font-size:12px;color:#8E8E93;margin:10px 0 8px;cursor:pointer;}
 .msg-day:active{opacity:.6;}
@@ -658,7 +659,7 @@ body.e11-has-mom-wall #view-moments .v-head{background:transparent !important;bo
 body.fs-1 .msg-sys.msg-recall,body.fs-2 .msg-sys.msg-recall,body.fs-3 .msg-sys.msg-recall,body.fs-4 .msg-sys.msg-recall{font-size:calc(10px * var(--fs));}
 .msg-row{display:flex;margin:2px 0;max-width:100%;align-items:flex-start;}
 /* v43-107：任何导入/自定义样式都不许把消息行隐藏；消息看不见时先保底可见 */
-#msglist{display:flex!important;flex-direction:column!important;gap:4px!important;flex:1 1 0!important;min-height:0!important;max-height:none!important;height:auto!important;overflow-y:auto!important;overflow-x:hidden!important;visibility:visible!important;opacity:1!important;transform:none!important;clip:auto!important;clip-path:none!important;}
+#msglist{display:flex!important;flex-direction:column!important;justify-content:flex-end!important;gap:4px!important;flex:1 1 0!important;min-height:0!important;max-height:none!important;height:auto!important;overflow-y:auto!important;overflow-x:hidden!important;visibility:visible!important;opacity:1!important;transform:none!important;clip:auto!important;clip-path:none!important;}
 #msglist>.msg-row{display:flex!important;visibility:visible!important;opacity:1!important;height:auto!important;max-height:none!important;min-height:0!important;overflow:visible!important;position:relative!important;transform:none!important;clip:auto!important;clip-path:none!important;content-visibility:visible!important;flex:0 0 auto!important;margin:2px 0!important;line-height:normal!important;}
 /* iMessage 那种「气泡弹出来」的入场：我发的从底部弹起，对方的从左侧滑入 */
 @keyframes wxsPopOut{0%{opacity:0;transform:translate3d(0,8px,0) scale(.97)}100%{opacity:1;transform:translate3d(0,0,0) scale(1)}}
@@ -2838,7 +2839,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-27v44-236b44">
+<meta name="app-build" content="2026-11-27v44-236b45">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -26819,6 +26820,16 @@ function __songFallbackCover(sg){
   return url;
 }
 function __sgDisplayCover(sg){return __sgCover(sg)||__songFallbackCover(sg);}
+/* 列表封面 <img> 加载失败时，从它所在的 li 找到是第几首，才能重取那一首的封面 */
+function __songFromCoverEl(holder){
+  try{
+    var li=holder&&holder.closest&&holder.closest("#m-list li");
+    if(!li)return null;
+    var idx=Number(li.getAttribute("data-i"));
+    if(!isFinite(idx))idx=Array.prototype.indexOf.call(li.parentNode.children,li);
+    return (state.musicPlaylist||[])[idx]||null;
+  }catch(_){return null;}
+}
 /* 歌名兜底：旧存档/合并失败时可能只剩 id、neteaseId 或 url，不能显示成空白。
    优先原 name，其次 title/songName/fileName，最后从音频地址取文件名。 */
 function __songName(sg,i){
@@ -26855,13 +26866,25 @@ try{
     }
     if(im.dataset&&im.dataset.fb&&im.getAttribute("src")!==im.dataset.fb){im.src=im.dataset.fb;return;}
     var main=im.closest&&im.closest("#mu-cover");
-    if(main){
-      try{
-        var song=(state.musicPlaylist||[])[state.musicCur];
-        var fb=song&&__songFallbackCover(song);
+    var inList=im.closest&&im.closest("#m-list .ml-cover");
+    try{
+      var song=(inList?null:(state.musicPlaylist||[])[state.musicCur])||(inList?__songFromCoverEl(inList):null);
+      if(song){
+        /* v44-236b45：封面链接失效（网易云老链接过期）时不直接换成生成封面，
+           先强制重取一次详情，取到新链接就整页重画，真正把封面修回来。 */
+        var key=String(song.neteaseId||song.id||"");
+        window.__coverRetryAt=window.__coverRetryAt||{};
+        if(key&&!window.__coverRetryAt[key]){
+          window.__coverRetryAt[key]=Date.now();
+          try{__musicPic(song,function(pic){if(pic)__scheduleCoverPaint();},true);}catch(_){}
+        }else if(Date.now()-(window.__coverRetryAt[key]||0)>600000){
+          window.__coverRetryAt[key]=0;
+        }
+        var fb=__songFallbackCover(song);
         if(fb&&im.getAttribute("src")!==fb)im.src=fb;
-      }catch(_){}
-    }
+      }
+    }catch(_){}
+    if(main){try{var s2=(state.musicPlaylist||[])[state.musicCur];var f2=s2&&__songFallbackCover(s2);if(f2&&im.getAttribute("src")!==f2)im.src=f2;}catch(_){}}
   },true);
 }catch(_){}
 function __musicPic(sg,cb,force){
@@ -35235,35 +35258,44 @@ window.__dockTopPx=function(){
   /* 重叠消解：按容器内坐标把「压在一起」的下方组件往下推，保证任何尺寸组合都不叠 */
   function resolveOverlap(){
     try{
-      /* 主页不可见时（后台预渲染）所有元素偏移都是 0，不能据此判断重叠，否则会把布局越推越散 */
+      /* 主页不可见时（后台预渲染）所有元素偏移都是 0，不能据此判断重叠 */
       if(!page.offsetWidth||!page.offsetHeight)return;
       if(!page.getClientRects().length)return;
       var order=['av','chat','record','count','photo'];
-      for(var pass=0;pass<3;pass++){
-        var els=[];
-        for(var i=0;i<order.length;i++){
-          var el=page.querySelector('[data-cp2="'+order[i]+'"]');
-          if(!el||getComputedStyle(el).display==="none")continue;
-          els.push(el);
+      var els=[];
+      for(var i=0;i<order.length;i++){
+        var el=page.querySelector('[data-cp2="'+order[i]+'"]');
+        if(!el||el.offsetParent===null)continue;   /* 用 offsetParent 判断隐藏，替代 getComputedStyle */
+        els.push(el);
+      }
+      if(els.length<2)return;
+      /* v44-236b45：以前每个元素都调一次 getComputedStyle，且三重循环里反复读 offset*，
+         每次读都会触发强制重排，主页布局一变就要几十毫秒。这里一次把所有盒子读完再统一写。 */
+      for(var pass=0;pass<2;pass++){
+        var boxes=[];
+        for(var b0=0;b0<els.length;b0++){
+          var e0=els[b0];
+          boxes.push({el:e0,x:e0.offsetLeft,y:e0.offsetTop,w:e0.offsetWidth,h:e0.offsetHeight});
         }
-        var moved=false;
-        for(var a=0;a<els.length;a++){
-          for(var b=a+1;b<els.length;b++){
-            var A=els[a],B=els[b];
-            var ax=A.offsetLeft,ay=A.offsetTop,aw=A.offsetWidth,ah=A.offsetHeight;
-            var bx=B.offsetLeft,by=B.offsetTop,bw=B.offsetWidth,bh=B.offsetHeight;
-            var ox=Math.min(ax+aw,bx+bw)-Math.max(ax,bx);
-            var oy=Math.min(ay+ah,by+bh)-Math.max(ay,by);
+        var moved=false,lastNewTop=null;
+        for(var a=0;a<boxes.length;a++){
+          for(var b=a+1;b<boxes.length;b++){
+            var A=boxes[a],B=boxes[b];
+            var ox=Math.min(A.x+A.w,B.x+B.w)-Math.max(A.x,B.x);
+            var oy=Math.min(A.y+A.h,B.y+B.h)-Math.max(A.y,B.y);
             if(ox>6&&oy>6){
-              var lowEl=(ay<=by)?B:A,upTop=(ay<=by)?ay:by,upH=(ay<=by)?ah:bh;
+              var low=(A.y<=B.y)?B:A, upTop=(A.y<=B.y)?A.y:B.y, upH=(A.y<=B.y)?A.h:B.h;
               var newTop=Math.max(0,upTop+upH+14);
-              lowEl.style.top=Math.round(newTop)+"px";
-              lowEl.setAttribute("data-cp2pos",(lowEl.getAttribute("data-cp2")||"")+"|"+Math.round(parseFloat(lowEl.style.left||"0"))+"|"+Math.round(newTop)+"|"+lowEl.offsetWidth+"|"+lowEl.offsetHeight);
+              if(lastNewTop===null||newTop<lastNewTop)lastNewTop=newTop;
+              low.el.style.top=Math.round(newTop)+"px";
+              low.el.setAttribute("data-cp2pos",(low.el.getAttribute("data-cp2")||"")+"|"+Math.round(parseFloat(low.el.style.left||"0"))+"|"+Math.round(newTop)+"|"+low.el.offsetWidth+"|"+low.el.offsetHeight);
+              low.y=Math.round(newTop);
               moved=true;
             }
           }
         }
         if(!moved)break;
+        if(lastNewTop===null)break;
       }
     }catch(e){}
   }
@@ -38637,6 +38669,13 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
              v43-236b38：发现新版时让 Service Worker 悄悄把新 HTML 写进缓存（不换页、不白屏），
              用户退出再进就是新版；这也修掉了「退出网站也没更新」。 */
           pendingBuild=info.build;
+          /* v44-236b45：恢复「检查到新版本自动提示」。以前静默预取，用户完全不知道有新版本。 */
+          try{
+            if(window.__e11UpdToastBuild!==info.build){
+              window.__e11UpdToastBuild=info.build;
+              toast("发现新版本 "+String(info.build).replace(/^[0-9-]+/,"")+"，切到后台再回来自动更新");
+            }
+          }catch(_eUpdToast){}
           try{
             if(!apkMode()&&navigator.serviceWorker){
               var _swr=null;
@@ -38662,6 +38701,7 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
   }
     /* v43-236b40：新 SW 接管（说明换了新版），页面如果还是旧的就自己换一次，用户不用手动点 */
   window.__e11SoftReload=function(){
+    try{window.__e11FlushAll&&window.__e11FlushAll();}catch(_eFlushBefore){}
     try{
       var cur=String(window.__E11_BUILD||"");
       var t=sessionStorage.getItem("e11.takeoverReload");
@@ -38681,6 +38721,37 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
       }
     });
   }catch(_){}
+/* v44-236b45：换版前统一把「当前状态」完整落盘（主库 + 离站档 + 设置备份 + 四项图），
+   新版启动后按离站档精确还原，保证「更新前什么样，更新后退出再进还是什么样」。 */
+window.__e11FlushAll=function(){
+  try{var st=typeof state!=="undefined"?state:null;if(st)st.__savedAt=Date.now();}catch(_){}
+  try{if(typeof save==="function")save();}catch(_){}
+  try{window.__commitSettingsActive&&window.__commitSettingsActive();}catch(_){}
+  try{window.__e11PersistNow&&window.__e11PersistNow();}catch(_){}
+  try{window.__settingsBackup&&window.__settingsBackup(true);}catch(_){}
+  try{window.__e11Keep4Save&&window.__e11Keep4Save(state,true);}catch(_){}
+  try{typeof __e11ExitSave==="function"&&__e11ExitSave(typeof state!=="undefined"?state:null,true);}catch(_){}
+  try{window.__e11SocialSnap&&window.__e11SocialSnap();}catch(_){}
+};
+/* 切后台：把待更新的版本记下来并立刻落盘；回到前台再换页，避免后台被系统挂起时半截加载。 */
+try{
+  document.addEventListener("visibilitychange",function(){
+    try{
+      if(document.hidden){
+        if(pendingBuild||window.__pendingBuild){window.__e11UpdPending=(pendingBuild||window.__pendingBuild);}
+        window.__e11FlushAll&&window.__e11FlushAll();
+        return;
+      }
+      var pb=window.__e11UpdPending;
+      if(pb){
+        var cur=String(window.__E11_BUILD||"").replace(/-r\d+$/,"");
+        if(pb!==cur){window.__e11UpdPending="";window.__e11SoftReload&&window.__e11SoftReload();}
+        else{window.__e11UpdPending="";}
+      }
+    }catch(_eUpdVis){}
+  });
+}catch(_){}
+try{window.addEventListener("pagehide",function(){try{window.__e11FlushAll&&window.__e11FlushAll();}catch(_){}});}catch(_){}
 window.__e11CheckVersion=check;
   window.__e11CheckDebug=function(){return {running:running,lastCheckAt:lastCheckAt,auto:autoBuild,pending:pendingBuild};};
   /* v43-236b40：设备上可能还装着旧入口的 Service Worker（它只返回自己缓存里的老页面，
