@@ -292,7 +292,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-26v43-236b37";
+window.__E11_BUILD="2026-11-26v43-236b38";
 /* v43-236b37：以前版本一变就「清缓存 + location.reload()」，慢网/真机上等于多白屏 1~3 秒。
    现在页面本身就是新代码，不再重载；只让 Service Worker 在空闲时自己更新、清掉旧缓存，
    下次开启自然就是新版。 */
@@ -33543,7 +33543,9 @@ function partnerReplyComment(postId,targetCid,whenTs,skipProb){
   if(!skipProb&&!probPct("socialProbReplyComment"))return;
   const _a=Math.max(1,Math.round(Number(state.settings.replyCommentCardMin)||1));
   const _b=Math.max(_a,Math.round(Number(state.settings.replyCommentCardMax)||_a));
-  const card=joinCards(pickCommentCards(Math.round(rand(_a,_b))));if(!card)return;
+  const _nMin=Math.max(1,Math.round(Number(state.settings.replyCommentNMin)||1));
+  const _nMax=Math.max(_nMin,Math.round(Number(state.settings.replyCommentNMax)||_nMin));
+  const _nReply=Math.round(rand(_nMin,_nMax));
   let myC=null,_mt=-1;
   /* 「回复」必须回复到我自己的评论上；找不到目标时绝对不能退化成一条顶层评论，
      否则界面和通知会把它当成「主动评论」，这就是主动评论/回复划分错乱的来源。
@@ -33561,26 +33563,32 @@ function partnerReplyComment(postId,targetCid,whenTs,skipProb){
     })(m.comments||[]);
   }
   if(!myC)return;
-  /* v43-236b36：一条评论只回一条。旧版每次排的回复任务都会往同一条评论里塞一条，
-     几条任务叠在一起就是「一条评论下面冒出好几条他的回复」。 */
+  /* v43-236b38：按用户要求恢复「条数按自己设定」。
+     b36 为了修「一条评论冒出好几条」改成永远只回一条，把设置里的条数直接作废了。
+     现在：同一条评论只回一批（避免几条任务叠加重复），这一批的条数取设置里的 最少~最多。 */
   try{
-    var _hasP=(myC.replies||[]).some(function(r){return r&&r.from==="partner"&&r.text;});
-    if(_hasP)return;
+    if(myC.__replyDone)return;
+    myC.__replyDone=1;
   }catch(_eOneRep){}
   var _t=Number(whenTs)||Date.now();
   var _newRid=null;
   // 楼中楼：他的回复只挂在我那条评论下面，并标注回复对象
   if(!myC.replies)myC.replies=[];
-  _newRid=uid();
-  myC.replies.push({id:_newRid,from:"partner",text:card,emoji:partnerCommentEmoji()||undefined,time:_t,likes:[],toMe:true});
-  /* v43-236b33：对方回复我的评论也进评论日志，整份存档被旧档顶掉时还能补回来 */
-  try{
-    if(window.__e11CJPut){
-      var _prAnc=window.__e11CJItemPath?window.__e11CJItemPath("moments",postId,myC.id):null;
-      if(_prAnc)_prAnc=_prAnc.slice(0,-1);
-      window.__e11CJPut("moments",postId,myC.replies[myC.replies.length-1],myC.id,_prAnc);
-    }
-  }catch(_eCjRep){}
+  for(var _ri=0;_ri<_nReply;_ri++){
+    var _card=joinCards(pickCommentCards(Math.round(rand(_a,_b))));
+    if(!_card)continue;
+    _newRid=uid();
+    myC.replies.push({id:_newRid,from:"partner",text:_card,emoji:partnerCommentEmoji()||undefined,time:_t+_ri*2000,likes:[],toMe:true});
+    /* v43-236b33：对方回复我的评论也进评论日志，整份存档被旧档顶掉时还能补回来 */
+    try{
+      if(window.__e11CJPut){
+        var _prAnc=window.__e11CJItemPath?window.__e11CJItemPath("moments",postId,myC.id):null;
+        if(_prAnc)_prAnc=_prAnc.slice(0,-1);
+        window.__e11CJPut("moments",postId,myC.replies[myC.replies.length-1],myC.id,_prAnc);
+      }
+    }catch(_eCjRep){}
+  }
+  if(!_newRid)return;
   // 对方回复我的评论：主页顶部 🔔“有新回复（N）· 点击查看”，点击时才定位到对应动态
   m.unread=true;m.unreadKind="reply";
   newM++;updateNewBadge();
@@ -38308,6 +38316,10 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
     var target;
     if(/\.html?$/i.test(p))target=p;
     else if(/\/index$/i.test(p))target=p.replace(/\/index$/i,"/index.html");
+    /* 豆包 HTML 应用形如 /app/app_17j7cuqfra0（或带尾斜杠），它本身就是入口。
+       以前统一拼成 /app/app_xxx/index.html，换页会打到 404 —— 表现就是点更新没反应。 */
+    else if(/\/app\/app_[^\/]+\/?$/i.test(p))target=p.replace(/\/$/,"")+"/";
+    else if(/\/$/.test(p))target=p;
     else target=p.replace(/\/$/,"")+"/index.html";
     try{return new URL(target,location.origin).href;}catch(e){return location.href.split("#")[0].split("?")[0];}
   }
@@ -38331,8 +38343,9 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
     try{
       var ck=await caches.keys();
       await Promise.all(ck.map(function(k){
-        if(k.indexOf("eleven11-runtime-")===0)return caches.delete(k).catch(function(){});
-        return null;
+        /* 以前只删 eleven11-runtime-*，旧 e11-shell-* 会继续把上一版 HTML 顶上来，
+           用户点了「检查更新」却还是旧页面。这里全部清掉，重新从线上取。 */
+        return caches.delete(k).catch(function(){});
       }));
     }catch(_){}
   }
@@ -38458,7 +38471,9 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
       var nv=__nativeVer();
       if(nv){__verInfoCache=nv;__verInfoAt=Date.now();return nv;}
     }
-    var url=(apkMode()?REMOTE_VER:"./version.json")+"?__v="+Date.now().toString(36);
+    /* v43-236b38：以前网页端用 ./version.json，在 /app/app_xxx 这种地址上会被解析到上一层，
+       永远拿不到版本文件（表现就是「检查更新没反应」）。这里统一用绝对地址。 */
+    var url=(apkMode()?REMOTE_VER:REMOTE_VER)+"?__v="+Date.now().toString(36);
     var ctrl=null,to=null;
     try{
       /* 5 秒足够拿到一个几十字节的 version.json；超时就给明确提示，不让按钮一直“检查中”。 */
@@ -38482,10 +38497,17 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
     }
   }
   async function check(manual){
+    /* v43-236b38：手动点「检查更新」时强制拿最新版本文件，不看 15 秒缓存 */
+    if(manual){try{__verInfoCache=null;__verInfoAt=0;}catch(_eVerClr){}}
     if(running){
       /* 手动点击时不丢弃：等当前请求结束立刻再查一次，避免“点了没反应”。 */
-      if(manual)manualQueued=true;
-      return;
+      if(manual){
+        /* 上一次检查如果卡住了（running 一直 true），手动点击会永远被吞掉；
+           超过 2.5 秒就当作它废了，这次直接自己查。 */
+        if(Date.now()-(lastCheckAt||0)>2500){running=false;manualQueued=false;}
+        else{manualQueued=true;return;}
+      }
+      else return;
     }
     /* 启动时 pageshow / 800ms / 5s 三道检查会叠成 3 次请求。
        非手动检查做 30 秒节流，启动阶段只发一次。 */
@@ -38525,10 +38547,19 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
           forceUpdate(info.build,true);
         }else{
           /* v43-236b37：冷启动/使用中都不再自动换页重载。
-             以前这里会 clearRuntime + location.replace 整页重开，用户看到的就是
-             「启动层 → 声明页 → 又白屏一次 → 再启动」，慢网下要好几十秒。
-             现在发现新版只记下来，等用户自己点设置里的「检查更新」再换。 */
-          pendingBuild="";
+             v43-236b38：发现新版时让 Service Worker 悄悄把新 HTML 写进缓存（不换页、不白屏），
+             用户退出再进就是新版；这也修掉了「退出网站也没更新」。 */
+          pendingBuild=info.build;
+          try{
+            if(!apkMode()&&navigator.serviceWorker){
+              var _swr=null;
+              navigator.serviceWorker.getRegistrations().then(function(rs){
+                _swr=(rs&&rs[0])||null;
+                var t=_swr&&(_swr.active||_swr.waiting||_swr.installing);
+                if(t)t.postMessage({type:"e11-refresh-shell"});
+              }).catch(function(){});
+            }
+          }catch(_ePrefetchShell){}
         }
       }else{
         clearAutoUpdate();
@@ -38543,6 +38574,19 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
     }
   }
   window.__e11CheckVersion=check;
+  window.__e11CheckDebug=function(){return {running:running,lastCheckAt:lastCheckAt,auto:autoBuild,pending:pendingBuild};};
+  /* v43-236b38：每次进站都让 Service Worker 自己查一次新版；
+     浏览器默认可能 24 小时才查一次，表现就是「退出再进还是旧版」。 */
+  try{
+    (function(){
+      var bump=function(){
+        try{navigator.serviceWorker.getRegistrations().then(function(rs){
+          (rs||[]).forEach(function(r){try{r.update&&r.update();}catch(_){}});
+        }).catch(function(){});}catch(_){}
+      };
+      if(window.requestIdleCallback)requestIdleCallback(bump,{timeout:1500});else setTimeout(bump,600);
+    })();
+  }catch(_){}
   /* v43-183z30：自动检查让位给首屏渲染，空闲后再发；手动点按钮不受影响。 */
   (function(){
     var go=function(){setTimeout(function(){check(false);},350);};
