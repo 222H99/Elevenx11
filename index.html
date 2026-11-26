@@ -272,7 +272,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-26v43-236b30";
+window.__E11_BUILD="2026-11-26v43-236b31";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -2825,7 +2825,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-26v43-236b30">
+<meta name="app-build" content="2026-11-26v43-236b31">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3814,6 +3814,37 @@ html,body{height:100%;height:100lvh;min-height:100lvh;background:var(--bg,#fafaf
   .v-body{padding-left:22px !important;padding-right:22px !important;}
 }
 </style>
+<script id="__ipad_tap_fix">
+/* v43-236b31：iPad 上主页的加号是 div，手指稍微动一点就被翻页手势吞掉。
+   这里在捕获阶段补一次点击：位移小于 16px 且 700ms 内抬起、又没有原生 click 时才补发。 */
+(function(){
+  try{
+    if(!(window.matchMedia&&matchMedia("(pointer:coarse)").matches))return;
+    if(Math.min(window.innerWidth,window.innerHeight)<700)return;
+    var last=null;
+    document.addEventListener("pointerdown",function(e){
+      var t=e.target&&e.target.closest?e.target.closest(".me-photos,.me-app,.me-widget,.me-av,.me-side .me-app"):null;
+      last=t?{t:t,x:e.clientX,y:e.clientY,ts:Date.now(),clicked:false}:null;
+    },true);
+    document.addEventListener("click",function(e){
+      if(last&&last.t&&last.t.contains(e.target))last.clicked=true;
+      if(e.target&&e.target.closest){var q=e.target.closest(".me-photos,.me-app,.me-widget,.me-av");if(q)q.__tapAt=Date.now();}
+    },true);
+    document.addEventListener("pointerup",function(e){
+      if(!last)return;
+      var d=Math.sqrt(Math.pow(e.clientX-last.x,2)+Math.pow(e.clientY-last.y,2));
+      var t=last.t,clicked=last.clicked;last=null;
+      if(clicked||d>16||Date.now()-t.ts>700)return;
+      setTimeout(function(){
+        try{
+          if(t.__tapAt&&Date.now()-t.__tapAt<600)return;
+          t.__tapAt=Date.now();t.click();
+        }catch(_){}
+      },180);
+    },true);
+  }catch(_eIpadTap){}
+})();
+</script>
 </head>
 <body>
 <!-- v43-121：静态首屏。HTML 一解析到这里就先显示品牌，不再等 2MB 脚本执行完才出画面。 -->
@@ -35896,6 +35927,10 @@ try{
   var _nt=null;
   function _meDraftSync(full){
     var _nm=$("me-name-edit").value.trim();
+    /* v43-236b31：以前只写 profile.mpName，state.me.name 没跟着改。
+       主页/桌面卡片、聊天抬头、信件读的是 me.name，重开后就退回旧名字。 */
+    try{if(window.__e11SetMeName)window.__e11SetMeName(_nm);}catch(_){}
+    state.me=state.me||{};state.me.name=_nm;
     state.profile.mpName=_nm;
     state.profile.myDisplayName=_nm;
     state.profile.handle=$("me-handle-edit").value.trim();
@@ -35925,6 +35960,8 @@ try{
 }catch(e){}
 $("me-edit-save").addEventListener("click",()=>{
   var _svNm=$("me-name-edit").value.trim();
+  try{if(window.__e11SetMeName)window.__e11SetMeName(_svNm);}catch(_){}
+  state.me=state.me||{};state.me.name=_svNm;
   state.profile.mpName=_svNm;state.profile.myDisplayName=_svNm;
   state.profile.handle=$("me-handle-edit").value.trim();
   state.profile.region=$("me-region-edit").value.trim();
@@ -35936,6 +35973,7 @@ $("me-edit-save").addEventListener("click",()=>{
   try{if(window.__e11TextAutoSave)window.__e11TextAutoSave("name");else{save();try{if(window.__e11PersistNow)window.__e11PersistNow();}catch(_){}}}catch(_){}
   try{window.__e11PaintMeDraft&&window.__e11PaintMeDraft();}catch(_){}
   try{window.__e11RefreshProfileSurfaces&&window.__e11RefreshProfileSurfaces();}catch(_){}
+  try{save();if(window.__flushSave)__flushSave(true);if(window.__e11Keep4Save)__e11Keep4Save();}catch(_eNameFlush){}
   toast("已保存");
   $("me-edit-overlay").classList.remove("show");try{if(window.__e11ShieldApps)window.__e11ShieldApps(600);}catch(_){}
 });
