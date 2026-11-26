@@ -292,7 +292,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-27v44-236b46";
+window.__E11_BUILD="2026-11-27v44-236b47";
 /* v43-236b37：以前版本一变就「清缓存 + location.reload()」，慢网/真机上等于多白屏 1~3 秒。
    现在页面本身就是新代码，不再重载；只让 Service Worker 在空闲时自己更新、清掉旧缓存，
    下次开启自然就是新版。 */
@@ -2839,7 +2839,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-27v44-236b46">
+<meta name="app-build" content="2026-11-27v44-236b47">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -13857,6 +13857,8 @@ try{window.__scheduleCp2Render&&window.__scheduleCp2Render();}catch(e){}
         });
       }catch(_eEm){}
       try{__repairEmojiMessages();}catch(_eEmMsg){}
+      /* 表情消息兜底：启动读盘后先跑一次，聊天打开时还会再跑一次 */
+      try{setTimeout(function(){try{window.__emojiRescueChat&&window.__emojiRescueChat();}catch(_){}},900);}catch(_){}
       try{if(__dedupeStolenEmojis())save();}catch(_eDed){}
       try{__repairProfileMedia();}catch(_ePm){}
       /* v43-236b25：启动先按评论日志把缺失的楼层补回来，再做图片/社交恢复 */
@@ -16286,6 +16288,13 @@ function __msgRowRaw(m){
       /* 老存档里如果这张图只剩空串/外置引用而图片本体没读回来，直接画 <img> 会是一条空白。
          这里明确画成「已失效」，至少用户知道是图没了，不会以为聊天界面坏了。 */
       if(_picBad){
+        /* 画「已失效」的同时再单独救这一条，救回来立刻重画 */
+        if(m.kind==="emoji"&&!m.__rescueOne){
+          m.__rescueOne=1;
+          setTimeout(function(){
+            try{__emojiRescueMsg(m).then(function(ok){if(ok){try{save();}catch(_){}try{renderChat(true);}catch(_){}}});}catch(_){}
+          },60);
+        }
         html+='<div class="msg-row '+side+'" data-id="'+m.id+'"><img class="msg-avatar" decoding="async" src="'+__blobUrl(av)+'" alt=""><div class="msg-col">'+__imgFailHTML(m.id,m.kind==="emoji"?"表情已失效":"画作已失效")+meta+'</div></div>';
         return html;
       }
@@ -21001,6 +21010,63 @@ function __emojiCandidateForMessage(m){
   }catch(e){}
   return null;
 }
+/* v44-236b47：历史表情在聊天里显示「已失效」，多数不是图真的没了，而是消息里的 src 还是
+   bigref 引用、或者被清成了空串。打开聊天时逐条按 emojiId → emojiimg:<id> → bigimg:<id>
+   → 表情库同图哈希 的顺序找原图；找到就写回消息并重画，不再一直停在“已失效”。 */
+function __emojiRescueMsg(m){
+  return new Promise(function(res){
+    try{
+      if(!m||m.type!=="image"||m.kind!=="emoji")return res(false);
+      var src=String(m.src||"");
+      if(__emojiSrcOk(src))return res(false);
+      /* 1) 表情库里按 emojiId / 名字 / 原图哈希找同一张 */
+      try{
+        var c=__emojiCandidateForMessage(m);
+        if(c&&__emojiSrcOk(c.src||c.url)){m.src=c.src||c.url;if(!m.emojiId&&c.id)m.emojiId=c.id;if(m.__emojiGone)delete m.__emojiGone;return res(true);}
+      }catch(_){}
+      /* 2) 本机独立副本 emojiimg:<emojiId> 或 bigimg:<bigref id> */
+      if(typeof dbGet==="function"){
+        var keys=[];
+        if(m.emojiId)keys.push("emojiimg:"+String(m.emojiId));
+        if(src.slice(0,8)===__BIG_REF)keys.push("bigimg:"+src.slice(8));
+        if(!keys.length)return res(false);
+        var i=0;
+        (function next(){
+          if(i>=keys.length)return res(false);
+          var k=keys[i++];
+          dbGet(k).then(function(v){
+            if(typeof v==="string"&&__emojiSrcOk(v)){
+              m.src=v;if(m.__emojiGone)delete m.__emojiGone;window.__bigStore&&window.__bigStore.stored&&window.__bigStore.stored.add(k.split(":")[1]);return res(true);
+            }
+            next();
+          }).catch(next);
+        })();
+        return;
+      }
+      res(false);
+    }catch(_){res(false);}
+  });
+}
+window.__emojiRescueMsg=__emojiRescueMsg;
+function __emojiRescueChat(){
+  try{
+    var bad=(state.messages||[]).filter(function(m){return m&&m.type==="image"&&m.kind==="emoji"&&!__emojiSrcOk(String(m.src||""));});
+    if(!bad.length)return Promise.resolve(false);
+    return Promise.all(bad.slice(0,60).map(function(m){
+      if(m.__rescueTried)return Promise.resolve(false);
+      m.__rescueTried=1;
+      return __emojiRescueMsg(m).catch(function(){return false;});
+    })).then(function(rows){
+      var ch=rows.some(function(x){return !!x;});
+      if(ch){
+        try{save();}catch(_){}
+        try{var vc=document.getElementById("view-chat");if(vc&&vc.classList.contains("open"))renderChat(true);}catch(_){}
+      }
+      return ch;
+    });
+  }catch(_){return Promise.resolve(false);}
+}
+window.__emojiRescueChat=__emojiRescueChat;
 function __repairEmojiMessages(){
   try{
     if(window.__emojiMsgRepairing)return;
@@ -26029,6 +26095,7 @@ function showView(id){
   }
   if(id==="view-redpacket"){newR=0;updateNewBadge();renderRedpackets();}
   if(id==="view-game"){fillGamePlayers();try{game.stamp=null;window.__gSig="";}catch(e){}initGameCanvas();try{__fitGameCanvasSoon();}catch(e){}}
+  if(id==="view-chat"){try{setTimeout(function(){window.__emojiRescueChat&&window.__emojiRescueChat();},260);}catch(_eEmRescue){}}
   if(id==="view-music"){renderMusicList();setTimeout(maybePartnerMusicInvite,1200);try{if(typeof warm163==="function")warm163();}catch(e){};try{if(typeof prefetchSongUrls==="function")setTimeout(function(){prefetchSongUrls(((state&&state.musicPlaylist)||[]).length||4);},60);}catch(e){}
     try{var _ms=(state.musicPlaylist||[])[state.musicCur];if(_ms&&typeof warmSongUrl==="function")warmSongUrl(_ms);}catch(e){}}
   if(window.__resetKbShift)window.__resetKbShift();
@@ -35880,6 +35947,21 @@ window.__fitCtx=function(){return window.__fitKey()+"|"+window.__fitLayoutSig();
 function __fitPairOk(k1,k2){return (k1>=0.62&&k1<=1.3)&&(k2>=0.62&&k2<=1.3);}
 window.__fitFixedGet=function(ctx){
   ctx=ctx||window.__fitCtx();
+  /* v44-236b47：localStorage 被系统清理/换版时，比例还存在主档 state.fit 里。
+     同一块屏幕（宽度+布局一致）就直接沿用，不会因为缓存丢了就重新量一次、
+     让用户看到“每次点开大小都不一样”。 */
+  try{
+    var _sf=state&&state.fit;
+    if(_sf&&__fitPairOk(Number(_sf.k1),Number(_sf.k2))){
+      var _sc=String(_sf.screen||""), _now=String(ctx).split("|");
+      if(_sc){
+        var _sw=_sc.split("|")[0].split("x")[0], _nw=_now[0].split("x")[0];
+        var _sl=_sc.split("|").slice(1).join("|"), _nl=_now.slice(1).join("|");
+        /* 宽度和桌面布局相同，只可能差屏幕高度（PWA 安全区/地址栏抖动）→ 认为是同一场景 */
+        if(_sw===_nw&&_sl===_nl)return {k1:Number(_sf.k1),k2:Number(_sf.k2)};
+      }
+    }
+  }catch(_eStateFit){}
   try{
     var o=JSON.parse(localStorage.getItem(window.__fitFixedKey)||"{}");
     var r=o&&o[ctx];
