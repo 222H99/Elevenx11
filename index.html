@@ -272,7 +272,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-26v43-236b12";
+window.__E11_BUILD="2026-11-26v43-236b13";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -2796,7 +2796,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-26v43-236b12">
+<meta name="app-build" content="2026-11-26v43-236b13">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -8974,11 +8974,12 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 版本号从 <meta name="app-build"> 读，避免和 var BUILD 的声明顺序打架 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-236b12",
-  time:"2026-11-26 03:20",
+  date:"v43-236b13",
+  time:"2026-11-26 03:55",
   noticeKey:null,
   lead:"2026-11-26 修改（v43-236b7）：双方新增的评论、动态、信件、留言现在会即时落盘，同一条动态里后补的评论也会和另一台设备按 id 合并，不再被旧数组长度判断漏掉；另外固定为先声明页、再密码页，信件返回/收起/取消三处顶栏统一高度。",
   items:[
+    "退出再进不再空（v43-236b13）：以前只要存在一份“最近离站快照”，自动备份、社交备份全部被严格模式挡住不许补；主档一旦没读到或写了半截，进站就是四个板块全空，而设置里备份明明还在。现在某个板块整块空了就必须从完整备份补回来，墓碑照旧过滤；离站档某类是空数组时也不会再把主档内容清空。",
     "聊天键盘不再闪（v43-236b12）：真正闪的是整站舞台每一帧跟着键盘变矮、上移，顶栏即使没动也被反复重排。现在聊天打字时舞台保持全高、不再跟着缩放，只有聊天内容区收高，顶栏彻底静止。",
     "评论、留言、信件不再丢（v43-236b12）：同一条动态/信件/留言在云端、离站档、本机档里出现时，以前是整条比时间戳替换，里面新加的评论和逐层回复会被旧档吞掉。现在评论、回复、点赞一律按 id 并集，哪份档都不会丢；发评论后立刻同步落盘。",
     "聊天键盘还是会闪（v43-236b11）：定高本身没闪，闪的是每一帧都在把消息列表重新拽到底，加上固定/清除反复切换。现在几何只随可视区平滑变一次，贴底改成 180ms 防抖只做一次；顶栏保持不动。",
@@ -11112,6 +11113,11 @@ function __e11ApplyExitExact(s,e){
         }
         arr.push(y);
       });
+      /* v43-236b13：离站档某一类整块是空数组时，绝不能把主档里的内容清空。
+         退出那次写档失败/写到一半，就是“退出再进全没了”的来源。 */
+      if(!arr.length&&Array.isArray(s[k])&&s[k].length){
+        if(k==="messages"||k==="letters"||k==="guestbook"||k==="moments"){arr=s[k].slice();}
+      }
       /* 聊天被截成 mini 时，只把主档里更早、离站档没有的消息补回；其它内容一律用离站档。 */
       if(k==="messages"&&window.__e11ExitMini){
         /* 聊天太长被截成 mini 时，把主档里更早、离站档没有的消息补回，
@@ -11914,6 +11920,12 @@ function save(){
       /* 同一条动态里新增的评论不会改变数组长度，旧逻辑因此不写离站档；
          这里社交内容一变就立即同步写一份，App 被系统杀掉也不会丢。 */
       try{if(window.__e11ExitSave)window.__e11ExitSave(_socArr,true);}catch(_eSocFlush){}
+      /* 社交内容变了也让自动备份槽跟着滚一份，别只靠 10 分钟定时；
+         这样“主档读坏了”还能从最近的备份整块接回来 */
+      try{
+        clearTimeout(window.__e11BkSoonT);
+        window.__e11BkSoonT=setTimeout(function(){try{window.__bkSaveNow&&window.__bkSaveNow();}catch(_){}},45000);
+      }catch(_eBkSoon){}
     }
   }catch(_eSocSnap){}
   /* 重置/恢复中禁止任何写盘：否则刷新前旧页面会把刚清掉的内容再写回来 */
@@ -13488,7 +13500,7 @@ try{window.__scheduleCp2Render&&window.__scheduleCp2Render();}catch(e){}
       try{setTimeout(function(){
         var _audit=(window.__e11SocialAudit?window.__e11SocialAudit():Promise.resolve(0));
         _audit.then(function(){
-          try{return __recoverSocialFromBackups();}catch(_){return Promise.resolve(false);}
+          try{return __recoverSocialFromBackups(true);}catch(_){return Promise.resolve(false);}
         }).then(function(){try{__recoverMediaFromCloud();}catch(_){}}).catch(function(){try{__recoverMediaFromCloud();}catch(_){}});
       },80);}catch(_){}
       /* 刷新/重开后恢复本机网易云 Cookie 登录；否则账号面板会一直显示“未登录”，VIP 也退回匿名试听 */
@@ -15341,9 +15353,10 @@ window.__recoverMediaFromBackups=__recoverMediaFromBackups;
    3) 删除过的条目仍按墓碑跳过，不会把用户删掉的东西复活。 */
 window.__e11SocialAudit=function(){
   try{
-    /* v43-226：离站档是权威时不再做社交对账，旧信件/留言/动态不能补进来 */
-    if(window.__e11ExitExact||window.__e11ExitStale)return Promise.resolve(0);
-    if(window.__e11StrictNoRestore&&window.__e11StrictNoRestore())return Promise.resolve(0);
+    /* v43-226：离站档是权威时不做“往非空列表里补旧条目”的对账；
+       v43-236b13：但某个板块整块空了（离站档本身写坏了/写失败），必须继续从备份补，
+       否则就是用户看到的“备份里明明有，进站全空”。 */
+    var _strictExact=!!(window.__e11ExitExact||window.__e11ExitStale);
     if(window.__socialAuditing)return Promise.resolve(0);
     if(!window._dbReady||typeof __bkMeta!=="function"||typeof dbGet!=="function")return Promise.resolve(0);
     var kinds=[
@@ -15386,6 +15399,7 @@ window.__e11SocialAudit=function(){
       sources++;
       mergeMessages(src);
       kinds.forEach(function(cfg){
+        if(_strictExact&&Array.isArray(state[cfg.k])&&state[cfg.k].length)return;
         var b=Array.isArray(src[cfg.k])?src[cfg.k]:[];if(!b.length)return;
         var a=Array.isArray(state[cfg.k])?state[cfg.k]:[];state[cfg.k]=a;
         var by={};a.forEach(function(x){var id=idOf(x);if(id)by[id]=x;});
@@ -15447,7 +15461,9 @@ window.__e11SocialAudit=window.__e11SocialAudit;
 function __recoverSocialFromBackups(force){
   force=force===true;
   try{
-    if(!force&&window.__e11StrictNoRestore&&window.__e11StrictNoRestore())return Promise.resolve(false);
+    /* v43-236b13：这一层只做“某个板块整块空了就从完整备份补回来”，
+       本来就不会往非空列表里塞东西；以前被“离站档唯一权威”的严格模式一刀切挡住，
+       结果用户明明在自动备份里看见存档，进站却是空的。现在空了就必须救。 */
     if(window.__socialBkRecovering||typeof __bkMeta!=="function"||typeof dbGet!=="function")return Promise.resolve(false);
     var needL=!Array.isArray(state.letters)||state.letters.length===0;
     var needM=!Array.isArray(state.moments)||state.moments.length===0;
