@@ -272,7 +272,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-26v43-236b24";
+window.__E11_BUILD="2026-11-26v43-236b25";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -2798,7 +2798,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-26v43-236b24">
+<meta name="app-build" content="2026-11-26v43-236b25">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -7334,7 +7334,7 @@ setTimeout(function(){
   }
   window.__e11SocialCommentsUnion=__e11SocialCommentsUnion;
 
-  /* v43-236b24：评论/回复单独留一份日志。
+  /* v43-236b25：评论/回复单独留一份日志。
      动态/信件/留言本体能从备份恢复，但评论是嵌在条目里的：任何一份旧档整条覆盖都会把它吞掉。
      这里每次发评论/回复都同步记一条，启动时按 id 把缺失的楼层补回，不再赌某一份存档是否完整。 */
   window.__E11_CJ_KEY="e11.comments.v1";
@@ -9047,12 +9047,12 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 只留这一版真正改动的几条，一屏读完 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-236b24",
-  time:"2026-11-26 16:55",
+  date:"v43-236b25",
+  time:"2026-11-26 17:35",
   noticeKey:null,
   lead:"",
   items:[
-    "所有改动像照片一样自动落盘，最多差不到 1 秒。",
+    "所有改动自动落盘；麦克风被占用会自动重试。",
     "写信自动存草稿：写一半退出或更新，回来接着写。",
     "声明页不再先闪出聊天页，页面缩放只算一次固定保存。",
     "更新不跳声明和密码，更新页只留 4 条。",
@@ -9205,7 +9205,7 @@ function __afterLockPass(){
   try{var _ag2=document.getElementById("auth-gate");if(_ag2)_ag2.classList.remove("show");}catch(_){}
   try{var _aw2=document.getElementById("auth-wait-card");if(_aw2)_aw2.style.display="none";}catch(_){}
   try{document.body.classList.remove("auth-locked");}catch(_){}
-  /* v43-236b24：固定顺序 声明 → 密码 → 主页 → 更新页。
+  /* v43-236b25：固定顺序 声明 → 密码 → 主页 → 更新页。
      先把主页画出来（更新页只是盖在主页上的一层），关掉就是主页，不会先空一屏再跳。 */
   try{__entryHome();}catch(_eHomeFirst){}
   try{
@@ -10263,7 +10263,7 @@ function __bkPaint(){
           /* 先把“恢复后的这份”写成离站快照，再 reload；否则启动时旧离站快照会并回来。 */
           try{window.__e11ExitAllowEarly=1;window.__e11ExitSave(st,true);}catch(_eExitRstPre){}
           try{window.__e11ExitAllowEarly=0;}catch(_){}
-          /* v43-236b24：恢复备份是“整份覆盖”，但评论是嵌在动态/信件/留言里的，
+          /* v43-236b25：恢复备份是“整份覆盖”，但评论是嵌在动态/信件/留言里的，
              备份之后发的评论会被一起盖掉。这里先把当前状态里的评论并进备份，再叠评论日志。 */
           try{
             var _curBk=window.__e11StateGet&&window.__e11StateGet();
@@ -10985,7 +10985,7 @@ function __e11ExitRead(){
 }
 window.__e11ExitSave=__e11ExitSave;
 window.__e11ExitRead=__e11ExitRead;
-/* v43-236b24：信件/留言/动态这类“我主动发出”的内容，发完立刻同步落盘：
+/* v43-236b25：信件/留言/动态这类“我主动发出”的内容，发完立刻同步落盘：
    先写主库，再立刻写离站快照。以前只走 320ms 防抖，发完马上退出/被系统杀掉，
    这条就还在内存里，下次进来自然看不到，久了就像“数据没了”。 */
 window.__e11SocialTouch=function(kind,item){
@@ -11932,7 +11932,7 @@ function __prefReapplyAll(){
 
 function save(){
   try{window.__e11Dirty=1;}catch(_eDirty){}
-  /* v43-236b24：任何改动都像换照片一样自动落盘——save() 之后最多 0.9 秒内，
+  /* v43-236b25：任何改动都像换照片一样自动落盘——save() 之后最多 0.9 秒内，
      一定补写一份完整离站档（含四项图片备份）。不再等 6 秒、也不依赖退出事件，
      App 被系统直接杀掉时最多只差这不到 1 秒里的最后一下。 */
   try{
@@ -12960,7 +12960,7 @@ async function init(){
     if(_gatePending){
       window.__holdBootReveal=0;
       window.__bootPendingReveal=0;
-      /* v43-236b24：放行层还没过时，底下只铺主页，绝不先把聊天页露出来。
+      /* v43-236b25：放行层还没过时，底下只铺主页，绝不先把聊天页露出来。
          以前这里按“上次停在哪页”直接 showView(chat)，随后声明页才盖上来，
          肉眼就是“闪出聊天页 → 又闪回声明页”。 */
       window.__e11GateUp=1;
@@ -13129,10 +13129,10 @@ async function init(){
              用户用 227 正常退出一次后，新离站档带 v:2，才按“进入=离开时”精确还原。 */
           var _legacyExit=!(_exitObj.v>=2);
           var _isFullExit=Number(_exitObj.full)===1;
-          /* v43-236b24：完整档不比任何一份本地档旧时，就认它，不管 localStorage 那份先被选中。 */
+          /* v43-236b25：完整档不比任何一份本地档旧时，就认它，不管 localStorage 那份先被选中。 */
           var _lsTs2=Number(window.__e11LsTs)||0;
           window.__e11ExitFull=!!(!_legacyExit&&_isFullExit&&_exTs>0&&_exTs>=Math.max(_lsTs2,_idbTs)-5000);
-          /* v43-236b24：只要离站档是“完整档”，它就是离开那一刻的样子，直接照它还原，
+          /* v43-236b25：只要离站档是“完整档”，它就是离开那一刻的样子，直接照它还原，
              不再和主库/备份/云端抢谁新——用户要的是“退出什么样，进来什么样”。 */
           window.__e11ExitExact=!!(window.__e11ExitFull||(!window.__e11LocalFullUsed&&!_legacyExit&&_exTs>=(_idbTs-5000)&&_exTs>0));
           window.__e11ExitStale=!!(!window.__e11ExitFull&&(window.__e11LocalFullUsed||(_legacyExit&&!!s)||(!_isFullExit&&_idbTs>_exTs+5000&&_idbTs>0)));
@@ -13412,7 +13412,7 @@ async function init(){
           }
         }
       }catch(_eSessBoot){}
-      /* v43-236b24：启动最后一步把社交小日志里“本机主档还没写进去”的条目补回 state。 */
+      /* v43-236b25：启动最后一步把社交小日志里“本机主档还没写进去”的条目补回 state。 */
       try{window.__e11SocialLogMerge&&window.__e11SocialLogMerge(state);}catch(_eSLogBoot){}
       window.__stateReady=1;window.__e11DataReady=1;try{window.__e11BootLoading=0;}catch(_eBootLoad1){}
       /* v43-222：主档正常路径没有走最后的 showView，整机快照里的页面在这里补回来 */
@@ -13549,7 +13549,7 @@ try{window.__scheduleCp2Render&&window.__scheduleCp2Render();}catch(e){}
       try{__repairEmojiMessages();}catch(_eEmMsg){}
       try{if(__dedupeStolenEmojis())save();}catch(_eDed){}
       try{__repairProfileMedia();}catch(_ePm){}
-      /* v43-236b24：启动先按评论日志把缺失的楼层补回来，再做图片/社交恢复 */
+      /* v43-236b25：启动先按评论日志把缺失的楼层补回来，再做图片/社交恢复 */
       try{
         var _cjAdded=window.__e11CJApply&&window.__e11CJApply(state);
         if(_cjAdded){
@@ -15583,7 +15583,7 @@ function __recoverSocialFromBackups(force){
   }catch(_){window.__socialBkRecovering=0;return Promise.resolve(false);}
 }
 window.__recoverSocialFromBackups=__recoverSocialFromBackups;
-/* v43-236b24：已经在旧版里被覆盖掉的评论，尽量从自动备份里捞回来。
+/* v43-236b25：已经在旧版里被覆盖掉的评论，尽量从自动备份里捞回来。
    只补「我」发的评论/回复（用户自己写的那部分），不动对方的，也不把删掉的评论批量复活；
    每个版本只跑一次，避免每次启动都全库扫。 */
 function __e11RepairMyComments(){
@@ -18073,7 +18073,7 @@ function __appendChatMsg(mid){
     var all=state.messages||[];
     var m=mid?(all.filter(function(x){return x&&x.id===mid;})[0]||null):all[all.length-1];
     if(mid&&!m){try{renderChat();}catch(e){}return false;}
-    /* v43-236b24：人还在画画/主页、聊天列表从没预热过时，不要在这里整屏画一遍
+    /* v43-236b25：人还在画画/主页、聊天列表从没预热过时，不要在这里整屏画一遍
        （画完再切进聊天又要再画一次，就是那一下闪）。只标脏，进聊天页时在隐藏状态下画一次。 */
     if(window.__curView!=="view-chat"){
       var _mlA=document.getElementById("msglist");
@@ -25433,7 +25433,7 @@ function __fadeOutDiary(ms){
   }catch(_){try{el.classList.remove("show");el.classList.remove("writing");}catch(__){}}
 }
 function showView(id){
-  /* v43-236b24：声明页/密码页还在时，任何切页请求都先压住，只允许主页铺在底下；
+  /* v43-236b25：声明页/密码页还在时，任何切页请求都先压住，只允许主页铺在底下；
      放行后由 __entryHome 恢复用户上次所在的页面。 */
   if(window.__e11GateUp&&id!=="view-me"){
     window.__e11PendingView=id;id="view-me";
@@ -26401,10 +26401,10 @@ function refreshMiniPlayer(){
   var _mpUse=$("mp-play-use");
   if(_mpUse&&_mpUse.getAttribute("xlink:href")!==_playHref)setSvgUse("mp-play-use",_playHref);
   // 缩小唱片：封面优先用用户设置的歌曲封面
-  /* v43-236b24：小唱片只用「唱片中心图」，没设就用这首歌自己的封面；
+  /* v43-236b25：小唱片只用「唱片中心图」，没设就用这首歌自己的封面；
      不再退到「音乐封面」（musicCoverImg），也不碰主页应用图标，三处各用各的图。 */
   const _customCover=state.musicDiscInnerImg;
-  /* v43-236b24：暂停时也要显示封面（原来暂停会换成 ▶），没有官方封面就用手绘兜底封面。 */
+  /* v43-236b25：暂停时也要显示封面（原来暂停会换成 ▶），没有官方封面就用手绘兜底封面。 */
   const pic=_customCover||__sgDisplayCover(s)||(s?__songFallbackCover(s):'');
   /* 没有自定义封面、歌曲本身也还没带封面时，补拉一次网易云封面。
      只按歌曲 id 请求一次，回来后再刷新小弹窗；不阻塞播放，也不反复请求。 */
@@ -26430,7 +26430,7 @@ function refreshMiniPlayer(){
     _disc.__discKey=_key;
     var _mpFallback=s?__songFallbackCover(s):'';
     _disc.innerHTML=pic?'<img class="mp-pic" src="'+__escAttr(pic)+'" alt="" onerror="this.onerror=null;this.src=this.dataset.fb" data-fb="'+__escAttr(_mpFallback)+'">'+(au.paused?'<span class="mp-pause-ic">▶</span>':''):(au.paused?'<span class="mp-dic" style="font-size:19px;">▶</span>':'<span class="mp-dic">🎵</span>');
-    /* v43-236b24：主页「音乐」应用图标归图标设置管（me1AppIcons），
+    /* v43-236b25：主页「音乐」应用图标归图标设置管（me1AppIcons），
        这里绝不拿歌曲封面/唱片中心图去覆盖它——两者彻底分开，各用各的图。 */
     _disc.classList.toggle("spin",!au.paused&&!!pic);
     try{if(window.__applyMe1Icons)window.__applyMe1Icons();}catch(_eMicIco){}
@@ -29548,7 +29548,7 @@ function sendDrawingToChat(){
   // 画作已发送到聊天页：本轮完结，下一轮需重新邀请
   state.drawSession=false;save();
   game.strokes=[];game.turn="me";game.passing=false;game.lastPartnerColor=null;
-  /* v43-236b24：发完画回聊天不再把 __uiStableH 归零、也不再连做多次整站缩放同步。
+  /* v43-236b25：发完画回聊天不再把 __uiStableH 归零、也不再连做多次整站缩放同步。
      那几步会让整站重新按可视区量一遍，屏幕先缩后弹，看着就是“发画闪一下”。
      这里只清键盘位移，等一帧同步一次。 */
   try{__blurSoftKeyboard();}catch(_){}
@@ -30915,7 +30915,7 @@ function fillLetterComposer(){
   const nm=$("lt-write-name");if(nm){nm.textContent=state.partner.name||"对方";}
 }
 window.__writeReplyTo=null;
-/* v43-236b24：写信草稿同步存档。以前写了一半退出/更新，回来输入框是空的。 */
+/* v43-236b25：写信草稿同步存档。以前写了一半退出/更新，回来输入框是空的。 */
 var __LT_DRAFT_KEY="e11.letterDraft.v1";
 function __ltDraftSave(){
   try{
@@ -31001,7 +31001,7 @@ $("lt-write-send").addEventListener("click",function(){
   var _subj=$("lt-write-subject")?$("lt-write-subject").value.trim():"";
   var _obj=__makeLetter(bodyEl.value.trim(),_subj);
   __stagePendingLetter(_obj);
-  /* v43-236b24：先真正寄出并落盘，再播信封动画。
+  /* v43-236b25：先真正寄出并落盘，再播信封动画。
      以前寄信要等 1.9 秒动画结束才 push，动画中途退出就整封没了。 */
   commitLetter(_obj);
   playSendLetter(bodyEl.value.trim(),"",null);
@@ -33460,7 +33460,7 @@ function scheduleLetter(){
 
 /* ===== 作者声明页（每次开屏都显示） ===== */
 function initAbout(){
-  /* v43-236b24：启动流程会提前调一次，后段再调一次；只初始化一次，避免按钮绑两遍。 */
+  /* v43-236b25：启动流程会提前调一次，后段再调一次；只初始化一次，避免按钮绑两遍。 */
   if(window.__e11AboutInit)return;
   window.__e11AboutInit=1;
   /* v43-234：同一个标签页里已经看过声明/已经通过密码，刷新、站内更新、检查更新
@@ -33469,7 +33469,7 @@ function initAbout(){
   try{
     var _sameTabAbout=false;
     try{_sameTabAbout=sessionStorage.getItem("e11.aboutAck.v1")==="1"||__lockSessionValid();}catch(_eSameTab){}
-    /* v43-236b24：刚点过“更新”的这一轮，声明页和密码页都跳过，直接进主页再弹更新页。 */
+    /* v43-236b25：刚点过“更新”的这一轮，声明页和密码页都跳过，直接进主页再弹更新页。 */
     var _skipGate=false;
     try{
       var _sgTs=Number(localStorage.getItem("e11.skipGate.v1"))||0;
@@ -33709,7 +33709,7 @@ function initLock(){
     }
     setTimeout(initLock,120);return;
   }
-  /* v43-236b24：更新放行：数据已读到就直接进，不再显示密码页。 */
+  /* v43-236b25：更新放行：数据已读到就直接进，不再显示密码页。 */
   if(window.__e11SkipLockOnce){
     window.__e11SkipLockOnce=0;
     try{window.__lockPassed=1;document.body.classList.remove("auth-locked");}catch(_skipLock){}
@@ -35475,7 +35475,7 @@ window.__fitCompute=function(force){
   /* v43-28：电脑固定窗口下不再按内容高度二次缩放。 */
   if(window.__deskFixed){window.__fitK=1;window.__fitK1=1;window.__fitK2=1;try{__fitApply(1);}catch(_eDeskFit){}return 1;}
   var ctx=window.__fitCtx();
-  /* v43-236b24：这个屏幕 + 这套桌面布局只量一次，量完就固定保存；
+  /* v43-236b25：这个屏幕 + 这套桌面布局只量一次，量完就固定保存；
      之后冷启动、内容变多、图片加载完成都直接套存下来的比例，不再重算一次把用户看到的尺寸改掉。 */
   var fx=window.__fitFixedGet(ctx);
   /* 这个屏幕尺寸+这套桌面布局已经量过：直接套保存好的比例，后续切页/刷新/内容变化都不重算。 */
@@ -37075,6 +37075,41 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
       try{if(window.AndroidUI&&AndroidUI.hasMicPermission&&AndroidUI.hasMicPermission())__micFlush(true);}catch(_eMicVis){}
     });
   }catch(_eMicVisBind){}
+  /* v43-236b25：麦克风取流兜底。InvalidStateError 多半是上一次录音的轨道没释放、
+     或者系统麦克风被别的应用占着、WebView 还没真正准备好音频设备。
+     这里先释放旧轨道、再按“默认 → 降噪参数 → 默认设备”三次重试。 */
+  function __micGetStream(){
+    /* 原生语音识别也会占用麦克风；开始录音前先彻底释放，避免 InvalidStateError。 */
+    try{if(window.AndroidUI&&AndroidUI.cancelNativeSpeech)AndroidUI.cancelNativeSpeech();}catch(_eCancelSp){}
+    try{rec.stream&&rec.stream.getTracks&&rec.stream.getTracks().forEach(function(t){try{t.stop();}catch(_){} });}catch(_eOldTrack){}
+    try{rec.stream=null;}catch(_){}
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)return Promise.reject(new Error("unsupported"));
+    var tries=[
+      {audio:true,video:false},
+      {audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:false,channelCount:1},video:false},
+      {audio:{deviceId:"default"},video:false}
+    ];
+    var i=0;
+    function one(){
+      if(i>=tries.length){var _e=new Error("mic-failed");_e.name="InvalidStateError";return Promise.reject(_e);}
+      var cons=tries[i++];
+      return navigator.mediaDevices.getUserMedia(cons).catch(function(err){
+        var nm=String(err&&err.name||"");
+        /* 用户明确拒绝就别再重试，直接抛回去走设置引导 */
+        if(nm==="NotAllowedError"||nm==="PermissionDeniedError"||nm==="SecurityError")throw err;
+        return new Promise(function(res){setTimeout(res,260);}).then(one);
+      });
+    }
+    return one();
+  }
+  function __micNoDevice(){
+    try{
+      if(!navigator.mediaDevices||!navigator.mediaDevices.enumerateDevices)return false;
+      return navigator.mediaDevices.enumerateDevices().then(function(list){
+        return !(list||[]).some(function(d){return d&&d.kind==="audioinput";});
+      }).catch(function(){return false;});
+    }catch(_){return false;}
+  }
   function startRec(tap){
     if(rec.active)return false;
     if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){toast("这个环境不支持录音");return false;}
@@ -37089,7 +37124,7 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
     if(!ok){rec.active=false;rec.streamReady=false;stopStream();showRec(false);return;}
     /* v43-190z33f：拿到系统权限后音频上下文可能还挂着；先恢复再录音，避免“权限有了但仍然没声”。 */
     try{if(ctx.state==="suspended")ctx.resume();}catch(_eMicResume){}
-    navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+    __micGetStream().then(function(stream){
       if(my!==rec.gen||!rec.active){try{stream.getTracks().forEach(function(t){t.stop();});}catch(e){}return;}
       rec.stream=stream;rec.streamReady=true;rec.audioStart=Date.now();
       try{var _vh2=document.getElementById("vrec-hint");if(_vh2)_vh2.textContent=rec.tapMode?"点一下结束并发送":"松手 发语音";}catch(_){}
@@ -37119,10 +37154,19 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
     }).catch(function(err){
       rec.active=false;rec.streamReady=false;stopStream();showRec(false);
       var _en=String(err&&err.name||"");
+      if(_en==="InvalidStateError"||_en==="NotFoundError"||_en==="OverconstrainedError"||_en==="mic-failed"){
+        __micNoDevice().then(function(none){
+          if(none)toast("系统里没有可用的麦克风：请检查手机是否有麦克风，或系统「隐私/录音」开关是否把这台设备关掉了");
+          else toast("麦克风暂时不可用（"+(_en==="mic-failed"?"InvalidStateError":_en)+"）：可能被通话/录音/语音助手占用，关掉占用它的应用后再按住说话");
+        });
+      }
       var _nativeOk=false;
       try{_nativeOk=!!(window.AndroidUI&&AndroidUI.hasMicPermission&&AndroidUI.hasMicPermission());}catch(_eMicSt){}
-      if(_nativeOk)toast("麦克风被网页组件拒绝（"+(_en||"未知")+"）。请更新 Android System WebView，或直接用 APK 录音");
-      else toast("没拿到麦克风权限（"+(_en||"未知")+"）：网页请点地址栏允许录音；APK 请到系统设置 → 应用 → Eleven×11 → 权限里打开麦克风");
+      var _micStateErr=(_en==="InvalidStateError"||_en==="NotFoundError"||_en==="OverconstrainedError"||_en==="mic-failed");
+      if(!_micStateErr){
+        if(_nativeOk)toast("麦克风被网页组件拒绝（"+(_en||"未知")+"）。请更新 Android System WebView，或直接用 APK 录音");
+        else toast("没拿到麦克风权限（"+(_en||"未知")+"）：网页请点地址栏允许录音；APK 请到系统设置 → 应用 → Eleven×11 → 权限里打开麦克风");
+      }
       try{if(window.AndroidUI&&AndroidUI.openAppSettings&&(!_nativeOk||_en==="NotAllowedError")){
         __iosConfirm("要现在打开系统设置，把麦克风权限打开吗？",{okText:"打开设置",cancelText:"稍后"}).then(function(yes){if(yes){try{AndroidUI.openAppSettings();}catch(_){}}});
       }}catch(_eMicOpen){}
@@ -37847,7 +37891,7 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
     }catch(_){}
   }
   function forceUpdate(nb,manual){
-    /* v43-236b24：更新后不再重走声明页和密码页，直接把这一轮标成“已放行”。 */
+    /* v43-236b25：更新后不再重走声明页和密码页，直接把这一轮标成“已放行”。 */
     try{localStorage.setItem("e11.skipGate.v1",String(Date.now()));}catch(_eSkipGate){}
     clearAutoUpdate();
     if(!manual&&!canForce())return;
@@ -37867,7 +37911,7 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
     /* v43-128：更新换页前再单独落一次“设置小备份 + 核心档”。
        更新只清运行时缓存，不会动 IndexedDB；这两步保证最后 1 秒改的设置/字卡也不会被旧档盖回。 */
     try{if(window.__settingsBackup)window.__settingsBackup(true);}catch(_eUpSet){}
-    /* v43-236b24：换版本前必须写一份完整离站档，并确认它是 full 档；
+    /* v43-236b25：换版本前必须写一份完整离站档，并确认它是 full 档；
        新版启动就以这份为准，更新前后数据完全一致。 */
     try{if(typeof __e11ExitSave==="function")__e11ExitSave(state,true);}catch(_eUpCore){}
     try{
