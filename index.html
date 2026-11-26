@@ -48,6 +48,23 @@ function __iosConfirm(message,opts){
     ok.style.cssText="flex:1;border:0;background:transparent;padding:0;font-size:17px;font-weight:600;color:"+(opts.danger===false?"#007AFF":"#FF3B30")+";font-family:inherit;-webkit-tap-highlight-color:transparent;cursor:pointer;";
     row.appendChild(cancel);row.appendChild(vline);row.appendChild(ok);card.appendChild(row);
     wrap.appendChild(card);document.body.appendChild(wrap);
+    /* v43-236b36：安卓 WebView / 移动浏览器里，点按钮打开弹层后系统还会补发一次 click，
+       这次 click 落在刚出现的遮罩上，弹层刚显示就被关掉——表现就是「按钮点了没反应」。
+       这里在弹层出现后的 520ms 内，把全局 click 全部拦下来，等这次补发的 click 过去再放开。 */
+    (function(){
+      var born=Date.now();
+      var shield=function(e){
+        if(Date.now()-born<520){try{e.stopPropagation();}catch(_){}try{if(e.cancelable)e.preventDefault();}catch(_){}}
+      };
+      ["pointerdown","pointerup","click","mousedown","mouseup","touchstart","touchend"].forEach(function(ev){
+        document.addEventListener(ev,shield,true);
+      });
+      setTimeout(function(){
+        ["pointerdown","pointerup","click","mousedown","mouseup","touchstart","touchend"].forEach(function(ev){
+          document.removeEventListener(ev,shield,true);
+        });
+      },560);
+    })();
     var done=false;
     function close(v){
       if(done)return;done=true;if(__iosConfirmClose===close)__iosConfirmClose=null;
@@ -272,7 +289,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-26v43-236b35";
+window.__E11_BUILD="2026-11-26v43-236b36";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -4664,7 +4681,7 @@ setTimeout(function(){
       <div class="set-group"><div class="set-row"><span class="set-label">网易云登录<div class="set-sub" id="ny-set-state">扫码或 Cookie 登录后可在音乐页听 VIP 完整歌曲</div></span><button class="small-btn" id="btn-ny-login" style="font-size:12px;padding:6px 12px;">登录</button></div></div>
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
-      <div class="set-group"><div class="set-row"><span class="set-label">流畅模式<div class="set-sub">关闭毛玻璃模糊，减少低配机/APK 的滑动卡顿；APK 默认开启，网页默认关闭</div></span><button class="switch" id="sw-perf"></button></div><div class="set-row"><span class="set-label">作者声明<div class="set-sub">使用条款、借鉴说明与联系方式</div></span><button class="small-btn ghost" id="btn-about" style="white-space:nowrap;">查看</button></div><div class="set-row"><span class="set-label">更新公告<div class="set-sub">每次更新后会自动弹一次，也可以点右边再看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div><div class="set-row"><span class="set-label">站内刷新<div class="set-sub">重新载入页面；聊天、字卡、设置、头像和图片都不会被清空</div></span><button class="small-btn" id="btn-e11-refresh" style="white-space:nowrap;">刷新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">流畅模式<div class="set-sub">关闭毛玻璃模糊，减少低配机/APK 的滑动卡顿；APK 默认开启，网页默认关闭</div></span><button class="switch" id="sw-perf"></button></div><div class="set-row"><span class="set-label">作者声明<div class="set-sub">使用条款、借鉴说明与联系方式</div></span><button class="small-btn ghost" id="btn-about" style="white-space:nowrap;">查看</button></div><div class="set-row"><span class="set-label">更新公告<div class="set-sub">不再自动弹出，想看时点右边查看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div><div class="set-row"><span class="set-label">站内刷新<div class="set-sub">重新载入页面；聊天、字卡、设置、头像和图片都不会被清空</div></span><button class="small-btn" id="btn-e11-refresh" style="white-space:nowrap;">刷新</button></div></div>
 <div class="set-sec-title">安装到桌面</div>
       <div class="set-group">
         <div class="set-row"><span class="set-label">PWA 安装状态<div class="set-sub" id="pwa-state">检查中…</div></span><button class="small-btn" id="btn-pwa-install" style="font-size:12px;padding:6px 12px;">安装</button></div>
@@ -9388,14 +9405,12 @@ function __afterLockPass(){
   /* v43-236b25：固定顺序 声明 → 密码 → 主页 → 更新页。
      先把主页画出来（更新页只是盖在主页上的一层），关掉就是主页，不会先空一屏再跳。 */
   try{__entryHome();}catch(_eHomeFirst){}
-  try{
-    if(localStorage.getItem("__announceAck")!==(ANNOUNCE.noticeKey||ANNOUNCE.ver)){
-      window.__afterAnnounceEnter=null;
-      setTimeout(function(){try{showAnnounce();}catch(_eAnLate){}},90);
-    }
-  }catch(e){}
+  /* v43-236b36：按用户要求取消「更新页弹窗」——进站后不再自动弹更新公告，
+     想看时自己到 设置 → 更新公告 里点开。 */
 }
 function maybeAnnounce(){
+  /* v43-236b36：不再自动弹更新公告；只保留设置里的手动查看 */
+  return;
   try{
     var el=document.getElementById("announce-screen");
     if(!el||el.classList.contains("show"))return;
@@ -18360,6 +18375,7 @@ function __appendChatMsg(mid){
       __chatShowNewPill();
       return true;
     }
+    try{if(m&&m.id&&document.querySelector('#msglist [data-id="'+m.id+'"]'))return true;}catch(_eDupRow){}
     if(m&&chatAppendTail(m)){
       /* 图片是「解码完才真正插入」：插入前不能先把签名同步成最新，
          否则图片还没进 DOM，签名却显示已同步，后面重绘会被直接跳过 → 图片被吞掉。
@@ -33540,6 +33556,12 @@ function partnerReplyComment(postId,targetCid,whenTs,skipProb){
     })(m.comments||[]);
   }
   if(!myC)return;
+  /* v43-236b36：一条评论只回一条。旧版每次排的回复任务都会往同一条评论里塞一条，
+     几条任务叠在一起就是「一条评论下面冒出好几条他的回复」。 */
+  try{
+    var _hasP=(myC.replies||[]).some(function(r){return r&&r.from==="partner"&&r.text;});
+    if(_hasP)return;
+  }catch(_eOneRep){}
   var _t=Number(whenTs)||Date.now();
   var _newRid=null;
   // 楼中楼：他的回复只挂在我那条评论下面，并标注回复对象
@@ -33557,7 +33579,15 @@ function partnerReplyComment(postId,targetCid,whenTs,skipProb){
   // 对方回复我的评论：主页顶部 🔔“有新回复（N）· 点击查看”，点击时才定位到对应动态
   m.unread=true;m.unreadKind="reply";
   newM++;updateNewBadge();
-  try{var _crid=pushMsg("partner","sys","💬 对方回复了你的评论",{momentId:postId,commentId:_newRid||targetCid||""});__appendChatMsg(_crid);}catch(e){}
+  /* v43-236b36：同一条我的评论只留一条聊天提示；旧版两条任务各推一次，就是「一条重复两遍」 */
+  try{
+    var _dupNotice=false;
+    (state.messages||[]).forEach(function(x){if(x&&x.kind==="replycomment"&&x.commentId===myC.id)_dupNotice=true;});
+    if(!_dupNotice){
+      var _crid=pushMsg("partner","sys","💬 对方回复了你的评论",{momentId:postId,commentId:myC.id,kind:"replycomment"});
+      if(_crid)__appendChatMsg(_crid);
+    }
+  }catch(e){}
   save();
   /* 对方回复也一样：只在这张卡里长出一条，不把整张卡换掉，更不把用户正在看的页面滚走 */
   if(!__momentInPlaceRefresh(postId,_newRid||targetCid)){
@@ -38342,6 +38372,8 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
   /* v43-235：自动检查到新版后记住下载地址。用户直接退出/切后台时自动开始下载，
      不再只是弹一个“下载更新”条；下载完成由原生自动拉起安装器。 */
   function __e11AutoDownloadApk(){
+    /* v43-236b36：取消后台自动下载更新；只有用户在设置里点「检查更新」才会下载安装 */
+    return false;
     try{
       var pa=window.__e11PendingApk;
       if(!pa||!pa.url||!window.AndroidUI||typeof AndroidUI.downloadApk!=="function")return false;
@@ -38464,7 +38496,7 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
         if(apkMode()){
           var apkUrl=info.apk||"";
           if(!apkUrl){var vm=/v(\d+)-(\d+)/.exec(info.build||"");if(vm)apkUrl="https://github.com/222H99/Elevenx11/releases/tag/v"+vm[1]+"-"+vm[2];}
-          if(apkUrl&&!manual)showApkUpdate(info.build,apkUrl);
+          /* v43-236b36：按用户要求取消自动弹出的更新条；只保留设置里手动「检查更新」 */
           if(manual){
             if(apkUrl){
               window.__e11PendingApk=null;
