@@ -272,7 +272,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-26v43-236b26";
+window.__E11_BUILD="2026-11-26v43-236b27";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -2798,7 +2798,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-26v43-236b26">
+<meta name="app-build" content="2026-11-26v43-236b27">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -11866,10 +11866,26 @@ window.__e11AppearanceApply=function(){
     function applyPack(pack){
       var st=(typeof state!=="undefined"&&state)||null;if(!st||!pack)return false;
       var p=st.profile=st.profile||{};
-      Object.keys(pack.profile||{}).forEach(function(k){var v=pack.profile[k];if(v===undefined)return;if(window.__e11AppearanceImgKey(k)&&v==="")return;p[k]=v;});
+      /* v43-236b27：旧外观档只用来补缺，不再整份盖回去。
+         以前更新后一打开资料就被更早的快照覆盖，桌面卡片头像/名字跟着丢。 */
+      Object.keys(pack.profile||{}).forEach(function(k){
+        var v=pack.profile[k];if(v===undefined||v===null||v==="")return;
+        var cur=p[k];
+        if(cur===undefined||cur===null||cur===""||(window.__e11AppearanceImgKey(k)&&window.__brokenImgVal&&window.__brokenImgVal(cur)))p[k]=v;
+      });
       st.me=st.me||{};st.partner=st.partner||{};
-      ["name","avatar","cover","photos"].forEach(function(k){if(pack.me&&pack.me[k]!==undefined){if(k==="avatar"&&!pack.me[k])return;st.me[k]=pack.me[k];}});
-      ["name","avatar","cover","photos"].forEach(function(k){if(pack.partner&&pack.partner[k]!==undefined){if(k==="avatar"&&!pack.partner[k])return;st.partner[k]=pack.partner[k];}});
+      function keepFill(cur,v){
+        if(v===undefined||v===null||v==="")return cur;
+        if(Array.isArray(v)){
+          var out=Array.isArray(cur)?cur.slice():[];
+          for(var i=0;i<v.length;i++){if((!out[i]||(window.__brokenImgVal&&window.__brokenImgVal(out[i])))&&v[i])out[i]=v[i];}
+          return out;
+        }
+        if(cur===undefined||cur===null||cur===""||(window.__e11AppearanceImgKey&&window.__e11AppearanceImgKey(k)&&window.__brokenImgVal&&window.__brokenImgVal(cur)))return v;
+        return cur;
+      }
+      ["name","avatar","cover","photos"].forEach(function(k){if(pack.me&&pack.me[k]!==undefined)st.me[k]=keepFill(st.me[k],pack.me[k]);});
+      ["name","avatar","cover","photos"].forEach(function(k){if(pack.partner&&pack.partner[k]!==undefined)st.partner[k]=keepFill(st.partner[k],pack.partner[k]);});
       if(pack.skin){st.skin=Object.assign({},st.skin||{},pack.skin);st.skin.__ts=Math.max(Number(st.skin.__ts)||0,Number(pack.ts)||Date.now());}
       Object.keys(pack.music||{}).forEach(function(k){st[k]=pack.music[k];});
       if(pack.icons&&(pack.icons.all||(pack.icons.byId&&Object.keys(pack.icons.byId).length)))st.me1AppIcons=pack.icons;
@@ -37131,6 +37147,19 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
   };
   function startRec(tap){
     if(rec.active)return false;
+    /* v43-236b27：APK 里直接走系统录音，不再让 WebView 去取流。
+       部分机型 WebView 音频后端固定报 InvalidStateError，绕开它才是真修复。 */
+    try{
+      if(window.AndroidUI&&typeof AndroidUI.startNativeRec==="function"){
+        rec.active=true;rec.native=true;rec.streamReady=true;rec.audioStart=Date.now();
+        rec.t0=Date.now();rec.tapMode=!!tap;rec.mode="send";rec.chunks=[];rec.samples=[];
+        rec.gen=(rec.gen||0)+1;
+        showRec(true);
+        try{var _h0=document.getElementById("vrec-hint");if(_h0)_h0.textContent="正在准备录音…";}catch(_){}
+        try{AndroidUI.startNativeRec();}catch(_eStartN){rec.active=false;showRec(false);toast("录音启动失败，再试一次");return false;}
+        return true;
+      }
+    }catch(_eNativeFirst){}
     if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){toast("这个环境不支持录音");return false;}
     var ctx=sharedCtx();
     if(!ctx){toast("这个浏览器不支持录音");return false;}
