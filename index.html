@@ -292,7 +292,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-26v43-236b41";
+window.__E11_BUILD="2026-11-26v43-236b42";
 /* v43-236b37：以前版本一变就「清缓存 + location.reload()」，慢网/真机上等于多白屏 1~3 秒。
    现在页面本身就是新代码，不再重载；只让 Service Worker 在空闲时自己更新、清掉旧缓存，
    下次开启自然就是新版。 */
@@ -2838,7 +2838,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-26v43-236b41">
+<meta name="app-build" content="2026-11-26v43-236b42">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4588,7 +4588,7 @@ setTimeout(function(){
       </div>
       <!-- 主动回信件 -->
       <div class="set-sec-title">主动回信件</div>
-      <div class="set-group"><div class="set-row"><span class="set-label">主动写信概率（%）<div class="set-sub">他主动写信给我</div></span><input class="set-input" id="set-prob-letter" type="number" min="0" max="100" value="15"></div><div class="set-row"><span class="set-label">写信最快时长（分钟）</span><input class="set-input" id="set-letter-min-sec" type="number" min="0" max="1440" step="1" value="1"></div><div class="set-row"><span class="set-label">写信最慢时长（分钟）</span><input class="set-input" id="set-letter-max-sec" type="number" min="0" max="1440" step="1" value="5"></div><div class="set-row"><span class="set-label">信件 · 字卡数最少<div class="set-sub">一封信写几张字卡</div></span><input class="set-input" id="set-active-letter-count-min" type="number" min="1" max="20" value="1"></div><div class="set-row"><span class="set-label">信件 · 字卡数最多</span><input class="set-input" id="set-active-letter-count-max" type="number" min="1" max="20" value="3"></div><div class="set-row"><span class="set-label">信件 · 条数最少<div class="set-sub">一次触发写几封信</div></span><input class="set-input" id="set-letter-burst-min" type="number" min="1" value="1"></div><div class="set-row"><span class="set-label">信件 · 条数最多<div class="set-sub">填多少就发多少，不设上限</div></span><input class="set-input" id="set-letter-burst-max" type="number" min="1" value="1"></div><div class="set-row"><span class="set-label">来信补发上限<div class="set-sub">每次重新打开，最多补几封离开期间该到的信（1~200）</div></span><input class="set-input" id="set-letter-catch-max" type="number" min="0" max="200" step="1" value="5"></div><div class="set-row"><span class="set-label">来信节奏预览<div class="set-sub" id="letter-pace-hint">按当前概率与间隔计算</div></span></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">主动写信概率（%）<div class="set-sub">0 = 他不会主动写信；大于 0 就按下面的最快/最慢间隔来信</div></span><input class="set-input" id="set-prob-letter" type="number" min="0" max="100" value="15"></div><div class="set-row"><span class="set-label">写信最快时长（分钟）</span><input class="set-input" id="set-letter-min-sec" type="number" min="0" max="1440" step="1" value="1"></div><div class="set-row"><span class="set-label">写信最慢时长（分钟）</span><input class="set-input" id="set-letter-max-sec" type="number" min="0" max="1440" step="1" value="5"></div><div class="set-row"><span class="set-label">信件 · 字卡数最少<div class="set-sub">一封信写几张字卡</div></span><input class="set-input" id="set-active-letter-count-min" type="number" min="1" max="20" value="1"></div><div class="set-row"><span class="set-label">信件 · 字卡数最多</span><input class="set-input" id="set-active-letter-count-max" type="number" min="1" max="20" value="3"></div><div class="set-row"><span class="set-label">信件 · 条数最少<div class="set-sub">一次触发写几封信</div></span><input class="set-input" id="set-letter-burst-min" type="number" min="1" value="1"></div><div class="set-row"><span class="set-label">信件 · 条数最多<div class="set-sub">填多少就发多少，不设上限</div></span><input class="set-input" id="set-letter-burst-max" type="number" min="1" value="1"></div><div class="set-row"><span class="set-label">来信补发上限<div class="set-sub">每次重新打开，最多补几封离开期间该到的信（1~200）</div></span><input class="set-input" id="set-letter-catch-max" type="number" min="0" max="200" step="1" value="5"></div>
       </div>
       <!-- 问卷 -->
       <div class="set-sec-title">问卷</div>
@@ -19189,7 +19189,9 @@ function catchUpMissed(){
        用户会看到同一段离开时间反复冒出信件。 */
     while(due<=now&&tries<_maxTries&&sent<_cap){
       tries++;
-      if(!probPct("socialProbLetter")){due+=gap();continue;}
+      /* v43-236b42：到点就发，不再对每个时段重复掷概率（15% 会叠成几十小时一封）。
+         概率只在 0% 时表示「他不主动写信」。 */
+      if((Number(state.settings.socialProbLetter)||0)<=0)break;
       var n=Math.max(1,Math.round(rand(Number(state.settings.activeLetterCountMin)||1,Number(state.settings.activeLetterCountMax)||1)));
       var cards=null;try{cards=pickLetterCards(n);}catch(e){}
       if(cards&&cards.length){
@@ -33827,7 +33829,7 @@ function scheduleLetter(){
     /* 到点就是一次“尝试”：无论这次概率有没有中，都要把基准推进到现在，
        否则页面开着、抽不中时 catchUpMissed 还会把同一段时间重新补一遍。 */
     try{state.settings.lastLetterTime=Date.now();save();}catch(e){}
-    try{if(typeof maybePartnerLetter==="function")maybePartnerLetter(false,true);}catch(e){}
+    try{if(typeof maybePartnerLetter==="function")maybePartnerLetter(true,true);}catch(e){}
     letterTimer=setTimeout(tick,Math.max(30000,letterDelay()));
   };
   letterTimer=setTimeout(tick,Math.max(30000,letterDelay()));
