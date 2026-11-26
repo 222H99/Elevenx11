@@ -292,7 +292,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-26v43-236b39";
+window.__E11_BUILD="2026-11-26v43-236b40";
 /* v43-236b37：以前版本一变就「清缓存 + location.reload()」，慢网/真机上等于多白屏 1~3 秒。
    现在页面本身就是新代码，不再重载；只让 Service Worker 在空闲时自己更新、清掉旧缓存，
    下次开启自然就是新版。 */
@@ -38610,9 +38610,52 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
       if(manualQueued){manualQueued=false;setTimeout(function(){check(true);},0);}
     }
   }
-  window.__e11CheckVersion=check;
+    /* v43-236b40：新 SW 接管（说明换了新版），页面如果还是旧的就自己换一次，用户不用手动点 */
+  window.__e11SoftReload=function(){
+    try{
+      var cur=String(window.__E11_BUILD||"");
+      var t=sessionStorage.getItem("e11.takeoverReload");
+      if(t===cur&&t)return;
+      sessionStorage.setItem("e11.takeoverReload",cur);
+      var u;
+      try{u=pageUrl();}catch(_){u=location.href.split("#")[0].split("?")[0];}
+      location.replace(u+"?__u="+Date.now().toString(36)+"&__bust="+Date.now().toString(36)+"&skipabout=1");
+    }catch(_){try{location.reload();}catch(__){}}
+  };
+  try{
+    if(navigator.serviceWorker)navigator.serviceWorker.addEventListener("message",function(e){
+      var d=e&&e.data||{};
+      var _nb=String(d.build||"").replace(/-r\d+$/,"");
+      if((d.type==="e11-sw-activated"||d.type==="e11-build")&&_nb&&_nb!==String(window.__E11_BUILD||"")){
+        window.__e11SoftReload&&window.__e11SoftReload();
+      }
+    });
+  }catch(_){}
+window.__e11CheckVersion=check;
   window.__e11CheckDebug=function(){return {running:running,lastCheckAt:lastCheckAt,auto:autoBuild,pending:pendingBuild};};
-  /* v43-236b38：每次进站都让 Service Worker 自己查一次新版；
+  /* v43-236b40：设备上可能还装着旧入口的 Service Worker（它只返回自己缓存里的老页面，
+   站内刷新/重开都被它拦下）。缓存是整个域名共享的，这里把别的版本的整页缓存全部删掉：
+   旧图标下次打开查不到缓存，只能走网络，于是拿到新版；当前版本离线仍可用。 */
+(function(){
+  try{
+    if(!("caches" in window))return;
+    var run=function(){
+      try{
+        caches.keys().then(function(ks){
+          var cur=String(window.__E11_BUILD||"").slice(-6);
+          var mine=ks.filter(function(k){return k.indexOf("e11-shell-")===0&&k.indexOf(cur)>=0;});
+          var dead=ks.filter(function(k){return mine.indexOf(k)<0;});
+          return Promise.all(dead.map(function(k){return caches.delete(k).catch(function(){});}));
+        }).catch(function(){});
+      }catch(_){}
+    };
+    if(window.requestIdleCallback)requestIdleCallback(run,{timeout:2500});else setTimeout(run,1200);
+    /* 再补一次：用户可能刚在别的入口写过缓存，晚几秒再扫一遍 */
+    setTimeout(run,6000);
+    document.addEventListener("visibilitychange",function(){if(!document.hidden)run();});
+  }catch(_){}
+})();
+/* v43-236b38：每次进站都让 Service Worker 自己查一次新版；
      浏览器默认可能 24 小时才查一次，表现就是「退出再进还是旧版」。 */
   try{
     (function(){
