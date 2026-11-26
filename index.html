@@ -315,7 +315,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-27v44-236b69";
+window.__E11_BUILD="2026-11-27v44-236b70";
 /* v43-236b37：以前版本一变就「清缓存 + location.reload()」，慢网/真机上等于多白屏 1~3 秒。
    现在页面本身就是新代码，不再重载；只让 Service Worker 在空闲时自己更新、清掉旧缓存，
    下次开启自然就是新版。 */
@@ -2881,7 +2881,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-27v44-236b69">
+<meta name="app-build" content="2026-11-27v44-236b70">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -38073,9 +38073,41 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
     }
     return null;
   };
+  /* v44-236b70：iOS 的 InvalidStateError 主因是「同一条麦克风被并发请求两次」。
+     手指按下时已经在取流（__micWarmP 还挂着），420ms 后长按成立又发一次 getUserMedia，
+     系统就判成非法状态。这里先把那一份 pending 的取流等回来复用，绝不再发第二条。 */
+  window.__micWarmTakeAsync=function(){
+    /* 注意顺序：必须先在 pending 上等，不能先调 __micWarmTake——
+       它会把 __micWarmP 清成 null，等于把正在进行的取流丢掉、再发第二条（就是 InvalidStateError）。 */
+    if(__micWarmP){
+      var _p=__micWarmP;
+      return _p.then(function(st){if(st){try{__micWarmS=null;}catch(_){}}return st||null;}).catch(function(){return null;});
+    }
+    var s=window.__micWarmTake&&window.__micWarmTake();
+    if(s)return Promise.resolve(s);
+    if(__micWarmP){
+      /* 一定要等这份取流落定，不能设超时就另开一条 —— 设超时等于又发了一次并发请求，
+         iOS 会直接判 InvalidStateError，这正是要修的 bug。 */
+      var _p=__micWarmP;
+      return _p.then(function(st){return st||null;}).catch(function(){return null;});
+    }
+    return Promise.resolve(null);
+  };
   function __micGetStream(){
-    var _warm=window.__micWarmTake&&window.__micWarmTake();
-    if(_warm){__micWarmErr=null;return Promise.resolve(_warm);}
+    var _released=function(){
+      try{rec.stream&&rec.stream.getTracks&&rec.stream.getTracks().forEach(function(t){try{t.stop();}catch(_){} });}catch(_e){}
+      try{rec.stream=null;}catch(_e2){}
+      try{if(__micWarmS&&__micWarmS.getTracks)__micWarmS.getTracks().forEach(function(t){try{t.stop();}catch(_){}});}catch(_e3){}
+      try{__micWarmS=null;}catch(_e4){}
+    };
+    /* 先等「按下那一刻」那份取流（可能还在路上），等回来就直接用，避免并发第二条 */
+    return (window.__micWarmTakeAsync?window.__micWarmTakeAsync():Promise.resolve(window.__micWarmTake&&window.__micWarmTake())).then(function(_warm){
+      if(_warm){__micWarmErr=null;return _warm;}
+      return __micGetStreamFresh(_released);
+    });
+  }
+  try{window.__e11MicStream=function(){return __micGetStream();};window.__e11MicWarm=function(){return window.__micWarm?window.__micWarm():null;};}catch(_eMicExp){}
+  function __micGetStreamFresh(_released){
     /* 原生语音识别也会占用麦克风；开始录音前先彻底释放，避免 InvalidStateError。 */
     try{if(window.AndroidUI&&AndroidUI.cancelNativeSpeech)AndroidUI.cancelNativeSpeech();}catch(_eCancelSp){}
     try{rec.stream&&rec.stream.getTracks&&rec.stream.getTracks().forEach(function(t){try{t.stop();}catch(_){} });}catch(_eOldTrack){}
@@ -38089,14 +38121,24 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
       {audio:{sampleRate:48000,channelCount:1,echoCancellation:false,noiseSuppression:false},video:false}
     ];
     var i=0;
+    var _attempts=0;
     function one(){
-      if(i>=tries.length){var _e=new Error("mic-failed");_e.name="InvalidStateError";return Promise.reject(_e);}
+      if(i>=tries.length||_attempts>=3){var _e=new Error("mic-failed");_e.name="InvalidStateError";return Promise.reject(_e);}
+      _attempts++;
       var cons=tries[i++];
       return navigator.mediaDevices.getUserMedia(cons).catch(function(err){
         var nm=String(err&&err.name||"");
         /* 用户明确拒绝就别再重试，直接抛回去走设置引导 */
         if(nm==="NotAllowedError"||nm==="PermissionDeniedError"||nm==="SecurityError")throw err;
-        return new Promise(function(res){setTimeout(res,260);}).then(one);
+        /* InvalidStateError：多半是上一条轨道没释放干净 / 音频会话卡住。
+           先把所有轨道停掉、等系统释放，再用最简单的一次约束重试。 */
+        var _wait=260;
+        if(nm==="InvalidStateError"||nm==="NotReadableError"||nm==="TrackStartError"){
+          try{_released();}catch(_r){}
+          _wait=420;
+          i=Math.max(i,1);
+        }
+        return new Promise(function(res){setTimeout(res,_wait);}).then(one);
       });
     }
     return one();
