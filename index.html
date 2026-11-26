@@ -292,7 +292,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-26v43-236b40";
+window.__E11_BUILD="2026-11-26v43-236b41";
 /* v43-236b37：以前版本一变就「清缓存 + location.reload()」，慢网/真机上等于多白屏 1~3 秒。
    现在页面本身就是新代码，不再重载；只让 Service Worker 在空闲时自己更新、清掉旧缓存，
    下次开启自然就是新版。 */
@@ -2838,7 +2838,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-26v43-236b34">
+<meta name="app-build" content="2026-11-26v43-236b41">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -9269,7 +9269,7 @@ try{
   /* 线上 CDN 的 Last-Modified 不保证存在，不能把它当成唯一版本号；
      以页面里的 app-build 为准，拿不到时才退回文件时间。 */
   var __mb=document.querySelector('meta[name="app-build"]');
-  var __bid=(__mb&&__mb.content)||__autoBuildId()||"";
+  var __bid=window.__E11_BUILD||(__mb&&__mb.content)||__autoBuildId()||"";
   if(__bid){window.__buildId=__bid;ANNOUNCE.ver=__bid;}
 }catch(e){}
 
@@ -38308,7 +38308,7 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
   var FORCE_KEY="__e11ForceAt";
   var TRY_KEY="__e11UpdateTry";
   function apkMode(){try{return !!(window.AndroidUI&&/^app\.local$/i.test(location.hostname));}catch(e){return false;}}
-  function build(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||"";}catch(e){return "";}}
+  function build(){try{return window.__E11_BUILD||((document.querySelector('meta[name="app-build"]')||{}).content)||"";}catch(e){return "";}}
   function canForce(){try{var t=+sessionStorage.getItem(FORCE_KEY)||0;return Date.now()-t>8000;}catch(e){return true;}}
   function markForce(){try{sessionStorage.setItem(FORCE_KEY,String(Date.now()));}catch(e){}}
   function recentTry(b){try{var x=JSON.parse(sessionStorage.getItem(TRY_KEY)||"null");return !!(x&&x.build===b&&Date.now()-x.t<600000);}catch(e){return false;}}
@@ -38510,16 +38510,35 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
     }
     /* v43-236b38：以前网页端用 ./version.json，在 /app/app_xxx 这种地址上会被解析到上一层，
        永远拿不到版本文件（表现就是「检查更新没反应」）。这里统一用绝对地址。 */
-    var url=(apkMode()?REMOTE_VER:REMOTE_VER)+"?__v="+Date.now().toString(36);
-    var ctrl=null,to=null;
+    /* v43-236b41：先读同源的 version.json（GitHub Pages / 豆包 cdn 都放了同一份），
+       跨域去读主站会被 CORS 拦掉，Safari 只报「Load failed」。同源拿不到再退主站绝对地址。 */
+    var __sameVer=(function(){
+      try{
+        if(!/^http/i.test(location.protocol))return "";
+        var pth=location.pathname||"/";
+        if(!/\/$/.test(pth))pth=pth+"/";
+        return location.origin+pth+"version.json";
+      }catch(_sv){return "";}
+    })();
+    var __vq="?__v="+Date.now().toString(36);
+    var urls=[];
+    if(__sameVer)urls.push(__sameVer+__vq);
+    if(!__sameVer||__sameVer!==REMOTE_VER)urls.push(REMOTE_VER+__vq);
+    var ctrl=null,to=null,lastErr=null,info=null;
     try{
-      /* 5 秒足够拿到一个几十字节的 version.json；超时就给明确提示，不让按钮一直“检查中”。 */
-      if(typeof AbortController!=="undefined"){ctrl=new AbortController();to=setTimeout(function(){try{ctrl.abort();}catch(_){}},1800);}
-      var r=await fetch(url,{cache:"no-store",credentials:"omit",signal:ctrl?ctrl.signal:undefined});
-      if(!r||!r.ok)throw new Error("HTTP "+(r&&r.status));
-      var j=await r.json();
-      var info=__parseVerBody(j);
-      if(!info)throw new Error("版本文件为空");
+      for(var __i=0;__i<urls.length&&!info;__i++){
+        try{
+          ctrl=(typeof AbortController!=="undefined")?new AbortController():null;
+          if(ctrl)to=setTimeout(function(){try{ctrl.abort();}catch(_){}},1800);
+          var r=await fetch(urls[__i],{cache:"no-store",credentials:"omit",signal:ctrl?ctrl.signal:undefined});
+          if(to){clearTimeout(to);to=null;}
+          if(!r||!r.ok)throw new Error("HTTP "+(r&&r.status));
+          var j=await r.json();
+          info=__parseVerBody(j);
+          if(!info)throw new Error("版本文件为空");
+        }catch(__e){lastErr=__e;if(to){clearTimeout(to);to=null;}}
+      }
+      if(!info)throw lastErr||new Error("拿不到版本文件");
       __verInfoCache=info;__verInfoAt=Date.now();
       return __verInfoCache;
     }catch(e){
