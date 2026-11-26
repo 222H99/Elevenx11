@@ -272,7 +272,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-26v43-236b25";
+window.__E11_BUILD="2026-11-26v43-236b26";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -2798,7 +2798,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-26v43-236b25">
+<meta name="app-build" content="2026-11-26v43-236b26">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -37110,6 +37110,25 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
       }).catch(function(){return false;});
     }catch(_){return false;}
   }
+  /* 系统录音回调：APK 里 WebView 取流失败时，用原生 MediaRecorder 录完回传 */
+  window.__nativeRecStarted=function(){
+    try{if(rec.native){var h=document.getElementById("vrec-hint");if(h)h.textContent="系统录音中…松手发送";}}catch(_){}
+  };
+  window.__nativeRecDone=function(mime,dur,b64){
+    try{
+      if(!rec.native)return;
+      rec.native=false;rec.active=false;rec.streamReady=false;
+      showRec(false);
+      var raw=atob(b64||""),arr=new Uint8Array(raw.length);
+      for(var i=0;i<raw.length;i++)arr[i]=raw.charCodeAt(i);
+      var blob=new Blob([arr],{type:mime||"audio/mp4"});
+      var ms=Number(dur)||(Date.now()-(rec.t0||Date.now()));
+      __voiceToWav(blob,8000).then(function(w){sendVoiceBlob(w,ms,"");}).catch(function(){sendVoiceBlob(blob,ms,"");});
+    }catch(_eNrd){try{toast("语音保存失败，再试一次");}catch(_){ }}
+  };
+  window.__nativeRecError=function(msg){
+    try{rec.native=false;rec.active=false;rec.streamReady=false;showRec(false);toast(msg||"录音失败，再试一次");}catch(_){}
+  };
   function startRec(tap){
     if(rec.active)return false;
     if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){toast("这个环境不支持录音");return false;}
@@ -37155,6 +37174,18 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
       rec.active=false;rec.streamReady=false;stopStream();showRec(false);
       var _en=String(err&&err.name||"");
       if(_en==="InvalidStateError"||_en==="NotFoundError"||_en==="OverconstrainedError"||_en==="mic-failed"){
+        /* v43-236b26：APK 里 WebView 音频后端失败时，直接切系统录音，不再反复弹权限提示 */
+        try{
+          if(window.AndroidUI&&AndroidUI.startNativeRec){
+            rec.active=true;rec.native=true;rec.streamReady=true;rec.audioStart=Date.now();rec.tapMode=!!tap;
+            showRec(true);
+            try{var _h=document.getElementById("vrec-hint");if(_h)_h.textContent="正在准备系统录音…";}catch(_){}
+            AndroidUI.startNativeRec();
+            return;
+          }
+        }catch(_eNativeFall){}
+      }
+      if(_en==="InvalidStateError"||_en==="NotFoundError"||_en==="OverconstrainedError"||_en==="mic-failed"){
         __micNoDevice().then(function(none){
           if(none)toast("系统里没有可用的麦克风：请检查手机是否有麦克风，或系统「隐私/录音」开关是否把这台设备关掉了");
           else toast("麦克风暂时不可用（"+(_en==="mic-failed"?"InvalidStateError":_en)+"）：可能被通话/录音/语音助手占用，关掉占用它的应用后再按住说话");
@@ -37177,6 +37208,13 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
   function endRec(){
     try{clearInterval(rec.timer);}catch(e){}
     var wasActive=rec.active, ms=Date.now()-(rec.audioStart||rec.t0||Date.now()), mode=rec.mode;
+    if(rec.native){
+      rec.native=false;
+      if(mode==="cancel"){try{window.AndroidUI&&AndroidUI.cancelNativeRec&&AndroidUI.cancelNativeRec();}catch(_eNc){}rec.active=false;showRec(false);recSttStop();return;}
+      try{window.AndroidUI&&AndroidUI.stopNativeRec&&AndroidUI.stopNativeRec();}catch(_eNs){}
+      rec.active=false;
+      return;
+    }
     var _recSttText=recSttStop();
     rec.active=false;rec.gen=(rec.gen||0)+1;
     try{rec.tapMode=false;}catch(_){}
