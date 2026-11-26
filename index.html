@@ -272,7 +272,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-26v43-236b29";
+window.__E11_BUILD="2026-11-26v43-236b30";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -555,6 +555,33 @@ input,textarea{-webkit-user-select:text;user-select:text;}
     box-shadow:0 24px 70px rgba(0,0,0,.22),0 0 0 1px rgba(0,0,0,.05);
   }
   html[data-boot="dark"] body,body.ui-dark{background:#111114;}
+}
+/* v43-236b30：iPad 适配。
+   iPad 是粗指针，不会命中上面的桌面固定 430 规则，但 max-width:500 会让整页
+   缩成中间一条窄栏。这里在平板宽度下放宽到适合阅读的列宽，横屏再宽一点，
+   并把两侧背景交给整页壁纸，不再留白边。 */
+@media (min-width:700px) and (pointer:coarse){
+  .app{max-width:820px;box-shadow:none;}
+  /* 两侧不留灰边：屏幕底色跟 App 底色一致 */
+  body,#ui-root{background:var(--bg,#fafafa);}
+  /* 主页小组件按平板放大，别还是手机尺寸 */
+  .me-widget{max-width:620px;}
+  .me-w-top{height:clamp(180px,26vw,230px);}
+  .me-avwrap,.me-av{width:clamp(112px,15vw,136px);height:clamp(112px,15vw,136px);}
+  .me-avwrap{margin-top:calc(-1*clamp(60px,8vw,72px));}
+  .me-name{font-size:clamp(20px,2.6vw,24px);}
+  .me-photos{max-width:620px;}
+  #btn-voice{width:40px;height:40px;}
+  .msg-input{font-size:16px;}
+  .v-body{padding-left:22px;padding-right:22px;}
+  #msglist{padding-left:20px;padding-right:20px;}
+}
+@media (min-width:700px) and (pointer:coarse) and (orientation:landscape){
+  .app{max-width:960px;}
+}
+@media (min-width:700px) and (pointer:coarse){
+  /* 平板上一行字别贴着屏幕边缘，底部输入条跟随安全区 */
+  .v-head{padding-left:18px;padding-right:18px;}
 }
 /* ===== 顶部栏（头像+名字居中）===== */
 /* v43-168：整页背景图要一直铺到顶部导航栏，顶栏不再盖一层纯色 */
@@ -2798,7 +2825,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-26v43-236b29">
+<meta name="app-build" content="2026-11-26v43-236b30">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3770,6 +3797,21 @@ html,body{height:100%;height:100lvh;min-height:100lvh;background:var(--bg,#fafaf
   /* 背景仍铺满 large viewport（填满底部系统栏），但 app 自身跟真实动态视口走。
      键盘弹起时 app 正常收矮，输入栏不会被钉在 852 的高度上。 */
   .app{height:100%;height:100dvh!important;min-height:0!important;max-height:100dvh!important;}
+}
+</style>
+<style id="__ipad_css">
+/* v43-236b30：iPad 专用覆盖（放在最后，压过手机尺寸规则） */
+@media (min-width:700px) and (pointer:coarse){
+  body,#ui-root{background:var(--bg,#fafafa) !important;}
+  .me-widget{max-width:620px !important;}
+  .me-w-top{height:220px !important;}
+  .me-avwrap,.me-av{width:128px !important;height:128px !important;}
+  .me-avwrap{margin-top:-66px !important;}
+  .me-name{font-size:23px !important;}
+  .me-photos{max-width:620px !important;}
+  #btn-voice{width:40px !important;height:40px !important;}
+  .msg-input{font-size:16px !important;}
+  .v-body{padding-left:22px !important;padding-right:22px !important;}
 }
 </style>
 </head>
@@ -39713,7 +39755,11 @@ body{margin:0;background:var(--bg,#fafafa);}
       /* v43-183z21：手机端不再把舞台封顶在 440。
          480dp / 系统显示大小放大后的机型会被截成 440，右边留一条白；
          现在直接按真实可见宽度铺满，桌面固定窗口逻辑不受影响。 */
-      var cap=_landView?Math.min(900,w):Math.min(600,w);
+      /* v43-236b30：iPad 这类平板宽度（粗指针）不再封顶 600，
+         竖屏放宽到 820、横屏到 1000，避免 iPad 上整页只在中间一条。 */
+      var _tablet=(w>=700)&&(window.matchMedia&&window.matchMedia("(pointer:coarse)").matches);
+      var _tabletLand=_tablet&&(w>(window.innerHeight||0));
+      var cap=_tablet?(_tabletLand?Math.min(1000,w):Math.min(820,w)):(_landView?Math.min(900,w):Math.min(600,w));
       if(rw>cap)rw=cap;
       /* 根节点的 left/top 不受自身 scale 影响：这里写的是屏幕上的实际位置，
          不能再除以 k，否则平板居中会偏、键盘引起 offsetTop 时也会偏。 */
