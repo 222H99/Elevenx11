@@ -315,7 +315,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-27v44-236b71";
+window.__E11_BUILD="2026-11-27v44-236b72";
 /* v43-236b37：以前版本一变就「清缓存 + location.reload()」，慢网/真机上等于多白屏 1~3 秒。
    现在页面本身就是新代码，不再重载；只让 Service Worker 在空闲时自己更新、清掉旧缓存，
    下次开启自然就是新版。 */
@@ -2881,7 +2881,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-27v44-236b71">
+<meta name="app-build" content="2026-11-27v44-236b72">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4720,7 +4720,7 @@ setTimeout(function(){
       <div class="set-group"><div class="set-row"><span class="set-label">网易云登录<div class="set-sub" id="ny-set-state">扫码或 Cookie 登录后可在音乐页听 VIP 完整歌曲</div></span><button class="small-btn" id="btn-ny-login" style="font-size:12px;padding:6px 12px;">登录</button></div></div>
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
-      <div class="set-group"><div class="set-row"><span class="set-label">流畅模式<div class="set-sub">关闭毛玻璃模糊，减少低配机/APK 的滑动卡顿；APK 默认开启，网页默认关闭</div></span><button class="switch" id="sw-perf"></button></div><div class="set-row"><span class="set-label">作者声明<div class="set-sub">使用条款、借鉴说明与联系方式</div></span><button class="small-btn ghost" id="btn-about" style="white-space:nowrap;">查看</button></div><div class="set-row"><span class="set-label">更新公告<div class="set-sub">不再自动弹出，想看时点右边查看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div><div class="set-row"><span class="set-label">使用说明<div class="set-sub">每个功能是做什么的、怎么用</div></span><button class="small-btn ghost" id="btn-help" style="white-space:nowrap;">查看</button></div><div class="set-row"><span class="set-label">站内刷新<div class="set-sub">重新载入页面；聊天、字卡、设置、头像和图片都不会被清空</div></span><button class="small-btn" id="btn-e11-refresh" style="white-space:nowrap;">刷新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">流畅模式<div class="set-sub">关闭毛玻璃模糊，减少低配机/APK 的滑动卡顿；APK 默认开启，网页默认关闭</div></span><button class="switch" id="sw-perf"></button></div><div class="set-row"><span class="set-label">作者声明<div class="set-sub">使用条款、借鉴说明与联系方式</div></span><button class="small-btn ghost" id="btn-about" style="white-space:nowrap;">查看</button></div><div class="set-row"><span class="set-label">更新公告<div class="set-sub">不再自动弹出，想看时点右边查看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div><div class="set-row"><span class="set-label">使用说明<div class="set-sub">每个功能是做什么的、怎么用</div></span><button class="small-btn ghost" id="btn-help" style="white-space:nowrap;">查看</button></div><div class="set-row"><span class="set-label">更新前备份<div class="set-sub">每次更新前自动留的 3 份快照；数据不对时可以从这里恢复</div></span><button class="small-btn ghost" id="btn-autobk" style="white-space:nowrap;">恢复</button></div><div class="set-row"><span class="set-label">站内刷新<div class="set-sub">重新载入页面；聊天、字卡、设置、头像和图片都不会被清空</div></span><button class="small-btn" id="btn-e11-refresh" style="white-space:nowrap;">刷新</button></div></div>
 <div class="set-sec-title">安装到桌面</div>
       <div class="set-group">
         <div class="set-row"><span class="set-label">PWA 安装状态<div class="set-sub" id="pwa-state">检查中…</div></span><button class="small-btn" id="btn-pwa-install" style="font-size:12px;padding:6px 12px;">安装</button></div>
@@ -6029,6 +6029,17 @@ setTimeout(function(){
     </div>
     <div class="an-body" id="an-body"></div>
     <div class="an-foot"><button class="an-btn" id="an-ok">我知道了</button></div>
+  </div>
+</div>
+<div class="announce-screen" id="autobk-screen">
+  <div class="an-card">
+    <div class="an-head">
+      <span class="an-badge">更新前备份</span>
+      <div class="an-title">从更新前的快照恢复</div>
+      <div class="an-ver">点「恢复」会用那一份覆盖本机聊天、名字、主题和密码</div>
+    </div>
+    <div class="an-body" id="autobk-body"></div>
+    <div class="an-foot"><button class="an-btn" id="autobk-close">关闭</button></div>
   </div>
 </div>
 <div class="announce-screen" id="help-screen">
@@ -9294,8 +9305,8 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 只留这一版真正改动的几条，一屏读完 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v44-236b71",
-  time:"2026-11-27 05:20",
+  date:"v44-236b72",
+  time:"2026-11-27 06:05",
   noticeKey:null,
   lead:"一句话：把「语音录不上」和「旧版不更新」两个老问题修掉，再补一页功能说明；已存的聊天、名字、背景一律不动。",
   groups:[
@@ -10064,6 +10075,9 @@ window.__e11MergeDbScopes=async function(){
 };
 /* 账号云存档用的最小访问桥：只读写当前 state，不暴露任何别的账号 */
 window.__e11StateGet=function(){return state;};
+/* v44-236b72：给救援模块一个写回内存 state 的入口。
+   只写 localStorage 再 reload 不够——页面退出时还会 save 一次，把刚写进去的备份又用旧档盖掉。 */
+window.__e11StateSet=function(st){try{if(!st)return false;state=migrate(st);return true;}catch(_eSet){try{state=st;return true;}catch(_e2){return false;}}};
 window.__e11SetState=function(s){state=s;};
 window.__e11DbSet=function(k,v){return dbSet(k,v);};
 window.__e11DbGet=function(k){return dbGet(k);};
@@ -13476,7 +13490,11 @@ async function init(){
       try{var _c0=__e11CoreRead();if(_c0&&_c0.state)state=migrate(_c0.state),window.__e11CoreUsed=1;}catch(_cF0){}
       try{var _e0=__e11ExitRead();if(_e0&&_e0.state){state=migrate(_e0.state);if(_e0.keep4){try{__e11Keep4ApplyObj(state,_e0.keep4);}catch(_eK4F1){}}__bkApplyGlobals(_e0.globals||{},_e0.ts);window.__e11ExitUsed=1;window.__e11ForceExit=1;}}catch(_eF1){}
       try{var _em0=sessionStorage.getItem("privateChat__emergency");if(_em0)state=migrate(JSON.parse(_em0));}catch(_eF2){}
-      try{var _pm0=localStorage.getItem("privateChat");if(_pm0){var _po0=JSON.parse(_pm0);if(_po0&&!_po0.__idbOnly)state=migrate(_po0);}}catch(_eF3){}
+      try{var _pm0=localStorage.getItem("privateChat");if(_pm0){var _po0=JSON.parse(_pm0);if(_po0&&!_po0.__idbOnly)state=migrate(_po0);}}catch(_eF3){
+        /* v44-236b72：主档读不出来（写盘被截断/超配额）时，绝不能直接落到默认档再 save 把原档盖掉。
+           先把原始串留一份残档，救援模块会拿它或更新前备份还原。 */
+        try{var _raw=localStorage.getItem("privateChat");if(_raw&&_raw.length>200){localStorage.setItem("privateChat.__broken.v1",_raw);}}catch(_eBroken){}
+      }
     }
     /* P0：把写盘时替换出去的大图引用换回真图，之后的 migrate/render 看到的仍是完整 state。
        本机 localStorage 已经有一份更新的完整档时，先不 hydrate IndexedDB 那份，省掉一次全库换图。 */
@@ -42071,6 +42089,135 @@ body{margin:0;background:var(--bg,#fafafa);}
     e.preventDefault();
     show();
     try{if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(window.__e11DiagText());}catch(_){}
+  },true);
+})();
+</script>
+<script>
+/* v44-236b72：数据救援。
+   触发场景：更新（换 SW、清缓存、整页重载）途中写盘被截断或读不出来，
+   启动只能拿到默认档，看起来就是“更新后数据没了”。
+   这里保留每次更新前自动备份的 3 份快照（e11.autoBk.v1），
+   本机档为空时自动挑消息最多的那份恢复；设置里也能手动选一份恢复。 */
+(function(){
+  function read(){
+    try{var a=JSON.parse(localStorage.getItem("e11.autoBk.v1")||"[]");return Array.isArray(a)?a:[];}catch(_){return [];}
+  }
+  function snapN(s){
+    try{var o=JSON.parse((s&&s.privateChat)||"{}");var m=(o&&o.messages)||[];return m.filter(function(x){return x&&!x.sys;}).length;}catch(_){return 0;}
+  }
+  function fmt(ts){
+    try{var d=new Date(ts||0);function p(n){return (n<10?"0":"")+n;}return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())+" "+p(d.getHours())+":"+p(d.getMinutes());}catch(_){return "?";}
+  }
+  function ago(ts){
+    var m=Math.round((Date.now()-Number(ts||0))/60000);
+    if(m<1)return "刚刚";if(m<60)return m+" 分钟前";
+    var h=Math.round(m/60);if(h<24)return h+" 小时前";
+    return Math.round(h/24)+" 天前";
+  }
+  function restore(i){
+    var arr=read();var s=arr[i];
+    if(!s||!s.privateChat){try{toast("这份备份不可用");}catch(_){}return false;}
+    try{
+      window.__restoring=0;window.__e11CloudPause=1;window.__e11CloudHold=1;
+      /* 先把备份灌进内存 state，再走正常保存流程：
+         否则只改 localStorage 的话，页面退出时那次 save 会拿当前的空档把它盖回去。 */
+      var st=null;try{st=JSON.parse(s.privateChat);}catch(_eP){st=null;}
+      var ok=false;
+      if(st&&window.__e11StateSet)ok=window.__e11StateSet(st);
+      if(!ok)localStorage.setItem("privateChat",s.privateChat);
+      ["e11.profile.v1","e11.names.v1","__theme.v1","e11.lockPwd.v1"].forEach(function(k){if(s[k])localStorage.setItem(k,s[k]);});
+      try{if(typeof save==="function")save();if(window.__flushSave)window.__flushSave(true);}catch(_eSave){}
+      sessionStorage.setItem("e11.rescued","1");
+      var u=new URL(location.href);u.searchParams.set("__e11bk",String(s.ts||Date.now()));
+      setTimeout(function(){location.replace(u.toString());},600);
+    }catch(e){try{toast("恢复失败："+(e&&e.message||e));}catch(_){}}
+    return true;
+  }
+  window.__e11AutoBkRestore=restore;
+  window.__e11OpenAutoBk=function(){open();};
+  window.__e11AutoBkList=function(){return read().map(function(s,i){return {i:i,ts:s.ts,build:s.build,reason:s.reason,n:snapN(s)};});};
+
+  /* 本机是否“真的是空的”：排除默认那句欢迎语，日记/信件/动态也一起看 */
+  function isEmpty(){
+    try{
+      var st=window.__e11StateGet?window.__e11StateGet():null;
+      if(!st)return false;
+      var msgs=(st.messages||[]).filter(function(m){
+        if(!m||m.sys||m.type==="system")return false;
+        return !(m.from==="partner"&&String(m.text||"").trim()==="嗨，这是我们的私密聊天空间，只有你能看到。");
+      });
+      if(msgs.length)return false;
+      if(st.diary&&st.diary.pages&&Object.keys(st.diary.pages).length)return false;
+      if((st.letters||[]).length||(st.moments||[]).length)return false;
+      return true;
+    }catch(_){return false;}
+  }
+  function autoRescue(){
+    var why=function(t){try{window.__e11RescueWhy=t;}catch(_){}};
+    try{
+      if(window.__restoring){why("restoring");return;}
+      try{if(sessionStorage.getItem("e11.rescued")==="1"){why("already");return;}}catch(_){}
+      /* 用户主动重置过就不算事故，不能把人家的清空再还原回去 */
+      try{if(localStorage.getItem("e11.resetLocalOnly.v1")||localStorage.getItem("__e11HardReset")){why("reset");return;}}catch(_){}
+      if(!isEmpty()){why("not-empty");return;}
+      var arr=read();if(!arr.length){why("no-bk");return;}
+      var best=-1,bestN=0;
+      arr.forEach(function(s,i){
+        /* 只认更新前自动留的份，别把别的原因拉回来 */
+        if(String(s.reason||"").indexOf("before-update")!==0)return;
+        var n=snapN(s);if(n>bestN){bestN=n;best=n;}
+      });
+      if(best<0||bestN<2){why("bk-empty:"+arr.length+"/"+bestN);return;}
+      /* 不偷偷覆盖：把备份弹出来，让你看清楚再点「恢复」。
+         静默覆盖的话，万一是自己主动清空的，反而会以为“清了又活了”。 */
+      why("prompt");
+      try{toast("本机聊天是空的，更新前备份里有 "+bestN+" 条，点下面这份就能恢复");}catch(_){}
+      try{window.__e11OpenAutoBk&&window.__e11OpenAutoBk();}catch(_){}
+      try{sessionStorage.setItem("e11.rescued","1");}catch(_){}
+    }catch(_){}
+  }
+  window.__e11AutoRescue=autoRescue;
+  /* 启动后 1.4s 起每 1.4s 复查一次，共 6 次：启动流程会在 2~3 秒内把 state 从各个应急档换一遍，
+     只查一次容易正好撞在“还没读完”的中间态。 */
+  try{for(var _k=0;_k<6;_k++)setTimeout(autoRescue,1400+_k*1400);}catch(_){setTimeout(autoRescue,2300);}
+
+  function buildList(){
+    var b=document.getElementById("autobk-body");if(!b)return;
+    var arr=read();
+    if(!arr.length){b.innerHTML='<div class="an-item">还没有更新前备份。备份只在网站更新前生成，最多留 3 份。</div>';return;}
+    b.innerHTML=arr.map(function(s,i){
+      var n=snapN(s);
+      return '<div class="an-item" style="padding-left:0;display:flex;align-items:center;gap:10px;">'+
+        '<div style="flex:1;min-width:0;"><div style="font-weight:600;">'+fmt(s.ts)+'</div>'+
+        '<div style="font-size:12px;color:#8e8e93;">'+ago(s.ts)+' · '+String(s.build||"").replace(/^[0-9-]+/,"")+' · '+n+' 条聊天</div></div>'+
+        '<button class="small-btn" data-bk="'+i+'" style="flex:0 0 auto;font-size:12px;padding:6px 12px;">恢复</button></div>';
+    }).join("");
+  }
+  function open(){
+    buildList();
+    var el=document.getElementById("autobk-screen");
+    if(el)el.classList.add("show");
+  }
+  function close(){
+    var el=document.getElementById("autobk-screen");
+    if(el)el.classList.remove("show");
+  }
+  document.addEventListener("click",function(e){
+    var t=e.target;if(!t||!t.closest)return;
+    if(t.closest("#btn-autobk")){e.preventDefault();open();return;}
+    if(t.closest("#autobk-close")){e.preventDefault();close();return;}
+    var rb=t.closest("[data-bk]");
+    if(rb){
+      e.preventDefault();
+      var i=Number(rb.getAttribute("data-bk"));
+      var arr=read();var n=snapN(arr[i]||{});
+      var msg="用这份备份覆盖本机？\n\n"+fmt(arr[i]&&arr[i].ts)+" · "+n+" 条聊天\n\n当前本机的聊天、名字、背景会被这份替换，恢复后页面会自动重载。";
+      var go=function(){restore(i);};
+      if(window.__iosConfirm){window.__iosConfirm(msg,{okText:"恢复",cancelText:"取消"}).then(function(yes){if(yes)go();});}
+      else if(confirm(msg))go();
+      return;
+    }
+    if(t.closest("#autobk-screen")&&!t.closest(".an-card")){e.preventDefault();close();}
   },true);
 })();
 </script>
