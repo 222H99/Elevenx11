@@ -272,7 +272,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-26v43-236b27";
+window.__E11_BUILD="2026-11-26v43-236b28";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -2798,7 +2798,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-26v43-236b27">
+<meta name="app-build" content="2026-11-26v43-236b28">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -37094,7 +37094,37 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
   /* v43-236b25：麦克风取流兜底。InvalidStateError 多半是上一次录音的轨道没释放、
      或者系统麦克风被别的应用占着、WebView 还没真正准备好音频设备。
      这里先释放旧轨道、再按“默认 → 降噪参数 → 默认设备”三次重试。 */
+  /* v43-236b28：浏览器/PWA 只有在「手指刚按下」这一刻才算用户手势。
+     以前是按下 420ms 后才取流，部分浏览器直接判成非法状态（InvalidStateError）。
+     这里在 pointerdown 当场先把麦克风打开，长按计时结束后直接复用这条流。 */
+  var __micWarmS=null,__micWarmP=null,__micWarmErr=null;
+  window.__micWarm=function(){
+    try{
+      if(__micWarmS){
+        var _live=true;try{__micWarmS.getAudioTracks().forEach(function(t){if(t.readyState!=="live")_live=false;});}catch(_){_live=false;}
+        if(_live)return __micWarmS;
+      }
+      if(__micWarmP)return __micWarmP;
+      if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)return null;
+      __micWarmErr=null;
+      __micWarmP=navigator.mediaDevices.getUserMedia({audio:true,video:false}).then(function(st){
+        __micWarmS=st;__micWarmP=null;return st;
+      }).catch(function(err){
+        __micWarmP=null;__micWarmErr=err;return null;
+      });
+      return __micWarmP;
+    }catch(_eWarm){return null;}
+  };
+  window.__micWarmTake=function(){
+    var s=__micWarmS;__micWarmS=null;__micWarmP=null;
+    if(s){var ok=true;try{s.getAudioTracks().forEach(function(t){if(t.readyState!=="live")ok=false;});}catch(_){ok=false;}
+      if(ok)return s;try{s.getTracks().forEach(function(t){t.stop();});}catch(_){}
+    }
+    return null;
+  };
   function __micGetStream(){
+    var _warm=window.__micWarmTake&&window.__micWarmTake();
+    if(_warm){__micWarmErr=null;return Promise.resolve(_warm);}
     /* 原生语音识别也会占用麦克风；开始录音前先彻底释放，避免 InvalidStateError。 */
     try{if(window.AndroidUI&&AndroidUI.cancelNativeSpeech)AndroidUI.cancelNativeSpeech();}catch(_eCancelSp){}
     try{rec.stream&&rec.stream.getTracks&&rec.stream.getTracks().forEach(function(t){try{t.stop();}catch(_){} });}catch(_eOldTrack){}
@@ -37217,7 +37247,7 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
       if(_en==="InvalidStateError"||_en==="NotFoundError"||_en==="OverconstrainedError"||_en==="mic-failed"){
         __micNoDevice().then(function(none){
           if(none)toast("系统里没有可用的麦克风：请检查手机是否有麦克风，或系统「隐私/录音」开关是否把这台设备关掉了");
-          else toast("麦克风暂时不可用（"+(_en==="mic-failed"?"InvalidStateError":_en)+"）：可能被通话/录音/语音助手占用，关掉占用它的应用后再按住说话");
+          else toast("麦克风暂时不可用（"+(_en==="mic-failed"?"InvalidStateError":_en)+"）["+String(window.__E11_BUILD||"").slice(-5)+"]：可能被通话/录音/语音助手占用，关掉占用它的应用后再按住说话");
         });
       }
       var _nativeOk=false;
@@ -37492,6 +37522,7 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
         }
         if(el.id==="msg-input"&&el.value.trim())return;
         try{sharedCtx();}catch(_){}
+        if(el.id==="btn-voice"&&!rec.active&&!(window.AndroidUI&&window.AndroidUI.startNativeRec)){try{window.__micWarm&&window.__micWarm();}catch(_eWarmMic){}}
         press.x0=e.clientX||0;press.y0=e.clientY||0;press.started=false;press.el=el;press.downAt=Date.now();
         clearTimeout(press.t);
         press.t=setTimeout(function(){press.started=true;try{window.__dndBlurInput&&window.__dndBlurInput();}catch(_){}startRec();},420);
