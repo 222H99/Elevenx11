@@ -312,7 +312,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-27v44-236b57";
+window.__E11_BUILD="2026-11-27v44-236b58";
 /* v43-236b37：以前版本一变就「清缓存 + location.reload()」，慢网/真机上等于多白屏 1~3 秒。
    现在页面本身就是新代码，不再重载；只让 Service Worker 在空闲时自己更新、清掉旧缓存，
    下次开启自然就是新版。 */
@@ -2878,7 +2878,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-27v44-236b57">
+<meta name="app-build" content="2026-11-27v44-236b58">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -13279,11 +13279,10 @@ async function init(){
       _gatePending=!(window.__aboutDone||window.__lockPassed);
     }
     if(_gatePending){
-      /* v44-236b54：放行层没过的这一轮，启动层（加载页）要留到存档读完才撤。
-         这个标记必须在 showView/initAbout 之前就立起来，否则 showView 里排的 rAF 会
-         先把加载页掀掉，出现「加载页消失 → 空白 → 声明页」的闪一下。 */
-      window.__e11LoadingStage=1;
-      window.__holdBootReveal=1;
+      /* v44-236b58：用户要求删掉加载页 —— 声明页第一帧直接出。
+         这里不再按住启动层，初始化完成后 initAbout 会立刻揭幕并铺声明页。 */
+      window.__e11LoadingStage=0;
+      window.__holdBootReveal=0;
       window.__bootPendingReveal=0;
       /* v43-236b25：放行层还没过时，底下只铺主页，绝不先把聊天页露出来。
          以前这里按“上次停在哪页”直接 showView(chat)，随后声明页才盖上来，
@@ -15285,7 +15284,9 @@ function applySkin(){
     r.setProperty("--mytext",__safeTextColor(s.myTextColor||autoText(myb),myb));
     r.setProperty("--parttext",__safeTextColor(s.partTextColor||autoText(partb),partb));
   }else{
-    r.setProperty("--bg",s.bg);
+    /* v44-236b58：用户要求不要皮肤米色 —— 整站页面底色固定白天纯白、夜间纯黑，
+       皮肤里的“背景色”只影响壁纸淡色/气泡等细节，不再铺到页面/视图底色上。 */
+    r.setProperty("--bg",dark?"#000000":"#ffffff");
     r.setProperty("--topbar","#ffffff"); /* v43-103：白天顶栏固定纯白 */
     r.setProperty("--bottombar",s.bottombar);
     r.setProperty("--ttext","#111111");
@@ -15332,7 +15333,7 @@ function applySkin(){
       /* v44-236b55：这一处才是真正把页面底色写成皮肤米色的地方（!important 内联，前面 CSS 改白也压不住）。
          iOS 主屏 PWA 的状态栏是半透明材质，会把这层底色吸上来 —— 米色皮肤 → 永远一条米色。
          PWA/网页按用户要求固定白天纯白、夜间纯黑；APK 保持原样（壁纸要透到最顶端）。 */
-      if(!window.__E11_APK)_bg=(dark?"#000000":"#ffffff");
+      _bg=(dark?"#000000":"#ffffff");
       document.documentElement.style.setProperty("background-color",_bg,"important");
       document.body.style.setProperty("background-color",_bg,"important");
       /* 状态区那一条必须跟顶部导航栏同色，不能铺成页面/壁纸底色，否则会多出一条色带 */
@@ -34161,43 +34162,15 @@ function initAbout(){
   /* v43-102：声明页固定每次开屏都出现，不再读任何“已读”标记。
      只有这次页面里点过「同意并进入」才不再弹；关掉网页/重开一定重新出现。 */
   window.__aboutDone=0;
-  /* v44-236b54：启动顺序改成「加载页 → 声明页 → 密码页」。
-     以前声明页一上来就盖住，加载页（品牌 + 转圈 + 正在载入）只闪一下就没了，
-     用户看到的是「声明页直接跳密码页」，中间那一段存档根本没等。
-     现在：先把加载页留在屏幕上等存档（IndexedDB）读完，读完了才撤加载页、把声明页推上来；
-     存档太慢就 4.5 秒兜底，绝不卡在转圈上。 */
-  window.__e11LoadingStage=1;
-  window.__aboutReady=0;
-  window.__holdBootReveal=1;
-  window.__bootRevealDeadline=Date.now()+1400;
-  try{$("about-screen").classList.remove("show");}catch(_eStageHideAbout){}
-  try{var _bsub=document.getElementById("boot-sub");if(_bsub)_bsub.textContent="正在载入存档…";}catch(_eStageSub){}
-  var _openAboutStage=function(){
-    if(window.__aboutReady)return;
-    window.__aboutReady=1;
-    window.__holdBootReveal=0;
-    window.__bootRevealDeadline=0;
-    try{window.__aboutDone=0;$("about-screen").classList.add("show");}catch(_eStageShowAbout){}
-    /* 等声明页真正画到屏幕上，再撤掉启动遮罩（否则中间会闪一帧白）。
-       「加载中」这个标记要等声明页真的铺上之后才撤，中间别的路径调 __bootDone 都掀不掉遮罩。 */
-    requestAnimationFrame(function(){requestAnimationFrame(function(){
-      window.__e11LoadingStage=0;
-      var _v=document.getElementById("__veil");
-      if(_v){_v.style.opacity="0";setTimeout(function(){if(_v&&_v.parentNode)_v.parentNode.removeChild(_v);},240);}
-      try{window.__bootDone&&window.__bootDone();}catch(_eBootAbout){}
-      try{var _bsub2=document.getElementById("boot-sub");if(_bsub2)_bsub2.textContent="正在打开…";}catch(_eStageSub2){}
-    });});
-  };
-  var _stageStart=Date.now();
-  var _stageTick=function(){
-    if(window.__aboutReady)return;
-    var _el=Date.now()-_stageStart;
-    /* v44-236b56：以前要等存档完全读完（慢机 3~5 秒），加载页就磨很久。
-       现在最多等 1.2 秒：读得快就提前放行（留 350ms 让加载页看得见），读得慢就先到声明页，存档在后台继续。 */
-    if((window._dbReady&&_el>350)||_el>1200){_openAboutStage();return;}
-    setTimeout(_stageTick,80);
-  };
-  setTimeout(_stageTick,60);
+  /* v44-236b58：删除加载页。启动层不再等存档，声明页第一帧就铺上来，
+     存档在后台读，读完再补主页。 */
+  try{window.__e11LoadingStage=0;}catch(_eNoStage){}
+  try{$("about-screen").classList.add("show");}catch(_eShowAboutDirect){}
+  requestAnimationFrame(function(){requestAnimationFrame(function(){
+    var _v=document.getElementById("__veil");
+    if(_v){_v.style.opacity="0";setTimeout(function(){if(_v&&_v.parentNode)_v.parentNode.removeChild(_v);},240);}
+    try{window.__bootDone&&window.__bootDone();}catch(_eBootAbout){}
+  });});
   const btn=$("about-agree-btn");
   var _ax=$("about-x");
   if(_ax){
