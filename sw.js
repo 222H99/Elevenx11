@@ -2,7 +2,7 @@
    作用一：缓存主页面，第二次打开时不再重新下载 2MB HTML，直接出首屏（黑屏时间大幅缩短）。
    作用二：提供通知点击回到 App 的最小能力。
    策略：有缓存立即返回，同时在后台抓取新版并写回缓存；首次无缓存才等网络。 */
-const E11_VERSION = "2026-11-27v44-236b56-r408";
+const E11_VERSION = "2026-11-27v44-236b57-r409";
 const E11_CACHE = "e11-shell-" + E11_VERSION;
 const E11_INDEX = "./index.html";
 const E11_TIMEOUT = 150;
@@ -73,7 +73,15 @@ async function e11Navigate(request, event) {
   /* v43-236b38：有缓存立刻给，进站不再先等网络；新版在后台写回缓存，下次打开就是新版。
      之前这里要先等 150ms 网络，慢网下每次打开都要顿一下。 */
   try { event.waitUntil(network.catch(() => null)); } catch (_) {}
-  if (cached) return cached;
+  /* v44-236b57：用户要求「打开就是最新版」。
+     以前有缓存就立刻给旧版，新版要下次打开才生效（所以总觉得改完没变）。
+     现在先给网络 1.2 秒：拿得到就用线上最新 HTML（同时写回缓存），
+     拿不到（弱网/断网）才退回缓存，进站速度不会被拖太久。 */
+  if (cached) {
+    const fresh = await Promise.race([network, e11Timeout(1200)]);
+    if (fresh && fresh.ok) return fresh;
+    return cached;
+  }
   const quick = await Promise.race([network, e11Timeout(E11_TIMEOUT)]);
   if (quick && quick.ok) return quick;
 }
