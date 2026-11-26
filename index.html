@@ -292,7 +292,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-26v43-236b38";
+window.__E11_BUILD="2026-11-26v43-236b39";
 /* v43-236b37：以前版本一变就「清缓存 + location.reload()」，慢网/真机上等于多白屏 1~3 秒。
    现在页面本身就是新代码，不再重载；只让 Service Worker 在空闲时自己更新、清掉旧缓存，
    下次开启自然就是新版。 */
@@ -709,7 +709,7 @@ body.fs-1 .set-input,body.fs-2 .set-input,body.fs-3 .set-input,body.fs-4 .set-in
    列表不靠 content-visibility 省绘制，避免滚动时高度估算变化导致列表跳动，
    长列表改为分片渲染（看得到的那一页/一段才建 DOM）。 */
 @media (max-width:480px){
-  .set-page.cv-off{content-visibility:hidden;pointer-events:none;}
+  .set-page.cv-off{content-visibility:hidden;}
 }
 /* 小屏/显示缩放适配：第二页原来用 320px 死宽，320~360 宽的手机上会横向溢出。
    这里只在小屏改成流式宽度，大屏保持原布局和原来的缩放。 */
@@ -10933,6 +10933,14 @@ function __e11Keep4Save(){
   try{
     if(window.__restoring)return false;
     if(typeof state==="undefined"||!state)return false;
+    /* 四项图片没变就不重复写：以前每次 save 都整份打包（含 base64），是主要卡顿来源之一 */
+    try{
+      var _fp=function(v){v=String(v||"");return v.length+":"+v.slice(0,18);};
+      var _ic=state.me1AppIcons&&state.me1AppIcons.byId||{};
+      var _k4sig=[_fp(state.me&&state.me.avatar),_fp(state.me&&state.me.cover),_fp(state.partner&&state.partner.avatar),_fp(state.chatBg),Object.keys(_ic).length,Object.keys(_ic).sort().map(function(k){return k+_fp(_ic[k]);}).join(",")].join("|");
+      if(_k4sig&&window.__e11Keep4Sig===_k4sig)return true;
+      window.__e11Keep4Sig=_k4sig;
+    }catch(_eK4Sig){}
     var o=__e11Keep4Pack(state);
     var txt=JSON.stringify(o);
     /* IndexedDB 才是主备份：localStorage 可能已经被聊天、表情、背景塞满，
@@ -12189,12 +12197,26 @@ function save(){
      App 被系统直接杀掉时最多只差这不到 1 秒里的最后一下。 */
   try{
     if(window.__e11ExitSoonT){clearTimeout(window.__e11ExitSoonT);window.__e11ExitSoonT=null;}
-    var _autoSnap=function(){
-      window.__e11ExitSoonT=null;
+    /* v43-236b39：连续操作（打字、滑动、点赞）时不再每次都整份落盘。
+       以前每一下都写一次完整档 + 四项图片备份，连着改十下就是十次 20ms 级 IO，手感是“卡”。
+       现在同类写入合并成 2.5 秒一次；离站/切后台仍然立刻写，不牺牲安全。 */
+    var _autoSnapNow=function(){
+      window.__e11ExitSoonT=null;window.__e11SnapPendingT=null;
+      window.__e11SnapAt=Date.now();
       try{if(window.__stateReady&&!window.__restoring&&window.__e11ExitSave)window.__e11ExitSave(state);}catch(_eExitSoon){}
       try{window.__e11Keep4Save&&window.__e11Keep4Save();}catch(_eK4Soon){}
     };
-    if(document.hidden)_autoSnap();
+    var _autoSnap=function(){
+      var _gap=Date.now()-(window.__e11SnapAt||0);
+      if(_gap<2500){
+        if(!window.__e11SnapPendingT){
+          window.__e11SnapPendingT=setTimeout(function(){try{_autoSnapNow();}catch(_){}},2500-_gap);
+        }
+        return;
+      }
+      _autoSnapNow();
+    };
+    if(document.hidden)_autoSnapNow();
     else if(window.requestIdleCallback)window.__e11ExitSoonT=requestIdleCallback(_autoSnap,{timeout:900});
     else window.__e11ExitSoonT=setTimeout(_autoSnap,700);
   }catch(_eExitSoonSet){}
@@ -12207,10 +12229,16 @@ function save(){
     var _socSig=__e11SocialDeepSig(_socArr);
     if(window.__e11SocialSig!==_socSig){
       window.__e11SocialSig=_socSig;
-      window.__e11SocialSnap&&window.__e11SocialSnap(_socArr);
-      /* 同一条动态里新增的评论不会改变数组长度，旧逻辑因此不写离站档；
-         这里社交内容一变就立即同步写一份，App 被系统杀掉也不会丢。 */
-      try{if(window.__e11ExitSave)window.__e11ExitSave(_socArr,true);}catch(_eSocFlush){}
+      /* v43-236b39：连续发评论/写信时会一条一条同步写盘，串起来就是明显的掉帧。
+         现在合并成 1.2 秒一次（切后台立即写），保住“不丢”的同时不再卡。 */
+      try{
+        if(window.__e11SocWriteT)clearTimeout(window.__e11SocWriteT);
+        window.__e11SocWriteT=setTimeout(function(){
+          window.__e11SocWriteT=null;
+          try{window.__e11SocialSnap&&window.__e11SocialSnap(state);}catch(_eSocSnap2){}
+          try{if(window.__e11ExitSave)window.__e11ExitSave(state,true);}catch(_eSocFlush){}
+        },document.hidden?0:1200);
+      }catch(_eSocDelay){}
       /* 社交内容变了也让自动备份槽跟着滚一份，别只靠 10 分钟定时；
          这样“主档读坏了”还能从最近的备份整块接回来 */
       try{
@@ -23380,7 +23408,16 @@ $("set-letter-max-sec").addEventListener("change",e=>{state.settings.letterMaxSe
   };
   window.__setSettingsPage=applyCv;
   applyCv(0);
-  const indexNow=()=>Math.min(tabs.length-1,Math.max(0,Math.round(pages.scrollLeft/(pages.clientWidth||1))));
+  /* 用每页真实偏移判断当前页，不再按 scrollLeft/宽度四舍五入：
+     页面有内边距/滚动吸附时比例法会算错，把正在看的这页标成 cv-off，整页按键就像失灵。 */
+  const indexNow=()=>{
+    var best=0,bd=Infinity,sl=pages.scrollLeft;
+    for(var i=0;i<pages.children.length;i++){
+      var d=Math.abs(pages.children[i].offsetLeft-sl);
+      if(d<bd){bd=d;best=i;}
+    }
+    return Math.min(tabs.length-1,Math.max(0,best));
+  };
   pages.addEventListener("touchstart",()=>applyCv(indexNow(),true),{passive:true});
   const sync=()=>{
     const w=pages.clientWidth||1;
