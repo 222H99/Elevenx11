@@ -315,7 +315,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-27v44-236b67";
+window.__E11_BUILD="2026-11-27v44-236b68";
 /* v43-236b37：以前版本一变就「清缓存 + location.reload()」，慢网/真机上等于多白屏 1~3 秒。
    现在页面本身就是新代码，不再重载；只让 Service Worker 在空闲时自己更新、清掉旧缓存，
    下次开启自然就是新版。 */
@@ -2881,7 +2881,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-27v44-236b67">
+<meta name="app-build" content="2026-11-27v44-236b68">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -36243,6 +36243,17 @@ window.__fitStoreKey="e11.fit.k.v3";
 /* v43-183h：旧版把 0.94 以下的溢出强制记成 1.0 并缓存，升级后默认/经典布局
    会继续套用旧的 k=1，看起来还是「不缩放」。换缓存代次，旧缓存一次性作废。 */
 try{
+  /* v44-236b68：b66/b67 之前用「所有组件一起量」的算法存过一批偏小的比例，
+     换算法后一次性全部作废，让每块屏幕重新量一次干净的比例。 */
+  if(!localStorage.getItem("e11.fit.migrated.b68")){
+    try{localStorage.removeItem("e11.fit.fixed.v3");}catch(_){}
+    try{localStorage.removeItem("e11.fit.k.v3");}catch(_){}
+    try{localStorage.removeItem("e11.fit.screen.v1");}catch(_){}
+    try{if(typeof state!=="undefined"&&state)state.fit=null;}catch(_){}
+    localStorage.setItem("e11.fit.migrated.b68","1");
+  }
+}catch(_eFitMig68){}
+try{
   if(!localStorage.getItem("e11.fit.migrated.v183h")){
     ["e11.fit.fixed.v2","e11.fit.k.v2","e11.fit.screen.v1"].forEach(function(k){try{localStorage.removeItem(k);}catch(_){}});
     localStorage.setItem("e11.fit.migrated.v183h","1");
@@ -36367,55 +36378,17 @@ window.__fitCompute=function(force){
   var ctx=window.__fitCtx();
   /* v43-236b25：这个屏幕 + 这套桌面布局只量一次，量完就固定保存；
      之后冷启动、内容变多、图片加载完成都直接套存下来的比例，不再重算一次把用户看到的尺寸改掉。 */
-  /* v44-236b66：用户明确要求「按我原来设定的比例适应屏幕」。
-     以前优先套用早期存下来的比例，那份可能是某次内容没渲染完时量出来的小值（0.7x），
-     一进来桌面就整体被缩小、组件也不按用户调过的尺寸显示。
-     现在开机先按 1.0 试：内容能放进固定栏上方就固定 1.0（严格按用户设定的组件尺寸）；
-     真的压住固定栏时才按内容高度等比缩一次。存下来的比例只做参考，不再压过实际测量。 */
-  var fx=null;
+  /* v44-236b68：按用户要求——每种屏幕（iPhone / 安卓 / iPad，宽度+高度+桌面布局）第一次进入时自适应一次，
+     量好的比例存进本机，之后就用这个比例，不再每次开机重量、也不会因为内容晚渲染而又缩一下。 */
+  var fx=window.__fitFixedGet(ctx);
   /* v44-236b48：套用存下来的比例前先试一遍。以前只认缓存：加了组件、照片框变大、
      或者换了新版本后内容变高，旧比例就会把内容压到固定栏下面/压得太小，
      看起来就是“适应屏幕没生效、每次开都不一样”。这里套用后校验，不合格就重测一次。 */
-  if(fx){
-    try{
-      window.__fitK1=fx.k1;window.__fitK2=fx.k2;
-      __fitApply((Number(window.__mePage)||0)===1?fx.k2:fx.k1);
-      var _dock=window.__dockTopPx?window.__dockTopPx():0;
-      var _bad=false;
-      if(_dock){
-        var _in1=document.querySelector("#me-page-1 .me-page-inner");
-        if(_in1){for(var _i=0;_i<_in1.children.length;_i++){var _c1=_in1.children[_i];if(!_c1||_c1.offsetParent===null)continue;if(_c1.getBoundingClientRect().bottom>_dock-2){_bad=true;break;}}}
-        if(!_bad){
-          var _in2=document.querySelector("#me-page-2 .me-page-inner");
-          if(_in2){var _ns=_in2.querySelectorAll("[data-cp2]");for(var _j=0;_j<_ns.length;_j++){var _c2=_ns[_j];if(!_c2||_c2.offsetParent===null||getComputedStyle(_c2).display==="none")continue;if(_c2.getBoundingClientRect().bottom>_dock-2){_bad=true;break;}}}
-        }
-      }
-      /* v44-236b64：只查「压到固定栏下面」不够——比例被存得太小（比如 0.62）时内容全缩在上半截，
-         下面一大片空白，用户看到的就是「适应屏幕没生效、缩得很小」。
-         这里再查一次「留白过多」，超过可用高度的 28% 就作废旧比例，重新按屏幕量一次。 */
-      if(!_bad&&_dock){
-        try{
-          var _inS=document.querySelector("#me-page-1 .me-page-inner");
-          if(_inS){
-            var _topS=0,_botS=0,_prS=_inS.getBoundingClientRect();
-            _topS=_prS.top;
-            for(var _k1=0;_k1<_inS.children.length;_k1++){var _cs=_inS.children[_k1];if(!_cs||_cs.offsetParent===null)continue;var _bs=_cs.getBoundingClientRect().bottom;if(_bs>_botS)_botS=_bs;}
-            var _avail=_dock-_topS,_used=_botS-_topS;
-            if(_avail>120&&_used>0&&(_avail-_used)>_avail*0.28)_bad=true;
-          }
-        }catch(_eUnder){}
-      }
-      if(!_bad){
-        window.__fitCtxApplied=ctx;window.__fitValid=true;window.__fitFrozen=true;window.__fitLocked=true;
-        return window.__fitK||1;
-      }
-      /* 压住了：丢掉这份比例，走下面的重新测量 */
-      window.__fitLocked=false;window.__fitFrozen=false;window.__fitValid=false;window.__fitCtxApplied="";
-      try{
-        var _o=JSON.parse(localStorage.getItem(window.__fitFixedKey)||"{}");
-        if(_o&&_o[ctx]){delete _o[ctx];localStorage.setItem(window.__fitFixedKey,JSON.stringify(_o));}
-      }catch(_eDropFit){}
-    }catch(_eFitVerify){}
+  if(fx&&__fitPairOk(Number(fx.k1),Number(fx.k2))){
+    window.__fitK1=Number(fx.k1);window.__fitK2=Number(fx.k2);
+    try{__fitApply((Number(window.__mePage)||0)===1?window.__fitK2:window.__fitK1);}catch(_eFxApply2){}
+    window.__fitCtxApplied=ctx;window.__fitValid=true;window.__fitFrozen=true;window.__fitLocked=true;
+    return window.__fitK||1;
   }
   if(false){
     window.__fitK1=fx.k1;window.__fitK2=fx.k2;
