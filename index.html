@@ -292,7 +292,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-27v44-236b45";
+window.__E11_BUILD="2026-11-27v44-236b46";
 /* v43-236b37：以前版本一变就「清缓存 + location.reload()」，慢网/真机上等于多白屏 1~3 秒。
    现在页面本身就是新代码，不再重载；只让 Service Worker 在空闲时自己更新、清掉旧缓存，
    下次开启自然就是新版。 */
@@ -2839,7 +2839,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-27v44-236b45">
+<meta name="app-build" content="2026-11-27v44-236b46">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -26887,6 +26887,28 @@ try{
     if(main){try{var s2=(state.musicPlaylist||[])[state.musicCur];var f2=s2&&__songFallbackCover(s2);if(f2&&im.getAttribute("src")!==f2)im.src=f2;}catch(_){}}
   },true);
 }catch(_){}
+/* v44-236b46：拿到的封面链接落一份到 localStorage。以前只存在内存里，
+   换版/重启后列表整排要重新请求接口，接口慢就一片空白，用户看到的就是“封面丢了”。 */
+var __COVER_LS="e11.covers.v1";
+function __coverLSAll(){
+  try{var o=JSON.parse(localStorage.getItem(__COVER_LS)||"{}");return o&&typeof o==="object"?o:{};}catch(_){return {};}
+}
+function __coverLSGet(k){
+  try{var o=__coverLSAll(),v=o[String(k)];if(!v||!v.u)return "";if(Date.now()-(Number(v.ts)||0)>30*86400000)return "";return v.u;}catch(_){return "";}
+}
+function __coverLSSet(k,u){
+  try{
+    if(!k||!u)return;
+    var o=__coverLSAll();o[String(k)]={u:String(u),ts:Date.now()};
+    var keys=Object.keys(o);
+    if(keys.length>400){
+      keys.sort(function(a,b){return (Number(o[a].ts)||0)-(Number(o[b].ts)||0);});
+      keys.slice(0,keys.length-400).forEach(function(x){delete o[x];});
+    }
+    localStorage.setItem(__COVER_LS,JSON.stringify(o));
+  }catch(_){}
+}
+window.__coverLSSet=__coverLSSet;
 function __musicPic(sg,cb,force){
   if(!sg){if(cb)cb('');return;}
   var direct=force?'':__sgCover(sg);
@@ -26894,6 +26916,7 @@ function __musicPic(sg,cb,force){
   var id=sg.neteaseId||sg.id;if(!id){if(cb)cb('');return;}
   var k=String(id);
   if(__songCoverCache[k]){if(cb)cb(__songCoverCache[k]);return;}
+  if(!force){var _lsC=__coverLSGet(k);if(_lsC){__songCoverCache[k]=_lsC;try{sg.cover=_lsC;}catch(_){}if(cb)cb(_lsC);return;}}
   if(__songCoverMiss[k]&&Date.now()-__songCoverMiss[k]<300000){if(cb)cb('');return;}
   if(__songCoverPending[k]){__songCoverPending[k].push(cb);return;}
   __songCoverPending[k]=[cb];
@@ -27393,6 +27416,19 @@ function prefetchSongUrls(n){
     _runOne();
   }catch(e){__warmRun=false;}
 }
+/* v44-236b46：首屏稳定 6 秒后把当前歌的播放地址先取好（只取一首，不占启动带宽），
+   用户第一次点播放基本秒起；换歌时 preload 只有 metadata，不预缓冲音频 */
+try{
+  setTimeout(function(){
+    try{
+      if(!window.__stateReady||document.hidden)return;
+      var pl=(state&&state.musicPlaylist)||[];
+      if(!pl.length)return;
+      var sg=pl[Math.min(Math.max(Number(state.musicCur)||0,0),pl.length-1)];
+      if(sg&&sg.neteaseId)warmSongUrl(sg);
+    }catch(_){}
+  },6000);
+}catch(_){}
 function warmSongUrl(song){
   try{
     if(!song||!song.neteaseId)return;
@@ -27423,12 +27459,43 @@ function playMusic(i){
   }
   // 加载提示
   var _loading=$("mp-play");if(_loading){_loading.style.opacity=".55";_loading.classList.add("loading");}
+  /* 接口慢的时候以前一直转圈、看起来像卡死，这里 0.9 秒后给出明确提示 */
+  try{clearTimeout(window.__musicHintT);}catch(_){}
+  window.__musicHintT=setTimeout(function(){
+    try{if(au.paused&&!au.currentTime){var _cur=$("m-cur");if(_cur)_cur.textContent="获取中…";}}catch(_){}
+  },900);
   try{au.preload="auto";}catch(_ePre){}
   au.volume=state.musicVol;au.loop=(state.settings.musicMode||"order")==="loop";
   au.oncanplay=function(){if(_loading){_loading.style.opacity="1";_loading.classList.remove("loading");}try{refreshMiniPlayer();}catch(_){}};
   function _startPlay(url){
     au.onerror=function(){
-      if(song&&song.local)toast("这个本地文件的音频编码当前浏览器不支持，请转成 M4A / MP3 再导入");
+      if(song&&song.local){
+        toast("这个本地文件的音频编码当前浏览器不支持，请转成 M4A / MP3 再导入");
+        try{var _pb0=$("mp-play");if(_pb0){_pb0.style.opacity="1";_pb0.classList.remove("loading");}setSvgUse("mp-play-use","#i-mplay");}catch(_){}
+        return;
+      }
+      /* v44-236b46：网易云地址 20 分钟左右就失效，播到一半断了会直接停。
+         以前只把按钮复位、什么都不做，用户听起来就是“放到一半卡住不动”。
+         这里丢掉缓存地址、重取一次并从断点续播；同一首歌 5 分钟内只重连一次。 */
+      if(song&&song.neteaseId&&!(Number(song.__urlRetryAt)&&Date.now()-Number(song.__urlRetryAt)<300000)){
+        song.__urlRetryAt=Date.now();
+        var _pos=Number(window.__lastMusicPos)||0;
+        var _key=String(song.neteaseId);
+        try{delete _163UrlCache[_key];_163UrlTs[_key]=0;__save163Cache();}catch(_eClr){}
+        try{
+          resolve163Url(song).then(function(u){
+            if(!u)throw 0;
+            if(u.indexOf("http://")===0)u="https://"+u.slice(7);
+            au.src=u;try{au.load();}catch(_){}
+            var seek=function(){try{au.currentTime=_pos;}catch(_){}};
+            try{au.addEventListener("loadedmetadata",seek,{once:true});}catch(_){}
+            setTimeout(seek,800);
+            var pp=au.play();if(pp&&pp.catch)pp.catch(function(){});
+            try{toast("播放地址过期了，已自动重新连接");}catch(_){}
+          });
+        }catch(_eRe){}
+        return;
+      }
       try{var _pb=$("mp-play");if(_pb){_pb.style.opacity="1";_pb.classList.remove("loading");}setSvgUse("mp-play-use","#i-mplay");}catch(_){}
     };
     au.src=url;
@@ -27564,6 +27631,9 @@ var _163api="https://api.neteasemusic.davidblackcn.online";
 var _163Warmed=false;
 (function(){
   const au=$("music-audio");
+  /* 断点记录：地址过期重连时从原来的位置接着放，不从头开始 */
+  au.addEventListener("timeupdate",function(){if(au.currentTime>0)window.__lastMusicPos=au.currentTime;});
+  au.addEventListener("playing",function(){try{clearTimeout(window.__musicHintT);}catch(_){}});
   au.addEventListener("timeupdate",()=>{
     const d=au.duration||0,r=$("m-range");
     if(d){r.value=au.currentTime/d*100;r.style.setProperty("--p",(au.currentTime/d*100)+"%");}
