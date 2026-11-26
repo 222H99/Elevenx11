@@ -28,6 +28,11 @@ var __iosConfirmClose=null;
 function __iosConfirm(message,opts){
   opts=opts||{};
   if(__iosConfirmClose){try{__iosConfirmClose(false);}catch(e){}__iosConfirmClose=null;}
+  /* 清掉可能堆着的旧确认层：叠了两层时上面那层看不见，却会把下面的按键全挡住 */
+  try{
+    var _stale=document.querySelectorAll('[data-ios-confirm]');
+    for(var _si=0;_si<_stale.length;_si++){try{_stale[_si].parentNode&&_stale[_si].parentNode.removeChild(_stale[_si]);}catch(_){}};
+  }catch(_){}
   return new Promise(function(resolve){
     var dark=false;try{dark=!!(document.body&&document.body.classList.contains("ui-dark"));}catch(e){}
     var wrap=document.createElement("div");wrap.setAttribute("data-ios-confirm","");
@@ -54,16 +59,14 @@ function __iosConfirm(message,opts){
     (function(){
       var born=Date.now();
       var shield=function(e){
-        if(Date.now()-born<520){try{e.stopPropagation();}catch(_){}try{if(e.cancelable)e.preventDefault();}catch(_){}}
+        if(Date.now()-born>=340)return;
+        /* 弹层内部的点击必须立刻生效：以前无差别拦截，用户快速点「取消/确定」会像按键失灵 */
+        try{if(wrap.contains(e.target))return;}catch(_){}
+        try{e.stopPropagation();}catch(_){}try{if(e.cancelable)e.preventDefault();}catch(_){}
       };
-      ["pointerdown","pointerup","click","mousedown","mouseup","touchstart","touchend"].forEach(function(ev){
-        document.addEventListener(ev,shield,true);
-      });
-      setTimeout(function(){
-        ["pointerdown","pointerup","click","mousedown","mouseup","touchstart","touchend"].forEach(function(ev){
-          document.removeEventListener(ev,shield,true);
-        });
-      },560);
+      /* 只拦 click 一次：pointerdown/touchstart 不再拦，否则紧接着的按键会像「点不动」 */
+      document.addEventListener("click",shield,true);
+      setTimeout(function(){try{document.removeEventListener("click",shield,true);}catch(_){}},380);
     })();
     var done=false;
     function close(v){
@@ -289,31 +292,23 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-26v43-236b36";
-/* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
-   首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
+window.__E11_BUILD="2026-11-26v43-236b37";
+/* v43-236b37：以前版本一变就「清缓存 + location.reload()」，慢网/真机上等于多白屏 1~3 秒。
+   现在页面本身就是新代码，不再重载；只让 Service Worker 在空闲时自己更新、清掉旧缓存，
+   下次开启自然就是新版。 */
 (function(){
   try{
     if(!("serviceWorker" in navigator))return;
     var prev=localStorage.getItem("e11.buildSeen.v1");
     if(!prev||prev===window.__E11_BUILD)return;
-    if(sessionStorage.getItem("e11.buildReloaded.v1"))return;
-    sessionStorage.setItem("e11.buildReloaded.v1",window.__E11_BUILD);
-    var done=false;
-    function go(){
-      if(done)return;done=true;
-      try{location.reload();}catch(_){}
-    }
-    var regs=[];
-    try{
-      navigator.serviceWorker.getRegistrations().then(function(rs){
-        regs=rs||[];
-        return Promise.all(regs.map(function(r){try{return r.unregister();}catch(_){return null;}}));
-      }).catch(function(){});
-    }catch(_){}
-    var clear=[];try{if(window.caches&&caches.keys)clear.push(caches.keys().then(function(ks){return Promise.all((ks||[]).map(function(k){return caches.delete(k);}));}));}catch(_){}
-    Promise.all(clear).then(go).catch(go);
-    setTimeout(go,1200);
+    var run=function(){
+      try{
+        navigator.serviceWorker.getRegistrations().then(function(rs){
+          (rs||[]).forEach(function(r){try{r.update&&r.update();}catch(_){}});
+        }).catch(function(){});
+      }catch(_){}
+    };
+    try{if(window.requestIdleCallback)requestIdleCallback(run,{timeout:2500});else setTimeout(run,1200);}catch(_){setTimeout(run,1200);}
   }catch(_){}
 })();
 /* v43-183z32：最近一次离站快照存在时，它就是唯一权威。
@@ -714,7 +709,7 @@ body.fs-1 .set-input,body.fs-2 .set-input,body.fs-3 .set-input,body.fs-4 .set-in
    列表不靠 content-visibility 省绘制，避免滚动时高度估算变化导致列表跳动，
    长列表改为分片渲染（看得到的那一页/一段才建 DOM）。 */
 @media (max-width:480px){
-  .set-page.cv-off{content-visibility:hidden;}
+  .set-page.cv-off{content-visibility:hidden;pointer-events:none;}
 }
 /* 小屏/显示缩放适配：第二页原来用 320px 死宽，320~360 宽的手机上会横向溢出。
    这里只在小屏改成流式宽度，大屏保持原布局和原来的缩放。 */
@@ -2321,8 +2316,9 @@ body.ui-dark .invite-btn.no{background:rgba(255,255,255,.10);color:rgba(255,255,
 .mc-emoji-sheet .mce-close{margin-top:12px;border:none;border-radius:12px;padding:10px;background:rgba(255,255,255,.14);color:#fff;font-size:14px;}
 .mc-reply{border:none;background:none;color:#8E8E93;font-size:11px;padding:0;cursor:pointer;}
 .qa-adel{border:none;background:none;color:#B0B0B5;font-size:10px;padding:0 0 0 10px;cursor:pointer;}
-.mc-replies{border-left:2px solid rgba(0,0,0,.16);margin-left:12px;padding-left:10px;margin-top:3px;}
-.mc-replies .mc-replies{border-left:1px solid rgba(0,0,0,.10);margin-left:10px;padding-left:8px;}
+.mc-replies{border-left:2px solid rgba(0,0,0,.20);margin-left:20px;padding-left:12px;margin-top:4px;}
+.mc-row[data-depth="2"]{margin-left:14px;border-left:1px solid rgba(0,0,0,.10);padding-left:10px;}
+.mc-row[data-depth="3"]{margin-left:28px;border-left:1px solid rgba(0,0,0,.08);padding-left:8px;}
 .mc-tome{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:6px;font:600 10px/1.5 -apple-system,BlinkMacSystemFont,sans-serif;color:#3478F6;background:rgba(52,120,246,.10);vertical-align:middle;}
 .mc-even{margin-left:30px;border-left:1px solid rgba(0,0,0,.10);padding-left:15px;margin-top:2px;}
 .mc-even .mc-row{padding:6px 0;}
@@ -13225,7 +13221,7 @@ async function init(){
     /* 声明页/锁屏自己会在第一帧后撤启动层；这里不再等 IndexedDB。 */
     }else{
       window.__holdBootReveal=1;
-      window.__bootRevealDeadline=Date.now()+500;
+      window.__bootRevealDeadline=Date.now()+320;
       try{if(typeof showView==="function")showView(_e11BootView);}catch(e){}
       /* 真正让“桌面先大后小”消失的关键不是算得更早，而是等存档读完再揭幕。
          以前这里立刻 __bootDone，此时 _dbReady 还没置位，主页还是默认内容（k=1）；
@@ -13244,7 +13240,7 @@ async function init(){
           try{window.__fitInvalidate&&window.__fitInvalidate(true);window.__fitCompute&&window.__fitCompute(true);}catch(_eBootFallbackFit){}
           window.__bootDone&&window.__bootDone();
         }catch(_eBootFallbackReveal){}
-      },900);
+      },420);
     }
   }catch(_eBootFitReveal){try{window.__holdBootReveal=0;}catch(_x){}}
   /* v43-183g：启动层不再在这里撤，改为 _dbReady 后最终测量完成再撤。 */
@@ -13843,7 +13839,10 @@ try{window.__scheduleCp2Render&&window.__scheduleCp2Render();}catch(e){}
           try{renderGuestbook(true);}catch(_){}
         }
       }catch(_eCjBoot){}
-      try{__recoverMediaFromBackups();}catch(_eRecover){}
+      try{
+        var __recMed=function(){try{__recoverMediaFromBackups();}catch(_eRecover){}};
+        if(window.requestIdleCallback)requestIdleCallback(__recMed,{timeout:2000});else setTimeout(__recMed,600);
+      }catch(_eRecover2){}
       try{setTimeout(function(){try{window.__e11RepairMyComments&&window.__e11RepairMyComments();}catch(_eCmtRep){}},1200);}catch(_){}
       try{setTimeout(function(){
         var _audit=(window.__e11SocialAudit?window.__e11SocialAudit():Promise.resolve(0));
@@ -13864,7 +13863,7 @@ try{window.__scheduleCp2Render&&window.__scheduleCp2Render();}catch(e){}
        以前只在启动时检查一次，连续用几天不重进就一直没有新备份。 */
     try{setInterval(function(){if(!document.hidden&&window.__stateReady){try{__bkAuto();}catch(_){}}},10*60*1000);}catch(_eBkTimer){}
   }catch(e){window._dbReady=true;aboutLoadStatus("加载完成（离线模式）");try{window.__e11ExitPreserve=1;window.__viewReady=1;window.__stateReady=1;window.__e11DataReady=1;window.__e11BootLoading=0;}catch(_eFallbackReady){}try{__storageGuard();}catch(_eG2){}
-      try{if(window.__rebuildSocialNotices)window.__rebuildSocialNotices();}catch(e){}try{if(typeof showView==="function")showView((window.__bootView&&window.__bootView())||(window.__wantChatOnReady?"view-chat":"view-me"));}catch(_e2){}try{window.__e11SessionApplyUI&&window.__e11SessionApplyUI();}catch(_eSessionUI){}try{window.__bootDone&&window.__bootDone();}catch(_e3){}try{renderAll();}catch(_e){}try{setTimeout(function(){if(window.__prewarmChat)window.__prewarmChat();},260);}catch(_e3){}}
+      try{if(window.__rebuildSocialNotices)window.__rebuildSocialNotices();}catch(e){}try{if(typeof showView==="function")showView((window.__bootView&&window.__bootView())||(window.__wantChatOnReady?"view-chat":"view-me"));}catch(_e2){}try{window.__e11SessionApplyUI&&window.__e11SessionApplyUI();}catch(_eSessionUI){}try{window.__bootDone&&window.__bootDone();}catch(_e3){}try{renderAll();}catch(_e){}try{setTimeout(function(){if(window.__prewarmChat)window.__prewarmChat();},900);}catch(_e3){}}
   try{setTimeout(function(){
     window.__idle(function(){
       try{if(typeof catchUpSocial==="function")catchUpSocial();}catch(e){}
@@ -32709,10 +32708,8 @@ function openCommentEmoji(mid,btn){
 })();
 function renderComments(m){
   if(!(m.comments&&m.comments.length))return "";
-  /* v43-236b35：楼层改成真正的「谁回复谁就长在谁下面」的嵌套结构。
-     旧写法把所有后代一次性平铺进顶层评论的 .mc-replies，再靠 d%2 在 2/3 格之间来回跳，
-     于是第 2 层回复反而比第 1 层更靠左，看起来就像对方把回复挂到了别的评论下面。
-     现在每一层回复都放在它父评论自己的 .mc-replies 里，缩进只往里收、绝不回头。 */
+  /* v43-236b37：楼层按用户要求恢复成「第 2 格 → 第 3 格」交替的楼梯。
+     回复仍按真实父子关系 DFS 紧跟在父评论后面，只是视觉格数在 2/3 之间交替。 */
   function quoteOf(parent){
     if(!parent)return "";
     var t=String(parent.text||"").replace(/\s+/g," ").trim();
@@ -32722,19 +32719,27 @@ function renderComments(m){
   function rowHtml(item,isRep,depth,parent){
     const liked=item.likes&&item.likes.indexOf("me")>-1;
     const cls=isRep?"mc-row rep":"mc-row";
+    const d=Math.max(0,Number(depth)||0);
+    const grid=d>=1?(d%2===1?2:3):0;
+    const dep=grid?' data-depth="'+grid+'"':'';
     const delBtn='<button class="mc-del" data-mdelc="'+item.id+'">删除</button>';
     const repBtn='<div class="mc-sub"><button class="mc-reply" data-mreply="'+item.id+'" data-mname="'+esc(authorName(item.from))+'">回复</button>'+delBtn+'</div>';
     const toMeTag=(isRep&&item.toMe)?'<span class="mc-tome">回复你</span>':'';
     const quote=(isRep&&parent)?quoteOf(parent):'';
-    return '<div class="'+cls+'" data-mc="'+item.id+'"><img class="mc-av" data-cav="'+item.from+'" src="'+esc(__blobUrl(authorAvatar(item.from)))+'"><div class="mc-body"><div class="mc-top"><b class="mc-user">'+esc(authorName(item.from))+'</b>'+toMeTag+'<span class="mc-time">'+relTime(item.time)+'</span><button class="mc-like'+(liked?" on":"")+'" data-clike="'+item.id+'"><svg class="icon"><use xlink:href="#i-heart"/></svg></button></div>'+quote+'<div class="mc-text">'+esc(item.text)+(item.emoji?'<img class="mc-emoji" src="'+item.emoji+'" alt="">':'')+'</div>'+repBtn+'</div></div>';
+    return '<div class="'+cls+'"'+dep+' data-mc="'+item.id+'"><img class="mc-av" data-cav="'+item.from+'" src="'+esc(__blobUrl(authorAvatar(item.from)))+'"><div class="mc-body"><div class="mc-top"><b class="mc-user">'+esc(authorName(item.from))+'</b>'+toMeTag+'<span class="mc-time">'+relTime(item.time)+'</span><button class="mc-like'+(liked?" on":"")+'" data-clike="'+item.id+'"><svg class="icon"><use xlink:href="#i-heart"/></svg></button></div>'+quote+'<div class="mc-text">'+esc(item.text)+(item.emoji?'<img class="mc-emoji" src="'+item.emoji+'" alt="">':'')+'</div>'+repBtn+'</div></div>';
   }
-  function tree(list,depth,parent){
-    return (list||[]).map(function(c){
-      var inner=(c.replies&&c.replies.length)?('<div class="mc-replies">'+tree(c.replies,depth+1,c)+'</div>'):'';
-      return rowHtml(c,depth>0,depth,parent)+inner;
-    }).join("");
+  function dfs(list,depth,parent,out){
+    (list||[]).forEach(function(r){
+      out.push({r:r,d:depth,p:parent});
+      if(r.replies&&r.replies.length)dfs(r.replies,depth+1,r,out);
+    });
+    return out;
   }
-  return '<div class="moment-comments">'+tree(m.comments,0,null)+'</div>';
+  return '<div class="moment-comments">'+m.comments.map(function(c){
+    var all=dfs(c.replies||[],1,c,[]);
+    var html=all.map(function(x){return rowHtml(x.r,1,x.d,x.p);}).join("");
+    return rowHtml(c,false,0,null)+(html?('<div class="mc-replies">'+html+'</div>'):'');
+  }).join("")+'</div>';
 }
 
 /* 动态列表的重绘签名：只算「条数 + 文本长度」时，点赞/评论数量变了签名不变，
@@ -38519,15 +38524,11 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
           try{toast("发现新版本 "+info.build+"，正在更新…");}catch(_){}
           forceUpdate(info.build,true);
         }else{
-          /* v43-235：冷启动/重新打开时发现新版，直接静默换到新版（有 8 秒 + 10 分钟防抖），
-             不再只提示“下次打开生效”，否则用户会感觉“退出后根本没自动更新”。
-             页面已经用了一阵/正在聊天时才只记下来，避免打断。 */
-          if(!apkMode()&&Date.now()-BOOT_AT<20000&&!recentTry(info.build)){
-            forceUpdate(info.build,false);
-          }else{
-            pendingBuild="";
-            scheduleAutoUpdate(info.build);
-          }
+          /* v43-236b37：冷启动/使用中都不再自动换页重载。
+             以前这里会 clearRuntime + location.replace 整页重开，用户看到的就是
+             「启动层 → 声明页 → 又白屏一次 → 再启动」，慢网下要好几十秒。
+             现在发现新版只记下来，等用户自己点设置里的「检查更新」再换。 */
+          pendingBuild="";
         }
       }else{
         clearAutoUpdate();
