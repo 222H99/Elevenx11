@@ -2,7 +2,7 @@
    作用一：缓存主页面，第二次打开时不再重新下载 2MB HTML，直接出首屏（黑屏时间大幅缩短）。
    作用二：提供通知点击回到 App 的最小能力。
    策略：有缓存立即返回，同时在后台抓取新版并写回缓存；首次无缓存才等网络。 */
-const E11_VERSION = "2026-11-27v44-236b58-r410";
+const E11_VERSION = "2026-11-27v44-236b59-r411";
 const E11_CACHE = "e11-shell-" + E11_VERSION;
 const E11_INDEX = "./index.html";
 const E11_TIMEOUT = 150;
@@ -42,14 +42,37 @@ function e11Timeout(ms) {
 async function e11Navigate(request, event) {
   const cache = await caches.open(E11_CACHE);
   const cached = await cache.match(E11_INDEX);
-  /* v43-183z11：给每次进入加一个时间戳参数，绕过 CDN / 浏览器可能残留的旧 HTML，
-     保证拿到的就是线上最新版；缓存仍按 E11_INDEX 存，不产生一堆副本。 */
   let netUrl = request.url;
   try {
     const u = new URL(request.url);
     u.searchParams.set("__e11entry", Date.now().toString(36));
     netUrl = u.href;
   } catch (_) {}
+
+  /* v44-236b59：先花 1 秒问一下线上最新构建号（version.json 只有几百字节）。
+     缓存里的构建号和线上一致 → 立刻用缓存，进站不受影响；
+     不一致（刚更新过）→ 就把新 HTML 抓下来再返回，这一次打开就是最新版。
+     这样既不会每次都等 2MB HTML，也不会「要开两次才更新」。 */
+  const fetchBuild = async () => {
+    try {
+      const r = await Promise.race([
+        fetch(new URL("./version.json", self.registration.scope).href + "?t=" + Date.now().toString(36), { cache: "no-store" }),
+        e11Timeout(1000)
+      ]);
+      if (!r || !r.ok) return "";
+      const j = await r.json();
+      return (j && j.build) ? String(j.build) : "";
+    } catch (_) { return ""; }
+  };
+  const cachedBuild = async () => {
+    try {
+      if (!cached) return "";
+      const t = await cached.clone().text();
+      const m = t.match(/name="app-build"\s+content="([^"]+)"/);
+      return m ? m[1] : "";
+    } catch (_) { return ""; }
+  };
+
   const network = fetch(netUrl, { cache: "no-store" }).then(async (r) => {
     if (r && r.ok) {
       try { await cache.put(E11_INDEX, r.clone()); } catch (_) {}
@@ -67,16 +90,25 @@ async function e11Navigate(request, event) {
       { headers: { "Content-Type": "text/html; charset=utf-8" } }
     );
   }
-  /* v43-183z11：每次进入都优先用刚抓到的线上 HTML，最多等 3 秒；
-     网络慢或断网才退回缓存，并继续在后台把新版写进缓存。
-     不再“缓存优先、下次生效”，避免用户每次打开都还是上一版。 */
-  /* v43-236b38：有缓存立刻给，进站不再先等网络；新版在后台写回缓存，下次打开就是新版。
-     之前这里要先等 150ms 网络，慢网下每次打开都要顿一下。 */
+
+  try {
+    const remote = await fetchBuild();
+    if (remote) {
+      const local = await cachedBuild();
+      if (local && remote === local) {
+        /* 已经是最新：缓存立刻给，网络请求放后台跑（顺手把缓存刷新） */
+        try { event.waitUntil(network.catch(() => null)); } catch (_) {}
+        return cached;
+      }
+      /* 有新版：等新 HTML（最多 8 秒）；拿到就用它，拿不到才退回旧缓存 */
+      try { event.waitUntil((async () => { try { await network; } catch (_) {} })()); } catch (_) {}
+      const fresh = await Promise.race([network, e11Timeout(8000)]);
+      if (fresh && fresh.ok) return fresh;
+      return cached;
+    }
+  } catch (_) {}
+
   try { event.waitUntil(network.catch(() => null)); } catch (_) {}
-  /* v44-236b57：用户要求「打开就是最新版」。
-     以前有缓存就立刻给旧版，新版要下次打开才生效（所以总觉得改完没变）。
-     现在先给网络 1.2 秒：拿得到就用线上最新 HTML（同时写回缓存），
-     拿不到（弱网/断网）才退回缓存，进站速度不会被拖太久。 */
   if (cached) {
     const fresh = await Promise.race([network, e11Timeout(1200)]);
     if (fresh && fresh.ok) return fresh;
