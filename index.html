@@ -4,7 +4,7 @@
      这样 iOS 在第一次布局前就能拿到 device-width，不再先按 980px 画一帧。 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimum-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
-<style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#fafafa;}body{visibility:hidden;}@media (prefers-color-scheme:dark){html,body{background:#141416;}}</style>
+<style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#ffffff;}body{visibility:hidden;}@media (prefers-color-scheme:dark){html,body{background:#000000;}}</style>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -12,7 +12,7 @@
      再切回设备宽度，表现就是“先缩小、再放大”。 -->
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimum-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <style id="e11-preflight">
-html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#fafafa;}
+html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#ffffff;}
 /* v43-177：平台注入会把 viewport 推到 691KB 后，iOS 第一帧仍可能按 980px 排版。
    在 viewport 切回设备宽度、主页比例也套好之前，整页内容先不显示，只留主题背景；
    这样用户不会看到“内容先小一圈、再放大”，而是启动层直接淡出成已加载好的页面。 */
@@ -129,7 +129,12 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
       if(_bl<26)bg="#141416";
     }
   }catch(_eClamp){}
-  document.documentElement.style.background=bg;
+  /* v44-236b55：html/body 的底色一律纯白/纯黑（sysBg），只有启动层自身用米/粉渐变。
+     以前把启动层的米色 #FDF8F4 写进了 html 的行内 background，启动层撤掉后这层还在，
+     iOS 主屏 PWA 的顶栏是半透明材质，会把页面底色吸上来 —— 于是永远是一条米色。 */
+  window.__e11SysBg=(dark?"#000000":"#ffffff");
+  document.documentElement.style.background=window.__e11SysBg;
+  document.documentElement.style.backgroundColor=window.__e11SysBg;
   document.documentElement.setAttribute("data-boot",dark?"dark":"light");
   /* v43-235z60b：APK 顶栏保持透明；PWA/网页用默认顶栏，夜间黑、白天白。 */
   window.__E11_APK=!!(window.AndroidUI)||/ElevenX11|Eleven11Apk/.test(navigator.userAgent||"");
@@ -165,10 +170,10 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
   try{document.documentElement.appendChild(d);}catch(e){}
   window.__bootDark=dark;
   /* html 根节点也先铺主题底色：iOS 橡皮筋回弹/进出前后退时，不会在 body 边缘露出一条白底或黑底。 */
-  try{document.documentElement.style.background=bg;document.documentElement.style.backgroundColor=bg;}catch(_eHtmlBg){}
+  try{document.documentElement.style.background=window.__e11SysBg;document.documentElement.style.backgroundColor=window.__e11SysBg;}catch(_eHtmlBg){}
   /* v43-183z4：body 一建出来就先铺上和启动层同样的底色/明暗，避免 body 默认白底在深色下透出来。 */
   document.addEventListener("DOMContentLoaded",function(){
-    try{if(document.body){document.body.style.background=bg;document.body.classList.toggle("ui-dark",!!dark);}}catch(_eBodyBg){}
+    try{if(document.body){document.body.style.background=window.__e11SysBg;document.body.classList.toggle("ui-dark",!!dark);}}catch(_eBodyBg){}
   },{once:true});
   window.__bootDone=function(){
     /* v44-236b54：加载页阶段（等存档）不许撤，撤了就在声明页之前露出空白底 */
@@ -184,8 +189,10 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
     if(window.__bootRevealQueued)return;
     window.__bootRevealQueued=1;
     var _revealNow=function(){
-      try{if(document.body){document.body.style.visibility="visible";document.body.style.background=bg;}
-        document.documentElement.style.background=bg;document.documentElement.style.backgroundColor=bg;}catch(_eShowBody){}
+      /* 揭幕时只把底色还原成纯白/纯黑；启动层的米色渐变属于启动层自己，不能留在根节点上 */
+      try{window.__e11SysBg=(window.__bootDark?"#000000":"#ffffff");
+        if(document.body){document.body.style.visibility="visible";document.body.style.background=window.__e11SysBg;}
+        document.documentElement.style.background=window.__e11SysBg;document.documentElement.style.backgroundColor=window.__e11SysBg;}catch(_eShowBody){}
       /* 两个启动层统一一起撤，谁先完成都一样。 */
       try{window.__veilDone&&window.__veilDone();}catch(_eVeil){}
       var sp=document.getElementById("e11-static-splash");
@@ -303,7 +310,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-27v44-236b54";
+window.__E11_BUILD="2026-11-27v44-236b55";
 /* v43-236b37：以前版本一变就「清缓存 + location.reload()」，慢网/真机上等于多白屏 1~3 秒。
    现在页面本身就是新代码，不再重载；只让 Service Worker 在空闲时自己更新、清掉旧缓存，
    下次开启自然就是新版。 */
@@ -405,10 +412,10 @@ window.__e11CancelNotify=function(tag){
 try{document.addEventListener("visibilitychange",function(){if(!document.hidden)window.__e11CancelNotify("eleven-msg");});}catch(e){}
 </script>
 <style>
-html:not([data-boot="dark"]),html:not([data-boot="dark"]) body{background:#fafafa!important;}
+html:not([data-boot="dark"]),html:not([data-boot="dark"]) body{background:#ffffff!important;}
 html.theme-swap *,html.theme-swap *::before,html.theme-swap *::after{transition:none!important;}
 html[data-boot="dark"],html[data-boot="dark"] body{background:#000!important;}
-html[data-boot="light"],html[data-boot="light"] body{background:#fafafa!important;}
+html[data-boot="light"],html[data-boot="light"] body{background:#ffffff!important;}
 /* v43-183z4：密码页在第一帧主题还没铺完时也要跟启动层同色，不能再出现“黑启动层→白密码页→黑主界面”。 */
 html[data-boot="dark"] .lock-screen{background:#000!important;}
 html[data-boot="dark"] .lock-title,html[data-boot="dark"] .lock-sub,html[data-boot="dark"] .lock-tip,html[data-boot="dark"] .lock-ico{color:#fff!important;}
@@ -2869,7 +2876,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-27v44-236b54">
+<meta name="app-build" content="2026-11-27v44-236b55">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -15107,7 +15114,7 @@ function applySkin(){
     }
   }catch(_){}
   try{document.documentElement.setAttribute("data-boot",dark?"dark":"light");}catch(_e){}
-  try{document.documentElement.style.background=dark?"#000":"#fafafa";}catch(_e){}
+  try{document.documentElement.style.background=dark?"#000000":"#ffffff";document.documentElement.style.backgroundColor=dark?"#000000":"#ffffff";}catch(_e){}
   applyCustomBubbleCSS();
   r.setProperty("--accent",s.accent);
   // 照片背景直接设元素 style（CSS 变量存超大 dataURL 会被截断，导致上传照片失效）
@@ -15290,6 +15297,10 @@ function applySkin(){
       /* v43-155：白天的页面/安全区底色只认当前皮肤，不再拿 --bootbg 缓存。
          旧缓存可能是上一次壁纸的平均色（截屏里那条 #9A999C 灰带），会把状态栏下面染灰。 */
       var _bg=dark?((_hasWall&&_bootc)?_bootc:"#000000"):(s.bg||"#ffffff");
+      /* v44-236b55：这一处才是真正把页面底色写成皮肤米色的地方（!important 内联，前面 CSS 改白也压不住）。
+         iOS 主屏 PWA 的状态栏是半透明材质，会把这层底色吸上来 —— 米色皮肤 → 永远一条米色。
+         PWA/网页按用户要求固定白天纯白、夜间纯黑；APK 保持原样（壁纸要透到最顶端）。 */
+      if(!window.__E11_APK)_bg=(dark?"#000000":"#ffffff");
       document.documentElement.style.setProperty("background-color",_bg,"important");
       document.body.style.setProperty("background-color",_bg,"important");
       /* 状态区那一条必须跟顶部导航栏同色，不能铺成页面/壁纸底色，否则会多出一条色带 */
