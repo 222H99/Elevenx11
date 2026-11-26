@@ -315,7 +315,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-27v44-236b66";
+window.__E11_BUILD="2026-11-27v44-236b67";
 /* v43-236b37：以前版本一变就「清缓存 + location.reload()」，慢网/真机上等于多白屏 1~3 秒。
    现在页面本身就是新代码，不再重载；只让 Service Worker 在空闲时自己更新、清掉旧缓存，
    下次开启自然就是新版。 */
@@ -2881,7 +2881,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-27v44-236b66">
+<meta name="app-build" content="2026-11-27v44-236b67">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -36174,21 +36174,15 @@ function __fitMeasure(){
     if(bottom>lim1&&bottom>top){k1=(lim1-top)/(bottom-top);measured=true;}
   }
   var in2=document.querySelector("#me-page-2 .me-page-inner");
-  if(in2){
-    /* v43-183h：第二页不再只量照片框。所有可见小组件（头像/对话/唱片/倒数日/照片框）
-       取最大下沿一起缩放，保证整组都在固定栏上面，而不是照片框躲开了、别的组件还在下面。 */
-    var lim2=dock-24,minTop2=Infinity,maxBottom2=0,vis2=0;
-    var nodes2=in2.querySelectorAll('[data-cp2]');
-    for(var _i2=0;_i2<nodes2.length;_i2++){
-      var _e2=nodes2[_i2];
-      if(!_e2||_e2.offsetParent===null||getComputedStyle(_e2).display==="none")continue;
-      var _r2=_e2.getBoundingClientRect();
-      if(_r2.width<=1||_r2.height<=1)continue;
-      vis2++;if(_r2.top<minTop2)minTop2=_r2.top;if(_r2.bottom>maxBottom2)maxBottom2=_r2.bottom;
-    }
-    if(vis2&&maxBottom2>lim2&&maxBottom2>minTop2){
-      k2=(lim2-minTop2)/(maxBottom2-minTop2);measured=true;
-    }
+  /* v44-236b67：按用户给的旧版（bp109）的算法来量桌面第二页：
+     只拿「照片框下沿」和「头像上沿」这一段去比固定栏，别的组件不参与计算。
+     之前把所有组件一起量，只要有任何一个稍微靠下，整页就被缩一格，看着就是「桌面被缩小了」。 */
+  var ph=document.getElementById("cp2-block-photo");
+  if(in2&&ph&&ph.offsetParent!==null&&getComputedStyle(ph).display!=="none"){
+    var lim2=dock-24;var r_ph=ph.getBoundingClientRect();
+    var av=document.getElementById("cp2-block-av");
+    var top0=(av&&av.offsetParent!==null)?av.getBoundingClientRect().top:r_ph.top;
+    if(r_ph.bottom>lim2&&r_ph.bottom>top0){k2=(lim2-top0)/(r_ph.bottom-top0);measured=true;}
   }
   if(!measured)return 0;
   /* 两页各自按自己的内容高度算比例：第一页图标太大时，不能把第二页一起缩成小号。
