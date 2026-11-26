@@ -315,7 +315,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-27v44-236b64";
+window.__E11_BUILD="2026-11-27v44-236b65";
 /* v43-236b37：以前版本一变就「清缓存 + location.reload()」，慢网/真机上等于多白屏 1~3 秒。
    现在页面本身就是新代码，不再重载；只让 Service Worker 在空闲时自己更新、清掉旧缓存，
    下次开启自然就是新版。 */
@@ -2881,7 +2881,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-27v44-236b64">
+<meta name="app-build" content="2026-11-27v44-236b65">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -15109,6 +15109,11 @@ window.__e11NameLockApply=function(quiet){
   }catch(_){}
 })();
 try{
+  /* v44-236b65：启动/云端合并后统一把「已读过的动态」归零未读，避免旧云端档把红点复活 */
+  setTimeout(function(){try{if(window.__e11MomReadNormalize&&window.__e11MomReadNormalize()){try{save&&save();}catch(_){}try{updateNewBadge&&updateNewBadge();updateMomBell&&updateMomBell();}catch(_){};}}catch(_){}},900);
+  setTimeout(function(){try{if(window.__e11MomReadNormalize&&window.__e11MomReadNormalize()){try{updateNewBadge&&updateNewBadge();updateMomBell&&updateMomBell();}catch(_){}}}catch(_){}},3000);
+}catch(_){}
+try{
   setTimeout(function(){try{window.__e11NameLockApply(true);}catch(_){}},1500);
   setTimeout(function(){try{window.__e11NameLockApply(true);}catch(_){}},3200);
   document.addEventListener("visibilitychange",function(){if(!document.hidden){try{window.__e11NameLockApply(true);}catch(_){}}});
@@ -26370,7 +26375,7 @@ function showView(id){
       /* 未读先留着：顶部要能看到「🔔 你的特别关注发布了…」；点了提示条才清 */
       renderMoments();
       try{updateMomBell();}catch(e){}
-      setTimeout(function(){try{_ups.forEach(function(m){m.unread=false;});save();updateNewBadge();}catch(e){}},900);
+      setTimeout(function(){try{__e11MomMarkRead(_ups);save();try{if(window.__flushSave)__flushSave(true);}catch(_f){ }try{window.__E11Cloud&&window.__E11Cloud.uploadNow&&window.__E11Cloud.uploadNow();}catch(_c){ }updateNewBadge();updateMomBell();}catch(e){}},900);
       setTimeout(function(){try{focusMomentCard(_np.id);}catch(e){}},260);
     }else{
       renderMoments();
@@ -33080,7 +33085,7 @@ function __openMomentComment(mid,cid){
     /* v43-39：目标评论被删/换了 id 时不要直接定位失败，
        先退到这条动态里对方最新一条评论，至少让用户看到动态和评论内容，而不是点了没反应。 */
     try{if(cid&&!findComment(m,cid))cid="";}catch(e){}
-    if(m.unread){m.unread=false;m.unreadKind="";}
+    if(m.unread){m.unread=false;m.unreadKind="";if(!m.readAt)m.readAt=Date.now();}
     try{save();updateMomBell();updateNewBadge();}catch(e){}
     var need=(m.from==="partner")?"partner":"me";
     try{showView("view-moments");}catch(e){}
@@ -33125,8 +33130,28 @@ function focusMomentCard(id){
   setTimeout(function(){card.style.boxShadow="";},2000);
   return true;
 }
-function momUnreadPost(){return state.moments.filter(function(x){return x.from==="partner"&&x.unread&&x.unreadKind==="post";});}
-function momUnreadAct(){return state.moments.filter(function(x){return x.unread&&(x.unreadKind==="reply"||x.unreadKind==="comment");});}
+function momUnreadPost(){return state.moments.filter(function(x){return x.from==="partner"&&x.unread&&x.unreadKind==="post"&&!x.readAt;});}
+function momUnreadAct(){return state.moments.filter(function(x){return x.unread&&(x.unreadKind==="reply"||x.unreadKind==="comment")&&!x.readAt;});}
+/* v44-236b65：动态「已读后又提醒」的根因——已读只在 unread 上置 false，
+   云端/旧备份里那份还带 unread:true，合并回来又变未读。
+   现在每次标记已读都写一条 readAt 时间戳（只增不减），凡是带 readAt 的动态永远不再算未读。 */
+function __e11MomMarkRead(list){
+  try{
+    var t=Date.now();
+    (list||[]).forEach(function(m){if(!m)return;m.unread=false;m.unreadKind="";if(!m.readAt)m.readAt=t;});
+  }catch(_){}
+  return list;
+}
+window.__e11MomMarkRead=__e11MomMarkRead;
+function __e11MomReadNormalize(){
+  try{
+    if(typeof state==="undefined"||!state||!state.moments)return 0;
+    var n=0;
+    state.moments.forEach(function(m){if(m&&m.readAt&&(m.unread||m.unreadKind)){m.unread=false;m.unreadKind="";n++;}});
+    return n;
+  }catch(_){return 0;}
+}
+window.__e11MomReadNormalize=__e11MomReadNormalize;
 /* 主页顶部提示条：和“留言”的 🔔 有新留言/回复（N）· 点击查看 一致 */
 function updateMomBell(){
   var el=$("mom-unread");if(!el)return;
@@ -33144,7 +33169,7 @@ function updateMomBell(){
   el.onclick=function(){
     if(acts.length){
       // 对方回复/评论我的动态：清未读 → 定位到对应动态并闪烁，不整表重绘
-      acts.forEach(function(m){m.unread=false;});
+      try{__e11MomMarkRead(acts);}catch(_){acts.forEach(function(m){m.unread=false;});}
       save();
       var newest=acts.slice().sort(function(a,b){return b.time-a.time;})[0];
       window._momentFocusId=newest.id;
@@ -33163,7 +33188,7 @@ function updateMomBell(){
     }else{
       // 对方真的发了新动态：打开对方主页并定位到最新一条
       var np=posts.slice().sort(function(a,b){return b.time-a.time;})[0];
-      posts.forEach(function(m){m.unread=false;});
+      try{__e11MomMarkRead(posts);}catch(_){posts.forEach(function(m){m.unread=false;});}
       save();
       if(np)window._momentFocusId=np.id;
       openPartnerProfile();
