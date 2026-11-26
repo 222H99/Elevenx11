@@ -171,6 +171,8 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
     try{if(document.body){document.body.style.background=bg;document.body.classList.toggle("ui-dark",!!dark);}}catch(_eBodyBg){}
   },{once:true});
   window.__bootDone=function(){
+    /* v44-236b54：加载页阶段（等存档）不许撤，撤了就在声明页之前露出空白底 */
+    if(window.__e11LoadingStage)return;
     /* v43-176：启动时先让 showView 把主页打开，但不许它顺手撤启动层；
        等主页比例量完、套好之后再真正 reveal。否则第一眼看到 1.0，下一帧才缩/放。 */
     /* v43-183z20：最多按住 0.9 秒。以前一直等 IndexedDB 读完（最长 3.2 秒兜底），
@@ -207,6 +209,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
        4.5 秒后还没有任何页面 open、又不在声明页/密码页，就直接把首页铺出来并撤启动层。 */
     setTimeout(function(){
       try{
+        if(window.__e11LoadingStage)return;
         var ab=document.getElementById("about-screen"),lk=document.getElementById("lock-screen");
         if((ab&&ab.classList.contains("show"))||(lk&&lk.classList.contains("show")))return;
         if(!document.querySelector(".view.open")&&typeof window.showView==="function"){
@@ -300,7 +303,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-27v44-236b53";
+window.__E11_BUILD="2026-11-27v44-236b54";
 /* v43-236b37：以前版本一变就「清缓存 + location.reload()」，慢网/真机上等于多白屏 1~3 秒。
    现在页面本身就是新代码，不再重载；只让 Service Worker 在空闲时自己更新、清掉旧缓存，
    下次开启自然就是新版。 */
@@ -2866,7 +2869,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-27v44-236b53">
+<meta name="app-build" content="2026-11-27v44-236b54">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -13267,7 +13270,11 @@ async function init(){
       _gatePending=!(window.__aboutDone||window.__lockPassed);
     }
     if(_gatePending){
-      window.__holdBootReveal=0;
+      /* v44-236b54：放行层没过的这一轮，启动层（加载页）要留到存档读完才撤。
+         这个标记必须在 showView/initAbout 之前就立起来，否则 showView 里排的 rAF 会
+         先把加载页掀掉，出现「加载页消失 → 空白 → 声明页」的闪一下。 */
+      window.__e11LoadingStage=1;
+      window.__holdBootReveal=1;
       window.__bootPendingReveal=0;
       /* v43-236b25：放行层还没过时，底下只铺主页，绝不先把聊天页露出来。
          以前这里按“上次停在哪页”直接 showView(chat)，随后声明页才盖上来，
@@ -34111,15 +34118,40 @@ function initAbout(){
   /* v43-102：声明页固定每次开屏都出现，不再读任何“已读”标记。
      只有这次页面里点过「同意并进入」才不再弹；关掉网页/重开一定重新出现。 */
   window.__aboutDone=0;
-  $("about-screen").classList.add("show");
-  /* 等声明页真正画到屏幕上，再撤掉启动遮罩（否则中间会闪一帧白） */
-  requestAnimationFrame(function(){requestAnimationFrame(function(){
-    var _v=document.getElementById("__veil");
-    if(_v){_v.style.opacity="0";setTimeout(function(){if(_v&&_v.parentNode)_v.parentNode.removeChild(_v);},240);}
-    /* v43-107：声明页已经画出来了，立刻撤启动黑幕；以前要等 1.6 秒兜底，
-       冷启动/退出再进就会先黑一屏。 */
-    try{window.__bootDone&&window.__bootDone();}catch(_eBootAbout){}
-  });});
+  /* v44-236b54：启动顺序改成「加载页 → 声明页 → 密码页」。
+     以前声明页一上来就盖住，加载页（品牌 + 转圈 + 正在载入）只闪一下就没了，
+     用户看到的是「声明页直接跳密码页」，中间那一段存档根本没等。
+     现在：先把加载页留在屏幕上等存档（IndexedDB）读完，读完了才撤加载页、把声明页推上来；
+     存档太慢就 4.5 秒兜底，绝不卡在转圈上。 */
+  window.__e11LoadingStage=1;
+  window.__aboutReady=0;
+  window.__holdBootReveal=1;
+  window.__bootRevealDeadline=Date.now()+4500;
+  try{$("about-screen").classList.remove("show");}catch(_eStageHideAbout){}
+  try{var _bsub=document.getElementById("boot-sub");if(_bsub)_bsub.textContent="正在载入存档…";}catch(_eStageSub){}
+  var _openAboutStage=function(){
+    if(window.__aboutReady)return;
+    window.__aboutReady=1;
+    window.__holdBootReveal=0;
+    window.__bootRevealDeadline=0;
+    try{window.__aboutDone=0;$("about-screen").classList.add("show");}catch(_eStageShowAbout){}
+    /* 等声明页真正画到屏幕上，再撤掉启动遮罩（否则中间会闪一帧白）。
+       「加载中」这个标记要等声明页真的铺上之后才撤，中间别的路径调 __bootDone 都掀不掉遮罩。 */
+    requestAnimationFrame(function(){requestAnimationFrame(function(){
+      window.__e11LoadingStage=0;
+      var _v=document.getElementById("__veil");
+      if(_v){_v.style.opacity="0";setTimeout(function(){if(_v&&_v.parentNode)_v.parentNode.removeChild(_v);},240);}
+      try{window.__bootDone&&window.__bootDone();}catch(_eBootAbout){}
+      try{var _bsub2=document.getElementById("boot-sub");if(_bsub2)_bsub2.textContent="正在打开…";}catch(_eStageSub2){}
+    });});
+  };
+  var _stageStart=Date.now();
+  var _stageTick=function(){
+    if(window.__aboutReady)return;
+    if(window._dbReady||Date.now()-_stageStart>4500){_openAboutStage();return;}
+    setTimeout(_stageTick,80);
+  };
+  setTimeout(_stageTick,60);
   const btn=$("about-agree-btn");
   var _ax=$("about-x");
   if(_ax){
@@ -34143,6 +34175,7 @@ function initAbout(){
   /* 有些旧保存路径会异步把 .show 撤掉；只要用户还没点同意，就确保声明页一直在最上层。 */
   var _keepAbout=function(){
     try{
+      if(window.__e11LoadingStage)return;
       if(window.__aboutDone||window.__lockPassed)return;
       var ab=document.getElementById("about-screen");
       if(!ab)return;
@@ -34306,6 +34339,14 @@ try{
   setTimeout(function(){try{if(!localStorage.getItem("__e11ImportUpload")&&!localStorage.getItem("__e11HardReset"))clearInterval(_t);}catch(_){}},18000);
 })();
 function initLock(){
+  /* v44-236b54：加载页还在等存档、或者声明页还盖在上面的时候，不许先把密码页弹出来。
+     以前云端 boot 会在存档读完时直接 __entryStart() → initLock()，密码页就在声明页之前
+     抢出来一层（加载页一撤就露出来，看着像“加载页跳到密码页”）。
+     这里挡住：等声明页点了「同意并进入」（__aboutDone=1）或走免密分支后才允许。 */
+  try{
+    if(window.__e11LoadingStage)return;
+    if(!window.__aboutDone&&document.querySelector("#about-screen.show"))return;
+  }catch(_eLockStageGuard){}
   /* 声明页未同意前不弹密码页，保证顺序固定为：声明 → 密码 → 主页 */
   try{
     var _abLock=document.getElementById("about-screen");
