@@ -272,7 +272,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-26v43-236b31";
+window.__E11_BUILD="2026-11-26v43-236b32";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -2825,7 +2825,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-26v43-236b31">
+<meta name="app-build" content="2026-11-26v43-236b32">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -6868,7 +6868,10 @@ setTimeout(function(){
           if(!x||!x.id)return;var id=String(x.id);
           if(ids[id]){
             for(var _sl=0;_sl<cur.length;_sl++){
-              if(cur[_sl]&&String(cur[_sl].id)===id){__e11SocialCommentsUnion(cur[_sl],x);__e11SocialCommentsUnion(x,cur[_sl]);break;}
+              if(cur[_sl]&&String(cur[_sl].id)===id){
+                try{window.__e11UnionNested(cur[_sl],x);}catch(_eUn2){}
+                __e11SocialCommentsUnion(cur[_sl],x);__e11SocialCommentsUnion(x,cur[_sl]);break;
+              }
             }
             return;
           }
@@ -11072,6 +11075,40 @@ window.__e11SocialTouch=function(kind,item){
   try{__e11ExitSave(state,true);}catch(_){}
   try{window.__e11Keep4Save&&window.__e11Keep4Save();}catch(_){}
 };
+/* v43-236b32：同一条动态/信件/留言再次出现时，不能只按外层 id 判重。
+   之前外层 id 已存在就直接跳过，导致后加的评论、评论回复、信件回信整段丢掉。
+   这里把嵌套数组按 id 做并集，旧的补进当前，当前的不覆盖。 */
+window.__e11UnionNested=function(base,inc){
+  if(!base||!inc||typeof base!=="object"||typeof inc!=="object")return base;
+  ["comments","replies","likes"].forEach(function(k){
+    if(!Array.isArray(inc[k]))return;
+    if(!Array.isArray(base[k]))base[k]=[];
+    var ids={};base[k].forEach(function(x){if(x&&x.id)ids[String(x.id)]=1;});
+    inc[k].forEach(function(x){
+      try{
+        if(x&&x.id){
+          if(ids[String(x.id)]){
+            for(var i=0;i<base[k].length;i++){
+              if(base[k][i]&&String(base[k][i].id)===String(x.id)){window.__e11UnionNested(base[k][i],x);break;}
+            }
+            return;
+          }
+          ids[String(x.id)]=1;base[k].push(x);return;
+        }
+        /* 没有 id 的旧数据按「人+时间+文字」判重 */
+        var sig=String((x&&x.from)||"")+"|"+String((x&&x.time)||"")+"|"+String((x&&x.text)||"");
+        var dup=base[k].some(function(y){return (String((y&&y.from)||"")+"|"+String((y&&y.time)||"")+"|"+String((y&&y.text)||""))===sig;});
+        if(!dup)base[k].push(x);
+      }catch(_){}
+    });
+  });
+  /* 其余顶层字段：当前缺的才补，已有的不动 */
+  Object.keys(inc).forEach(function(k){
+    if(k==="comments"||k==="replies"||k==="likes")return;
+    if(base[k]===undefined||base[k]===null||base[k]==="")base[k]=inc[k];
+  });
+  return base;
+};
 /* ===== 社交小日志：只存文字/链接，按 id 合并，退出/被杀后启动时补回 ===== */
 window.__E11_SLOG_KEY="e11.social.log.v1";
 window.__e11SocialLogAdd=function(kind,item){
@@ -11108,8 +11145,18 @@ window.__e11SocialLogMerge=function(st){
       try{
         if(!rec||!rec.k||!rec.it||!rec.it.id)return;
         var kind=rec.k;if(!Array.isArray(st[kind]))st[kind]=[];
-        if(seen[kind+"|"+rec.it.id])return;
+        if(seen[kind+"|"+rec.it.id]){
+          /* 外层已有：把日志里更新的评论/回复并进去 */
+          for(var _bi=0;_bi<st[kind].length;_bi++){
+            if(st[kind][_bi]&&String(st[kind][_bi].id)===String(rec.it.id)){
+              try{window.__e11UnionNested(st[kind][_bi],rec.it);}catch(_eUn){}
+              break;
+            }
+          }
+          return;
+        }
         var it=rec.it;
+        try{if(window.__e11IsDeleted&&window.__e11IsDeleted(kind,it.id))return;}catch(_eDelChk){}
         if(kind==="letters"&&!String(it.body||it.text||"").trim())return;
         if(kind==="moments"&&!String(it.text||"").trim()&&!it.img)return;
         if(kind==="guestbook"&&!String(it.text||"").trim())return;
@@ -13503,6 +13550,22 @@ async function init(){
       }catch(_eSessBoot){}
       /* v43-236b25：启动最后一步把社交小日志里“本机主档还没写进去”的条目补回 state。 */
       try{window.__e11SocialLogMerge&&window.__e11SocialLogMerge(state);}catch(_eSLogBoot){}
+      /* v43-236b32：云端/旧档可能在启动后几秒才把 state 整份换掉。
+         社交小日志在启动时并过一次，这里再并两次，谁后覆盖都能把动态/评论/信件/留言补回来。 */
+      try{
+        [3500,9000].forEach(function(ms){
+          setTimeout(function(){
+            try{
+              var n=window.__e11SocialLogMerge?window.__e11SocialLogMerge(state):0;
+              if(!n)return;
+              try{typeof renderMoments==="function"&&renderMoments();}catch(_){}
+              try{typeof renderGuestbook==="function"&&renderGuestbook(true);}catch(_){}
+              try{typeof renderLetters==="function"&&renderLetters();}catch(_){}
+              try{save();if(window.__flushSave)__flushSave(true);}catch(_){}
+            }catch(_eLateSLog){}
+          },ms);
+        });
+      }catch(_eLateSLogSet){}
       window.__stateReady=1;window.__e11DataReady=1;try{window.__e11BootLoading=0;}catch(_eBootLoad1){}
       /* v43-222：主档正常路径没有走最后的 showView，整机快照里的页面在这里补回来 */
       try{if(window.__e11SessionUI&&window.__e11SessionApplyUI)window.__e11SessionApplyUI();}catch(_eSessUIApply){}
@@ -32936,6 +32999,8 @@ function bindMomentFeed(){
       if(isRep)replyCtx={momentId:null,commentId:null,name:""};
       /* v43-236b12：这条动态自己被改过，本地时间戳要晚于云端旧档，合并时本机版本才不会被整条压掉 */
       try{m3.__ts=Date.now();}catch(_eMomTs){}
+      /* v43-236b32：评论发出就进社交小日志并立刻落盘，更新/杀进程后靠并集补回来 */
+      try{window.__e11SocialTouch&&window.__e11SocialTouch("moments",m3);}catch(_eCTouch){}
       try{if(myCObj&&window.__e11CJPut)window.__e11CJPut("moments",m3.id,myCObj,parentCid);}catch(_eCjPut){}
       if(inp3)inp3.value="";momentDraft[mid2]="";momentFocusMid=null;
       /* 发送后把评论输入行收回，别让它一直挂在卡片底部 */
@@ -33373,6 +33438,7 @@ function partnerReplyComment(postId,targetCid,whenTs,skipProb){
     setTimeout(function(){__flashMomentComment(postId,_newRid||targetCid,true);},60);
   }
   toast("对方回复了你的评论");save();
+  try{window.__e11SocialTouch&&window.__e11SocialTouch("moments",m);}catch(_ePRTouch){}
 }
 function partnerCommentEmoji(){
   try{
