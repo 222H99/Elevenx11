@@ -272,7 +272,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-26v43-236b21";
+window.__E11_BUILD="2026-11-26v43-236b22";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -2798,7 +2798,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-26v43-236b21">
+<meta name="app-build" content="2026-11-26v43-236b22">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -7334,7 +7334,7 @@ setTimeout(function(){
   }
   window.__e11SocialCommentsUnion=__e11SocialCommentsUnion;
 
-  /* v43-236b21：评论/回复单独留一份日志。
+  /* v43-236b22：评论/回复单独留一份日志。
      动态/信件/留言本体能从备份恢复，但评论是嵌在条目里的：任何一份旧档整条覆盖都会把它吞掉。
      这里每次发评论/回复都同步记一条，启动时按 id 把缺失的楼层补回，不再赌某一份存档是否完整。 */
   window.__E11_CJ_KEY="e11.comments.v1";
@@ -9047,14 +9047,14 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 只留这一版真正改动的几条，一屏读完 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-236b21",
-  time:"2026-11-26 15:10",
+  date:"v43-236b22",
+  time:"2026-11-26 15:45",
   noticeKey:null,
   lead:"",
   items:[
+    "信件/留言/动态发出立刻落盘，退出再进不丢。",
     "写信自动存草稿：写一半退出或更新，回来接着写。",
-    "唱片中心图和主页音乐应用图标彻底分开，各用各的图。",
-    "页面缩放只算一次，之后固定保存不再变。",
+    "声明页不再先闪出聊天页，页面缩放只算一次固定保存。",
     "更新不跳声明和密码，更新页只留 4 条。",
   ],
   foot:""
@@ -9205,7 +9205,7 @@ function __afterLockPass(){
   try{var _ag2=document.getElementById("auth-gate");if(_ag2)_ag2.classList.remove("show");}catch(_){}
   try{var _aw2=document.getElementById("auth-wait-card");if(_aw2)_aw2.style.display="none";}catch(_){}
   try{document.body.classList.remove("auth-locked");}catch(_){}
-  /* v43-236b21：固定顺序 声明 → 密码 → 主页 → 更新页。
+  /* v43-236b22：固定顺序 声明 → 密码 → 主页 → 更新页。
      先把主页画出来（更新页只是盖在主页上的一层），关掉就是主页，不会先空一屏再跳。 */
   try{__entryHome();}catch(_eHomeFirst){}
   try{
@@ -10263,7 +10263,7 @@ function __bkPaint(){
           /* 先把“恢复后的这份”写成离站快照，再 reload；否则启动时旧离站快照会并回来。 */
           try{window.__e11ExitAllowEarly=1;window.__e11ExitSave(st,true);}catch(_eExitRstPre){}
           try{window.__e11ExitAllowEarly=0;}catch(_){}
-          /* v43-236b21：恢复备份是“整份覆盖”，但评论是嵌在动态/信件/留言里的，
+          /* v43-236b22：恢复备份是“整份覆盖”，但评论是嵌在动态/信件/留言里的，
              备份之后发的评论会被一起盖掉。这里先把当前状态里的评论并进备份，再叠评论日志。 */
           try{
             var _curBk=window.__e11StateGet&&window.__e11StateGet();
@@ -10985,6 +10985,17 @@ function __e11ExitRead(){
 }
 window.__e11ExitSave=__e11ExitSave;
 window.__e11ExitRead=__e11ExitRead;
+/* v43-236b22：信件/留言/动态这类“我主动发出”的内容，发完立刻同步落盘：
+   先写主库，再立刻写离站快照。以前只走 320ms 防抖，发完马上退出/被系统杀掉，
+   这条就还在内存里，下次进来自然看不到，久了就像“数据没了”。 */
+window.__e11SocialTouch=function(){
+  try{window.__e11SocialDirtyAt=Date.now();}catch(_){}
+  try{if(typeof state!=="undefined"&&state)state.__savedAt=Date.now();}catch(_){}
+  try{save();}catch(_){}
+  try{__flushSave(true);}catch(_){}
+  try{__e11ExitSave(state,true);}catch(_){}
+  try{window.__e11Keep4Save&&window.__e11Keep4Save();}catch(_){}
+};
 function __e11SessionUI(){
   var v="";try{v=window.__curView||"";}catch(_){}
   if(!v){try{var o=document.querySelector(".view.open");if(o)v=o.id||"";}catch(_){}}
@@ -11865,7 +11876,7 @@ function __prefReapplyAll(){
 
 function save(){
   try{window.__e11Dirty=1;}catch(_eDirty){}
-  /* v43-236b21：任何一次保存后 6 秒内补写一份离站完整档，
+  /* v43-236b22：任何一次保存后 6 秒内补写一份离站完整档，
      保证 App 被系统直接杀掉时，“退出时什么样”最多只差这 6 秒里的最后一下。 */
   try{
     clearTimeout(window.__e11ExitSoonT);
@@ -12887,7 +12898,7 @@ async function init(){
     if(_gatePending){
       window.__holdBootReveal=0;
       window.__bootPendingReveal=0;
-      /* v43-236b21：放行层还没过时，底下只铺主页，绝不先把聊天页露出来。
+      /* v43-236b22：放行层还没过时，底下只铺主页，绝不先把聊天页露出来。
          以前这里按“上次停在哪页”直接 showView(chat)，随后声明页才盖上来，
          肉眼就是“闪出聊天页 → 又闪回声明页”。 */
       window.__e11GateUp=1;
@@ -13056,10 +13067,10 @@ async function init(){
              用户用 227 正常退出一次后，新离站档带 v:2，才按“进入=离开时”精确还原。 */
           var _legacyExit=!(_exitObj.v>=2);
           var _isFullExit=Number(_exitObj.full)===1;
-          /* v43-236b21：完整档不比任何一份本地档旧时，就认它，不管 localStorage 那份先被选中。 */
+          /* v43-236b22：完整档不比任何一份本地档旧时，就认它，不管 localStorage 那份先被选中。 */
           var _lsTs2=Number(window.__e11LsTs)||0;
           window.__e11ExitFull=!!(!_legacyExit&&_isFullExit&&_exTs>0&&_exTs>=Math.max(_lsTs2,_idbTs)-5000);
-          /* v43-236b21：只要离站档是“完整档”，它就是离开那一刻的样子，直接照它还原，
+          /* v43-236b22：只要离站档是“完整档”，它就是离开那一刻的样子，直接照它还原，
              不再和主库/备份/云端抢谁新——用户要的是“退出什么样，进来什么样”。 */
           window.__e11ExitExact=!!(window.__e11ExitFull||(!window.__e11LocalFullUsed&&!_legacyExit&&_exTs>=(_idbTs-5000)&&_exTs>0));
           window.__e11ExitStale=!!(!window.__e11ExitFull&&(window.__e11LocalFullUsed||(_legacyExit&&!!s)||(!_isFullExit&&_idbTs>_exTs+5000&&_idbTs>0)));
@@ -13474,7 +13485,7 @@ try{window.__scheduleCp2Render&&window.__scheduleCp2Render();}catch(e){}
       try{__repairEmojiMessages();}catch(_eEmMsg){}
       try{if(__dedupeStolenEmojis())save();}catch(_eDed){}
       try{__repairProfileMedia();}catch(_ePm){}
-      /* v43-236b21：启动先按评论日志把缺失的楼层补回来，再做图片/社交恢复 */
+      /* v43-236b22：启动先按评论日志把缺失的楼层补回来，再做图片/社交恢复 */
       try{
         var _cjAdded=window.__e11CJApply&&window.__e11CJApply(state);
         if(_cjAdded){
@@ -15508,7 +15519,7 @@ function __recoverSocialFromBackups(force){
   }catch(_){window.__socialBkRecovering=0;return Promise.resolve(false);}
 }
 window.__recoverSocialFromBackups=__recoverSocialFromBackups;
-/* v43-236b21：已经在旧版里被覆盖掉的评论，尽量从自动备份里捞回来。
+/* v43-236b22：已经在旧版里被覆盖掉的评论，尽量从自动备份里捞回来。
    只补「我」发的评论/回复（用户自己写的那部分），不动对方的，也不把删掉的评论批量复活；
    每个版本只跑一次，避免每次启动都全库扫。 */
 function __e11RepairMyComments(){
@@ -17998,7 +18009,7 @@ function __appendChatMsg(mid){
     var all=state.messages||[];
     var m=mid?(all.filter(function(x){return x&&x.id===mid;})[0]||null):all[all.length-1];
     if(mid&&!m){try{renderChat();}catch(e){}return false;}
-    /* v43-236b21：人还在画画/主页、聊天列表从没预热过时，不要在这里整屏画一遍
+    /* v43-236b22：人还在画画/主页、聊天列表从没预热过时，不要在这里整屏画一遍
        （画完再切进聊天又要再画一次，就是那一下闪）。只标脏，进聊天页时在隐藏状态下画一次。 */
     if(window.__curView!=="view-chat"){
       var _mlA=document.getElementById("msglist");
@@ -25358,7 +25369,7 @@ function __fadeOutDiary(ms){
   }catch(_){try{el.classList.remove("show");el.classList.remove("writing");}catch(__){}}
 }
 function showView(id){
-  /* v43-236b21：声明页/密码页还在时，任何切页请求都先压住，只允许主页铺在底下；
+  /* v43-236b22：声明页/密码页还在时，任何切页请求都先压住，只允许主页铺在底下；
      放行后由 __entryHome 恢复用户上次所在的页面。 */
   if(window.__e11GateUp&&id!=="view-me"){
     window.__e11PendingView=id;id="view-me";
@@ -26326,10 +26337,10 @@ function refreshMiniPlayer(){
   var _mpUse=$("mp-play-use");
   if(_mpUse&&_mpUse.getAttribute("xlink:href")!==_playHref)setSvgUse("mp-play-use",_playHref);
   // 缩小唱片：封面优先用用户设置的歌曲封面
-  /* v43-236b21：小唱片只用「唱片中心图」，没设就用这首歌自己的封面；
+  /* v43-236b22：小唱片只用「唱片中心图」，没设就用这首歌自己的封面；
      不再退到「音乐封面」（musicCoverImg），也不碰主页应用图标，三处各用各的图。 */
   const _customCover=state.musicDiscInnerImg;
-  /* v43-236b21：暂停时也要显示封面（原来暂停会换成 ▶），没有官方封面就用手绘兜底封面。 */
+  /* v43-236b22：暂停时也要显示封面（原来暂停会换成 ▶），没有官方封面就用手绘兜底封面。 */
   const pic=_customCover||__sgDisplayCover(s)||(s?__songFallbackCover(s):'');
   /* 没有自定义封面、歌曲本身也还没带封面时，补拉一次网易云封面。
      只按歌曲 id 请求一次，回来后再刷新小弹窗；不阻塞播放，也不反复请求。 */
@@ -26355,7 +26366,7 @@ function refreshMiniPlayer(){
     _disc.__discKey=_key;
     var _mpFallback=s?__songFallbackCover(s):'';
     _disc.innerHTML=pic?'<img class="mp-pic" src="'+__escAttr(pic)+'" alt="" onerror="this.onerror=null;this.src=this.dataset.fb" data-fb="'+__escAttr(_mpFallback)+'">'+(au.paused?'<span class="mp-pause-ic">▶</span>':''):(au.paused?'<span class="mp-dic" style="font-size:19px;">▶</span>':'<span class="mp-dic">🎵</span>');
-    /* v43-236b21：主页「音乐」应用图标归图标设置管（me1AppIcons），
+    /* v43-236b22：主页「音乐」应用图标归图标设置管（me1AppIcons），
        这里绝不拿歌曲封面/唱片中心图去覆盖它——两者彻底分开，各用各的图。 */
     _disc.classList.toggle("spin",!au.paused&&!!pic);
     try{if(window.__applyMe1Icons)window.__applyMe1Icons();}catch(_eMicIco){}
@@ -29473,7 +29484,7 @@ function sendDrawingToChat(){
   // 画作已发送到聊天页：本轮完结，下一轮需重新邀请
   state.drawSession=false;save();
   game.strokes=[];game.turn="me";game.passing=false;game.lastPartnerColor=null;
-  /* v43-236b21：发完画回聊天不再把 __uiStableH 归零、也不再连做多次整站缩放同步。
+  /* v43-236b22：发完画回聊天不再把 __uiStableH 归零、也不再连做多次整站缩放同步。
      那几步会让整站重新按可视区量一遍，屏幕先缩后弹，看着就是“发画闪一下”。
      这里只清键盘位移，等一帧同步一次。 */
   try{__blurSoftKeyboard();}catch(_){}
@@ -30782,6 +30793,7 @@ function openEnvBgSheet(){
       var t=((ta&&ta.value)||"").trim();
       if(!t){toast("写点内容再发");return;}
       state.letters.push({id:uid(),from:"me",subject:"",body:t,time:Date.now(),replyTo:ctx.root.id});
+      try{window.__e11SocialTouch&&window.__e11SocialTouch();}catch(_eEnvRTouch){}
       save();try{__flushSave();}catch(e){}
       window.__rSig&&(window.__rSig["letters"]=null);
       renderLetters();
@@ -30829,6 +30841,7 @@ function openEnvBgSheet(){
 })();
 function replyToLetter(letterId,text){
   state.letters.push({id:uid(),from:"me",subject:"",body:text,time:Date.now(),replyTo:letterId});
+  try{window.__e11SocialTouch&&window.__e11SocialTouch();}catch(_eRlTouch){}
   save();renderLetters();toast("已回信给对方");
 }
 function fillLetterComposer(){
@@ -30836,7 +30849,7 @@ function fillLetterComposer(){
   const nm=$("lt-write-name");if(nm){nm.textContent=state.partner.name||"对方";}
 }
 window.__writeReplyTo=null;
-/* v43-236b21：写信草稿同步存档。以前写了一半退出/更新，回来输入框是空的。 */
+/* v43-236b22：写信草稿同步存档。以前写了一半退出/更新，回来输入框是空的。 */
 var __LT_DRAFT_KEY="e11.letterDraft.v1";
 function __ltDraftSave(){
   try{
@@ -30922,7 +30935,10 @@ $("lt-write-send").addEventListener("click",function(){
   var _subj=$("lt-write-subject")?$("lt-write-subject").value.trim():"";
   var _obj=__makeLetter(bodyEl.value.trim(),_subj);
   __stagePendingLetter(_obj);
-  playSendLetter(bodyEl.value.trim(),"",function(){commitLetter(_obj);});
+  /* v43-236b22：先真正寄出并落盘，再播信封动画。
+     以前寄信要等 1.9 秒动画结束才 push，动画中途退出就整封没了。 */
+  commitLetter(_obj);
+  playSendLetter(bodyEl.value.trim(),"",null);
 });
 $("lt-write-body").addEventListener("input",()=>{
   const n=$("lt-write-body").value.length;
@@ -31231,6 +31247,7 @@ function commitLetter(_obj){
   state.letters.push(_letter);
   localStorage.removeItem("pendingLetter");
   __ltDraftClear();
+  try{window.__e11SocialTouch&&window.__e11SocialTouch();}catch(_eLtTouch){}
   $("lt-write-body").value="";if($("lt-write-subject"))$("lt-write-subject").value="";$("lt-write-count").textContent="0/1000";
   save();try{__flushSave(true);}catch(e){}
   try{window.__rSig&&(window.__rSig["letters"]=null);}catch(e){}
@@ -31683,6 +31700,7 @@ function addNote(){
   const _nid=uid();
   state.guestbook.push({id:_nid,from:"me",text:t,time:Date.now()});
   $("note-text").value="";
+  try{window.__e11SocialTouch&&window.__e11SocialTouch();}catch(_eNoteTouch){}
   save();renderGuestbook();scrollNotes();toast("留言已发送");
   /* 回复概率只在“我发这条留言”时掷一次；抽不中就不排回复，
      不会像旧代码那样先排进队列、到点再绕过概率。 */
@@ -32893,12 +32911,14 @@ $("post-send").addEventListener("click",()=>{
     if(!t){toast("写一句配文再转发");return;}
     const pid=uid();
     state.moments.push({id:pid,from:"me",text:t,repostOf:repostTarget,likes:[],comments:[],time:Date.now()});
+    try{window.__e11SocialTouch&&window.__e11SocialTouch();}catch(_eRepostTouch){}
     save();renderMoments();toast("已转发");__resetPostSheet();$("post-overlay").classList.remove("show");
     return;
   }
   if(!t&&!postImg){toast("写点内容或加张图吧");return;}
   const pid=uid();
   state.moments.push({id:pid,from:"me",text:t,img:postImg,likes:[],comments:[],time:Date.now()});
+  try{window.__e11SocialTouch&&window.__e11SocialTouch();}catch(_ePostTouch){}
   $("post-text").value="";postImg="";
   $("post-overlay").classList.remove("show");
   save();renderMoments();toast("已发布");
@@ -33371,7 +33391,7 @@ function scheduleLetter(){
 
 /* ===== 作者声明页（每次开屏都显示） ===== */
 function initAbout(){
-  /* v43-236b21：启动流程会提前调一次，后段再调一次；只初始化一次，避免按钮绑两遍。 */
+  /* v43-236b22：启动流程会提前调一次，后段再调一次；只初始化一次，避免按钮绑两遍。 */
   if(window.__e11AboutInit)return;
   window.__e11AboutInit=1;
   /* v43-234：同一个标签页里已经看过声明/已经通过密码，刷新、站内更新、检查更新
@@ -33380,7 +33400,7 @@ function initAbout(){
   try{
     var _sameTabAbout=false;
     try{_sameTabAbout=sessionStorage.getItem("e11.aboutAck.v1")==="1"||__lockSessionValid();}catch(_eSameTab){}
-    /* v43-236b21：刚点过“更新”的这一轮，声明页和密码页都跳过，直接进主页再弹更新页。 */
+    /* v43-236b22：刚点过“更新”的这一轮，声明页和密码页都跳过，直接进主页再弹更新页。 */
     var _skipGate=false;
     try{
       var _sgTs=Number(localStorage.getItem("e11.skipGate.v1"))||0;
@@ -33620,7 +33640,7 @@ function initLock(){
     }
     setTimeout(initLock,120);return;
   }
-  /* v43-236b21：更新放行：数据已读到就直接进，不再显示密码页。 */
+  /* v43-236b22：更新放行：数据已读到就直接进，不再显示密码页。 */
   if(window.__e11SkipLockOnce){
     window.__e11SkipLockOnce=0;
     try{window.__lockPassed=1;document.body.classList.remove("auth-locked");}catch(_skipLock){}
@@ -35386,7 +35406,7 @@ window.__fitCompute=function(force){
   /* v43-28：电脑固定窗口下不再按内容高度二次缩放。 */
   if(window.__deskFixed){window.__fitK=1;window.__fitK1=1;window.__fitK2=1;try{__fitApply(1);}catch(_eDeskFit){}return 1;}
   var ctx=window.__fitCtx();
-  /* v43-236b21：这个屏幕 + 这套桌面布局只量一次，量完就固定保存；
+  /* v43-236b22：这个屏幕 + 这套桌面布局只量一次，量完就固定保存；
      之后冷启动、内容变多、图片加载完成都直接套存下来的比例，不再重算一次把用户看到的尺寸改掉。 */
   var fx=window.__fitFixedGet(ctx);
   /* 这个屏幕尺寸+这套桌面布局已经量过：直接套保存好的比例，后续切页/刷新/内容变化都不重算。 */
@@ -37758,7 +37778,7 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
     }catch(_){}
   }
   function forceUpdate(nb,manual){
-    /* v43-236b21：更新后不再重走声明页和密码页，直接把这一轮标成“已放行”。 */
+    /* v43-236b22：更新后不再重走声明页和密码页，直接把这一轮标成“已放行”。 */
     try{localStorage.setItem("e11.skipGate.v1",String(Date.now()));}catch(_eSkipGate){}
     clearAutoUpdate();
     if(!manual&&!canForce())return;
@@ -37778,7 +37798,7 @@ try{sessionStorage.setItem("elevenSiteOpen","1");}catch(e){}
     /* v43-128：更新换页前再单独落一次“设置小备份 + 核心档”。
        更新只清运行时缓存，不会动 IndexedDB；这两步保证最后 1 秒改的设置/字卡也不会被旧档盖回。 */
     try{if(window.__settingsBackup)window.__settingsBackup(true);}catch(_eUpSet){}
-    /* v43-236b21：换版本前必须写一份完整离站档，并确认它是 full 档；
+    /* v43-236b22：换版本前必须写一份完整离站档，并确认它是 full 档；
        新版启动就以这份为准，更新前后数据完全一致。 */
     try{if(typeof __e11ExitSave==="function")__e11ExitSave(state,true);}catch(_eUpCore){}
     try{
