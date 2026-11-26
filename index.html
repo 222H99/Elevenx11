@@ -272,7 +272,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-26v43-236b32";
+window.__E11_BUILD="2026-11-26v43-236b33";
 /* v43-221：版本变了但页面还是旧 Service Worker 缓存时，用户会“更新了却仍是旧逻辑/旧值”。
    首启清掉旧缓存并重载一次，确保进来的就是这一版代码。 */
 (function(){
@@ -2825,7 +2825,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-26v43-236b32">
+<meta name="app-build" content="2026-11-26v43-236b33">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -3812,6 +3812,20 @@ html,body{height:100%;height:100lvh;min-height:100lvh;background:var(--bg,#fafaf
   #btn-voice{width:40px !important;height:40px !important;}
   .msg-input{font-size:16px !important;}
   .v-body{padding-left:22px !important;padding-right:22px !important;}
+  /* v43-236b33：整块铺满 iPad 宽度，页面底色跟着壁纸走，右侧不再留一条灰边 */
+  #ui-root{max-width:none !important;box-shadow:none !important;border-radius:0 !important;}
+  .app{max-width:none !important;width:100% !important;}
+  #msglist{padding-left:clamp(20px,3.2vw,56px) !important;padding-right:clamp(20px,3.2vw,56px) !important;}
+  /* 横屏一行太长会难读：气泡最宽 72%，其余按屏幕比例留白 */
+  .msg-row .bubble,.bubble{max-width:72% !important;}
+  .topbar{padding-left:clamp(18px,2.4vw,40px) !important;padding-right:clamp(18px,2.4vw,40px) !important;}
+  /* 动态/信件/留言的阅读列也收一下，别让一张卡横跨 1194 */
+  #moment-feed,.moments-feed{max-width:820px;margin-left:auto;margin-right:auto;}
+  .me-widget{max-width:700px !important;}
+  .me-photos{max-width:700px !important;}
+}
+@media (min-width:1000px) and (pointer:coarse){
+  #msglist{padding-left:clamp(28px,6vw,120px) !important;padding-right:clamp(28px,6vw,120px) !important;}
 }
 </style>
 <script id="__ipad_tap_fix">
@@ -7428,15 +7442,45 @@ setTimeout(function(){
       localStorage.setItem(window.__E11_CJ_KEY,JSON.stringify({ts:Date.now(),list:list,del:(o.del||[]).slice(-500)}));
     }catch(_){}
   };
-  window.__e11CJPut=function(kind,itemId,c,parentId){
+  /* v43-236b33：评论/回复日志升级。
+     1) 记录「祖先链」：回复楼中楼时把上层评论也一起存，父评论被旧档吞掉也能重建整条路径；
+     2) 对方的主动评论、对方回复我的评论也写入日志（以前只有我自己发的写）；
+     3) 应用时可以重建缺失的父楼层，不再因为父评论不在就整条丢掉。 */
+  window.__e11CJPath=function(list,targetId,pid){
+    try{
+      for(var i=0;i<(list||[]).length;i++){
+        var c=list[i];if(!c||!c.id)continue;
+        if(c.id===targetId)return [{c:c,p:pid||null}];
+        if(c.replies&&c.replies.length){
+          var sub=window.__e11CJPath(c.replies,targetId,c.id);
+          if(sub)return [{c:c,p:pid||null}].concat(sub);
+        }
+      }
+    }catch(_){}
+    return null;
+  };
+  window.__e11CJItemPath=function(kind,itemId,targetId){
+    try{
+      var arr=(kind==="moments"?state.moments:(kind==="letters"?state.letters:state.guestbook))||[];
+      for(var i=0;i<arr.length;i++){
+        if(arr[i]&&arr[i].id===itemId)return window.__e11CJPath(arr[i].comments||[],targetId,null);
+      }
+    }catch(_){}
+    return null;
+  };
+  window.__e11CJPut=function(kind,itemId,c,parentId,anc){
     try{
       if(!itemId||!c||!c.id)return;
       var o=window.__e11CJLoad(),same=false;
+      var rec={k:kind,i:itemId,c:JSON.parse(JSON.stringify(c)),p:parentId||null,ts:Date.now()};
+      if(anc&&anc.length){
+        rec.a=anc.map(function(x){try{return {c:JSON.parse(JSON.stringify(x.c)),p:x.p||null};}catch(_){return null;}}).filter(function(x){return !!x;});
+      }
       for(var i=0;i<o.list.length;i++){
         var e=o.list[i];
-        if(e&&e.i===itemId&&e.c&&e.c.id===c.id){o.list[i]={k:kind,i:itemId,c:JSON.parse(JSON.stringify(c)),p:parentId||null,ts:Date.now()};same=true;break;}
+        if(e&&e.i===itemId&&e.c&&e.c.id===c.id){o.list[i]=rec;same=true;break;}
       }
-      if(!same)o.list.push({k:kind,i:itemId,c:JSON.parse(JSON.stringify(c)),p:parentId||null,ts:Date.now()});
+      if(!same)o.list.push(rec);
       window.__e11CJSave(o);
     }catch(_){}
   };
@@ -7454,7 +7498,34 @@ setTimeout(function(){
       if(!st||typeof st!=="object")return 0;
       var o=window.__e11CJLoad(),add=0,dels={};
       (o.del||[]).forEach(function(d){dels[d]=1;});
-      o.list.forEach(function(e){
+      function findNode(list,id){
+        for(var i=0;i<(list||[]).length;i++){
+          var c=list[i];if(!c)continue;
+          if(c.id===id)return c;
+          if(c.replies&&c.replies.length){var r=findNode(c.replies,id);if(r)return r;}
+        }
+        return null;
+      }
+      /* 按 p 找到应该挂载的数组；父不存在时返回 null */
+      function listForParent(tree,pid){
+        if(!pid)return tree;
+        var par=findNode(tree,pid);
+        if(!par)return null;
+        if(!Array.isArray(par.replies))par.replies=[];
+        return par.replies;
+      }
+      function ensure(tree,node){
+        if(!node||!node.c||!node.c.id)return null;
+        var found=findNode(tree,node.c.id);
+        if(found)return found;
+        var list=listForParent(tree,node.p||null);
+        if(!list)return null;
+        list.push(JSON.parse(JSON.stringify(node.c)));
+        return list[list.length-1];
+      }
+      /* 深层的先确保祖先，再挂自己 */
+      var entries=(o.list||[]).slice().sort(function(a,b){return ((a&&a.a&&a.a.length)||0)-((b&&b.a&&b.a.length)||0);});
+      entries.forEach(function(e){
         if(!e||!e.i||!e.c||!e.c.id)return;
         if(dels[e.i+"|"+e.c.id])return;
         var k=e.k||"moments",arr=st[k];
@@ -7464,17 +7535,14 @@ setTimeout(function(){
         if(!item)return;
         if(!Array.isArray(item.comments))item.comments=[];
         var tree=item.comments;
-        if(e.p){
-          var par=null;
-          (function walk(l){
-            (l||[]).forEach(function(c){if(!c||par)return;if(c.id===e.p)par=c;else if(c.replies&&c.replies.length)walk(c.replies);});
-          })(tree);
-          if(!par)return;
-          if(!Array.isArray(par.replies))par.replies=[];
-          tree=par.replies;
+        /* 祖先链：父评论丢了就把整条路径重建出来 */
+        if(e.a&&e.a.length){
+          for(var ai=0;ai<e.a.length;ai++){ensure(tree,e.a[ai]);}
         }
-        for(var j=0;j<tree.length;j++){if(tree[j]&&tree[j].id===e.c.id)return;}
-        tree.push(JSON.parse(JSON.stringify(e.c)));add++;
+        var list=listForParent(tree,e.p||null);
+        if(!list)return;
+        if(findNode(tree,e.c.id))return;
+        list.push(JSON.parse(JSON.stringify(e.c)));add++;
       });
       return add;
     }catch(_){return 0;}
@@ -13553,18 +13621,30 @@ async function init(){
       /* v43-236b32：云端/旧档可能在启动后几秒才把 state 整份换掉。
          社交小日志在启动时并过一次，这里再并两次，谁后覆盖都能把动态/评论/信件/留言补回来。 */
       try{
-        [3500,9000].forEach(function(ms){
-          setTimeout(function(){
-            try{
-              var n=window.__e11SocialLogMerge?window.__e11SocialLogMerge(state):0;
-              if(!n)return;
-              try{typeof renderMoments==="function"&&renderMoments();}catch(_){}
-              try{typeof renderGuestbook==="function"&&renderGuestbook(true);}catch(_){}
-              try{typeof renderLetters==="function"&&renderLetters();}catch(_){}
-              try{save();if(window.__flushSave)__flushSave(true);}catch(_){}
-            }catch(_eLateSLog){}
-          },ms);
+        var _e11LateFix=function(){
+          try{
+            var n=window.__e11SocialLogMerge?window.__e11SocialLogMerge(state):0;
+            var c=window.__e11CJApply?window.__e11CJApply(state):0;
+            if(!n&&!c)return;
+            try{typeof renderMoments==="function"&&renderMoments();}catch(_){}
+            try{typeof renderGuestbook==="function"&&renderGuestbook(true);}catch(_){}
+            try{typeof renderLetters==="function"&&renderLetters();}catch(_){}
+            try{save();if(window.__flushSave)__flushSave(true);}catch(_){}
+          }catch(_eLateFixInner){}
+        };
+        /* v43-236b33：更新后的旧档可能在任何时刻整份覆盖 state；评论日志和社交日志
+           在 0/1.2s/3.5s/9s 各补一次，评论与楼中楼回复一律按 id 并回。 */
+        [0,1200,3500,9000].forEach(function(ms){
+          if(ms===0){setTimeout(_e11LateFix,0);return;}
+          setTimeout(_e11LateFix,ms);
         });
+        /* 从后台切回来（PWA 更新提示、切换 App）也再补一次 */
+        try{
+          document.addEventListener("visibilitychange",function(){
+            if(document.hidden)return;
+            setTimeout(function(){try{_e11LateFix();}catch(_){}},600);
+          });
+        }catch(_eVisCJ){}
       }catch(_eLateSLogSet){}
       window.__stateReady=1;window.__e11DataReady=1;try{window.__e11BootLoading=0;}catch(_eBootLoad1){}
       /* v43-222：主档正常路径没有走最后的 showView，整机快照里的页面在这里补回来 */
@@ -18944,7 +19024,9 @@ function catchUpSocial(){
       if(!c||!c.length)continue;
       if(!m2.comments)m2.comments=[];
       var _cupId=uid();
-      m2.comments.push({id:_cupId,from:"partner",text:joinCards(c),time:ct[j],likes:[],replies:[]});
+      var _cupObj={id:_cupId,from:"partner",text:joinCards(c),time:ct[j],likes:[],replies:[]};
+      m2.comments.push(_cupObj);
+      try{if(window.__e11CJPut)window.__e11CJPut("moments",m2.id,_cupObj,null,null);}catch(_eCjCatch){}
       m2.unread=true;m2.unreadKind="comment";newM++;comAdd++;changed=true;
     }
     if(ct.length){try{state.settings.lastCommentTime=now;}catch(e){}}else if(!Number(state.settings.lastCommentTime)){try{state.settings.lastCommentTime=now;}catch(e){}}
@@ -33001,7 +33083,13 @@ function bindMomentFeed(){
       try{m3.__ts=Date.now();}catch(_eMomTs){}
       /* v43-236b32：评论发出就进社交小日志并立刻落盘，更新/杀进程后靠并集补回来 */
       try{window.__e11SocialTouch&&window.__e11SocialTouch("moments",m3);}catch(_eCTouch){}
-      try{if(myCObj&&window.__e11CJPut)window.__e11CJPut("moments",m3.id,myCObj,parentCid);}catch(_eCjPut){}
+      try{
+        if(myCObj&&window.__e11CJPut){
+          var _anc=null;
+          if(parentCid&&window.__e11CJItemPath){_anc=window.__e11CJItemPath("moments",m3.id,parentCid);if(_anc)_anc=_anc.slice(0,-1);}
+          window.__e11CJPut("moments",m3.id,myCObj,parentCid,_anc);
+        }
+      }catch(_eCjPut){}
       if(inp3)inp3.value="";momentDraft[mid2]="";momentFocusMid=null;
       /* 发送后把评论输入行收回，别让它一直挂在卡片底部 */
       try{if(ci3){ci3.classList.add("hidden");var _pi3=ci3.querySelector("input");if(_pi3)_pi3.placeholder="评论…";}}catch(_){}
@@ -33427,6 +33515,14 @@ function partnerReplyComment(postId,targetCid,whenTs,skipProb){
   if(!myC.replies)myC.replies=[];
   _newRid=uid();
   myC.replies.push({id:_newRid,from:"partner",text:card,emoji:partnerCommentEmoji()||undefined,time:_t,likes:[],toMe:true});
+  /* v43-236b33：对方回复我的评论也进评论日志，整份存档被旧档顶掉时还能补回来 */
+  try{
+    if(window.__e11CJPut){
+      var _prAnc=window.__e11CJItemPath?window.__e11CJItemPath("moments",postId,myC.id):null;
+      if(_prAnc)_prAnc=_prAnc.slice(0,-1);
+      window.__e11CJPut("moments",postId,myC.replies[myC.replies.length-1],myC.id,_prAnc);
+    }
+  }catch(_eCjRep){}
   // 对方回复我的评论：主页顶部 🔔“有新回复（N）· 点击查看”，点击时才定位到对应动态
   m.unread=true;m.unreadKind="reply";
   newM++;updateNewBadge();
@@ -33455,7 +33551,9 @@ function partnerComment(postId){
   const card=joinCards(pickCommentCards(Math.round(rand(_a,_b))));if(!card)return;
   if(!m.comments)m.comments=[];
   var _cmId=uid();
-  m.comments.push({id:_cmId,from:"partner",text:card,emoji:partnerCommentEmoji()||undefined,time:Date.now(),likes:[],replies:[]});
+  var _cmObj={id:_cmId,from:"partner",text:card,emoji:partnerCommentEmoji()||undefined,time:Date.now(),likes:[],replies:[]};
+  m.comments.push(_cmObj);
+  try{if(window.__e11CJPut)window.__e11CJPut("moments",postId,_cmObj,null,null);}catch(_eCjPC){}
   // 对方主动评论：🔔“有新评论（N）· 点击查看”，点击时才定位
   m.unread=true;m.unreadKind="comment";
   newM++;updateNewBadge();
@@ -39750,7 +39848,10 @@ body{margin:0;background:var(--bg,#fafafa);}
         }catch(_eAw){}
         if(_sw>=320&&_sw<=600&&_sw>w+2)w=_sw;
       }catch(_eSwW){}
-      w=Math.max(300,Math.min(900,w));
+      /* v43-236b33：平板（iPad）不再把宽度封顶在 900，否则 1194/1179 宽的横屏只在左边占 900，
+         右边留一大条空白（用户截图里那条灰边）。这里按真实宽度走，最多 1400。 */
+      var _wTab=(w>=700)&&(window.matchMedia&&window.matchMedia("(pointer:coarse)").matches);
+      w=Math.max(300,Math.min(_wTab?1400:900,w));
       var _vvH=(vv&&vv.height)||0;
       var _innerH=window.innerHeight||0;
       var _clientH=document.documentElement.clientHeight||0;
@@ -39863,7 +39964,7 @@ body{margin:0;background:var(--bg,#fafafa);}
          竖屏放宽到 820、横屏到 1000，避免 iPad 上整页只在中间一条。 */
       var _tablet=(w>=700)&&(window.matchMedia&&window.matchMedia("(pointer:coarse)").matches);
       var _tabletLand=_tablet&&(w>(window.innerHeight||0));
-      var cap=_tablet?(_tabletLand?Math.min(1000,w):Math.min(820,w)):(_landView?Math.min(900,w):Math.min(600,w));
+      var cap=_tablet?Math.min(1400,w):(_landView?Math.min(900,w):Math.min(600,w));
       if(rw>cap)rw=cap;
       /* 根节点的 left/top 不受自身 scale 影响：这里写的是屏幕上的实际位置，
          不能再除以 k，否则平板居中会偏、键盘引起 offsetTop 时也会偏。 */
