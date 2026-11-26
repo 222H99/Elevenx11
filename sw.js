@@ -2,7 +2,7 @@
    作用一：缓存主页面，第二次打开时不再重新下载 2MB HTML，直接出首屏（黑屏时间大幅缩短）。
    作用二：提供通知点击回到 App 的最小能力。
    策略：有缓存立即返回，同时在后台抓取新版并写回缓存；首次无缓存才等网络。 */
-const E11_VERSION = "2026-11-27v44-236b60-r412";
+const E11_VERSION = "2026-11-27v44-236b61-r413";
 const E11_CACHE = "e11-shell-" + E11_VERSION;
 const E11_INDEX = "./index.html";
 const E11_TIMEOUT = 150;
@@ -54,15 +54,21 @@ async function e11Navigate(request, event) {
      不一致（刚更新过）→ 就把新 HTML 抓下来再返回，这一次打开就是最新版。
      这样既不会每次都等 2MB HTML，也不会「要开两次才更新」。 */
   const fetchBuild = async () => {
-    try {
-      const r = await Promise.race([
-        fetch(new URL("./version.json", self.registration.scope).href + "?t=" + Date.now().toString(36), { cache: "no-store" }),
-        e11Timeout(1000)
-      ]);
-      if (!r || !r.ok) return "";
-      const j = await r.json();
-      return (j && j.build) ? String(j.build) : "";
-    } catch (_) { return ""; }
+    const readBuild = async (u) => {
+      try {
+        const r = await Promise.race([fetch(u, { cache: "no-store" }), e11Timeout(900)]);
+        if (!r || !r.ok) return "";
+        const t = await r.text();
+        try { const j = JSON.parse(t); if (j && j.build) return String(j.build); } catch (_) {}
+        const m = t.match(/"build"\s*:\s*"([^"]+)"/);
+        return m ? m[1] : "";
+      } catch (_) { return ""; }
+    };
+    /* 同源 version.json 在豆包入口会被 302 到飞书静态站（返回 HTML），解析失败就换 GitHub 那份
+       （带 access-control-allow-origin:*，跨域可读）。两者都失败就交给后面的兜底逻辑。 */
+    let b = await readBuild(new URL("./version.json", self.registration.scope).href + "?t=" + Date.now().toString(36));
+    if (!b) b = await readBuild("https://222h99.github.io/Elevenx11/version.json?t=" + Date.now().toString(36));
+    return b;
   };
   const cachedBuild = async () => {
     try {
