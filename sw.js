@@ -2,7 +2,7 @@
    作用一：缓存主页面，第二次打开时不再重新下载 2MB HTML，直接出首屏（黑屏时间大幅缩短）。
    作用二：提供通知点击回到 App 的最小能力。
    策略：有缓存立即返回，同时在后台抓取新版并写回缓存；首次无缓存才等网络。 */
-const E11_VERSION = "2026-11-27v44-236b70-r422";
+const E11_VERSION = "2026-11-27v44-236b71-r423";
 const E11_CACHE = "e11-shell-" + E11_VERSION;
 const E11_INDEX = "./index.html";
 const E11_TIMEOUT = 150;
@@ -17,21 +17,49 @@ self.addEventListener("install", (e) => {
   })());
 });
 
+let __e11NavDone = false;
 self.addEventListener("activate", (e) => {
   e.waitUntil((async () => {
+    let hadOld = false;
     try {
       const keys = await caches.keys();
+      hadOld = keys.some((k) => k.indexOf("e11-shell-") === 0 && k !== E11_CACHE);
       await Promise.all(keys.map((k) => (k === E11_CACHE ? null : caches.delete(k))));
     } catch (_) {}
     try { await self.clients.claim(); } catch (_) {}
+    let wins = [];
     try {
-      const wins = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+      wins = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
       for (const c of wins) {
         try { c.postMessage({ type: "build", ver: E11_VERSION }); } catch (_) {}
         try { c.postMessage({ type: "e11-build", build: E11_VERSION }); } catch (_) {}
         try { c.postMessage({ type: "e11-sw-activated", build: E11_VERSION }); } catch (_) {}
       }
     } catch (_) {}
+    /* v44-236b71：旧版 PWA 自己身上没有升级逻辑（清缓存、注销 SW 都是后来才加的），
+       装了旧版的人打开就一直停在旧页面。这里是唯一不依赖页面代码的杠杆：
+       只要这一版 SW 接管（旧缓存存在就说明是「换版」而不是首次安装），
+       就把还在旧页面的窗口直接导航到线上最新页。首次安装不动，页面自己刚更新过（带 __e11up=）也不动。 */
+    if (hadOld && !__e11NavDone) {
+      __e11NavDone = true;
+      /* 注意：这里绝对不能 await navigate。
+         navigate 触发的这次加载还要走本 SW 的 fetch 事件，而 fetch 事件要等 activate 完成才派发，
+         在 activate 里 await 就是自己等自己，页面会一直转圈。所以 activate 立即收尾，
+         过 1 秒再在事件外面发起导航。 */
+      setTimeout(() => {
+        self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((ws) => {
+          for (const c of ws) {
+            try {
+              if (!c.url || c.url.indexOf("http") !== 0) continue;
+              if (c.url.indexOf("__e11up=") !== -1) continue;
+              const u = new URL(c.url);
+              u.searchParams.set("__e11sw", E11_VERSION);
+              c.navigate(u.href).catch(() => {});
+            } catch (_) {}
+          }
+        }).catch(() => {});
+      }, 1000);
+    }
   })());
 });
 

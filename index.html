@@ -315,7 +315,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-27v44-236b70";
+window.__E11_BUILD="2026-11-27v44-236b71";
 /* v43-236b37：以前版本一变就「清缓存 + location.reload()」，慢网/真机上等于多白屏 1~3 秒。
    现在页面本身就是新代码，不再重载；只让 Service Worker 在空闲时自己更新、清掉旧缓存，
    下次开启自然就是新版。 */
@@ -2881,7 +2881,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-27v44-236b70">
+<meta name="app-build" content="2026-11-27v44-236b71">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4720,7 +4720,7 @@ setTimeout(function(){
       <div class="set-group"><div class="set-row"><span class="set-label">网易云登录<div class="set-sub" id="ny-set-state">扫码或 Cookie 登录后可在音乐页听 VIP 完整歌曲</div></span><button class="small-btn" id="btn-ny-login" style="font-size:12px;padding:6px 12px;">登录</button></div></div>
       <!-- 系统 -->
       <div class="set-sec-title">系统</div>
-      <div class="set-group"><div class="set-row"><span class="set-label">流畅模式<div class="set-sub">关闭毛玻璃模糊，减少低配机/APK 的滑动卡顿；APK 默认开启，网页默认关闭</div></span><button class="switch" id="sw-perf"></button></div><div class="set-row"><span class="set-label">作者声明<div class="set-sub">使用条款、借鉴说明与联系方式</div></span><button class="small-btn ghost" id="btn-about" style="white-space:nowrap;">查看</button></div><div class="set-row"><span class="set-label">更新公告<div class="set-sub">不再自动弹出，想看时点右边查看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div><div class="set-row"><span class="set-label">站内刷新<div class="set-sub">重新载入页面；聊天、字卡、设置、头像和图片都不会被清空</div></span><button class="small-btn" id="btn-e11-refresh" style="white-space:nowrap;">刷新</button></div></div>
+      <div class="set-group"><div class="set-row"><span class="set-label">流畅模式<div class="set-sub">关闭毛玻璃模糊，减少低配机/APK 的滑动卡顿；APK 默认开启，网页默认关闭</div></span><button class="switch" id="sw-perf"></button></div><div class="set-row"><span class="set-label">作者声明<div class="set-sub">使用条款、借鉴说明与联系方式</div></span><button class="small-btn ghost" id="btn-about" style="white-space:nowrap;">查看</button></div><div class="set-row"><span class="set-label">更新公告<div class="set-sub">不再自动弹出，想看时点右边查看</div></span><button class="small-btn ghost" id="btn-announce" style="white-space:nowrap;">查看</button></div><div class="set-row"><span class="set-label">使用说明<div class="set-sub">每个功能是做什么的、怎么用</div></span><button class="small-btn ghost" id="btn-help" style="white-space:nowrap;">查看</button></div><div class="set-row"><span class="set-label">站内刷新<div class="set-sub">重新载入页面；聊天、字卡、设置、头像和图片都不会被清空</div></span><button class="small-btn" id="btn-e11-refresh" style="white-space:nowrap;">刷新</button></div></div>
 <div class="set-sec-title">安装到桌面</div>
       <div class="set-group">
         <div class="set-row"><span class="set-label">PWA 安装状态<div class="set-sub" id="pwa-state">检查中…</div></span><button class="small-btn" id="btn-pwa-install" style="font-size:12px;padding:6px 12px;">安装</button></div>
@@ -6029,6 +6029,17 @@ setTimeout(function(){
     </div>
     <div class="an-body" id="an-body"></div>
     <div class="an-foot"><button class="an-btn" id="an-ok">我知道了</button></div>
+  </div>
+</div>
+<div class="announce-screen" id="help-screen">
+  <div class="an-card">
+    <div class="an-head">
+      <span class="an-badge">使用说明</span>
+      <div class="an-title">每个功能怎么用</div>
+      <div class="an-ver">按板块整理，从上往下看就行</div>
+    </div>
+    <div class="an-body" id="help-body"></div>
+    <div class="an-foot"><button class="an-btn" id="help-ok">关闭</button></div>
   </div>
 </div>
 <div class="about-screen" id="about-screen">
@@ -9283,17 +9294,27 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 只留这一版真正改动的几条，一屏读完 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v43-236b25",
-  time:"2026-11-26 17:35",
+  date:"v44-236b71",
+  time:"2026-11-27 05:20",
   noticeKey:null,
-  lead:"",
-  items:[
-    "所有改动自动落盘；麦克风被占用会自动重试。",
-    "写信自动存草稿：写一半退出或更新，回来接着写。",
-    "声明页不再先闪出聊天页，页面缩放只算一次固定保存。",
-    "更新不跳声明和密码，更新页只留 4 条。",
+  lead:"一句话：把「语音录不上」和「旧版不更新」两个老问题修掉，再补一页功能说明；已存的聊天、名字、背景一律不动。",
+  groups:[
+    {t:"修复",items:[
+      "语音录不上（InvalidStateError）：按下时先取了一次流，长按成立后又取第二条，iOS 把“同一条麦克风被并发请求”判成非法状态。现在改成复用同一份流、绝不再发第二条；万一还是失败，会先停掉所有音频轨道、等系统释放后重试，最多三次。",
+      "旧版 PWA 不更新：老版本自身没有升级逻辑，只能手动清缓存。现在新版后台组件接管时，会主动把窗口导航到线上最新页；页面也会继续比对版本号自动重载，不用再开两次。",
+      "桌面编辑条文字：改回「恢复图片 / 恢复大小 / 恢复图标 / 完成」，窄屏自动排两行，不会再被挤成一字一行。",
+    ]},
+    {t:"新增",items:[
+      "设置 → 使用说明：按板块写清每个功能是干什么的、怎么点，随时可以翻。",
+    ]},
+    {t:"优化",items:[
+      "消息去重扫描改成先比对指纹，没变化就跳过，不再每 15 秒全表遍历。",
+      "更新前自动备份加了 2.6MB 上限，图片多的时候也不会写不进去。",
+      "离线状态跳过自动升版，避免清完缓存白屏。",
+    ]},
   ],
-  foot:""
+  items:[],
+  foot:"聊天记录、字卡、名字、签名、背景全部保留；APK 顶栏仍为透明，只有网页会白/黑跟随主题。"
 };
 /* ===== 版本号自动 = 文件最后修改时间 =====
    以后只要换了 index.html（哪怕只改一个字），版本号自己就变：
@@ -9330,9 +9351,17 @@ function renderAnnounce(){
   __syncBuildLabel();
   var v=document.getElementById("an-ver"),b=document.getElementById("an-body");
   if(v)v.textContent="版本 "+(ANNOUNCE.time||ANNOUNCE.ver)+" · "+ANNOUNCE.date;
-  if(b)b.innerHTML=(ANNOUNCE.lead?'<div class="an-lead">'+ANNOUNCE.lead+'</div>':"")
-    +ANNOUNCE.items.map(function(t){return '<div class="an-item">'+t+'</div>';}).join("")
-    +(ANNOUNCE.foot?'<div class="an-foot-note">'+ANNOUNCE.foot+'</div>':"");
+  if(!b)return;
+  var it=function(t){return '<div class="an-item">'+t+'</div>';};
+  var html=ANNOUNCE.lead?'<div class="an-lead">'+ANNOUNCE.lead+'</div>':"";
+  if(ANNOUNCE.groups&&ANNOUNCE.groups.length){
+    html+=ANNOUNCE.groups.map(function(g){
+      return '<span class="an-gt">'+g.t+'</span>'+g.items.map(it).join("");
+    }).join("");
+  }
+  if(ANNOUNCE.items&&ANNOUNCE.items.length)html+=ANNOUNCE.items.map(it).join("");
+  if(ANNOUNCE.foot)html+='<div class="an-foot-note">'+ANNOUNCE.foot+'</div>';
+  b.innerHTML=html;
 }
 function __e11AnnounceFit(){
   var el=document.getElementById("announce-screen");
@@ -15101,6 +15130,13 @@ window.__e11NameLockApply=function(quiet){
     if(!cur)return Promise.resolve(false);
     return _updFetch("https://222h99.github.io/Elevenx11/version.json?t="+Date.now().toString(36),2600).then(function(b){
       if(!b||b===cur)return false;
+      /* v44-236b71：只认「比自己新」的版本号。刚发布到 CDN、GitHub 还没推上去的那几分钟，
+         线上 version.json 还是旧的一版；若不比较序号，会把已经是最新的页面又刷回旧版。 */
+      try{
+        var _bn=function(x){var m=/b(\d+)/.exec(String(x||""));return m?parseInt(m[1],10):0;};
+        var _cn=_bn(cur),_nn=_bn(b);
+        if(_cn&&_nn&&_nn<=_cn)return false;
+      }catch(_eBn){}
       try{if(sessionStorage.getItem("e11.upd."+b)==="1")return false;}catch(_){}
       try{console.info("[E11] 发现新版",b,"当前",cur);}catch(_){}
       _go(b);
@@ -37198,9 +37234,10 @@ setTimeout(function(){
   /* v44-236b66：编辑条挪到底部固定栏的位置（原来贴在顶部，会挡住状态栏/被挤成两行） */
   bar.style.cssText='position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:2147482000;display:none;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px;background:rgba(255,255,255,.94);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);padding:8px 10px;border-radius:18px;box-shadow:0 8px 24px rgba(0,0,0,.16);max-width:calc(100vw - 20px);box-sizing:border-box;';
   var _barBtn=(id,label,bg,fg,strong)=>'<button id="'+id+'" style="border:none;background:'+bg+';padding:7px 12px;border-radius:14px;font-size:12px;font-weight:600;color:'+fg+';white-space:nowrap;flex:0 0 auto;line-height:1.2;min-width:0;">'+label+'</button>';
-  bar.innerHTML=_barBtn("me1-reset-img","照片","rgba(0,0,0,.06)","#333")
-    +_barBtn("me1-reset-photo","大小","rgba(0,0,0,.06)","#333")
-    +_barBtn("me1-reset-app","图标","rgba(0,0,0,.06)","#333")
+  /* v44-236b71：按用户要求恢复完整文字。窄屏放得下就一行，放不下自动折两行，不再压成竖排。 */
+  bar.innerHTML=_barBtn("me1-reset-img","恢复图片","rgba(0,0,0,.06)","#333")
+    +_barBtn("me1-reset-photo","恢复大小","rgba(0,0,0,.06)","#333")
+    +_barBtn("me1-reset-app","恢复图标","rgba(0,0,0,.06)","#333")
     +_barBtn("me1-done","完成","#007aff","#fff",1);
   document.body.appendChild(bar);
   var _iconHintShown=false;
@@ -42035,6 +42072,90 @@ body{margin:0;background:var(--bg,#fafafa);}
     show();
     try{if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(window.__e11DiagText());}catch(_){}
   },true);
+})();
+</script>
+<script>
+/* v44-236b71：设置 → 使用说明。按板块写清每个功能的作用和操作方式。
+   内容和代码分开维护，以后加功能只要往 HELP 里补一条。 */
+(function(){
+  var HELP=[
+    {g:"主页桌面",items:[
+      "<b>布局</b>：头像、昵称、签名、照片卡、唱片组件、底部固定栏都在这一页；长按空白处可进入桌面编辑。",
+      "<b>图标编辑</b>：长按某个图标，点底部编辑条的「恢复图片」换这一张图、「恢复大小」调它的大小、「恢复图标」恢复默认，最后点「完成」退出。",
+      "<b>卡片</b>：照片卡、唱片等长按可换图或换大小；桌面比例按当前屏幕算一次就记住，换了组件大小想重排，点「恢复大小」会重新自适应。",
+    ]},
+    {g:"聊天与语音",items:[
+      "<b>发送</b>：底部输入框打字发送；「+」里可以发图片、表情、字卡、信件、位置等，面板分两页，左右滑动切换。",
+      "<b>语音</b>：按住麦克风键开始录、松手发送；轻点一下也可以开始，再点一次结束。第一次用要允许麦克风，网页请点地址栏允许，APK 到系统设置里给「麦克风」权限。",
+      "<b>消息操作</b>：长按气泡弹出 iMessage 小菜单，可复制、撤回、删除；撤回只影响本机显示，不会把对方那条删掉。",
+      "<b>模拟来电</b>：设置里可调来信/来电节奏，弹出来时点接听会进入模拟通话界面。",
+    ]},
+    {g:"字卡",items:[
+      "<b>生成</b>：把想说的话做成卡片，可换字体、换底色、调字号，导出成图片或长图保存到相册。",
+      "<b>管理</b>：已生成的字卡在字卡列表里，长按可删除；删除后不会因为云端旧档又活过来。",
+    ]},
+    {g:"动态",items:[
+      "<b>发布</b>：发文字、配图，对方会以「动态」形式出现，可点赞、评论。",
+      "<b>提醒</b>：看过就标记已读，之后主页红点和顶部提醒条都不会再为它响；旧的已读记录也会被清掉，不会反复提醒。",
+    ]},
+    {g:"信件与留言",items:[
+      "<b>写信</b>：写一半退出会自动存草稿，回来接着写；发出去后对方会按你设的节奏回信。",
+      "<b>信纸</b>：设置里可选信纸颜色，白天夜间各自适配，不会出现黑底黑字。",
+      "<b>留言</b>：对方主页和留言板可以互相留言，留言也会进未读统计。",
+    ]},
+    {g:"一起听",items:[
+      "<b>作用</b>：和对方同步听同一首歌，可搜索、点播、切歌；网易云歌曲需要先在设置里登录 Cookie 才能放。",
+    ]},
+    {g:"外观与个性化",items:[
+      "<b>主题</b>：白天纯白、夜间纯黑，顶栏跟着变；APK 顶栏保持透明、由系统壁纸透出。",
+      "<b>背景</b>：主页、聊天、动态可以各换各的壁纸；换过的背景会存在本机，重启或更新都不会被顶回默认。",
+      "<b>字体</b>：设置里可换全局字体，也能上传自己的字体文件。",
+    ]},
+    {g:"数据、备份与更新",items:[
+      "<b>自动保存</b>：所有改动即时落盘，不需要手动保存；名字、签名、头像、图标都有单独的保护档，不会被旧云端档覆盖。",
+      "<b>备份</b>：设置里可导出/导入备份文件；更新前会自动留一份最近三版的快照。导出文件不含云端登录状态。",
+      "<b>更新</b>：打开会自动比对线上版本，有新版就重载一次到最新；设置里的「检查更新」可以手动再查，APK 会提示下载安装。",
+      "<b>门槛</b>：声明页和密码页每次退出网站再进都会重新出现；只是站内刷新或版本更新重载时不会再拦一次。",
+    ]},
+  ];
+  function build(){
+    var b=document.getElementById("help-body");
+    if(!b||b.getAttribute("data-built")==="1")return;
+    b.innerHTML=HELP.map(function(sec){
+      return '<span class="an-gt">'+sec.g+'</span>'+sec.items.map(function(t){return '<div class="an-item">'+t+'</div>';}).join("");
+    }).join("");
+    b.setAttribute("data-built","1");
+  }
+  function fit(){
+    var el=document.getElementById("help-screen");
+    if(!el)return;
+    try{
+      var vv=window.visualViewport;
+      var vh=Math.max(200,(vv&&vv.height)||window.innerHeight||0);
+      el.style.top=((vv&&vv.offsetTop)||0)+"px";
+      el.style.height=vh+"px";el.style.bottom="auto";
+      el.style.setProperty("--an-vh",vh+"px");
+    }catch(_e){}
+  }
+  function open(){
+    build();fit();
+    var el=document.getElementById("help-screen");
+    if(el)el.classList.add("show");
+    setTimeout(fit,120);setTimeout(fit,320);
+  }
+  function close(){
+    var el=document.getElementById("help-screen");
+    if(el)el.classList.remove("show");
+  }
+  document.addEventListener("click",function(e){
+    var t=e.target;
+    if(!t||!t.closest)return;
+    if(t.closest("#btn-help")){e.preventDefault();open();return;}
+    if(t.closest("#help-ok")){e.preventDefault();close();return;}
+    if(t.closest("#help-screen")&&!t.closest(".an-card")){e.preventDefault();close();}
+  },true);
+  window.__e11OpenHelp=open;
+  window.addEventListener("resize",function(){try{fit();}catch(_){}},{passive:true});
 })();
 </script>
 </body>
