@@ -174,6 +174,8 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
   /* v43-183z4：body 一建出来就先铺上和启动层同样的底色/明暗，避免 body 默认白底在深色下透出来。 */
   document.addEventListener("DOMContentLoaded",function(){
     try{if(document.body){document.body.style.background=window.__e11SysBg;document.body.classList.toggle("ui-dark",!!dark);}}catch(_eBodyBg){}
+    /* v44-236b56：body 一建好就先放上顶部保险带，别等 applySkin */
+    try{setTimeout(function(){window.__e11SyncTopStrip&&window.__e11SyncTopStrip();},0);}catch(_eStripBoot){}
   },{once:true});
   window.__bootDone=function(){
     /* v44-236b54：加载页阶段（等存档）不许撤，撤了就在声明页之前露出空白底 */
@@ -310,7 +312,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-27v44-236b55";
+window.__E11_BUILD="2026-11-27v44-236b56";
 /* v43-236b37：以前版本一变就「清缓存 + location.reload()」，慢网/真机上等于多白屏 1~3 秒。
    现在页面本身就是新代码，不再重载；只让 Service Worker 在空闲时自己更新、清掉旧缓存，
    下次开启自然就是新版。 */
@@ -2876,7 +2878,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-27v44-236b55">
+<meta name="app-build" content="2026-11-27v44-236b56">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -14955,10 +14957,39 @@ function __refreshStatusIcons(){
   }catch(e){}
 }
 window.__refreshStatusIcons=__refreshStatusIcons;
+try{
+  window.addEventListener("resize",function(){try{window.__e11SyncTopStrip&&window.__e11SyncTopStrip();}catch(_){}},{passive:true});
+  window.addEventListener("orientationchange",function(){setTimeout(function(){try{window.__e11SyncTopStrip&&window.__e11SyncTopStrip();}catch(_){}},260);},{passive:true});
+}catch(_eStripEv){}
 
 /* 顶栏（时间/信号/电量、浏览器工具条）只跟随「手机系统」明暗，不跟 App 内主题走 */window.__refreshStatusIcons=__refreshStatusIcons;
 
 /* 顶栏（时间/信号/电量、浏览器工具条）只跟随「手机系统」明暗，不跟 App 内主题走 */
+/* v44-236b56：PWA 顶部那条「保险带」。
+   不管底下的页面/视图是不是皮肤米色，都在最上面铺一条纯白（夜间纯黑）的固定元素，
+   iOS 的半透明状态栏只会吸到它，所以顶栏一定能白/能黑。
+   高度用探针元素实测 env(safe-area-inset-top)，不依赖 CSS 变量计算。 */
+window.__e11SyncTopStrip=function(){
+  try{
+    if(window.__E11_APK){
+      var _o=document.getElementById("e11-top-strip");if(_o&&_o.parentNode)_o.parentNode.removeChild(_o);
+      return;
+    }
+    if(!document.body)return;
+    var el=document.getElementById("e11-top-strip");
+    if(!el){el=document.createElement("div");el.id="e11-top-strip";document.body.appendChild(el);}
+    var pr=document.getElementById("e11-top-probe");
+    if(!pr){
+      pr=document.createElement("div");pr.id="e11-top-probe";
+      pr.style.cssText="position:fixed;top:0;left:0;width:1px;height:env(safe-area-inset-top);pointer-events:none;visibility:hidden;z-index:-1;";
+      document.body.appendChild(pr);
+    }
+    var _h=pr.offsetHeight||0;
+    window.__e11SafeTopPx=_h;
+    var _c=(typeof __e11SysBarColor==="function"?__e11SysBarColor():"#ffffff");
+    el.style.cssText="position:fixed;top:0;left:0;right:0;height:"+_h+"px;background:"+_c+";z-index:2147483000;pointer-events:none;";
+  }catch(_){}
+};
 function __syncSysBar(){
   try{__applyNativeSafeTop();}catch(_eSafeBar){}
   /* 夜间模式就是夜间：顶栏也按 App 当前明暗走，不再被手机系统反过来染成另一种颜色 */
@@ -14991,6 +15022,7 @@ function __syncSysBar(){
     document.documentElement.style.setProperty("--sysbar-bg",_barColor);
     document.body.style.setProperty("--sysbar-bg",_barColor);
   }catch(_){}
+  try{window.__e11SyncTopStrip&&window.__e11SyncTopStrip();}catch(_eStrip){}
   try{window.__lastSysDark=sysDark;}catch(e){}
   try{__refreshStatusIcons();}catch(_eStatusIco){}
 }
@@ -34137,7 +34169,7 @@ function initAbout(){
   window.__e11LoadingStage=1;
   window.__aboutReady=0;
   window.__holdBootReveal=1;
-  window.__bootRevealDeadline=Date.now()+4500;
+  window.__bootRevealDeadline=Date.now()+1400;
   try{$("about-screen").classList.remove("show");}catch(_eStageHideAbout){}
   try{var _bsub=document.getElementById("boot-sub");if(_bsub)_bsub.textContent="正在载入存档…";}catch(_eStageSub){}
   var _openAboutStage=function(){
@@ -34159,7 +34191,10 @@ function initAbout(){
   var _stageStart=Date.now();
   var _stageTick=function(){
     if(window.__aboutReady)return;
-    if(window._dbReady||Date.now()-_stageStart>4500){_openAboutStage();return;}
+    var _el=Date.now()-_stageStart;
+    /* v44-236b56：以前要等存档完全读完（慢机 3~5 秒），加载页就磨很久。
+       现在最多等 1.2 秒：读得快就提前放行（留 350ms 让加载页看得见），读得慢就先到声明页，存档在后台继续。 */
+    if((window._dbReady&&_el>350)||_el>1200){_openAboutStage();return;}
     setTimeout(_stageTick,80);
   };
   setTimeout(_stageTick,60);
