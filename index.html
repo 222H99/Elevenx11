@@ -4,7 +4,98 @@
      这样 iOS 在第一次布局前就能拿到 device-width，不再先按 980px 画一帧。 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimum-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
-<style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#ffffff;}body{visibility:hidden;}@media (prefers-color-scheme:dark){html,body{background:#000000;}}</style>
+<style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#ffffff;}body{visibility:hidden;}@media (prefers-color-scheme:dark){html,body{background:#000000;}}/* v44-236b83：编辑器预览标题/小字上下分开（后置覆盖，避免被前面的 bottom:26px 抢走） */
+#dce-preview .dce-t{bottom:19%!important;}
+#dce-preview .dce-sub{bottom:12%!important;left:12px!important;right:12px!important;text-align:left!important;}
+/* ===== v44-236b85：封面字回到平面（参考 b77 的写法，不要烫金/立体） ===== */
+.diary-cover .dc-t,
+.diary-cover.cv-photo .dc-t,
+.diary-cover.cv-plain .dc-t,
+#dce-preview .dce-t{
+  background:none!important;-webkit-background-clip:border-box!important;background-clip:border-box!important;
+  -webkit-text-fill-color:currentColor!important;
+  -webkit-text-stroke:0!important;
+  font-family:"Songti SC","Noto Serif SC",Georgia,serif!important;
+  font-weight:600!important;letter-spacing:.08em!important;
+  text-shadow:0 1px 2px rgba(0,0,0,.08)!important;
+  filter:none!important;
+}
+.diary-cover.cv-dark .dc-t,
+.diary-cover.cv-plain .dc-t{color:#1c1c1e!important;}
+.diary-cover.cv-dark .dc-t,
+.diary-cover.cv-plain.cv-dark .dc-t{color:#f2f2f7!important;}
+.diary-cover.cv-hasimg .dc-t,
+.diary-cover.cv-ink .dc-t,
+#dce-preview.cv-photo .dce-t{color:#ffffff!important;text-shadow:0 1px 8px rgba(0,0,0,.5)!important;}
+
+/* v44-236b93：页内直接跳去 TA 的这一页 */
+#diary-view .dp-meta{display:flex;align-items:center;gap:10px;}
+#diary-view .dp-gota{margin-left:auto;border:none;background:#f2f2f7;color:#0a84ff;font-size:11px;padding:4px 10px;border-radius:999px;font-family:inherit;}
+#diary-view .dp-gota:disabled{color:#8e8e93;}
+/* v44-236b91：TA 的页也能在底部直接回应 */
+#diary-view .dp-rbar{gap:10px;}
+#diary-view .dp-rin{flex:1 1 auto;min-width:0;border:none;background:#f2f2f7;color:#1c1c1e;border-radius:8px;padding:8px 12px;font-size:13px;font-family:inherit;}
+#diary-view .dp-rin::placeholder{color:#8e8e93;}
+#diary-view .dp-rin:focus{outline:none;background:#ececf0;}
+/* v44-236b90：心情回到右上角，点开选表情 */
+#diary-view .dp-user .dp-mood{border:none;margin-left:auto;margin-right:8px;background:#f2f2f7;color:#8e8e93;font-size:11px;padding:4px 10px;border-radius:999px;line-height:1.5;white-space:nowrap;}
+#diary-view .dp-user .dp-mood.on{background:#e5e5ea;color:#1c1c1e;}
+/* v44-236b89：底栏贴到纸页底部 */
+#diary-view .dp-foot{margin-top:auto;display:flex;flex-direction:column;gap:0;flex:0 0 auto;padding-bottom:2px;}
+/* 封面编辑器：写这本日记的时间范围 */
+#dce-daterow{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11px;color:#8e8e93;}
+#dce-daterow .dce-date-row{display:flex;align-items:center;gap:8px;}
+#dce-daterow .dce-date-lab{color:#8e8e93;}
+#dce-daterow input[type=date]{width:118px;box-sizing:border-box;background:#f2f2f7;border:1px solid rgba(0,0,0,.06);color:#1c1c1e;border-radius:10px;padding:7px 9px;font-size:12px;font-family:-apple-system,"SF Pro Text","PingFang SC",Helvetica,Arial,sans-serif;}
+#dce-daterow input[type=date]::-webkit-calendar-picker-indicator{opacity:.45;}
+/* v44-236b89：底栏 = 相机 svg + 心情按钮（点开选表情）+ 灰色发送 */
+#diary-view .dp-send{background:#8e8e93!important;color:#fff!important;flex:0 0 auto;white-space:nowrap;border-radius:8px;font-size:14px;font-weight:600;padding:8px 16px;}
+#diary-view .dp-ic{display:flex;align-items:center;padding:2px;}
+#diary-view .dp-moodbtn{flex:1 1 auto;min-width:0;text-align:left;border:none;background:#f2f2f7;color:#1c1c1e;border-radius:999px;font-size:12px;padding:7px 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#diary-view .dp-bar .sp{flex:0 0 4px;}
+#diary-view{position:relative;}
+#diary-view .dp-moodpop{position:absolute;right:12px;top:74px;width:min(84%,300px);max-height:210px;overflow:auto;background:rgba(255,255,255,.98);border:1px solid rgba(0,0,0,.08);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.16);padding:10px;display:none;z-index:40;}
+#diary-view .dp-moodpop.show{display:block;}
+#diary-view .dp-mp-t{font-size:11px;color:#8e8e93;margin:2px 4px 8px;}
+#diary-view .dp-mp-grid{display:flex;flex-wrap:wrap;gap:7px;}
+#diary-view .dp-mp-grid .dp-mp{border:none;background:#f2f2f7;color:#1c1c1e;border-radius:999px;font-size:11px;padding:5px 9px;}
+#diary-view .dp-mp-grid .dp-mp.on{background:#e5e5ea;color:#0a84ff;}
+#diary-view .diary-moods,#diary-view .diary-nav{display:none!important;}
+/* ===== 日记页：头像/名字/@id/正文/时间/私密/动作条 ===== */
+#diary-view .dp-tape{display:none!important;}
+#diary-view .dp-user{display:flex;align-items:center;gap:10px;padding:2px 2px 10px;}
+#diary-view .dp-uav{width:34px;height:34px;border-radius:50%;object-fit:cover;background:#E9E9EE;flex:0 0 auto;}
+#diary-view .dp-uinfo{min-width:0;flex:1;}
+#diary-view .dp-uname{font-size:15px;font-weight:600;color:#1c1c1e;line-height:1.25;font-family:-apple-system,"SF Pro Text","PingFang SC",Helvetica,Arial,sans-serif;}
+#diary-view .dp-uhandle{font-size:11px;color:#8e8e93;margin-top:1px;}
+#diary-view .dp-uclose{width:30px;height:30px;border-radius:50%;border:none;background:transparent;color:#8e8e93;font-size:20px;line-height:1;padding:0;}
+#diary-view .dp-utitle{width:100%;box-sizing:border-box;border:none;background:transparent;font-size:15px;font-weight:500;color:#1c1c1e;padding:6px 2px 10px;font-family:-apple-system,"SF Pro Text","PingFang SC",Helvetica,Arial,sans-serif;}
+#diary-view .dp-utitle::placeholder{color:#aeaeb2;font-weight:400;}
+#diary-view .dp-meta{display:flex;align-items:center;justify-content:space-between;padding:14px 2px 2px;font-size:11px;color:#aeaeb2;}
+#diary-view .dp-priv{display:inline-flex;align-items:center;gap:4px;color:#aeaeb2;}
+#diary-view .dp-acts{display:flex;gap:18px;padding:10px 2px 0;border-top:1px solid rgba(0,0,0,.05);margin-top:10px;}
+#diary-view .dp-act{border:none;background:transparent;color:#8e8e93;font-size:12px;padding:2px 0;}
+#diary-view .dp-act.on{color:#FF3B30;}
+#diary-view .dp-bar{display:flex;align-items:center;gap:12px;padding-top:10px;margin-top:8px;border-top:1px solid rgba(0,0,0,.06);}
+#diary-view .dp-ic{border:none;background:transparent;font-size:17px;padding:4px 2px;color:#0a84ff;}
+#diary-view .dp-bar .sp{flex:1;}
+#diary-view .dp-open{border:none;background:transparent;color:#8e8e93;font-size:12px;}
+#diary-view .dp-send{border:none;border-radius:8px;background:#34C759;color:#fff;font-size:14px;font-weight:600;padding:8px 16px;}
+#diary-view .dp-closebar{display:flex;justify-content:flex-end;padding:8px 2px 0;}
+#diary-view .dp-closebar button{border:none;background:#f2f2f7;color:#1c1c1e;border-radius:10px;font-size:12px;padding:7px 12px;}
+/* 内容区更像 IG 日记：没有信纸纹理、没有装饰 */
+#diary-view .dp-line,#diary-view .dp-brand{display:none!important;}
+#diary-view .dp-mine textarea{min-height:52vh;font-family:-apple-system,"SF Pro Text","PingFang SC",Helvetica,Arial,sans-serif!important;
+  font-size:15px;line-height:1.7;color:#1c1c1e;background:transparent;border:none;padding:4px 2px 0;}
+#diary-view .dp-date{font-size:11px;color:#aeaeb2;letter-spacing:.02em;}
+#diary-view .dp-mood{font-size:11px;color:#8e8e93;background:#f2f2f7;border-radius:999px;padding:3px 9px;}
+/* 隐藏贴纸与旧工具，保留心情 */
+#diary-view .dp-tip{display:none!important;}
+#diary-view #diary-photo{display:none!important;}
+#diary-view .diary-stk,#diary-view #diary-stickers,
+#diary-view #diary-stats-btn,#diary-view #diary-paper-pick,#diary-view #diary-paper-clear,
+#diary-view #diary-stk-undo,#diary-view .diary-actions{display:none!important;}
+</style>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -315,7 +406,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-27v44-236b77";
+window.__E11_BUILD="2026-11-27v44-236b96";
 /* v43-236b37：以前版本一变就「清缓存 + location.reload()」，慢网/真机上等于多白屏 1~3 秒。
    现在页面本身就是新代码，不再重载；只让 Service Worker 在空闲时自己更新、清掉旧缓存，
    下次开启自然就是新版。 */
@@ -2296,6 +2387,9 @@ body.ui-dark .invite-btn.no{background:rgba(255,255,255,.10);color:rgba(255,255,
 .mp-bio{font-size:13px;color:var(--ttext);padding:8px 18px 4px;word-break:break-word;line-height:1.55;white-space:pre-line;height:53px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
 .mp-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .mp-actions{display:flex;gap:8px;padding:10px 18px 14px;}
+/* v44-236b96：长列表（动态/留言/信件）卡片离屏不排版、不绘制，滚动只处理眼前几张。
+   content-visibility 不支持的旧浏览器会自动忽略这些声明，不改变原有外观。 */
+#moment-feed .moment-card,#note-list .qa-card,#letter-list .lt-card{content-visibility:auto;contain-intrinsic-size:auto 180px;}
 .moment-card{background:var(--glass,rgba(255,255,255,.45));-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);border:1px solid var(--glassborder,rgba(255,255,255,.6));box-shadow:inset 0 1px 0 var(--glassinner,rgba(255,255,255,.5)),0 8px 24px rgba(0,0,0,.08);border-radius:20px;overflow:hidden;}
 .moment-head{display:flex;align-items:center;gap:10px;padding:12px 14px;}
 .moment-head .mh-av{width:40px;height:40px;border-radius:50%;object-fit:cover;flex:0 0 auto;background:var(--panel);}
@@ -2565,6 +2659,34 @@ body.vrec-on .bottombar{opacity:0;pointer-events:none;}
 .vb-dur{font-size:12px;opacity:.62;}
 .voice-stt{margin-top:5px;max-width:238px;font-size:12px;line-height:1.45;opacity:.68;word-break:break-word;}
 
+/* v44-236b80：日记本架 —— 多本并排，像备忘录那样新建/切换 */
+#diary-shelf{position:fixed;inset:0;z-index:126;display:none;flex-direction:column;padding:max(10px,env(safe-area-inset-top)) 16px 20px;background:linear-gradient(180deg,#F7F2E9,#EFE7DC 60%,#E7DED1);color:#4A3A30;font-family:Georgia,"Songti SC",serif;}
+#diary-shelf.show{display:flex;}
+.ds-head{display:flex;align-items:center;justify-content:center;position:relative;padding:4px 2px 14px;font-size:16px;letter-spacing:.14em;}
+.ds-head button{border:none;background:rgba(255,255,255,.7);color:#4A3A30;border-radius:14px;min-width:38px;height:34px;font-size:15px;box-shadow:0 4px 12px rgba(120,95,80,.12);}
+.ds-grid{flex:1;overflow:auto;display:grid;grid-template-columns:repeat(2,1fr);gap:16px;align-content:start;padding:2px 2px 40px;-webkit-overflow-scrolling:touch;}
+.ds-card{position:relative;aspect-ratio:3/4;border-radius:6px 12px 12px 6px;overflow:hidden;box-shadow:0 10px 24px rgba(90,70,55,.22);display:flex;align-items:flex-end;cursor:pointer;}
+.ds-card .ds-img{position:absolute;inset:0;background-size:cover;background-position:center;}
+.ds-card .ds-spine{position:absolute;left:0;top:0;bottom:0;width:12px;background:linear-gradient(90deg,rgba(0,0,0,.22),rgba(0,0,0,0));z-index:2;}
+.ds-card .ds-meta{position:relative;z-index:3;padding:10px;width:100%;background:linear-gradient(0deg,rgba(0,0,0,.28),rgba(0,0,0,0));color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.35);}
+.ds-card .ds-name{font-size:15px;letter-spacing:.08em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ds-card .ds-range{font-size:11px;opacity:.9;margin-top:4px;}
+.ds-card.add{align-items:center;justify-content:center;background:rgba(255,255,255,.82);color:#B39C82;box-shadow:0 6px 18px rgba(120,95,80,.16);border:1px dashed rgba(150,120,90,.35);}
+.ds-card.add .ds-plus{width:54px;height:54px;border-radius:50%;background:#8e8e93;color:#fff;font-size:34px;line-height:50px;text-align:center;margin-bottom:10px;}
+.ds-new{position:fixed;inset:0;z-index:132;display:none;align-items:center;justify-content:center;background:rgba(20,14,10,.55);padding:18px;}
+.ds-new.show{display:flex;}
+.ds-new-card{width:100%;max-width:340px;background:#FBF6EE;border-radius:18px;padding:16px;box-shadow:0 20px 50px rgba(0,0,0,.35);}
+.ds-new-card h4{margin:0 0 10px;font-size:15px;color:#4A3A30;font-weight:600;}
+.ds-new-card input{width:100%;box-sizing:border-box;border:1px solid rgba(150,120,90,.3);background:#fff;border-radius:10px;padding:9px 11px;font-size:14px;color:#3A2E24;margin-bottom:8px;}
+.ds-new-card label{font-size:11px;color:#8C7460;display:block;margin:2px 0 4px;}
+.ds-date{display:flex;gap:8px;}
+.ds-date input{flex:1;margin:0 0 8px;}
+.ds-sws{display:flex;gap:8px;margin:2px 0 12px;}
+.ds-sws i{width:26px;height:26px;border-radius:50%;border:2px solid rgba(255,255,255,.6);box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);}
+.ds-sws i.on{border-color:#B98B54;box-shadow:0 0 0 3px rgba(185,139,84,.35);}
+.ds-new-btns{display:flex;gap:8px;}
+.ds-new-btns button{flex:1;border:none;border-radius:12px;padding:10px 0;font-size:14px;background:rgba(0,0,0,.06);color:#4A3A30;}
+.ds-new-btns button.primary{background:#B98B54;color:#fff;font-weight:600;}
 /* ================= 日记本 ================= */
 #diary-view{position:fixed;inset:0;z-index:120;display:none;flex-direction:column;
   background:radial-gradient(120% 80% at 50% 0%,#2b241f 0%,#17130f 55%,#0d0b09 100%);
@@ -2728,13 +2850,117 @@ body.vrec-on .bottombar{opacity:0;pointer-events:none;}
 .diary-cover .dc-cta{position:absolute;z-index:7;left:18px;right:18px;bottom:54px;border:none;border-radius:24px;padding:11px 0;
   background:rgba(255,251,242,.92);color:#3A2C20;font-size:13px;letter-spacing:.06em;box-shadow:0 8px 20px rgba(0,0,0,.28);display:none;}
 .diary-cover .dc-cta.show{display:block;}
+/* ===== v44-236b81：iMessage 底色 + IG 极简封面 ===== */
+#diary-view{background:#fff;}
+#diary-view.cv-dark{background:#000;}
+#diary-view::after{display:none!important;}
+.diary-cover{box-shadow:none!important;border-radius:14px!important;padding:0!important;
+  border:1px solid rgba(0,0,0,.08);background:#fff;justify-content:flex-start;overflow:hidden;}
+.diary-cover::after{display:none!important;}
+.diary-cover.cv-dark{border-color:rgba(255,255,255,.12);background:#1c1c1e;}
+.diary-cover .dc-spine,
+.diary-cover .dc-tape,
+.diary-cover .dc-polaroid,
+.diary-cover .dc-scrim,
+.diary-cover .dc-doodle{display:none!important;}
+.diary-cover .dc-img{position:absolute;inset:0;background-size:cover;background-position:center;}
+.diary-cover .dc-t{display:block!important;position:absolute!important;left:22px;right:22px;bottom:92px;margin:0;
+  font-family:"Songti SC","Noto Serif SC",Georgia,serif;
+  font-size:24px;font-weight:800;letter-spacing:.08em;line-height:1.28;text-align:left;
+  color:#1c1c1e;text-shadow:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.diary-cover .dc-sub{display:block!important;position:absolute!important;left:22px;bottom:72px;margin:0;
+  font-family:-apple-system,"SF Pro Text",Helvetica,Arial,sans-serif;
+  font-size:10px;letter-spacing:.18em;color:#c7c7cc;text-transform:lowercase;}
+.diary-cover .dc-tip{display:none!important;}
+.diary-cover.cv-dark .dc-t{color:#f2f2f7;}
+.diary-cover.cv-dark .dc-sub{color:rgba(235,235,245,.5);}
+.diary-cover.cv-dark .dc-tip{color:rgba(235,235,245,.4);}
+.diary-cover.cv-hasimg .dc-t{color:#fff;text-shadow:0 1px 16px rgba(0,0,0,.6);}
+.diary-cover.cv-hasimg .dc-sub{color:rgba(255,255,255,.82);text-shadow:0 1px 12px rgba(0,0,0,.5);}
+.diary-cover.cv-hasimg .dc-tip{color:rgba(255,255,255,.85);text-shadow:0 1px 10px rgba(0,0,0,.55);}
+.diary-cover .dc-cta{left:20px;right:20px;bottom:20px;height:40px;line-height:40px;border-radius:20px!important;
+  background:rgba(255,255,255,.94);color:#0a84ff;font-size:13px;font-weight:600;letter-spacing:.02em;
+  box-shadow:none;border:1px solid rgba(0,0,0,.06);}
+.diary-cover.cv-dark .dc-cta{background:rgba(44,44,46,.92);color:#0a84ff;border-color:rgba(255,255,255,.1);}
+.diary-paper{box-shadow:none!important;border:1px solid rgba(0,0,0,.06);}
+.diary-book{filter:none!important;}
+#diary-view.cv-dark .diary-paper{background:#1c1c1e;border-color:rgba(255,255,255,.1);color:#f2f2f7;}
+#diary-view.cv-dark .dp-date{color:rgba(235,235,245,.6);}
+#diary-view.cv-dark .dp-mine textarea{color:#f2f2f7;}
+.ds-card{box-shadow:none!important;border-radius:14px!important;border:1px solid rgba(0,0,0,.08);}
+.ds-card.add .ds-plus{background:#8e8e93!important;}
+
+/* v44-236b82：日记本架也走 iMessage 底色 */
+#diary-shelf{background:#fff;color:#1c1c1e;font-family:-apple-system,"SF Pro Text","PingFang SC",Helvetica,Arial,sans-serif;}
+#diary-shelf.ds-dark{background:#000;color:#f2f2f7;}
+#diary-shelf .ds-card{box-shadow:none!important;border:1px solid rgba(0,0,0,.08);border-radius:14px!important;background:#fff;}
+#diary-shelf.ds-dark .ds-card{border-color:rgba(255,255,255,.12);background:#1c1c1e;}
+#diary-shelf .ds-card .ds-meta{background:none!important;padding:12px;}
+#diary-shelf .ds-card .ds-name{font-size:14px;font-weight:500;letter-spacing:.01em;color:#1c1c1e;}
+#diary-shelf .ds-card .ds-range{font-size:11px;color:#8e8e93;opacity:1;margin-top:3px;}
+#diary-shelf.ds-dark .ds-card .ds-name{color:#f2f2f7;}
+#diary-shelf .ds-card.ds-hasimg .ds-meta{background:linear-gradient(0deg,rgba(0,0,0,.42),rgba(0,0,0,0))!important;}
+#diary-shelf .ds-card.ds-hasimg .ds-name{color:#fff;}
+#diary-shelf .ds-card.ds-hasimg .ds-range{color:rgba(255,255,255,.82);}
+#diary-shelf .ds-card .ds-spine{display:none;}
+#diary-shelf .ds-card.add{background:#fff;border:1px dashed rgba(0,0,0,.16);box-shadow:none!important;}
+#diary-shelf.ds-dark .ds-card.add{background:#1c1c1e;border-color:rgba(255,255,255,.2);}
+
+/* v44-236b83：书架卡片按封面的样子显示 */
+#diary-shelf .ds-card .ds-t{position:absolute;left:14px;right:14px;bottom:30px;z-index:3;
+  font-family:-apple-system,"SF Pro Text","PingFang SC",Helvetica,Arial,sans-serif;font-size:14px;font-weight:500;
+  letter-spacing:0;color:#1c1c1e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#diary-shelf .ds-card .ds-sub{position:absolute;left:14px;bottom:18px;z-index:3;
+  font-family:-apple-system,"SF Pro Text",Helvetica,Arial,sans-serif;font-size:8px;letter-spacing:.16em;color:#c7c7cc;}
+#diary-shelf .ds-card .ds-range{position:absolute;left:14px;bottom:8px;z-index:3;font-size:8px;color:#aeaeb2;}
+#diary-shelf.ds-dark .ds-card .ds-t{color:#f2f2f7;}
+#diary-shelf.ds-dark .ds-card .ds-sub{color:rgba(235,235,245,.5);}
+#diary-shelf.ds-dark .ds-card .ds-range{color:rgba(235,235,245,.4);}
+#diary-shelf .ds-card.ds-hasimg .ds-t{color:#fff;text-shadow:0 1px 12px rgba(0,0,0,.55);}
+#diary-shelf .ds-card.ds-hasimg .ds-sub{color:rgba(255,255,255,.8);}
+#diary-shelf .ds-card.ds-hasimg .ds-range{color:rgba(255,255,255,.7);}
+#diary-shelf .ds-head>#ds-back{position:absolute;left:0;top:0;background:#fff;border:1px solid rgba(0,0,0,.08);box-shadow:none;color:#1c1c1e;}
+#diary-shelf.ds-dark .ds-head>#ds-back{background:#1c1c1e;border-color:rgba(255,255,255,.14);color:#f2f2f7;}
+#diary-shelf .ds-card .ds-img{display:block;position:absolute;inset:0;background-size:cover;background-position:center;}
+
+/* v44-236b83：编辑器精简成 iMessage 风，只留名字 / 小字 / 换图 */
+#diary-cover-edit{background:#ffffff!important;}
+#diary-cover-edit.dce-dark{background:#000000!important;}
+#dce-styles,#dce-pens,#dce-sizes,
+#dce-cleardraw,#dce-bigger,#dce-smaller,#dce-flip{display:none!important;}
+#dce-colors{display:flex!important;flex-wrap:wrap;gap:8px;align-items:center;}
+#dce-colors .dce-lab{font-size:11px;color:#8e8e93;}
+#dce-colors .dce-sw{width:26px;height:26px;border-radius:50%;border:1px solid rgba(0,0,0,.1);}
+#dce-colors .dce-sw[data-auto]{background:linear-gradient(135deg,#ffffff 0 50%,#1c1c1e 50% 100%);}
+#dce-colors .dce-sw.on{box-shadow:0 0 0 2px #0a84ff;}
+#dce-title{display:block!important;}
+#dce-title,#dce-sub{background:#f2f2f7!important;border:1px solid rgba(0,0,0,.06)!important;color:#1c1c1e!important;
+  border-radius:12px!important;font-family:-apple-system,"SF Pro Text","PingFang SC",Helvetica,Arial,sans-serif!important;}
+#diary-cover-edit.dce-dark #dce-title,#diary-cover-edit.dce-dark #dce-sub{background:#1c1c1e!important;border-color:rgba(255,255,255,.12)!important;color:#f2f2f7!important;}
+#dce-pick,#dce-clearimg,#dce-cancel{background:#f2f2f7!important;color:#1c1c1e!important;border:1px solid rgba(0,0,0,.06)!important;box-shadow:none!important;border-radius:12px!important;}
+#dce-save{background:#0a84ff!important;color:#fff!important;border:none!important;box-shadow:none!important;border-radius:12px!important;}
+#diary-cover-edit.dce-dark #dce-pick,#diary-cover-edit.dce-dark #dce-clearimg,#diary-cover-edit.dce-dark #dce-cancel{background:#1c1c1e!important;color:#f2f2f7!important;border-color:rgba(255,255,255,.12)!important;}
+
 /* 编辑器 */
-#dce-preview{background:#EAD9BE;}
+#dce-preview{background:#fff;box-shadow:none;border:1px solid rgba(0,0,0,.08);border-radius:14px;}
+#dce-preview.cv-dark{background:#1c1c1e;border-color:rgba(255,255,255,.12);}
+#dce-preview .dce-t{position:absolute!important;display:block!important;left:12px;right:12px;bottom:19%;z-index:3;
+  text-align:left!important;font-family:-apple-system,"SF Pro Text","PingFang SC",Helvetica,Arial,sans-serif!important;
+  font-size:12px!important;letter-spacing:0!important;color:#1c1c1e!important;text-shadow:none!important;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#dce-preview .dce-sub{position:absolute!important;left:12px;bottom:12%;z-index:3;text-align:left!important;
+  font-family:-apple-system,"SF Pro Text",Helvetica,Arial,sans-serif!important;font-size:8px!important;
+  letter-spacing:.16em!important;color:#c7c7cc!important;}
+#dce-preview.cv-dark .dce-t{color:#f2f2f7!important;}
+#dce-preview.cv-dark .dce-sub{color:rgba(235,235,245,.5)!important;}
+#dce-preview.cv-photo .dce-t{color:#fff!important;text-shadow:0 1px 12px rgba(0,0,0,.5)!important;}
+#dce-preview.cv-photo .dce-sub{color:rgba(255,255,255,.8)!important;}
+#dce-preview .dce-scrim{display:none!important;}
 #dce-preview .dce-scrim{position:absolute;inset:0;z-index:1;opacity:0;background:linear-gradient(180deg,rgba(255,252,246,0) 38%,rgba(255,250,242,.55) 100%);}
 #dce-preview.cv-photo .dce-scrim{opacity:1;}
 #dce-preview .dce-t{position:absolute;z-index:3;left:0;right:0;bottom:26px;text-align:center;font-family:Georgia,"Songti SC",serif;font-size:14px;color:#5A4430;letter-spacing:.16em;}
 #dce-preview.cv-photo .dce-t{color:#4A3A30;text-shadow:none;}
-#dce-preview .dce-t{display:none!important;}
+/* v44-236b83：标题要显示 */
 #dce-preview .dce-sub{position:absolute;left:16px;right:16px;bottom:13%;z-index:3;text-align:left;
   font-family:"Snell Roundhand","Hannotate SC",cursive;font-size:17px;color:#5A4430;}
 #dce-preview.cv-photo .dce-sub{color:#4A3A30;text-shadow:none;}
@@ -2769,12 +2995,32 @@ body.vrec-on .bottombar{opacity:0;pointer-events:none;}
 .dp-mine textarea,.dp-partner .dpp-txt{font-family:"Hannotate SC","Kaiti SC","Songti SC",serif;}
 .dp-partner.skin{background:linear-gradient(150deg,rgba(255,255,255,.42),rgba(255,255,255,.18));backdrop-filter:blur(16px) saturate(160%);
   border:1px solid rgba(255,255,255,.7);padding:10px;border-radius:16px;box-shadow:inset 0 1px 0 rgba(255,255,255,.7);}
-/* 封面只显示英文 */
-.diary-cover .dc-t{display:none!important;}
-.diary-cover .dc-sub{position:absolute;left:0;right:0;bottom:15%;z-index:3;text-align:center;text-transform:none;
-  font-family:"Snell Roundhand","Hannotate SC",cursive;font-size:24px;letter-spacing:.06em;text-transform:none;
-  color:#5A4430;text-shadow:0 1px 0 rgba(255,255,255,.55);}
-.diary-cover.cv-photo .dc-sub{left:22px;right:22px;bottom:20.5%;text-align:left;color:rgba(58,44,34,.88);text-shadow:none;}
+/* v44-236b82：封面恢复「名字 + 一行小字」，系统字体、左对齐（原来的英文花体已去掉） */
+.diary-cover .dc-t{display:block!important;}
+.diary-cover .dc-sub{position:absolute;left:22px;right:22px;bottom:72px;z-index:3;text-align:left;text-transform:none;
+  font-family:-apple-system,"SF Pro Text","PingFang SC",Helvetica,Arial,sans-serif;font-size:10px;letter-spacing:.18em;
+  color:#c7c7cc;text-shadow:none;}
+.diary-cover.cv-photo .dc-sub{left:22px;right:22px;bottom:72px;text-align:left;color:#c7c7cc;text-shadow:none;}
+/* 覆盖 .cv-photo 的高优先级（它比基础选择器多一个类，样式会赢） */
+.diary-cover .dc-t,
+.diary-cover.cv-photo .dc-t,
+.diary-cover.cv-plain .dc-t{display:block!important;position:absolute!important;left:22px;right:22px!important;bottom:100px!important;
+  font-family:-apple-system,"SF Pro Text","PingFang SC",Helvetica,Arial,sans-serif!important;
+  font-size:18px!important;font-weight:500!important;letter-spacing:0!important;line-height:1.3!important;
+  text-align:left!important;text-transform:none!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  color:#1c1c1e!important;text-shadow:none!important;}
+.diary-cover.cv-dark .dc-t,.diary-cover.cv-dark.cv-photo .dc-t{color:#f2f2f7!important;}
+.diary-cover.cv-hasimg .dc-t,.diary-cover.cv-hasimg.cv-photo .dc-t{color:#ffffff!important;text-shadow:0 1px 16px rgba(0,0,0,.55)!important;}
+.diary-cover.cv-dark .dc-sub,.diary-cover.cv-dark.cv-photo .dc-sub{color:rgba(235,235,245,.5)!important;}
+.diary-cover.cv-hasimg .dc-sub,.diary-cover.cv-hasimg.cv-photo .dc-sub{color:rgba(255,255,255,.8)!important;}
+.diary-cover.cv-hasimg .dc-img{display:block!important;}
+.diary-cover.cv-hasimg .dc-cta{background:rgba(0,0,0,.46)!important;color:#fff!important;border-color:rgba(255,255,255,.26)!important;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);}
+.diary-cover .dc-sub,
+.diary-cover.cv-photo .dc-sub,.diary-cover.cv-plain .dc-sub{display:block!important;position:absolute!important;
+  left:22px!important;right:22px!important;bottom:78px!important;margin:0!important;z-index:3;
+  font-family:-apple-system,"SF Pro Text",Helvetica,Arial,sans-serif!important;
+  font-size:10px!important;letter-spacing:.16em!important;text-transform:lowercase!important;
+  text-align:left!important;color:#c7c7cc!important;text-shadow:none!important;}
 /* 月底小结 */
 .ds-mask{position:absolute;inset:0;z-index:40;display:none;align-items:center;justify-content:center;background:rgba(8,6,5,.5);backdrop-filter:blur(10px);padding:24px;}
 .ds-mask.show{display:flex;}
@@ -2881,7 +3127,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-27v44-236b77">
+<meta name="app-build" content="2026-11-27v44-236b96">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4741,7 +4987,7 @@ setTimeout(function(){
             <button class="small-btn ghost" data-fsz="4" style="font-size:12px;padding:6px 10px;">特大</button>
           </div>
         </div>
-        <div class="set-row"><span class="set-label">界面字体<div class="set-sub">聊天、设置和主页；日记、信纸保留原手写体</div></span>
+        <div class="set-row"><span class="set-label">界面字体<div class="set-sub">聊天、设置和主页</div></span>
           <select class="sel" id="set-font-family" style="flex:0 1 142px;min-width:118px;padding:7px 6px;">
             <option value="system">系统默认</option>
             <option value="pingfang">苹方黑体</option>
@@ -4767,8 +5013,8 @@ setTimeout(function(){
               </div>
       <div class="font-preview" id="font-preview"><span class="fp-tag">预览</span>今天也要好好生活 · Eleven×11 0123</div>
       <div class="set-group">
-        <div class="set-row"><span class="set-label">日记：TA 套用我的内页<div class="set-sub">3% 概率，TA 那半页会用你设置的内页图片；关掉后永远用自己的纸</div></span><button class="switch on" id="sw-diary-skin"></button></div>
-                <div class="set-row"><span class="set-label">日记：对方每页字卡数<div class="set-sub">TA 写一页时随机抽几句，1–50 句</div></span><input class="set-input" id="set-diary-cards" type="number" min="1" max="50" value="11"></div>
+        <div class="set-row" style="display:none!important;"><span class="set-label">日记：TA 套用我的内页<div class="set-sub">3% 概率，TA 那半页会用你设置的内页图片；关掉后永远用自己的纸</div></span><button class="switch on" id="sw-diary-skin"></button></div>
+                <div class="set-row" style="display:none!important;"><span class="set-label">日记：对方每页字卡数<div class="set-sub">TA 写一页时随机抽几句，1–50 句</div></span><input class="set-input" id="set-diary-cards" type="number" min="1" max="50" value="11"></div>
         <div class="set-row"><span class="set-label">聊天页显示头像<div class="set-sub">关掉后聊天页和导出的长图都不显示头像</div></span><button class="switch on" id="sw-chat-avatar"></button></div>
         <div class="set-row"><span class="set-label">头像大小<div class="set-sub">聊天里双方头像的尺寸</div></span><input type="range" id="set-chat-av" min="20" max="48" step="2" style="flex:1;max-width:140px;margin-left:auto;"><button class="small-btn ghost" id="reset-chat-av" style="font-size:12px;padding:6px 10px;flex:0 0 auto;">恢复默认</button></div>
         <div class="set-row"><span class="set-label">消息框大小<div class="set-sub">文字气泡的字号与内边距</div></span><input type="range" id="set-chat-bub" min="80" max="140" step="5" style="flex:1;max-width:140px;margin-left:auto;"><button class="small-btn ghost" id="reset-chat-bub" style="font-size:12px;padding:6px 10px;flex:0 0 auto;">恢复默认</button></div>
@@ -5478,7 +5724,7 @@ setTimeout(function(){
         <button class="plus-item" id="plus-image"><span class="pi-ic"><svg class="icon"><use xlink:href="#i-image"/></svg></span><span class="pi-lab">发图片</span></button>
         <button class="plus-item" id="plus-survey"><span class="pi-ic"><svg class="icon"><use xlink:href="#i-survey"/></svg></span><span class="pi-lab">问卷</span></button>
         <button class="plus-item" id="plus-redpacket"><span class="pi-ic"><svg class="icon"><use xlink:href="#i-redpacket"/></svg><span class="ndot hidden"></span></span><span class="pi-lab">红包</span></button>
-        <button class="plus-item" id="plus-diary"><span class="pi-ic"><svg class="icon"><use xlink:href="#i-note"/></svg></span><span class="pi-lab">日记本</span></button>
+        <button class="plus-item" id="plus-diary" style="display:none!important;"><span class="pi-ic"><svg class="icon"><use xlink:href="#i-note"/></svg></span><span class="pi-lab">日记本</span></button>
         <button class="plus-item" id="plus-fav"><span class="pi-ic"><svg class="icon" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round"><path d="M12 3.2l2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg></span><span class="pi-lab">收藏夹</span></button>
         <button class="plus-item" id="plus-cards"><span class="pi-ic"><svg class="icon"><use xlink:href="#i-card"/></svg></span><span class="pi-lab">字卡板块</span></button>
         <button class="plus-item" id="plus-game"><span class="pi-ic"><svg class="icon"><use xlink:href="#i-paint"/></svg></span><span class="pi-lab">接力画画</span></button>
@@ -9600,6 +9846,19 @@ function __e11OpenNotice(view,mid){
       window.__momWantPartner=1;
       if(target)window._momentFocusId=target.id;
       if(typeof showView==="function")showView("view-moments");
+      /* v44-236b96：以前只切视图，没真正滚到那条，点提醒进来永远停在最上面。
+         现在补一次重铺 + 定位，并像「进对方主页」一样不回顶。 */
+      try{
+        mpSide="partner";window.__momWantPartner=1;
+        if(typeof renderMoments==="function")renderMoments();
+        var _b=document.querySelector("#view-moments .v-body");
+        if(_b&&target)_b.scrollTop=0;
+        var _f=target&&target.id;
+        if(_f&&typeof focusMomentCard==="function"){
+          setTimeout(function(){try{focusMomentCard(_f);}catch(_){}},120);
+          setTimeout(function(){try{focusMomentCard(_f);}catch(_){}},560);
+        }
+      }catch(_){}
       return true;
     }
     if(view==="letters"||view==="view-letters"){if(typeof showView==="function")showView("view-letters");return true;}
@@ -16735,7 +16994,17 @@ function __msgRowRaw(m){
     }
     if(m.type==="sys"){
       if(m.kind==="steal"){html+='<div class="msg-steal" data-id="'+m.id+'"><div class="ms-box"><span class="ms-ic">🫳</span><span>'+esc(m.text)+'</span></div></div>';return html;}
-      var _mAttr=m.momentId?(' data-mom="'+esc(m.momentId)+'" data-mcm="'+esc(m.commentId||"")+'" style="cursor:pointer"'):'';
+      var _momGo=(function(){
+        if(m.commentId)return "";
+        if(m.momentId)return m.momentId;
+        if(/新动态/.test(String(m.text||""))){
+          var _ps=(state&&state.moments?state.moments:[]).filter(function(x){return x&&x.from==="partner";});
+          if(_ps.length)_ps.sort(function(a,b){return (Number(b.time)||0)-(Number(a.time)||0);});
+          return _ps.length?_ps[0].id:"";
+        }
+        return "";
+      })();
+      var _mAttr=m.momentId?(' data-mom="'+esc(m.momentId)+'" data-mcm="'+esc(m.commentId||"")+'" style="cursor:pointer"'):(_momGo?(' data-momgo="'+esc(_momGo)+'" style="cursor:pointer"'):'');
       html+='<div class="msg-sys" data-id="'+m.id+'"'+_mAttr+'>'+esc(m.text)+'</div>';return html;
     }
     if(m.type==="survey"){html+=surveyRowHTML(m);return html;}
@@ -17121,7 +17390,7 @@ function __rebuildSocialNotices(){
     }
     if(unreadL&&!flags[0])pushMsg("partner","sys","📮 对方给你写了封信",{quiet:true});
     if(unreadN&&!flags[1])pushMsg("partner","sys","💬 对方给你留言了",{quiet:true});
-    if(unreadM&&!flags[2])pushMsg("partner","sys","📷 对方发了一条新动态",{quiet:true});
+    if(unreadM&&!flags[2]){var _mp=(state.moments||[]).filter(function(x){return x&&x.from==="partner";}).sort(function(a,b){return (Number(b.time)||0)-(Number(a.time)||0);})[0];pushMsg("partner","sys","📷 对方发了一条新动态",{quiet:true,momentId:_mp?_mp.id:""});}
     if(unreadC&&!flags[3])pushMsg("partner","sys","💬 对方评论了你的动态",{quiet:true,momentId:commentTarget?commentTarget.mid:"",commentId:commentTarget?commentTarget.cid:""});
     if(unreadR&&!flags[4])pushMsg("partner","sys","💬 对方回复了你的评论",{quiet:true,momentId:replyTarget?replyTarget.mid:"",commentId:replyTarget?replyTarget.cid:""});
     if(had||unreadL||unreadN||unreadM||unreadC||unreadR){try{save();__flushSave();}catch(e){};window.__chatDirty=1;}
@@ -19641,7 +19910,7 @@ function catchUpSocial(){
         if(comAdd){var _cid=pushMsg("partner","sys",comAdd>1?("💬 对方评论了你的动态（"+comAdd+" 条）"):"💬 对方评论了你的动态",{quiet:true});__appendChatMsg(_cid);}
       }catch(e){}
       try{
-        if(momAdd){var _mid=pushMsg("partner","sys",momAdd>1?("📷 对方发了 "+momAdd+" 条新动态"):"📷 对方发了一条新动态",{quiet:true});__appendChatMsg(_mid);}
+        if(momAdd){var _mp2=(state.moments||[]).filter(function(x){return x&&x.from==="partner";}).sort(function(a,b){return (Number(b.time)||0)-(Number(a.time)||0);})[0];var _mid=pushMsg("partner","sys",momAdd>1?("📷 对方发了 "+momAdd+" 条新动态"):"📷 对方发了一条新动态",{quiet:true,momentId:_mp2?_mp2.id:""});__appendChatMsg(_mid);}
       }catch(e){}
       try{
         if(noteAdd){var _nid=pushMsg("partner","sys",noteAdd>1?("💬 对方给你留了 "+noteAdd+" 条留言"):"💬 对方给你留言了",{quiet:true});__appendChatMsg(_nid);}
@@ -33384,6 +33653,10 @@ try{
   if(!window.__momCommentTapBound){
     window.__momCommentTapBound=1;
     document.addEventListener("click",function(e){
+      var elGo=e.target&&e.target.closest?e.target.closest("#msglist [data-momgo]"):null;
+      if(elGo){try{__e11OpenNotice("view-moments",elGo.getAttribute("data-momgo")||"");}catch(_){}
+        var _msg=elGo.closest&&elGo.closest(".msg-sys");if(_msg)_msg.style.cursor="";
+        return;}
       var el=e.target&&e.target.closest?e.target.closest("#msglist [data-mom]"):null;
       if(!el)return;
       if(__msgSelOn)return;
@@ -33441,6 +33714,190 @@ function __e11MomMarkRead(list){
   return list;
 }
 window.__e11MomMarkRead=__e11MomMarkRead;
+/* v44-236b80：日记本架（多本）
+   一本 = 一个 id 前缀。页还是存在 state.diary.pages 里（键变成 "b1|2026-11-27"），
+   所以云端合并、自动备份、救援、导出全部照旧可用，不用改存档结构。
+   每本自己带：名字、封面（底色/图片）、可写的起止时间。 */
+(function(){
+  var COLORS=["#CDBFD6","#E9D3B8","#B9C8D6","#D8C0C6","#C6D2BE","#D9C6A6"];
+  var DEFAULT_COVER=function(){return {color:"",img:"",doodle:"",title:"我们的日记",sub:"our diary",style:"photo",done:false,__ts:0};};
+  function st(){return (typeof state!=="undefined"&&state)?state:null;}
+  function D(){
+    var S=st();if(!S)return null;
+    if(!S.diary||typeof S.diary!=="object")S.diary={};
+    if(!S.diary.pages||typeof S.diary.pages!=="object")S.diary.pages={};
+    return S.diary;
+  }
+  function saveNow(){
+    try{if(window.save)save();}catch(_){}
+    try{if(window.__flushSave)window.__flushSave(true);}catch(_){}
+    try{if(window.__bgPersistNow)window.__bgPersistNow();}catch(_){}
+  }
+  function ensure(){
+    var d=D();if(!d)return null;
+    /* 旧档迁移：没有前缀的页全部归到第一本 */
+    if(!(d.books instanceof Array)||!d.books.length){
+      var pages=d.pages||{};
+      Object.keys(pages).forEach(function(k){
+        if(String(k).indexOf("|")<0){pages["b1|"+k]=pages[k];delete pages[k];}
+      });
+      var c=(d.cover&&typeof d.cover==="object")?d.cover:DEFAULT_COVER();
+      d.books=[{id:"b1",title:String(c.title||"我们的日记"),cover:JSON.parse(JSON.stringify(c)),from:"",to:"",createdAt:Date.now()}];
+    }
+    d.books.forEach(function(b){
+      if(!b.id)b.id="b"+Math.random().toString(36).slice(2,6);
+      if(!b.title)b.title="未命名日记本";
+      if(!b.cover||typeof b.cover!=="object")b.cover=DEFAULT_COVER();
+    });
+    var cur=String(window.__e11CurDiaryBookId||localStorage.getItem("e11.diaryBook")||"");
+    if(!cur||!d.books.some(function(b){return b.id===cur;}))cur=d.books[0].id;
+    window.__e11CurDiaryBookId=cur;try{localStorage.setItem("e11.diaryBook",cur);}catch(_){}
+    /* 当前这本的封面就是 state.diary.cover（日记页读的是它），切换时由 openBook 负责换 */
+    var bk=book(cur);
+    if(bk){
+      if(!d.cover||typeof d.cover!=="object")d.cover=JSON.parse(JSON.stringify(bk.cover));
+    }
+    return d;
+  }
+  function book(id){
+    var d=D();if(!d||!(d.books instanceof Array))return null;
+    return d.books.filter(function(b){return b&&b.id===id;})[0]||null;
+  }
+  function rangeText(b){
+    var f=String(b.from||""),t=String(b.to||"");
+    if(f&&t)return f.replace(/-/g,".")+" – "+t.replace(/-/g,".");
+    if(f)return f.replace(/-/g,".")+" 起";
+    if(t)return "截至 "+t.replace(/-/g,".");
+    return "未设定时间";
+  }
+  function pageCount(b){
+    var d=D();if(!d)return 0;var pfx=b.id+"|";var n=0;
+    Object.keys(d.pages||{}).forEach(function(k){if(String(k).indexOf(pfx)===0)n++;});
+    return n;
+  }
+  function paint(){
+    var d=ensure();if(!d)return;
+    var g=document.getElementById("ds-grid");if(!g)return;
+    g.innerHTML="";
+    d.books.forEach(function(b){
+      var c=b.cover||{};
+      var el=document.createElement("div");
+      el.className="ds-card";el.setAttribute("data-book",b.id);
+      /* v44-236b82：卡片也用主题底色（白天纯白 / 夜间 #1c1c1e）；有图就是那张图。
+         文案改成 iMessage 灰字，不再压一层黑渐变。 */
+      var _dk=false;try{_dk=!!(window.__effectiveDark&&window.__effectiveDark());}catch(_eDkCard){}
+      if(_dk)el.classList.add("ds-dark");
+      if(c.img)el.classList.add("ds-hasimg");
+      var _isDarkBg=!!(c.img)||String(c.color||"").toLowerCase()==="#1c1c1e";
+      if(_isDarkBg)el.classList.add("ds-hasimg");
+      el.innerHTML='<div class="ds-img"></div>'+
+        '<div class="ds-t">'+String(b.title||"未命名").replace(/</g,"&lt;")+'</div>'+
+        '<div class="ds-sub">'+(c.sub?String(c.sub).replace(/</g,"&lt;"):"our diary")+'</div>'+
+        '<div class="ds-range">'+rangeText(b)+'</div>';
+      try{
+        var _im=el.firstChild;
+        if(c.img){_im.style.backgroundImage="url(\""+String(c.img)+"\")";}
+        else{_im.style.background=(c.color||(_dk?"#1c1c1e":"#ffffff"));}
+      }catch(_eImg){}
+      g.appendChild(el);
+    });
+    var add=document.createElement("div");
+    add.className="ds-card add";add.id="ds-add-card";
+    /* v44-236b81：点＋直接建一本并打开，不再先填名字/日期/颜色 */
+    add.onclick=function(e){try{e.preventDefault();e.stopPropagation();}catch(_){}createQuick();};
+    add.innerHTML='<div style="text-align:center"><div class="ds-plus">＋</div><div style="font-size:13px;color:#8e8e93;letter-spacing:.06em;">新建日记本</div></div>';
+    g.appendChild(add);
+  }
+  function openBook(id){
+    var d=ensure();if(!d)return;
+    var b=book(id);if(!b)return;
+    /* 先把现在这本改过的封面存回去，再切到目标这本 */
+    try{
+      var curId=String(window.__e11CurDiaryBookId||"");
+      var cb=book(curId);
+      if(cb&&d.cover&&typeof d.cover==="object")cb.cover=JSON.parse(JSON.stringify(d.cover));
+    }catch(_){}
+    window.__e11CurDiaryBookId=b.id;try{localStorage.setItem("e11.diaryBook",b.id);}catch(_){}
+    var cov=JSON.parse(JSON.stringify(b.cover||DEFAULT_COVER()));
+    if(!cov.title)cov.title=b.title||"我们的日记";
+    cov.title=b.title||cov.title;
+    d.cover=cov;
+    saveNow();
+    closeShelf();
+    try{window.__diaryOpen();}catch(_){}
+  }
+  function closeShelf(){
+    var el=document.getElementById("diary-shelf");if(el)el.classList.remove("show");
+  }
+  function openShelf(){
+    ensure();paint();
+    var el=document.getElementById("diary-shelf");
+    if(el){
+      var _dk=false;try{_dk=!!(window.__effectiveDark&&window.__effectiveDark());}catch(_eSdk){}
+      el.classList.toggle("ds-dark",!!_dk);
+      el.classList.add("show");
+    }
+  }
+  function newSheet(){
+    var sheet=document.getElementById("ds-new-sheet");if(!sheet)return;
+    document.getElementById("ds-in-name").value="";
+    document.getElementById("ds-in-from").value="";
+    document.getElementById("ds-in-to").value="";
+    var sws=document.getElementById("ds-sws");sws.innerHTML="";
+    var pick=COLORS[0];
+    COLORS.forEach(function(c,i){
+      var i2=document.createElement("i");i2.style.background=c;i2.setAttribute("data-c",c);
+      if(i===0)i2.className="on";
+      i2.onclick=function(){pick=c;[].forEach.call(sws.children,function(x){x.className="";});i2.className="on";};
+      sws.appendChild(i2);
+    });
+    sheet.classList.add("show");
+    window.__e11DsPick=function(){return pick;};
+  }
+  /* v44-236b81：一键新建。名字先用「日记 N」，进去后点封面设置再改；
+     不预设颜色、不预设日期——封面跟主题走，日期想限定再改。 */
+  function createQuick(){
+    var d=ensure();if(!d)return;
+    var id="b"+(Date.now().toString(36)+Math.random().toString(36).slice(2,4));
+    var n=(d.books||[]).length+1;
+    var title="日记 "+n;
+    var cover=DEFAULT_COVER();
+    cover.title=title;cover.sub="our diary";cover.img="";cover.done=false;
+    d.books.push({id:id,title:title,cover:cover,from:"",to:"",createdAt:Date.now(),__ts:Date.now()});
+    try{document.getElementById("ds-new-sheet")&&document.getElementById("ds-new-sheet").classList.remove("show");}catch(_){}
+    saveNow();
+    openBook(id);
+  }
+  function createBook(){
+    var name=String(document.getElementById("ds-in-name").value||"").trim();
+    var from=String(document.getElementById("ds-in-from").value||"");
+    var to=String(document.getElementById("ds-in-to").value||"");
+    var color=(window.__e11DsPick&&window.__e11DsPick())||COLORS[0];
+    var d=ensure();if(!d)return;
+    var id="b"+(Date.now().toString(36)+Math.random().toString(36).slice(2,4));
+    var cover=DEFAULT_COVER();
+    cover.color=color;cover.title=name||("日记 "+(d.books.length+1));
+    cover.sub="our diary";
+    cover.img="";cover.done=false;
+    d.books.push({id:id,title:name||cover.title,cover:cover,from:from,to:to,createdAt:Date.now(),__ts:Date.now()});
+    document.getElementById("ds-new-sheet").classList.remove("show");
+    saveNow();
+    openBook(id);
+  }
+  document.addEventListener("click",function(e){
+    var t=e.target;if(!t||!t.closest)return;
+    if(t.closest("#ds-back")){e.preventDefault();closeShelf();try{showView("view-chat");}catch(_){}return;}
+    if(t.closest("#ds-new")){e.preventDefault();createQuick();return;}
+    if(t.closest("#ds-cancel")){e.preventDefault();document.getElementById("ds-new-sheet").classList.remove("show");return;}
+    if(t.closest("#ds-ok")){e.preventDefault();createBook();return;}
+    var card=t.closest(".ds-card[data-book]");
+    if(card){e.preventDefault();openBook(card.getAttribute("data-book"));return;}
+    var sid=t.closest("#diary-shelf");if(sid&&!t.closest(".ds-card")&&!t.closest(".ds-head"))return;
+  },true);
+  window.__e11DiaryShelfOpen=function(){};
+  window.__e11DiaryBookOpen=function(){};
+  window.__e11DiaryBooksEnsure=ensure;
+})();
 /* v44-236b75：退出前是什么样，进来就什么样。
    1) 切页、锁屏、退到后台、更新重载前都写一遍“当前页 + 聊天滚动位置”；
    2) 聊天里滚动时节流保存，避免只记住刚进来那一下。 */
@@ -39719,6 +40176,31 @@ window.__e11CheckVersion=check;
 })();</script>
 <!-- 真实 manifest.json 已在 head 里引用；不再注入 data URL manifest，避免浏览器装到旧图标/旧方向 -->
 
+<div id="diary-shelf">
+  <div class="ds-head">
+    <button id="ds-back">‹</button>
+    <span>日记本</span>
+    <!-- v44-236b83：顶栏右上角的＋去掉了，只用卡片里那个灰＋新建 -->
+  </div>
+  <div class="ds-grid" id="ds-grid"></div>
+</div>
+<div class="ds-new" id="ds-new-sheet">
+  <div class="ds-new-card">
+    <h4>新建日记本</h4>
+    <input id="ds-in-name" maxlength="18" placeholder="名字，例如：2026 冬天">
+    <label>写这本的时间（可留空）</label>
+    <div class="ds-date">
+      <input id="ds-in-from" type="date">
+      <input id="ds-in-to" type="date">
+    </div>
+    <label>封面底色</label>
+    <div class="ds-sws" id="ds-sws"></div>
+    <div class="ds-new-btns">
+      <button id="ds-cancel">取消</button>
+      <button id="ds-ok" class="primary">建好并打开</button>
+    </div>
+  </div>
+</div>
 <div id="diary-view">
   <div class="diary-head">
     <button id="diary-close">‹</button>
@@ -39801,6 +40283,10 @@ window.__e11CheckVersion=check;
   <div class="dce-row" id="dce-styles"></div>
   <input class="text-input" id="dce-title" style="display:none;" placeholder="封面标题" style="width:min(70vw,260px);padding:8px 12px;border-radius:10px;font-size:13px;">
   <input class="text-input" id="dce-sub" placeholder="封面英文名，比如 our diary" style="width:min(70vw,260px);padding:8px 12px;border-radius:10px;font-size:12px;">
+  <div class="dce-date" id="dce-daterow">
+    <span class="dce-date-lab">写这本的时间</span>
+    <div class="dce-date-row"><input type="date" id="dce-from"><span class="dce-date-sep">—</span><input type="date" id="dce-to"></div>
+  </div>
   <div class="dce-row" id="dce-pens"></div>
   <div class="dce-row" id="dce-sizes"></div>
   <div class="dce-row" id="dce-colors"></div>
@@ -39970,9 +40456,9 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
   function D(){
     if(!state.diary||typeof state.diary!=="object")state.diary={};
     var d=state.diary;
-    if(!d.cover||typeof d.cover!=="object")d.cover={color:"#F3E3C8",img:"",doodle:"",title:"我们的日记",sub:"our diary",style:"photo",done:false,__ts:0};
+    if(!d.cover||typeof d.cover!=="object")d.cover={color:"",img:"",doodle:"",title:"我们的日记",sub:"our diary",style:"photo",done:false,__ts:0};
     if(d.cover.__ts==null)d.cover.__ts=0;
-    if(d.cover.color==null)d.cover.color="#F3E3C8";
+    if(d.cover.color==null)d.cover.color="";
     if(!d.pages||typeof d.pages!=="object")d.pages={};
     return d;
   }
@@ -39980,17 +40466,33 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
   function esc(t){return String(t==null?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
   function baseKey(k){return String(k).split("#")[0];}
   function isPartnerKey(k){return String(k).indexOf("#p")>=0;}
-  function keyDate(k){var a=baseKey(k).split("-");return new Date(Number(a[0]),Number(a[1]),Number(a[2]),12).getTime()||0;}
+  function keyDate(k){var a=__dbare(baseKey(k)).split("-");return new Date(Number(a[0]),Number(a[1]),Number(a[2]),12).getTime()||0;}
+  function fmtStamp(ts){
+    try{
+      var d=new Date(Number(ts)||Date.now());
+      var p=function(n){return (n<10?"0":"")+n;};
+      return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate())+" "+p(d.getHours())+":"+p(d.getMinutes());
+    }catch(_){return "";}
+  }
   function keyLabel(k){
-    var a=baseKey(k).split("-");var d=new Date(Number(a[0]),Number(a[1]),Number(a[2]),12);
+    var a=__dbare(baseKey(k)).split("-");var d=new Date(Number(a[0]),Number(a[1]),Number(a[2]),12);
     var now=new Date();var s=(d.getMonth()+1)+"月"+d.getDate()+"日";
     if(d.getFullYear()!==now.getFullYear())s=d.getFullYear()+"年"+s;
     return s;
   }
+  /* v44-236b80：一本日记对应一个前缀（b1|2026-11-27），多本共用一份 pages，
+     云端/备份/救援全都当普通字符串合并，不用改任何存档结构。 */
+  function __dpfx(){try{var id=String(window.__e11CurDiaryBookId||"b1");return id+"|";}catch(_){return "b1|";}}
+  function __dbare(k){var t=String(k);var i=t.indexOf("|");return i>=0?t.slice(i+1):t;}
+  window.__e11DiaryPrefix=__dpfx;
   function keys(){
     var d=D(),pages=d.pages||{},tk=dayKey(Date.now()),bys={},out=[];
-    Object.keys(pages).forEach(function(k){var b=baseKey(k);(bys[b]=bys[b]||{})[isPartnerKey(k)?"p":"m"]=k;});
-    bys[tk]=bys[tk]||{};bys[tk].m=tk;
+    var pfx=__dpfx();
+    Object.keys(pages).forEach(function(k){
+      if(String(k).indexOf(pfx)!==0)return; /* 只取当前这本的页 */
+      var b=__dbare(baseKey(k));(bys[b]=bys[b]||{})[isPartnerKey(k)?"p":"m"]=k;
+    });
+    bys[tk]=bys[tk]||{};bys[tk].m=pfx+tk;
     Object.keys(bys).sort(function(a,b){return keyDate(a)-keyDate(b);}).forEach(function(b){
       if(bys[b].m)out.push(bys[b].m);
       if(bys[b].p)out.push(bys[b].p);
@@ -40005,7 +40507,7 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
     return p;
   }
   function moodOf(e){for(var i=0;i<MOODS.length;i++)if(MOODS[i].e===e)return MOODS[i];return MOODS[0];}
-  function todayKey(){return dayKey(Date.now());}
+  function todayKey(){return __dpfx()+dayKey(Date.now());}
   /* 旧存档里 TA 的页可能没有 unlockAt，0 会被当成“已解锁”，导致我刚保存完 TA 的回应立刻跳出来。
      这里按写入时间补 6 小时解锁；没有写入时间就用 TA 正文时间，仍没有才用当前时间。 */
   function __fixDiaryUnlock(p){
@@ -40043,12 +40545,40 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
   function paintCover(){
     var d=D().cover;
     var cov=el("diary-cover");if(!cov)return;
-    cov.style.background=d.color||"#F3E3C8";
+    /* v44-236b81：封面不再用选色调色盘。没设图就是主题底色（白天纯白 / 夜间 #1c1c1e），
+       设了图就是那张图，整张铺满，不加任何胶带、拍立得、条形码装饰。 */
+    var _dk=false;try{_dk=!!(window.__effectiveDark&&window.__effectiveDark());}catch(_eDk){}
+    cov.style.background=d.img?"#000000":(d.color||(_dk?"#1c1c1e":"#ffffff"));
+    try{
+      var _dv=el("diary-view");
+      if(_dv){_dv.classList.toggle("cv-dark",!!_dk);_dv.style.background=_dk?"#000000":"#ffffff";}
+      cov.classList.toggle("cv-dark",!!_dk);
+      cov.classList.toggle("cv-hasimg",!!d.img);
+      var _ink=false;
+      try{
+        if(d.img){_ink=true;}
+        else{
+          var _hex=String(d.color||"").replace("#","");
+          if(_hex.length===6){
+            var _r=parseInt(_hex.slice(0,2),16),_g=parseInt(_hex.slice(2,4),16),_b=parseInt(_hex.slice(4,6),16);
+            _ink=((_r*299+_g*587+_b*114)/1000)<140;
+          }else{_ink=!!_dk;}
+        }
+      }catch(_eInk){_ink=!!_dk;}
+      cov.classList.toggle("cv-ink",!!_ink);
+    }catch(_eDv){}
     cov.classList.remove("cv-photo","cv-taped","cv-plain");
     cov.classList.add("cv-"+(d.style||"taped"));
     el("dc-img").style.backgroundImage=d.img?"url(\""+d.img+"\")":"none";
     var _dd=el("dc-doodle");if(_dd)_dd.style.backgroundImage="none";
     el("dc-t").textContent=d.title||"我们的日记";
+    /* v44-236b82：顶栏标题跟着当前这本走，不再永远写「我们的日记」 */
+    try{
+      var _bk=null;try{_bk=typeof book==="function"?book(window.__e11CurDiaryBookId):null;}catch(_eb){}
+      var _nm=(_bk&&_bk.title)||d.title||"我们的日记";
+      var _hm=document.querySelector("#diary-view .dh-mid");if(_hm)_hm.textContent=_nm;
+      var _dv=el("diary-view");if(_dv)_dv.setAttribute("data-book",String(window.__e11CurDiaryBookId||""));
+    }catch(_e2){}
     var _sub=el("dc-sub");if(_sub)_sub.textContent=normSub(d.sub);
     el("dc-tip").textContent=d.done?"轻点翻开":"先完成封面";
     var cta=el("dc-cta");if(cta)cta.classList.toggle("show",!d.done);
@@ -40064,9 +40594,8 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
     curKey=ks[curIdx];
     var pg=pageOf(curKey);
     var isP=pg.author==="partner";
-    /* TA 提前写好的未来页：不用等到那一天，也不用等 6 小时，直接可读 */
-    var _isFuturePage=keyDate(baseKey(curKey))>keyDate(todayKey());
-    var lockedP=isP&&!_isFuturePage&&Number(pg.unlockAt||0)>Date.now();
+    /* v44-236b92：TA 的页一律写完 6 小时后才能看，提前写也一样，不给“提前偷看”的口子 */
+    var lockedP=isP&&Number(pg.unlockAt||0)>Date.now();
     /* v43-150：TA 的回应不在我保存时提前生成。
        只有我已经写完今天这一页、并且真的翻到 TA 那一页看过了，才在这里补回应。 */
     if(isP&&!lockedP&&mineWritten(curKey)){
@@ -40077,7 +40606,20 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
     }
     var mood=moodOf(isP?(pg.partner&&pg.partner.mood)||"":(pg.mine.mood||""));
     var paper=el("diary-paper");
-    var head='<div class="dp-tape"></div><div class="dp-inner"><div style="display:flex;justify-content:space-between;align-items:center;"><div class="dp-date">'+keyLabel(curKey)+(isP?' · TA 的页':'')+'</div><div class="dp-mood">'+(isP?mood.e+" "+esc(mood.n):(pg.mine.mood?mood.e+" "+esc(mood.n):"今天的心情"))+'</div></div><div class="dp-line"></div><div class="dp-brand">our diary</div>';
+    /* v44-236b84：日记页改成「主页同款头像 + 名字 + @id」的卡片，下面是正文、时间、私密 */
+    var _me=(state&&state.me)||{},_prf=(state&&state.profile)||{},_pa=(state&&state.partner)||{};
+    var _av=isP?String(_pa.avatar||""):String(_me.avatar||"");
+    if(!_av){try{_av=avatarSvg("#5AC8FA");}catch(_a){_av="";}}
+    var _nm=isP?String(_pa.name||"TA"):String(_me.name||"我");
+    var _hd=isP?String(_prf.partnerHandle||(_pa.name||"ta")):String(_prf.handle||"me");
+    var _moodTxt=(isP?mood.e+" "+esc(mood.n):(pg.mine.mood?mood.e+" "+esc(mood.n):"今天的心情"));
+    var head='<div class="dp-inner"><div class="dp-user"'+(isP?' style="pointer-events:none;"':'')+'>'+
+      '<img class="dp-uav" src="'+esc(_av)+'" alt="">'+
+      '<div class="dp-uinfo"><div class="dp-uname">'+esc(_nm)+'</div><div class="dp-uhandle">@'+esc(_hd)+'</div></div>'+
+      (isP?'<span class="dp-mood">'+_moodTxt+'</span>':'<button class="dp-mood" id="dp-moodpill" type="button">'+_moodTxt+'</button>')+
+      (isP?'':'<button class="dp-uclose" id="dp-x" aria-label="关闭">×</button>')+
+    '</div>'+
+    (isP?'':'<input class="dp-utitle" id="dp-title" maxlength="30" placeholder="标题（可选）" value="'+esc(pg.mine.title||"")+'">');
     /* 照片不再浮在纸面上压字：跟「TA 的回应」一样进正文流，写多少字都不会被盖住 */
     var photosHtml="";
     if(!lockedP&&(pg.photos||[]).length){
@@ -40126,11 +40668,121 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
       var _myPhotos=photosHtml;
       var _tipTxt=String(pg.mine.text||"").trim()
         ? (partnerWritten(curKey)?(partnerUnlocked(curKey)?"翻看过 TA 的日记后，TA 的回应才会出现":"TA 也写了一页 · 6 小时后交换完成才能一起看"):"已经保存好，TA 会在今天补写一页（写完 6 小时后解锁）")
-        : "写完点「保存这一页」";
-      bodyHtml='<div class="dp-diary-block"><div class="dp-mine"><textarea id="diary-mine" placeholder="今天想写点什么…">'+esc(pg.mine.text||"")+'</textarea>'+_myPhotos+'<div class="dp-tip">'+_tipTxt+'</div></div></div>'+(taReplyHtml?'<div class="dp-reply-block">'+taReplyHtml+'</div>':'')+partnerHtml;
+        : "";
+      bodyHtml='<div class="dp-diary-block"><div class="dp-mine"><textarea id="diary-mine" placeholder="写点些什么吧">'+esc(pg.mine.text||"")+'</textarea>'+_myPhotos+'<div class="dp-tip">'+_tipTxt+'</div></div></div>'+(taReplyHtml?'<div class="dp-reply-block">'+taReplyHtml+'</div>':'')+partnerHtml;
     }
     if(photosHtml&&isP)bodyHtml+=photosHtml;
-    paper.innerHTML=head+bodyHtml+'</div><div id="dp-photo-layer" style="position:absolute;inset:0;pointer-events:none;"></div><div id="dp-stick-layer" style="position:absolute;inset:0;pointer-events:none;"></div>';
+    var _ts=Number((isP?(pg.partner&&pg.partner.time):(pg.mine.time))||0)||Date.now();
+    var _gotoTa=(!isP&&partnerWritten(curKey));
+    var foot='<div class="dp-meta"><span class="dp-time">'+fmtStamp(_ts)+'</span>'+
+      (_gotoTa?('<button class="dp-gota" id="dp-gota">TA 的这一页 ›</button>'):'')+'</div>';
+    if(isP){
+      foot+='<div class="dp-acts"><button class="dp-act'+(pg.__liked?" on":"")+'" data-dpact="like">'+(pg.__liked?"♥ 已喜欢":"♡ 喜欢")+'</button></div>';
+      if(!lockedP&&exchangeReady(curKey)){
+        var _rv=String((pg.reply&&pg.reply.text)||"");
+        foot+='<div class="dp-bar dp-rbar">'+
+          '<button class="dp-ic" id="dp-rcam" aria-label="照片">'+
+            '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#8e8e93" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+
+            '<path d="M4 8.5h2.6l1.4-2h8l1.4 2H20a1.6 1.6 0 0 1 1.6 1.6v9.3A1.6 1.6 0 0 1 20 19.4H4A1.6 1.6 0 0 1 2.4 17.8v-9.3A1.6 1.6 0 0 1 4 8.5z"></path>'+
+            '<circle cx="12" cy="13.6" r="3.4"></circle></svg></button>'+
+          '<input class="dp-rin" id="dp-reply-in" maxlength="120" placeholder="回应一句…" value="'+esc(_rv)+'">'+
+          '<button class="dp-send" id="dp-rsend">'+"发送"+'</button></div>';
+      }
+    }else{
+      foot+='<div class="dp-acts"><button class="dp-act'+(pg.mine.liked?" on":"")+'" data-dpact="like">'+(pg.mine.liked?"♥ 已喜欢":"♡ 喜欢")+'</button></div>'+
+            '<div class="dp-bar">'+
+              '<button class="dp-ic" id="dp-cam" aria-label="照片">'+
+                '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#8e8e93" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+
+                '<path d="M4 8.5h2.6l1.4-2h8l1.4 2H20a1.6 1.6 0 0 1 1.6 1.6v9.3A1.6 1.6 0 0 1 20 19.4H4A1.6 1.6 0 0 1 2.4 17.8v-9.3A1.6 1.6 0 0 1 4 8.5z"></path>'+
+                '<circle cx="12" cy="13.6" r="3.4"></circle></svg></button>'+
+              '<div class="sp"></div>'+
+              '<button class="dp-send" id="dp-send">'+"发送"+'</button></div>'+
+            '';
+    }
+    paper.innerHTML=head+bodyHtml+'<div class="dp-foot">'+foot+'</div></div><div id="dp-photo-layer" style="position:absolute;inset:0;pointer-events:none;"></div><div id="dp-stick-layer" style="position:absolute;inset:0;pointer-events:none;"></div>';
+    try{
+      var _x=paper.querySelector("#dp-x");if(_x)_x.onclick=function(e){e.stopPropagation();try{if(window.__diaryClose)window.__diaryClose();else el("diary-close").click();}catch(_){}};
+      var _tt=paper.querySelector("#dp-title");if(_tt)_tt.oninput=function(){var p3=pageOf(curKey);p3.mine.title=this.value;clearTimeout(_tt.__sv);_tt.__sv=setTimeout(function(){save();},500);};
+      var _like=paper.querySelector('[data-dpact="like"]');
+      if(_like)_like.onclick=function(e){e.stopPropagation();var p3=pageOf(curKey);
+        if(isP){p3.__liked=!p3.__liked;}else{p3.mine.liked=!p3.mine.liked;}save();renderPage();};
+      var _cam=paper.querySelector("#dp-cam");if(_cam)_cam.onclick=function(e){e.stopPropagation();try{window.__nativePick("diary-photo-file");}catch(_){}};
+      if(!paper.__moodBound){paper.__moodBound=1;paper.addEventListener("pointerdown",function(e){
+        var _t=e.target&&e.target.closest?e.target.closest("#dp-moodpill"):null;
+        if(!_t){
+          var _mb=document.getElementById("dp-moodpill");
+          if(_mb){var _r=_mb.getBoundingClientRect();
+            if(e.clientX>=_r.left-6&&e.clientX<=_r.right+6&&e.clientY>=_r.top-6&&e.clientY<=_r.bottom+6)_t=_mb;}
+        }
+        if(!_t){
+          var _pp=document.getElementById("dp-moodpop");if(_pp)_pp.classList.remove("show");
+          var _pt=function(id){var n=document.getElementById(id);if(!n)return null;var r=n.getBoundingClientRect();
+            return (e.clientX>=r.left-6&&e.clientX<=r.right+6&&e.clientY>=r.top-6&&e.clientY<=r.bottom+6)?n:null;};
+          var _sb=_pt("dp-send")||_pt("dp-rsend");if(_sb){e.preventDefault();e.stopPropagation();_sb.click();return;}
+          var _rcb=_pt("dp-rcam");if(_rcb){e.preventDefault();e.stopPropagation();_rcb.click();return;}
+          var _cb=_pt("dp-cam");if(_cb){e.preventDefault();e.stopPropagation();_cb.click();return;}
+          var _lb=_pt("dp-moodpill");if(_lb){e.preventDefault();e.stopPropagation();_lb.dispatchEvent(new Event("pointerdown",{bubbles:true}));return;}
+          return;
+        }
+        e.preventDefault();e.stopPropagation();
+        var _dv=document.getElementById("diary-view"),pop=document.getElementById("dp-moodpop");
+        if(!pop){
+          pop=document.createElement("div");pop.className="dp-moodpop";pop.id="dp-moodpop";
+          pop.innerHTML='<div class="dp-mp-t">今天的心情</div><div class="dp-mp-grid">'+
+            MOODS.map(function(m){return '<button class="dp-mp" data-dpm="'+m.e+'">'+m.e+' '+m.n+'</button>';}).join("")+
+            '</div>';
+          _dv.appendChild(pop);
+          pop.addEventListener("pointerdown",function(ev){
+            var t=ev.target&&ev.target.closest?ev.target.closest("[data-dpm]"):null;
+            if(!t)return;
+            ev.preventDefault();ev.stopPropagation();
+            var p3=pageOf(curKey),v=t.getAttribute("data-dpm");
+            p3.mine.mood=(p3.mine.mood===v?"":v);
+            pop.classList.remove("show");save();renderPage();
+          });
+        }
+        var cur=(pageOf(curKey).mine||{}).mood||"";
+        pop.querySelectorAll("[data-dpm]").forEach(function(x){x.classList.toggle("on",x.getAttribute("data-dpm")===cur);});
+        pop.classList.toggle("show");
+      });}
+      var _rc=paper.querySelector("#dp-rcam");if(_rc)_rc.onclick=function(e){e.stopPropagation();try{openReplySheet(curKey);}catch(_){}};
+      var _rs=paper.querySelector("#dp-rsend");if(_rs)_rs.onclick=function(e){
+        e.stopPropagation();
+        var p3=pageOf(curKey);if(p3.author!=="partner")return;
+        if(Number(p3.unlockAt||0)>Date.now()){toast("这一页还没解锁");return;}
+        if(!exchangeReady(curKey)){toast("等今天的日记交换完成，才能回应");return;}
+        var t=String((paper.querySelector("#dp-reply-in")||{}).value||"").trim();
+        var _ri=(p3.reply&&p3.reply.img)||"";
+        if(!t&&!_ri){toast("写一句或贴一张照片再回应");return;}
+        p3.reply={text:t,img:_ri,time:Date.now()};
+        try{__diaryBlurInput();}catch(_){}
+        try{save();}catch(_){}
+        renderPage();toast("回应放好了");
+      };
+      var _ga=paper.querySelector("#dp-gota");if(_ga)_ga.onclick=function(e){
+        e.stopPropagation();
+        var _bk2=baseKey(curKey);curKey=_bk2+"#p";
+        var _ks2=keys();curIdx=_ks2.indexOf(curKey);if(curIdx<0)curIdx=_ks2.length-1;
+        renderPage();
+      };
+      var _op=paper.querySelector("#dp-open");if(_op)_op.onclick=function(e){e.stopPropagation();var p3=pageOf(curKey);p3.mine.pub=(p3.mine.pub===false);save();renderPage();};
+      var _sd=paper.querySelector("#dp-send");if(_sd)_sd.onclick=function(e){
+        e.stopPropagation();
+        var p3=pageOf(curKey);
+        if(p3.author==="partner"){toast("这是 TA 的一页，点「回到今天」写你的");return;}
+        clearTimeout(diaryAutoTimer);diaryAutoTimer=null;clearTimeout(diaryPartnerTimer);diaryPartnerTimer=null;
+        var ta=el("diary-mine");if(ta)p3.mine.text=ta.value;
+        p3.mine.time=Date.now();
+        if(!String(p3.mine.text||"").trim()&&!(p3.photos||[]).length){toast("写两句再保存吧");return;}
+        try{__diaryBlurInput();}catch(_){}
+        try{schedulePartnerReply(curKey);}catch(_){}
+        try{save();}catch(_){}
+        renderPage();
+        try{if(navigator.vibrate)navigator.vibrate(6);}catch(_){}
+        toast("已记下");
+        try{maybeMonthSummary(curKey);}catch(_){}
+      };
+    }catch(_eBind){}
     try{paper.querySelectorAll(".dp-photo").forEach(function(b){
       b.ondblclick=function(e){e.stopPropagation();e.preventDefault();
         var i=Number(b.getAttribute("data-phi"));var p2=pageOf(curKey);
@@ -40316,7 +40968,8 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
     if(existing){
       /* TA 先写了：等我保存完我的这一页，双方才算都写完。
          v43-150：回应不再在保存时提前生成；只有我已经翻看过 TA 那一页，才补这一句回应。 */
-      try{if(Number(existing.__viewedAt||0))_taReplyFor(tk,existing);}catch(e){}
+      /* v44-236b92：TA 的回应不再在「我保存」时提前生成，
+         只有我真的翻到 TA 那一页看过（__viewedAt / renderPage 里的查看）才补。 */
       __diaryNotice(pk);
       return;
     }
@@ -40328,7 +40981,6 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
         var oldPg=D().pages[k2];delete D().pages[k2];
         oldPg.unlockAt=Date.now()+6*3600e3;oldPg.writtenAt=Date.now();
         D().pages[pk]=oldPg;
-        try{if(Number(oldPg.__viewedAt||0))_taReplyFor(tk,oldPg);}catch(e){}
         __diaryNotice(pk);
         return;
       }
@@ -40349,6 +41001,8 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
     }catch(_){}
   }
   function __diaryNotice(pk){
+    /* v44-236b95：日记功能已下架，不再往聊天里写“对方写了日记”的提醒 */
+    return;
     try{
       var p=D().pages[pk];if(!p||p.__noticeSent)return;
       if(!String((p.partner&&p.partner.text)||"").trim())return;
@@ -40536,13 +41190,8 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
     ta.addEventListener("input",function(){
       if(pg.author==="partner")return;
       pg.mine.text=ta.value;pg.mine.time=Date.now();
-      setTip("正在自动保存…",false);
       clearTimeout(diaryAutoTimer);
-      diaryAutoTimer=setTimeout(function(){
-        try{save();}catch(_){}
-        var d=new Date(),hh=String(d.getHours()).padStart?String(d.getHours()).padStart(2,"0"):("0"+d.getHours()).slice(-2),mm=String(d.getMinutes()).padStart?String(d.getMinutes()).padStart(2,"0"):("0"+d.getMinutes()).slice(-2);
-        setTip("已自动保存 · "+hh+":"+mm,false);
-      },300);
+      diaryAutoTimer=setTimeout(function(){try{save();}catch(_){}},300);
       clearTimeout(diaryPartnerTimer);
       if(String(ta.value||"").trim()){
         diaryPartnerTimer=setTimeout(function(){try{schedulePartnerReply(_key);}catch(_){}},3000);
@@ -40600,6 +41249,8 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
   }
   window.__diaryBlurInput=__diaryBlurInput;
   window.__diaryOpen=function(){
+    /* v44-236b79：日记恢复。打开一律先落在封面上：
+       封面没做完就点“先完成封面，再开始写”去设置，做完才翻开放纸页。 */
     try{if(!window.__diaryFrom)window.__diaryFrom=window.__curView||"view-me";}catch(_){}
     __diaryBlurInput();
     try{var _dv=el("diary-view");if(_dv){__cancelViewFade(_dv);_dv.style.opacity="";_dv.style.transition="";_dv.style.pointerEvents="";}}catch(_){}
@@ -40661,12 +41312,15 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
     if(_dsm)_dsm.addEventListener("click",function(ev){if(ev.target===_dsm)_dsm.classList.remove("show");});
     var pd=el("plus-diary");
     if(pd)pd.addEventListener("click",function(){
-      /* 记住日记是从哪一页打开的：从主页进就回主页，不再强制先回聊天页。 */
+      /* v44-236b80：进日记本先到书架，选一本（或新建）再进封面。 */
       try{window.__diaryFrom=window.__curView||"view-me";}catch(_){window.__diaryFrom="view-me";}
       try{closePlus();}catch(e){}
       __diaryBlurInput();
       opened=false;
       el("diary-cover").classList.remove("open");
+      try{
+        if(window.__e11DiaryShelfOpen){window.__e11DiaryShelfOpen();return;}
+      }catch(_){}
       window.__diaryOpen();
     });
     el("diary-close").addEventListener("click",closeDiary);
@@ -40830,9 +41484,19 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
     var pv=el("dce-preview");if(!pv)return;
     pv.style.background=coverColorTemp;
     pv.classList.remove("cv-photo","cv-taped","cv-plain");pv.classList.add("cv-"+coverStyleTemp);
-    el("dce-img").style.backgroundImage=coverImgTemp?"url(\""+coverImgTemp+"\")":"none";
-    var tt=el("dce-t");if(tt){tt.textContent=el("dce-title")&&el("dce-title").value||"我们的日记";tt.style.display="none";}
+    var _dke=false;try{_dke=!!(window.__effectiveDark&&window.__effectiveDark());}catch(_ede){}
+    var _pre=el("dce-preview");
+    var _cimg=coverImgTemp||"";
+    if(_pre){
+      _pre.style.background=_cimg?"#000000":(coverColorTemp||(_dke?"#1c1c1e":"#ffffff"));
+      _pre.classList.toggle("cv-dark",!!_dke);
+      var _ed=el("diary-cover-edit");if(_ed)_ed.classList.toggle("dce-dark",!!_dke);
+      _pre.classList.toggle("cv-photo",!!_cimg);
+    }
+    el("dce-img").style.backgroundImage=_cimg?"url(\""+_cimg+"\")":"none";
+    var tt=el("dce-t");if(tt){tt.textContent=(el("dce-title")&&el("dce-title").value)||(D().cover&&D().cover.title)||"我们的日记";tt.style.display="block";}
     var sp=el("dce-subp");if(sp)sp.textContent=(el("dce-sub")&&el("dce-sub").value||"our diary");
+    try{if(window.__e11CoverDraftSoon)window.__e11CoverDraftSoon();}catch(_){}
   }
   function buildSizes(){
     var box=el("dce-sizes");if(!box)return;
@@ -40848,8 +41512,10 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
   }
   function buildColors(){
     var box=el("dce-colors");if(!box)return;
-    var cols=["#F3E3C8","#E8D6F0","#CFE3F5","#D8EEDC","#F7D9DA","#FFFFFF"];
-    box.innerHTML='<span style="font-size:11px;color:rgba(255,255,255,.6);align-self:center;">底色</span>'+cols.map(function(c){return '<span class="dce-sw'+(c===coverColorTemp?" on":"")+'" data-cc="'+c+'" style="background:'+c+'"></span>';}).join("");
+    var cols=["#FFFFFF","#F6EFE2","#EFE3F4","#DCEBF7","#DFF0E4","#FBE1E3","#1C1C1E"];
+    box.innerHTML='<span class="dce-lab">底色</span>'+
+      '<span class="dce-sw'+(coverColorTemp?"":" on")+'" data-cc="" data-auto="1" title="跟随主题"></span>'+
+      cols.map(function(c){return '<span class="dce-sw'+(c===coverColorTemp?" on":"")+'" data-cc="'+c+'" style="background:'+c+'"></span>';}).join("");
     box.querySelectorAll("[data-cc]").forEach(function(sp){
       sp.addEventListener("click",function(){
         coverColorTemp=sp.getAttribute("data-cc");
@@ -40885,9 +41551,14 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
   }
   function openCoverEdit(){
     D();cc();
-    coverColorTemp=D().cover.color||"#F3E3C8";coverImgTemp=D().cover.img||"";
+    coverColorTemp=D().cover.color||"";coverImgTemp=D().cover.img||"";
     coverStyleTemp=D().cover.style||"photo";coverSubTemp=D().cover.sub||"our diary";
     el("dce-title").value=D().cover.title||"我们的日记";
+    try{
+      var _bk0=null;try{window.__e11DiaryBooksEnsure&&window.__e11DiaryBooksEnsure();var _d0=D();var _ci=String(window.__e11CurDiaryBookId||"");_bk0=(_d0.books||[]).filter(function(b){return b.id===_ci;})[0]||null;}catch(_eB0){}
+      el("dce-from").value=String((_bk0&&_bk0.from)||"");
+      el("dce-to").value=String((_bk0&&_bk0.to)||"");
+    }catch(_eDte){}
     el("dce-sub").value=coverSubTemp;
     buildStyles();
     ctx.clearRect(0,0,cv.width,cv.height);
@@ -40910,7 +41581,7 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
     }
     el("dce-title").addEventListener("input",paintPreview);
     el("dce-sub").addEventListener("input",paintPreview);
-    el("dce-cancel").addEventListener("click",function(){el("diary-cover-edit").classList.remove("show");});
+    el("dce-cancel").addEventListener("click",function(){try{if(window.__e11CoverDraft)window.__e11CoverDraft(false);}catch(_){}el("diary-cover-edit").classList.remove("show");});
     el("dce-pick").addEventListener("click",function(){window.__nativePick("dce-file");});
     el("dce-file").addEventListener("change",function(e){
       var f=e.target.files&&e.target.files[0];if(!f)return;
@@ -40947,17 +41618,37 @@ body.ui-dark .gt-stamp.on{background:rgba(52,120,246,.28);border-color:#3478F6;}
     el("dce-smaller").addEventListener("click",function(){canvasTF("smaller");});
     el("dce-flip").addEventListener("click",function(){canvasTF("flip");});
     el("dce-cleardraw").addEventListener("click",function(){if(ctx)ctx.clearRect(0,0,cv.width,cv.height);if(cv.__strokes)cv.__strokes.length=0;});
-    el("dce-save").addEventListener("click",function(){
+    function writeCoverDraft(markDone){
       var d=D().cover;
       d.color=coverColorTemp;d.img=coverImgTemp;
       d.title=(el("dce-title").value||"我们的日记").slice(0,20);
       d.sub=normSub(el("dce-sub").value).slice(0,24);
-      d.style=coverStyleTemp;d.done=true;
-      /* v43-183z14：封面也要自己的修改时间。云端旧档里的默认封面字段都是非空，
-         原来的合并只补空字段，会把本机新封面当成“已有值”而丢掉。 */
+      d.style=coverStyleTemp;
+      if(markDone)d.done=true;
       d.__ts=Date.now();
       d.doodle="";
-      save();el("diary-cover-edit").classList.remove("show");
+      try{
+        window.__e11DiaryBooksEnsure&&window.__e11DiaryBooksEnsure();
+        var _d1=D();var _ci1=String(window.__e11CurDiaryBookId||"");
+        var _bk1=(_d1.books||[]).filter(function(b){return b.id===_ci1;})[0]||null;
+        if(_bk1){
+          _bk1.from=String(el("dce-from").value||"");
+          _bk1.to=String(el("dce-to").value||"");
+          _bk1.title=d.title;
+          _bk1.cover=JSON.parse(JSON.stringify(d));
+        }
+      }catch(_eDte2){}
+      save();
+      try{paintCover();}catch(_ePC){}
+    }
+    window.__e11CoverDraft=writeCoverDraft;
+    var _cdT=null;
+    window.__e11CoverDraftSoon=function(){
+      clearTimeout(_cdT);_cdT=setTimeout(function(){try{if(el("diary-cover-edit").classList.contains("show"))writeCoverDraft(false);}catch(_){}},700);
+    };
+    el("dce-save").addEventListener("click",function(){
+      writeCoverDraft(true);
+      el("diary-cover-edit").classList.remove("show");
       paintCover();
       opened=true;el("diary-cover").classList.add("open");
       el("diary-view").classList.remove("cover-closed");
