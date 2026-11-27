@@ -315,7 +315,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-27v44-236b73";
+window.__E11_BUILD="2026-11-27v44-236b74";
 /* v43-236b37：以前版本一变就「清缓存 + location.reload()」，慢网/真机上等于多白屏 1~3 秒。
    现在页面本身就是新代码，不再重载；只让 Service Worker 在空闲时自己更新、清掉旧缓存，
    下次开启自然就是新版。 */
@@ -2881,7 +2881,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-27v44-236b73">
+<meta name="app-build" content="2026-11-27v44-236b74">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4867,6 +4867,7 @@ setTimeout(function(){
       <div class="set-sec-title">备份与导出</div>
       <div class="set-group">
         <div class="data-panel">
+          <div class="set-row" style="padding:0 0 8px;"><span class="set-label">浏览器占用<div class="set-sub" id="store-sub">正在读取…</div></span><button class="small-btn ghost" id="btn-free-space" style="font-size:12px;padding:6px 12px;white-space:nowrap;">释放空间</button></div>
           <button class="data-main-btn" id="btn-snapshots">自动备份（整机全部数据 · 最近 7 次）</button>
           <div class="set-sub" id="snap-sub" style="margin:-2px 0 2px;line-height:1.5;">每天自动存一份，点开可查看或单独恢复</div>
           <button class="data-main-btn" id="btn-export">全量导出全部数据</button>
@@ -10601,7 +10602,7 @@ try{
   });
   var _bnow=document.getElementById("bk-now");
   if(_bnow)_bnow.addEventListener("click",function(){
-    __bkSave(true).then(function(r){toast(r==="ok"?"已备份这一份":"已备份");__bkPaint();}).catch(function(){toast("备份失败，可能是存储空间不足");});
+    __bkSave(true).then(function(r){toast(r==="ok"?"已备份这一份":"已备份");__bkPaint();}).catch(function(){toast("备份失败：浏览器配额已满，先去「释放空间」或导出后清理");});
   });
   var _bsh=document.getElementById("bk-sheet");
   if(_bsh)_bsh.addEventListener("click",function(e){if(e.target===_bsh)_bsh.classList.remove("show");});
@@ -15049,14 +15050,45 @@ window.__e11AutoBackup=function(reason){
       var v=null;try{v=localStorage.getItem(keys[i]);}catch(_e){v=null;}
       if(v&&v.length){snap[keys[i]]=v;got++;}
     }
+    /* v44-236b74：主档现在主要存在 IndexedDB 里，localStorage 里只剩 {"__idbOnly":1} 这个指针。
+       以前备份照抄这个指针，等于什么都没存（实测一份只有 153 字节）。
+       所以指针档要用内存里的 state 序列化，备份才有内容。 */
+    /* 递归把超长 data:image 换成 "@img"，只在对象层面动手，
+       绝不拿正则去改已经序列化好的字符串（转义引号会把 JSON 改坏）。 */
+    function __e11BkSan(o,d){
+      if(d>9)return o;
+      if(typeof o==="string")return (o.length>200&&o.indexOf("data:image")===0)?"@img":o;
+      if(o instanceof Array)return o.map(function(x){return __e11BkSan(x,d+1);});
+      if(o&&typeof o==="object"){var r={};for(var k in o){try{r[k]=__e11BkSan(o[k],d+1);}catch(_e){}}return r;}
+      return o;
+    }
+    try{
+      for(var kk=0;kk<keys.length;kk++){
+        var raw=snap[keys[kk]];
+        if(!raw||typeof raw!=="string")continue;
+        try{
+          var parsed=JSON.parse(raw);
+          if(keys[kk]==="privateChat"&&raw.indexOf("__idbOnly")>=0){
+            var st=(window.__e11StateGet?window.__e11StateGet():null);
+            if(st){parsed=st;got++;}
+          }
+          snap[keys[kk]]=JSON.stringify(__e11BkSan(parsed,0));
+        }catch(_eP){}
+      }
+    }catch(_eSt){}
     if(!got)return false;
     var _json="";
     try{_json=JSON.stringify(snap);}catch(_eJ){_json="";}
+    /* v44-236b74：备份不再整份复制图片。图片 dataURL 一多，一份备份就把配额再吃掉一倍，
+       上次“备份失败：浏览器空间不足”就是这么来的。这里只留文字与配置，图片标记成 @img。 */
+    /* 图已经在上面按对象剥过了，这里只兜一层：万一还是超长，说明有漏网的字符串 */
+    if(_json.length>3200000){try{_json="";}catch(_){}}
+    if(_json.length>600000){try{window.__e11StoreBkSkipOnQuota=1;}catch(_){}}
     /* v44-236b73：备份先写进 Cache Storage（容量按站点配额算，通常几百 MB），
        不再因为“超过 2.6MB”被静默跳过——那正是上次图片多的档一份都没留的原因。
        小档再额外在 localStorage 留一份，打开设置不用等缓存。 */
     try{
-      if(_json&&window.caches&&caches.open){
+      if(_json&&window.caches&&caches.open&&!(window.__e11BkQuotaHold)){
         caches.open("e11-backup").then(function(c){
           return c.put("/bk-"+snap.ts+".json",new Response(_json,{headers:{"content-type":"application/json"}}))
             .then(function(){return c.keys();})
@@ -33224,15 +33256,33 @@ function focusMomentCard(id){
   setTimeout(function(){card.style.boxShadow="";},2000);
   return true;
 }
-function momUnreadPost(){return state.moments.filter(function(x){return x.from==="partner"&&x.unread&&x.unreadKind==="post"&&!x.readAt;});}
-function momUnreadAct(){return state.moments.filter(function(x){return x.unread&&(x.unreadKind==="reply"||x.unreadKind==="comment")&&!x.readAt;});}
+function momUnreadPost(){return state.moments.filter(function(x){return x.from==="partner"&&x.unread&&x.unreadKind==="post"&&!x.readAt&&!__e11MomReadHas(x.id);});}
+function momUnreadAct(){return state.moments.filter(function(x){return x.unread&&(x.unreadKind==="reply"||x.unreadKind==="comment")&&!x.readAt&&!__e11MomReadHas(x.id);});}
 /* v44-236b65：动态「已读后又提醒」的根因——已读只在 unread 上置 false，
    云端/旧备份里那份还带 unread:true，合并回来又变未读。
    现在每次标记已读都写一条 readAt 时间戳（只增不减），凡是带 readAt 的动态永远不再算未读。 */
+/* v44-236b74：已读状态再单独记一份小表（只有 id→时间，几十字节）。
+   主档写不进去（配额满）时，readAt 会丢，红点又复活；这份小表几乎一定写得进。 */
+var __MOMREAD_KEY="e11.momRead.v2",__momReadMap=null;
+function __e11MomReadMapLoad(){
+  if(__momReadMap)return __momReadMap;
+  try{__momReadMap=JSON.parse(localStorage.getItem(__MOMREAD_KEY)||"{}")||{};}catch(_){__momReadMap={};}
+  return __momReadMap;
+}
+function __e11MomReadHas(id){try{var m=__e11MomReadMapLoad();return !!(id&&m[id]);}catch(_){return false;}}
+function __e11MomReadRemember(list){
+  try{
+    var m=__e11MomReadMapLoad(),t=Date.now(),ch=false;
+    (list||[]).forEach(function(x){var id=x&&x.id;if(id&&!m[id]){m[id]=t;ch=true;}});
+    if(ch)localStorage.setItem(__MOMREAD_KEY,JSON.stringify(m));
+  }catch(_){}
+}
+window.__e11MomReadHas=__e11MomReadHas;
 function __e11MomMarkRead(list){
   try{
     var t=Date.now();
     (list||[]).forEach(function(m){if(!m)return;m.unread=false;m.unreadKind="";if(!m.readAt)m.readAt=t;});
+    __e11MomReadRemember(list);
   }catch(_){}
   return list;
 }
@@ -33241,7 +33291,11 @@ function __e11MomReadNormalize(){
   try{
     if(typeof state==="undefined"||!state||!state.moments)return 0;
     var n=0;
-    state.moments.forEach(function(m){if(m&&m.readAt&&(m.unread||m.unreadKind)){m.unread=false;m.unreadKind="";n++;}});
+    state.moments.forEach(function(m){
+      if(!m)return;
+      var seen=!!m.readAt||__e11MomReadHas(m.id);
+      if(seen&&(m.unread||m.unreadKind)){m.unread=false;m.unreadKind="";if(!m.readAt)m.readAt=Date.now();n++;}
+    });
     return n;
   }catch(_){return 0;}
 }
@@ -42114,6 +42168,56 @@ body{margin:0;background:var(--bg,#fafafa);}
 })();
 </script>
 <script>
+/* v44-236b74：空间自救。
+   “备份失败：浏览器空间不足”说明这个站点的配额已经被写满：
+   主档里的图片 dataURL + 备份副本，两边一起顶着配额上限。
+   这里给出真实占用，并一键清掉可以再生的东西（离线缓存、整档备份副本、临时大图）。
+   只清缓存类和临时键，聊天/名字/背景不动。 */
+(function(){
+  function mb(n){return (Math.round(n/104857.6)/10).toFixed(1)+" MB";}
+  function paint(){
+    var el=document.getElementById("store-sub");
+    if(!el)return;
+    try{
+      if(!navigator.storage||!navigator.storage.estimate){el.textContent="这个浏览器不支持读取占用";return;}
+      navigator.storage.estimate().then(function(e){
+        var used=Number(e.usage||0),quota=Number(e.quota||0);
+        var pct=quota?Math.round(used/quota*100):0;
+        el.textContent="已用 "+mb(used)+(quota?(" / 上限 "+mb(quota)+"（"+pct+"%）"):"");
+        if(pct>=85)el.style.color="#c0392b";
+      }).catch(function(){el.textContent="读取失败";});
+    }catch(_){el.textContent="读取失败";}
+  }
+  function free(){
+    try{window.__restoring=1;window.__e11CloudPause=1;}catch(_){}
+    var jobs=[];
+    try{
+      if(window.caches&&caches.keys){
+        jobs.push(caches.keys().then(function(ks){
+          return Promise.all(ks.map(function(k){
+            /* 只删离线缓存和备份副本；正在用的页面壳（e11-shell）也一并清，重载会自动重建 */
+            return (k.indexOf("e11")===0||k.indexOf("e11-backup")===0)?caches.delete(k):Promise.resolve(false);
+          }));
+        }).catch(function(){}));
+      }
+    }catch(_){}
+    try{localStorage.removeItem("bigPending");}catch(_){}
+    try{localStorage.removeItem("e11.autoBk.v1");}catch(_){}
+    try{sessionStorage.removeItem("privateChat__emergency");sessionStorage.removeItem("bigPending__emergency");}catch(_){}
+    Promise.all(jobs).then(function(){
+      try{toast("已清理缓存和备份副本，正在重载…");}catch(_){}
+      setTimeout(function(){var u=new URL(location.href);u.searchParams.set("__e11free",String(Date.now()));location.replace(u.toString());},900);
+    }).catch(function(){try{toast("清理完成，正在重载…");}catch(_){};setTimeout(function(){location.reload();},900);});
+  }
+  document.addEventListener("click",function(e){
+    var t=e.target;if(!t||!t.closest)return;
+    if(t.closest("#btn-free-space")){e.preventDefault();free();return;}
+  },true);
+  setTimeout(paint,900);
+  setInterval(paint,6000);
+})();
+</script>
+<script>
 /* v44-236b72/73：数据救援。
    触发场景：更新（换 SW、清缓存、整页重载）途中写盘被截断或读不出来，
    启动只能拿到默认档，看起来就是“更新后数据没了”。
@@ -42198,6 +42302,7 @@ body{margin:0;background:var(--bg,#fafafa);}
   }
   var prompted=false;
   function autoRescue(){
+    try{if(sessionStorage.getItem("e11.bkPrompted")==="1")return;}catch(_){}
     var why=function(t){try{window.__e11RescueWhy=t;}catch(_){}};
     try{
       if(prompted){why("already");return;}
@@ -42214,6 +42319,7 @@ body{margin:0;background:var(--bg,#fafafa);}
         why("prompt");prompted=true;
         try{toast("本机聊天是空的，备份里有 "+bestN+" 条，点下面这份就能恢复");}catch(_){}
         try{sessionStorage.setItem("e11.rescued","1");}catch(_){}
+        try{sessionStorage.setItem("e11.bkPrompted","1");}catch(_){}
         open();
       }).catch(function(){why("read-fail");});
     }catch(_){}
@@ -42259,6 +42365,16 @@ body{margin:0;background:var(--bg,#fafafa);}
     }
     if(t.closest("#autobk-screen")&&!t.closest(".an-card")){e.preventDefault();close();}
   },true);
+
+  /* v44-236b74：b73 那版把整份档案（含所有图片）复制进了缓存，直接把人家的配额吃满，
+     导致“备份失败：浏览器空间不足”、写入失败、导出点不动。这里一次性清掉，只留文字备份。 */
+  try{
+    if(localStorage.getItem("e11.bk.v74")!=="1"){
+      localStorage.setItem("e11.bk.v74","1");
+      if(window.caches&&caches.delete){caches.delete(CACHE_NAME).catch(function(){});}
+      try{localStorage.removeItem("e11.autoBk.v1");}catch(_){}
+    }
+  }catch(_){}
 
   /* v44-236b73：每次打开（距上一份超过 4 小时才留）都补一份，既不会一份都没有，
      也不会把配额刷爆。更新前那条路径仍会额外留一份 before-update。 */
