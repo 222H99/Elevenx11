@@ -406,7 +406,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-27v44-236b139";
+window.__E11_BUILD="2026-11-27v44-236b140";
 /* v44-236b138：区分「后台被系统回收后重载」和「从图标冷启动」。
    sessionStorage 只在本标签/本次任务生命周期内保留：
    - 后台回收再回来：标记还在，恢复离开前那一页；
@@ -3153,7 +3153,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-27v44-236b139">
+<meta name="app-build" content="2026-11-27v44-236b140">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -6313,7 +6313,7 @@ setTimeout(function(){
       <div class="an-ver">点「恢复」会用那一份覆盖本机聊天、名字、主题和密码</div>
     </div>
     <div class="an-body" id="autobk-body"></div>
-    <div class="an-foot"><button class="an-btn" id="autobk-close">关闭</button></div>
+    <div class="an-foot"><button class="an-btn" id="autobk-scan" style="margin-right:8px;">扫描全部账号库</button><button class="an-btn" id="autobk-close">关闭</button></div>
   </div>
 </div>
 <div class="announce-screen" id="help-screen">
@@ -15745,12 +15745,16 @@ window.__e11AutoBackup=function(reason){
 /* v44-236b76：更新前留一份“带图片的完整快照”。
    平时的备份只存文字（省配额），但更新这种一次性关口要能原样还原，
    所以这里单独存一份完整的，只留最新一份，更新成功后照旧进列表。 */
-window.__e11PreUpdateSnapshot=function(reason){
-  /* v44-236b139：更新前这份必须是“整份、含图片、含日记/信件/动态/留言/字卡/表情/设置”的备份。
-     以前只往 Cache Storage 写，而更新流程会清缓存，清完这份就没了；现在以 IndexedDB 为主，
-     更新清缓存也带不走。写成功后返回 true，更新流程会等它写完再换页。 */
+window.__e11PreUpdateSnapshot=function(reason,forcedState){
+  /* v44-236b140：更新前先扫一遍本机所有账号库/完整槽，和当前内存 state 合并后再落盘。
+     只抓内存的话，启动已经少掉的那批会跟着一起缺；合并后再写才是真的“更新前全量”。 */
   try{
-    var st=(window.__e11StateGet?window.__e11StateGet():null);
+    if(!forcedState&&window.__e11ScanAll){
+      return window.__e11ScanAll().then(function(scan){
+        return window.__e11PreUpdateSnapshot(reason,(scan&&scan.state)||window.__e11StateGet());
+      });
+    }
+    var st=forcedState||(window.__e11StateGet?window.__e11StateGet():null);
     if(!st)return Promise.resolve(false);
     var ts=Date.now();
     var meta={ts:ts,full:1,reason:String(reason||"pre-update"),build:String(window.__E11_BUILD||""),
@@ -43903,11 +43907,182 @@ body{margin:0;background:var(--bg,#fafafa);}
       });
       return null;
     }));
+    ps.push(one("bk_rescue_meta",function(m){
+      if(!m||!m.ts)return null;
+      return {ts:Number(m.ts),full:1,reason:"全量合并救援（扫描全部账号库）",build:m.build||"",_n:Number(m.n)||0,_src:{idb:"bk_rescue_full"}};
+    }));
     ps.push(one("bk_before_restore_meta",function(m){
       if(!m||!m.ts)return null;
       return {ts:Number(m.ts),full:0,reason:"恢复前的本机存档（文字）",build:m.build||"",_n:Number(m.n)||0,_src:{idb:"bk_before_restore"}};
     }));
     return Promise.all(ps).then(function(){return out;}).catch(function(){return out;});
+  }
+  /* v44-236b140：全量救援扫描。
+     更新前那份是从“当时内存里的 state”抓的；如果启动已经少了一批，它也跟着少。
+     这里绕过内存，直接打开本机所有 privateChatDB_v1* 账号库，把 state / 7 个完整槽 /
+     旧离站档 / 之前的救援档全部合并，按消息 id 去重取最全的一份。
+     只读扫描，不覆盖主库；扫描结果单独存成“全量合并救援”。 */
+  function __abOpenDb(name){
+    return new Promise(function(res,rej){
+      var done=false;
+      try{
+        var req=indexedDB.open(name);
+        var t=setTimeout(function(){if(!done){done=true;rej(new Error("open-timeout"));}},3500);
+        req.onsuccess=function(){if(done)return;done=true;clearTimeout(t);res(req.result);};
+        req.onerror=function(){if(done)return;done=true;clearTimeout(t);rej(req.error||new Error("open-fail"));};
+        req.onblocked=function(){if(done)return;done=true;clearTimeout(t);rej(new Error("blocked"));};
+      }catch(e){if(!done){done=true;rej(e);}}
+    });
+  }
+  function __abReadKeys(db,keys){
+    return new Promise(function(res){
+      var out={};
+      try{
+        var tx=db.transaction("kv","readonly"),st=tx.objectStore("kv");
+        var left=keys.length;
+        if(!left){res(out);return;}
+        var finish=function(){if(left<=0)res(out);};
+        keys.forEach(function(k){
+          try{
+            var r=st.get(k);
+            r.onsuccess=function(){if(r.result!==undefined)out[k]=r.result;left--;finish();};
+            r.onerror=function(){left--;finish();};
+          }catch(_){left--;finish();}
+        });
+        tx.onerror=function(){res(out);};
+        tx.onabort=function(){res(out);};
+      }catch(e){res(out);}
+    });
+  }
+  function __abStateOf(v){
+    try{
+      if(!v)return null;
+      if(v.state&&Array.isArray(v.state.messages))return v.state;
+      if(v.core&&v.state&&Array.isArray(v.state.messages))return v.state;
+      if(Array.isArray(v.messages))return v;
+      if(typeof v.privateChat==="string"){
+        var o=JSON.parse(v.privateChat||"null");
+        if(o&&Array.isArray(o.messages))return o;
+      }
+    }catch(_){}
+    return null;
+  }
+  function __abItemKey(x,kind){
+    try{
+      if(!x)return "";
+      var id=String(x.id||x.mid||x.key||x.pageId||x.noteId||"");
+      var t=Number(x.time||x.ts||x.createdAt||x.updatedAt||0);
+      if(id)return kind+"|"+id;
+      var txt=String(x.text!==undefined?x.text:(x.body!==undefined?x.body:(x.title!==undefined?x.title:(x.src||"")))).slice(0,120);
+      return kind+"|"+t+"|"+txt;
+    }catch(_){return "";}
+  }
+  function __abMergeList(base,src,kind){
+    try{
+      if(!Array.isArray(src)||!src.length)return;
+      if(!Array.isArray(base))base=[];
+      var seen={};base.forEach(function(x){var k=__abItemKey(x,kind);if(k)seen[k]=1;});
+      src.forEach(function(x){
+        var k=__abItemKey(x,kind);if(!k||seen[k])return;
+        seen[k]=1;base.push(x);
+      });
+    }catch(_){}
+  }
+  function __abMergeState(base,src){
+    if(!src)return base;
+    if(!base||!Array.isArray(base.messages))base=src;
+    /* 消息：按 id+时间合并，保留带图/带语音的那条 */
+    try{
+      var by={};
+      (base.messages||[]).forEach(function(m){var k=__abItemKey(m,"m");if(k)by[k]=m;});
+      (src.messages||[]).forEach(function(m){
+        var k=__abItemKey(m,"m");if(!k)return;
+        var old=by[k];
+        if(!old){by[k]=m;return;}
+        try{
+          if((!old.src||old.src==="@img")&&m.src&&m.src!=="@img")old.src=m.src;
+          if((!old.text||old.text==="@img")&&m.text&&m.text!=="@img")old.text=m.text;
+          if(!old.time&&m.time)old.time=m.time;
+        }catch(_){}
+      });
+      base.messages=Object.keys(by).map(function(k){return by[k];});
+      try{base.messages.sort(window.__e11MsgOrder||function(a,b){return Number(a.time||0)-Number(b.time||0);});}catch(_){}
+    }catch(_){}
+    ["cards","letters","moments","guestbook","emojis","partnerEmojis"].forEach(function(k){__abMergeList(base[k],src[k],k);});
+    /* 日记按页合并，页内容更长的那份优先 */
+    try{
+      if(src.diary&&src.diary.pages){
+        base.diary=base.diary||{};
+        base.diary.pages=base.diary.pages||{};
+        Object.keys(src.diary.pages).forEach(function(k){
+          var a=base.diary.pages[k],b=src.diary.pages[k];
+          if(!a){base.diary.pages[k]=b;return;}
+          try{if(JSON.stringify(b).length>JSON.stringify(a).length)base.diary.pages[k]=b;}catch(_){}
+        });
+      }
+    }catch(_){}
+    /* 设置/资料/外观：当前有就用当前，当前空才用备份 */
+    try{
+      if((!base.profile||!base.profile.name)&&src.profile)base.profile=src.profile;
+      if((!base.me||!base.me.name)&&src.me)base.me=src.me;
+      if((!base.partner||!base.partner.name)&&src.partner)base.partner=src.partner;
+      if(!base.settings&&src.settings)base.settings=src.settings;
+      if(!base.skin&&src.skin)base.skin=src.skin;
+    }catch(_){}
+    /* 救援扫描不相信墓碑和清空时间，否则恢复后又会被挡掉一批 */
+    try{base.deletedIds=base.deletedIds||{};delete base.deletedIds.messages;base.__chatClearedAt=0;}catch(_){}
+    return base;
+  }
+  function __abScanAll(){
+    var base=window.__e11StateGet?window.__e11StateGet():null;
+    base=base?JSON.parse(JSON.stringify(base)):{messages:[]};
+    var sources=[];
+    var names=Promise.resolve([DB_NAME]);
+    try{
+      if(indexedDB.databases)names=indexedDB.databases().then(function(ds){
+        var out=[];(ds||[]).forEach(function(d){if(d&&d.name&&d.name.indexOf("privateChatDB_v1")===0)out.push(d.name);});
+        if(out.indexOf(DB_NAME)<0)out.push(DB_NAME);
+        return out;
+      }).catch(function(){return [DB_NAME];});
+    }catch(_){}
+    return names.then(function(list){
+      var jobs=(list||[DB_NAME]).map(function(name){
+        return __abOpenDb(name).then(function(db){
+          var keys=["state","bk_slot_0","bk_slot_1","bk_slot_2","bk_slot_3","bk_slot_4","bk_slot_5","bk_slot_6","bk_best","bk_preupdate_full","bk_rescue_full","e11.session.v1","bk_before_restore"];
+          return __abReadKeys(db,keys).then(function(vals){
+            try{db.close();}catch(_){}
+            var got=[];
+            keys.forEach(function(k){
+              var st=__abStateOf(vals[k]);
+              if(st&&Array.isArray(st.messages)&&st.messages.length){
+                got.push({name:name+" / "+k,messages:st.messages.length});
+                __abMergeState(base,st);
+              }
+            });
+            return got;
+          });
+        }).catch(function(){return [];});
+      });
+      return Promise.all(jobs).then(function(all){
+        all.forEach(function(g){g.forEach(function(x){sources.push(x);});});
+        return {state:base,sources:sources,n:(base.messages||[]).length};
+      });
+    });
+  }
+  window.__e11ScanAll=__abScanAll;
+  function scanAll(){
+    var b=document.getElementById("autobk-body");
+    if(b)b.innerHTML='<div class="an-item" style="padding-left:0;color:#8e8e93;">正在扫描本机所有账号库和备份…</div>';
+    __abScanAll().then(function(r){
+      var meta={ts:Date.now(),full:1,reason:"全量合并救援（扫描全部账号库）",build:String(window.__E11_BUILD||""),n:r.n,at:Date.now()};
+      var snap={ts:meta.ts,full:1,reason:meta.reason,build:meta.build,state:r.state,globals:(typeof __bkCollectGlobals==="function"?__bkCollectGlobals():{}),keep4:(typeof __e11Keep4Pack==="function"?__e11Keep4Pack(r.state):null),meta:meta};
+      return dbSet("bk_rescue_full",snap,20000).then(function(){return dbSet("bk_rescue_meta",meta,8000);}).then(function(){
+        try{toast("扫描完成：合并出 "+r.n+" 条聊天");}catch(_){}
+        return readAll();
+      }).then(function(list){buildList(list);});
+    }).catch(function(e){
+      try{toast("扫描失败："+(e&&e.message||"未知错误"));}catch(_){}
+    });
   }
   function readAll(){
     return Promise.all([Promise.resolve(readLocal()),readCache(),readIdbMeta()]).then(function(r){
@@ -44091,6 +44266,7 @@ body{margin:0;background:var(--bg,#fafafa);}
     var t=e.target;if(!t||!t.closest)return;
     if(t.closest("#btn-autobk")){e.preventDefault();open();return;}
     if(t.closest("#autobk-close")){e.preventDefault();close();return;}
+    if(t.closest("#autobk-scan")){e.preventDefault();scanAll();return;}
     var rb=t.closest("[data-bk]");
     if(rb){
       e.preventDefault();
