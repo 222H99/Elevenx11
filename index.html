@@ -315,7 +315,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-27v44-236b76";
+window.__E11_BUILD="2026-11-27v44-236b77";
 /* v43-236b37：以前版本一变就「清缓存 + location.reload()」，慢网/真机上等于多白屏 1~3 秒。
    现在页面本身就是新代码，不再重载；只让 Service Worker 在空闲时自己更新、清掉旧缓存，
    下次开启自然就是新版。 */
@@ -2881,7 +2881,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-27v44-236b76">
+<meta name="app-build" content="2026-11-27v44-236b77">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -9472,6 +9472,8 @@ function __entryHome(){
     try{if(typeof reviveSocialTimers==="function")reviveSocialTimers();}catch(e){}
   },60);
   window.__entryHomeDone=1;
+  /* v44-236b77：进主页后补一次背景（从缓存区），回前台再补一次，兜住异步/配额导致的空档 */
+  setTimeout(function(){try{window.__e11BgCacheSweep&&window.__e11BgCacheSweep();}catch(_){}},1500);
   setTimeout(function(){if(typeof askNotifyPrompt==="function")askNotifyPrompt();},4000);
   /* v44-236b75：回到聊天页时把上次的滚动位置放回去（分几次试，
      渲染和贴底逻辑会抢 scrollTop，等它稳定下来再定）。 */
@@ -14575,8 +14577,13 @@ window.__e11BgLocalSync=function(){
       var pk=window.__E11_BG_PICK_KEY(path),pt=window.__E11_BG_PICK_TS(path);
       try{
         if(!v){
-          /* 空值不是“没有记录”，而是一个明确的“已清空”墓碑：
-             否则刷新时主库/美化库里的旧图又会把刚清掉的背景补回来。 */
+          /* v44-236b77：以前这里无条件写“已清空”墓碑。
+             但启动早期大图还没从 IndexedDB 补回来时，state 里就是空的，
+             这一写等于把本机唯一一份图备份判死刑——「背景总是丢失」多半就是这么来的。
+             现在只有确实没有本机备份时才写墓碑；有备份就留着，让恢复逻辑去补。 */
+          var _hasBak=false;
+          try{var _bk=localStorage.getItem(k);_hasBak=!!(_bk&&_bk.indexOf("data:")===0);}catch(_){}
+          if(_hasBak)return;
           try{localStorage.setItem(k,"__empty__");localStorage.setItem(window.__E11_BG_TS(path),String(Date.now()));
             localStorage.setItem(pk,"__empty__");localStorage.setItem(pt,String(Date.now()));}catch(_){ }
           return;
@@ -14602,8 +14609,20 @@ window.__e11BgLocalSync=function(){
                   try{
                     var _vNow=window.__e11BgPathGet(path);
                     if(_vNow!==v)return; /* 期间又换过图，别写回旧的 */
-                    localStorage.setItem(pk,"__data__");localStorage.setItem(pt,String(Date.now()));
-                    localStorage.setItem(k,_c);localStorage.setItem(window.__E11_BG_TS(path),String(Date.now()));
+                    try{
+                      localStorage.setItem(pk,"__data__");localStorage.setItem(pt,String(Date.now()));
+                      localStorage.setItem(k,_c);localStorage.setItem(window.__E11_BG_TS(path),String(Date.now()));
+                    }catch(_ebigQ){
+                      /* 配额满：至少把压缩版放进缓存区，别再让背景彻底消失 */
+                      try{
+                        if(window.caches&&caches.open){
+                          caches.open("e11-bg").then(function(c){
+                            return c.put("/bg_"+path.join("_"),new Response(_c,{headers:{"content-type":"text/plain"}}));
+                          }).catch(function(){});
+                        }
+                        localStorage.setItem(pk,"__cache__");localStorage.setItem(pt,String(Date.now()));
+                      }catch(_e4){}
+                    }
                   }catch(_ebs){}
                 }).catch(function(){window.__bgShrinkBusy[_mn]=0;});
               }
@@ -14611,7 +14630,17 @@ window.__e11BgLocalSync=function(){
           }catch(_eBig){}
           return;
         }
-        try{localStorage.setItem(pk,"__data__");localStorage.setItem(pt,String(Date.now()));localStorage.setItem(k,v);localStorage.setItem(window.__E11_BG_TS(path),String(Date.now()));}
+        /* v44-236b77：写本机小备份 + 顺带存一份到缓存区（不占 localStorage 配额）。
+           只在小备份写不进时才依赖缓存，平时两条腿都留着。 */
+        var _bgCachePut=function(_v){
+          try{
+            if(!(window.caches&&caches.open))return;
+            caches.open("e11-bg").then(function(c){
+              return c.put("/bg_"+path.join("_"),new Response(_v,{headers:{"content-type":"text/plain"}}));
+            }).catch(function(){});
+          }catch(_){}
+        };
+        try{localStorage.setItem(pk,"__data__");localStorage.setItem(pt,String(Date.now()));localStorage.setItem(k,v);localStorage.setItem(window.__E11_BG_TS(path),String(Date.now()));_bgCachePut(v);}
         catch(_eq){
           /* 空间紧：先清掉同一批里最旧的背景备份，再试当前这张 */
           try{
@@ -14619,7 +14648,13 @@ window.__e11BgLocalSync=function(){
               var k2=window.__E11_BG_KEY(p2);if(k2!==k){try{localStorage.removeItem(k2);localStorage.removeItem(window.__E11_BG_TS(p2));}catch(_){}}
             });
             localStorage.setItem(k,v);localStorage.setItem(window.__E11_BG_TS(path),String(Date.now()));
-          }catch(_e2){}
+          }catch(_e2){
+            /* 本地小备份彻底写不进：图改存缓存区，标记 __cache__，启动/前台时异步取回。 */
+            try{
+              _bgCachePut(v);
+              localStorage.setItem(pk,"__cache__");localStorage.setItem(pt,String(Date.now()));
+            }catch(_e3){}
+          }
         }
       }catch(_ePath){}
     });
@@ -14698,6 +14733,36 @@ window.__e11BgPrefRestore=function(){
     return changed;
   }catch(_eBgPr){return false;}
 };
+/* v44-236b77：背景图在 localStorage 写不下时存在这里。启动时如果某项是空的，
+   就从缓存区把原图捞回来——这一层让“换完背景退出就变默认”彻底断根。 */
+window.__e11BgFromCache=function(path){
+  try{
+    if(typeof state==="undefined"||!state)return Promise.resolve(false);
+    if(!(window.caches&&caches.open))return Promise.resolve(false);
+    return caches.open("e11-bg").then(function(c){return c.match("/bg_"+path.join("_"));}).then(function(r){
+      return r?r.text():null;
+    }).then(function(txt){
+      if(!txt||String(txt).indexOf("data:")!==0)return false;
+      var cur=window.__e11BgPathGet(path);
+      if(cur)return false;
+      var o=state;
+      for(var i=0;i<path.length-1;i++){if(!o[path[i]]||typeof o[path[i]]!=="object")o[path[i]]={};o=o[path[i]];}
+      o[path[path.length-1]]=String(txt);
+      try{applySkin();}catch(_){}
+      try{window.__e11BgLocalRestore&&0;}catch(_){}
+      try{save();}catch(_){}
+      try{window.__bgPersistNow&&setTimeout(function(){try{window.__bgPersistNow();}catch(_){}},60);}catch(_){}
+      return true;
+    }).catch(function(){return false;});
+  }catch(e){return Promise.resolve(false);}
+};
+window.__e11BgCacheSweep=function(){
+  try{
+    (window.__E11_BG_PATHS||[]).forEach(function(p){
+      try{if(!window.__e11BgPathGet(p))window.__e11BgFromCache(p);}catch(_){}
+    });
+  }catch(_){}
+};
 window.__e11BgLocalRestore=function(){
   try{
     if(typeof state==="undefined"||!state)return false;
@@ -14713,6 +14778,11 @@ window.__e11BgLocalRestore=function(){
           var pObj=state;for(var pi=0;pi<path.length-1;pi++){if(!pObj[path[pi]]||typeof pObj[path[pi]]!=="object")pObj[path[pi]]={};pObj=pObj[path[pi]];}
           pObj[path[path.length-1]]="";changed=true;
         }
+        return;
+      }
+      if(pick==="__cache__"){
+        /* 本机最后选的是图，但图只在缓存区：异步取回，已有值时不覆盖。 */
+        try{window.__e11BgFromCache(path);}catch(_){}
         return;
       }
       if(pick&&pick!=="__data__"){
@@ -33386,7 +33456,10 @@ window.__e11MomMarkRead=__e11MomMarkRead;
   window.__e11SaveExitState=snap;
   try{window.addEventListener("pagehide",snap);}catch(_){}
   try{window.addEventListener("beforeunload",snap);}catch(_){}
-  try{document.addEventListener("visibilitychange",function(){if(document.visibilityState==="hidden")snap();});}catch(_){}
+  try{document.addEventListener("visibilitychange",function(){
+    if(document.visibilityState==="hidden")snap();
+    else{try{window.__e11BgCacheSweep&&window.__e11BgCacheSweep();}catch(_){}}
+  });}catch(_){}
   /* 只挂在聊天列表上，520ms 节流 */
   try{
     var t=0;
