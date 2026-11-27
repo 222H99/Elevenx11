@@ -315,7 +315,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-27v44-236b72";
+window.__E11_BUILD="2026-11-27v44-236b73";
 /* v43-236b37：以前版本一变就「清缓存 + location.reload()」，慢网/真机上等于多白屏 1~3 秒。
    现在页面本身就是新代码，不再重载；只让 Service Worker 在空闲时自己更新、清掉旧缓存，
    下次开启自然就是新版。 */
@@ -2881,7 +2881,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-27v44-236b72">
+<meta name="app-build" content="2026-11-27v44-236b73">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -9305,8 +9305,8 @@ function msgPreviewText(m){
 var ANNOUNCE={
   /* 只留这一版真正改动的几条，一屏读完 */
   ver:(function(){try{var m=document.querySelector('meta[name="app-build"]');return (m&&m.content)||BUILD;}catch(e){return BUILD;}})(),
-  date:"v44-236b72",
-  time:"2026-11-27 06:05",
+  date:"v44-236b73",
+  time:"2026-11-27 06:40",
   noticeKey:null,
   lead:"一句话：把「语音录不上」和「旧版不更新」两个老问题修掉，再补一页功能说明；已存的聊天、名字、背景一律不动。",
   groups:[
@@ -9320,7 +9320,7 @@ var ANNOUNCE={
     ]},
     {t:"优化",items:[
       "消息去重扫描改成先比对指纹，没变化就跳过，不再每 15 秒全表遍历。",
-      "更新前自动备份加了 2.6MB 上限，图片多的时候也不会写不进去。",
+      "备份改到大容量存储：以前超过 2.6MB 就静默跳过，图片多的档等于没有备份；现在写进浏览器缓存区，不设体积上限，并且每次打开（距上一份超过 4 小时）都会补一份。",
       "离线状态跳过自动升版，避免清完缓存白屏。",
     ]},
   ],
@@ -15050,14 +15050,35 @@ window.__e11AutoBackup=function(reason){
       if(v&&v.length){snap[keys[i]]=v;got++;}
     }
     if(!got)return false;
-    /* 主档过大（聊天/图片很多）时不硬塞，避免把 localStorage 顶爆连累正常落盘 */
-    var _size=0;try{_size=JSON.stringify(snap).length;}catch(_e){_size=0;}
-    if(_size>2600000)return false;
-    var arr=[];try{arr=JSON.parse(localStorage.getItem("e11.autoBk.v1")||"[]")||[];}catch(_e){arr=[];}
-    if(!(arr instanceof Array))arr=[];
-    arr.unshift(snap);while(arr.length>3)arr.pop();
-    localStorage.setItem("e11.autoBk.v1",JSON.stringify(arr));
-    try{console.info("[E11] 自动备份完成",snap.build);}catch(_){}
+    var _json="";
+    try{_json=JSON.stringify(snap);}catch(_eJ){_json="";}
+    /* v44-236b73：备份先写进 Cache Storage（容量按站点配额算，通常几百 MB），
+       不再因为“超过 2.6MB”被静默跳过——那正是上次图片多的档一份都没留的原因。
+       小档再额外在 localStorage 留一份，打开设置不用等缓存。 */
+    try{
+      if(_json&&window.caches&&caches.open){
+        caches.open("e11-backup").then(function(c){
+          return c.put("/bk-"+snap.ts+".json",new Response(_json,{headers:{"content-type":"application/json"}}))
+            .then(function(){return c.keys();})
+            .then(function(reqs){
+              var list=reqs.map(function(r){
+                var m=/\/bk-(\d+)\.json/.exec(r.url||"");
+                return {r:r,t:m?Number(m[1]):0};
+              }).sort(function(a,b){return b.t-a.t;});
+              return Promise.all(list.slice(3).map(function(x){return c.delete(x.r).catch(function(){});}));
+            });
+        }).catch(function(){});
+      }
+    }catch(_eCache){}
+    if(_json&&_json.length<=2600000){
+      try{
+        var arr=[];try{arr=JSON.parse(localStorage.getItem("e11.autoBk.v1")||"[]")||[];}catch(_e2){arr=[];}
+        if(!(arr instanceof Array))arr=[];
+        arr.unshift(snap);while(arr.length>3)arr.pop();
+        localStorage.setItem("e11.autoBk.v1",JSON.stringify(arr));
+      }catch(_eLS){}
+    }
+    try{console.info("[E11] 自动备份完成",snap.build,_json.length);}catch(_){}
     return true;
   }catch(e){return false;}
 };
@@ -42093,14 +42114,40 @@ body{margin:0;background:var(--bg,#fafafa);}
 })();
 </script>
 <script>
-/* v44-236b72：数据救援。
+/* v44-236b72/73：数据救援。
    触发场景：更新（换 SW、清缓存、整页重载）途中写盘被截断或读不出来，
    启动只能拿到默认档，看起来就是“更新后数据没了”。
-   这里保留每次更新前自动备份的 3 份快照（e11.autoBk.v1），
-   本机档为空时自动挑消息最多的那份恢复；设置里也能手动选一份恢复。 */
+   备份分两处：Cache Storage（无体积上限，b73 起主用）+ localStorage（小档，快读）。
+   这里把两处合并成一张列表，本机为空时自动弹出来，让你点一下恢复。 */
 (function(){
-  function read(){
+  var CACHE_NAME="e11-backup";
+  var KEYS=["privateChat","e11.profile.v1","e11.names.v1","__theme.v1","e11.lockPwd.v1"];
+  var LIST=[];
+
+  function readLocal(){
     try{var a=JSON.parse(localStorage.getItem("e11.autoBk.v1")||"[]");return Array.isArray(a)?a:[];}catch(_){return [];}
+  }
+  function readCache(){
+    try{
+      if(!window.caches||!caches.open)return Promise.resolve([]);
+      return caches.open(CACHE_NAME).then(function(c){
+        return c.keys().then(function(reqs){
+          return Promise.all(reqs.map(function(r){
+            return c.match(r).then(function(res){return res?res.json():null;}).catch(function(){return null;});
+          }));
+        });
+      }).then(function(list){return (list||[]).filter(Boolean);}).catch(function(){return [];});
+    }catch(_){return Promise.resolve([]);}
+  }
+  function readAll(){
+    return Promise.all([Promise.resolve(readLocal()),readCache()]).then(function(r){
+      var a=[].concat(r[0]||[],r[1]||[]);
+      var byTs={};
+      a.forEach(function(x){if(x&&x.privateChat&&x.ts&&!byTs[x.ts])byTs[x.ts]=x;});
+      var list=Object.keys(byTs).map(function(k){return byTs[k];}).sort(function(x,y){return Number(y.ts)-Number(x.ts);});
+      LIST=list.slice(0,3);
+      return LIST;
+    }).catch(function(){LIST=readLocal().slice(0,3);return LIST;});
   }
   function snapN(s){
     try{var o=JSON.parse((s&&s.privateChat)||"{}");var m=(o&&o.messages)||[];return m.filter(function(x){return x&&!x.sys;}).length;}catch(_){return 0;}
@@ -42115,17 +42162,15 @@ body{margin:0;background:var(--bg,#fafafa);}
     return Math.round(h/24)+" 天前";
   }
   function restore(i){
-    var arr=read();var s=arr[i];
+    var s=LIST[i];
     if(!s||!s.privateChat){try{toast("这份备份不可用");}catch(_){}return false;}
     try{
       window.__restoring=0;window.__e11CloudPause=1;window.__e11CloudHold=1;
-      /* 先把备份灌进内存 state，再走正常保存流程：
-         否则只改 localStorage 的话，页面退出时那次 save 会拿当前的空档把它盖回去。 */
       var st=null;try{st=JSON.parse(s.privateChat);}catch(_eP){st=null;}
       var ok=false;
       if(st&&window.__e11StateSet)ok=window.__e11StateSet(st);
       if(!ok)localStorage.setItem("privateChat",s.privateChat);
-      ["e11.profile.v1","e11.names.v1","__theme.v1","e11.lockPwd.v1"].forEach(function(k){if(s[k])localStorage.setItem(k,s[k]);});
+      KEYS.forEach(function(k){if(s[k])localStorage.setItem(k,s[k]);});
       try{if(typeof save==="function")save();if(window.__flushSave)window.__flushSave(true);}catch(_eSave){}
       sessionStorage.setItem("e11.rescued","1");
       var u=new URL(location.href);u.searchParams.set("__e11bk",String(s.ts||Date.now()));
@@ -42135,9 +42180,8 @@ body{margin:0;background:var(--bg,#fafafa);}
   }
   window.__e11AutoBkRestore=restore;
   window.__e11OpenAutoBk=function(){open();};
-  window.__e11AutoBkList=function(){return read().map(function(s,i){return {i:i,ts:s.ts,build:s.build,reason:s.reason,n:snapN(s)};});};
+  window.__e11AutoBkList=function(){return LIST.map(function(s,i){return {i:i,ts:s.ts,build:s.build,reason:s.reason,n:snapN(s)};});};
 
-  /* 本机是否“真的是空的”：排除默认那句欢迎语，日记/信件/动态也一起看 */
   function isEmpty(){
     try{
       var st=window.__e11StateGet?window.__e11StateGet():null;
@@ -42152,40 +42196,36 @@ body{margin:0;background:var(--bg,#fafafa);}
       return true;
     }catch(_){return false;}
   }
+  var prompted=false;
   function autoRescue(){
     var why=function(t){try{window.__e11RescueWhy=t;}catch(_){}};
     try{
+      if(prompted){why("already");return;}
       if(window.__restoring){why("restoring");return;}
       try{if(sessionStorage.getItem("e11.rescued")==="1"){why("already");return;}}catch(_){}
-      /* 用户主动重置过就不算事故，不能把人家的清空再还原回去 */
       try{if(localStorage.getItem("e11.resetLocalOnly.v1")||localStorage.getItem("__e11HardReset")){why("reset");return;}}catch(_){}
       if(!isEmpty()){why("not-empty");return;}
-      var arr=read();if(!arr.length){why("no-bk");return;}
-      var best=-1,bestN=0;
-      arr.forEach(function(s,i){
-        /* 只认更新前自动留的份，别把别的原因拉回来 */
-        if(String(s.reason||"").indexOf("before-update")!==0)return;
-        var n=snapN(s);if(n>bestN){bestN=n;best=n;}
-      });
-      if(best<0||bestN<2){why("bk-empty:"+arr.length+"/"+bestN);return;}
-      /* 不偷偷覆盖：把备份弹出来，让你看清楚再点「恢复」。
-         静默覆盖的话，万一是自己主动清空的，反而会以为“清了又活了”。 */
-      why("prompt");
-      try{toast("本机聊天是空的，更新前备份里有 "+bestN+" 条，点下面这份就能恢复");}catch(_){}
-      try{window.__e11OpenAutoBk&&window.__e11OpenAutoBk();}catch(_){}
-      try{sessionStorage.setItem("e11.rescued","1");}catch(_){}
+      readAll().then(function(list){
+        var best=-1,bestN=0;
+        list.forEach(function(s,i){
+          var n=snapN(s);if(n>bestN){bestN=n;best=i;}
+        });
+        if(best<0||bestN<2){why("bk-empty:"+list.length+"/"+bestN);return;}
+        why("prompt");prompted=true;
+        try{toast("本机聊天是空的，备份里有 "+bestN+" 条，点下面这份就能恢复");}catch(_){}
+        try{sessionStorage.setItem("e11.rescued","1");}catch(_){}
+        open();
+      }).catch(function(){why("read-fail");});
     }catch(_){}
   }
   window.__e11AutoRescue=autoRescue;
-  /* 启动后 1.4s 起每 1.4s 复查一次，共 6 次：启动流程会在 2~3 秒内把 state 从各个应急档换一遍，
-     只查一次容易正好撞在“还没读完”的中间态。 */
   try{for(var _k=0;_k<6;_k++)setTimeout(autoRescue,1400+_k*1400);}catch(_){setTimeout(autoRescue,2300);}
 
-  function buildList(){
+  function buildList(list){
     var b=document.getElementById("autobk-body");if(!b)return;
-    var arr=read();
-    if(!arr.length){b.innerHTML='<div class="an-item">还没有更新前备份。备份只在网站更新前生成，最多留 3 份。</div>';return;}
-    b.innerHTML=arr.map(function(s,i){
+    list=list||[];
+    if(!list.length){b.innerHTML='<div class="an-item">还没有更新前备份。备份会在更新前和每次打开时自动留 1 份，最多留 3 份。</div>';return;}
+    b.innerHTML=list.map(function(s,i){
       var n=snapN(s);
       return '<div class="an-item" style="padding-left:0;display:flex;align-items:center;gap:10px;">'+
         '<div style="flex:1;min-width:0;"><div style="font-weight:600;">'+fmt(s.ts)+'</div>'+
@@ -42194,7 +42234,7 @@ body{margin:0;background:var(--bg,#fafafa);}
     }).join("");
   }
   function open(){
-    buildList();
+    readAll().then(function(list){buildList(list);});
     var el=document.getElementById("autobk-screen");
     if(el)el.classList.add("show");
   }
@@ -42210,8 +42250,8 @@ body{margin:0;background:var(--bg,#fafafa);}
     if(rb){
       e.preventDefault();
       var i=Number(rb.getAttribute("data-bk"));
-      var arr=read();var n=snapN(arr[i]||{});
-      var msg="用这份备份覆盖本机？\n\n"+fmt(arr[i]&&arr[i].ts)+" · "+n+" 条聊天\n\n当前本机的聊天、名字、背景会被这份替换，恢复后页面会自动重载。";
+      var s=LIST[i]||{};
+      var msg="用这份备份覆盖本机？\n\n"+fmt(s.ts)+" · "+snapN(s)+" 条聊天\n\n当前本机的聊天、名字、背景会被这份替换，恢复后页面会自动重载。";
       var go=function(){restore(i);};
       if(window.__iosConfirm){window.__iosConfirm(msg,{okText:"恢复",cancelText:"取消"}).then(function(yes){if(yes)go();});}
       else if(confirm(msg))go();
@@ -42219,8 +42259,20 @@ body{margin:0;background:var(--bg,#fafafa);}
     }
     if(t.closest("#autobk-screen")&&!t.closest(".an-card")){e.preventDefault();close();}
   },true);
-})();
-</script>
+
+  /* v44-236b73：每次打开（距上一份超过 4 小时才留）都补一份，既不会一份都没有，
+     也不会把配额刷爆。更新前那条路径仍会额外留一份 before-update。 */
+  function scheduled(){
+    try{
+      readAll().then(function(list){
+        var last=Number((list[0]&&list[0].ts)||0);
+        if(Date.now()-last<4*3600*1000)return;
+        if(window.__e11AutoBackup)window.__e11AutoBackup("on-open");
+      }).catch(function(){});
+    }catch(_){}
+  }
+  setTimeout(scheduled,2600);
+})();</script>
 <script>
 /* v44-236b71：设置 → 使用说明。按板块写清每个功能的作用和操作方式。
    内容和代码分开维护，以后加功能只要往 HELP 里补一条。 */
