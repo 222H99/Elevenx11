@@ -2,7 +2,7 @@
    作用一：缓存主页面，第二次打开时不再重新下载 2MB HTML，直接出首屏（黑屏时间大幅缩短）。
    作用二：提供通知点击回到 App 的最小能力。
    策略：有缓存立即返回，同时在后台抓取新版并写回缓存；首次无缓存才等网络。 */
-const E11_VERSION = "2026-11-27v44-236b97-r449";
+const E11_VERSION = "2026-11-27v44-236b137-r489";
 const E11_CACHE = "e11-shell-" + E11_VERSION;
 const E11_INDEX = "./index.html";
 const E11_TIMEOUT = 150;
@@ -196,18 +196,27 @@ self.addEventListener("notificationclick", (e) => {
   const data = (e.notification && e.notification.data) || {};
   const view = data.view || "view-chat";
   const momentId = data.momentId || "";
+  const commentId = data.commentId || "";
   const hash = view === "view-moments" ? "#moments" : view === "view-letters" ? "#letters" : view === "view-guestbook" ? "#guestbook" : "#chat";
+  /* 冷启动（App 已关掉）时 hash 带不回具体动态/评论，改成查询参数带过去，
+     index.html 启动后按 mid/cid 定位；否则点“对方评论了你的动态”只会落在最新一条。 */
+  let qs = "";
+  try {
+    const q = new URLSearchParams();
+    if (view === "view-moments" && momentId) { q.set("e11mid", momentId); if (commentId) q.set("e11cid", commentId); }
+    qs = q.toString() ? ("?" + q.toString()) : "";
+  } catch (_) {}
   e.waitUntil((async () => {
     try {
       const list = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
       for (const c of list) {
         if (c.url && c.focus) {
           await c.focus();
-          try { c.postMessage({ e11Open: view, momentId: momentId }); } catch (_) {}
+          try { c.postMessage({ e11Open: view, momentId: momentId, commentId: commentId }); } catch (_) {}
           return;
         }
       }
-      if (self.clients.openWindow) await self.clients.openWindow("./index.html" + hash);
+      if (self.clients.openWindow) await self.clients.openWindow("./index.html" + qs + hash);
     } catch (_) {}
   })());
 });
