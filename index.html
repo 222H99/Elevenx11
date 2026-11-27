@@ -406,7 +406,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-27v44-236b96";
+window.__E11_BUILD="2026-11-27v44-236b97";
 /* v43-236b37：以前版本一变就「清缓存 + location.reload()」，慢网/真机上等于多白屏 1~3 秒。
    现在页面本身就是新代码，不再重载；只让 Service Worker 在空闲时自己更新、清掉旧缓存，
    下次开启自然就是新版。 */
@@ -3127,7 +3127,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-27v44-236b96">
+<meta name="app-build" content="2026-11-27v44-236b97">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -10124,6 +10124,75 @@ try{
   window.__e11KnownDbs=_kn;
 }catch(_eKn){}
 function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,1);r.onupgradeneeded=e=>{if(!e.target.result.objectStoreNames.contains(STORE))e.target.result.createObjectStore(STORE);};r.onsuccess=e=>{db=e.target.result;res(db);};r.onerror=e=>rej(r.error);});}
+/* v44-236b97：更新/换登录后，主库名可能变成另一个作用域（privateChatDB_v1_<uid>），
+   页面一打开就是空的，看起来像“更新把数据弄没了”。这里在启动时扫一遍本机所有
+   privateChatDB_v1* 库，谁的聊天/动态/信件最多就用谁，并写回当前库，
+   让“大部分数据都在本机数据库里”这套存档在任何入口都读得到。 */
+function __e11OpenNamed(name){
+  return new Promise(function(res,rej){
+    var done=false,t=setTimeout(function(){if(!done){done=true;rej(new Error("idb-timeout"));}},4000);
+    try{
+      var r=indexedDB.open(name);
+      r.onupgradeneeded=function(){};
+      r.onsuccess=function(){if(done)return;done=true;clearTimeout(t);res(r.result);};
+      r.onerror=function(){if(done)return;done=true;clearTimeout(t);rej(r.error);};
+    }catch(e){if(!done){done=true;clearTimeout(t);rej(e);}}
+  });
+}
+function __e11GetNamedState(name){
+  return __e11OpenNamed(name).then(function(d){
+    return new Promise(function(res,rej){
+      var done=false,t=setTimeout(function(){if(!done){done=true;rej(new Error("get-timeout"));}},4000);
+      try{
+        var tx=d.transaction(STORE,"readonly"),q=tx.objectStore(STORE).get("state");
+        q.onsuccess=function(){if(!done){done=true;clearTimeout(t);res(q.result);}};
+        q.onerror=function(){if(!done){done=true;clearTimeout(t);rej(q.error);}};
+        tx.oncomplete=function(){try{d.close();}catch(_){};};
+      }catch(e){if(!done){done=true;clearTimeout(t);rej(e);}}
+    });
+  });
+}
+function __e11ListDbNames(){
+  return new Promise(function(res){
+    var known=[];
+    try{known=JSON.parse(localStorage.getItem("e11.knownDbNames.v1")||"[]")||[];}catch(_){known=[];}
+    if(!Array.isArray(known))known=[];
+    if(known.indexOf(DB_NAME)<0)known.push(DB_NAME);
+    var finish=function(list){
+      var seen={},out=[];
+      (list||[]).forEach(function(n){
+        if(typeof n!=="string")return;
+        if(n.indexOf("privateChatDB_v1")!==0)return;
+        if(seen[n])return;seen[n]=1;out.push(n);
+      });
+      res(out);
+    };
+    try{
+      if(indexedDB.databases){
+        indexedDB.databases().then(function(dbs){finish((dbs||[]).map(function(d){return d&&d.name;}));})
+          .catch(function(){finish(known);});
+      }else finish(known);
+    }catch(_){finish(known);}
+  });
+}
+function __e11ScanRicherState(){
+  return __e11ListDbNames().then(function(names){
+    var others=names.filter(function(n){return n!==DB_NAME;}).slice(0,10);
+    var best=null,bestName="",bestScore=0;
+    return others.reduce(function(p,n){
+      return p.then(function(){
+        return __e11GetNamedState(n).then(function(st){
+          if(!st||!Array.isArray(st.messages))return;
+          var sc=(st.messages||[]).length*3+(st.moments||[]).length*2+(st.letters||[]).length+(st.guestbook||[]).length;
+          if(sc>bestScore){bestScore=sc;best=st;bestName=n;}
+        }).catch(function(){});
+      });
+    },Promise.resolve()).then(function(){
+      if(best&&bestScore>0)return {state:best,db:bestName,score:bestScore};
+      return null;
+    });
+  }).catch(function(){return null;});
+}
 function dbGet(k){return new Promise((res,rej)=>{
   if(!db){res(undefined);return;}
   var done=false,timer=null;
@@ -13740,6 +13809,24 @@ async function init(){
     aboutLoadStatus("正在同步聊天记录…");
     var s=await dbGet("state");
     try{window.__e11DbHadState=!!s;}catch(_eDbHad){}
+    /* 当前库是空的（新作用域/换登录/更新后库名变了），去本机其他 privateChatDB_v1* 里找最富的一份 */
+    try{
+      /* 只在“当前库压根没有存档”且没登录账号作用域时接管，
+         避免把另一个账号的库混进来；用户主动清空聊天（messages=[]）也不会被旧库复活。 */
+      var _rstTsScan=Number(localStorage.getItem("e11.resetLocalOnly.v1"))||0;
+      var _hasAuth=false;
+      try{var _aRaw=JSON.parse(localStorage.getItem("e11.auth.v1")||"null");_hasAuth=!!(_aRaw&&_aRaw.uid);}catch(_aRawE){}
+      if((!s||!Array.isArray(s.messages))&&!window.__e11DbScope&&!_hasAuth&&!window.__e11NoAdopt){
+        aboutLoadStatus("正在查找本机旧数据…");
+        var _alt=await __e11ScanRicherState();
+        if(_alt&&_alt.state&&(Number(_alt.state.__savedAt||0)>_rstTsScan)){
+          s=_alt.state;window.__e11DbAdopted=_alt.db;
+          try{await dbSet("state",s);}catch(_eAdopt){}
+          try{window.__e11AdoptedNotice=_alt.db;}catch(_eAdopt2){}
+          setTimeout(function(){try{toast("已从本机旧库找回数据");}catch(_eAdToast){}},6500);
+        }
+      }
+    }catch(_eScan){}
     /* v43-229：先看 localStorage 里每次保存同步落下的整份快照，它比 IndexedDB 新就以它为准。
        稳定版 bp109 用的就是这套“两份存档、谁新用谁”，不再让离站档/备份反过来盖最新数据。 */
     var _lsFull=null;
