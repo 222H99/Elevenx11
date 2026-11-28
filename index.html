@@ -406,7 +406,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-27v44-236b147";
+window.__E11_BUILD="2026-11-27v44-236b148";
 /* b146：在任何 showView 覆盖之前，先把“上次退出时停留的页面”记下来。
    否则启动流程会先写一次 view-me，等 __bootView 再读时已经变成主页了。 */
 try{
@@ -3184,7 +3184,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-27v44-236b147">
+<meta name="app-build" content="2026-11-27v44-236b148">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -45704,21 +45704,8 @@ body{margin:0;background:var(--bg,#fafafa);}
     $_("tw-emoji-tab-me").addEventListener("click",function(){twEmojiSide="me";renderEmojiPicker();});
     $_("tw-emoji-tab-partner").addEventListener("click",function(){twEmojiSide="partner";renderEmojiPicker();});
   }catch(_eTab){}
-  /* 进站密码锁屏一出现，回响界面立刻退出，不能压在锁屏上拖时间。 */
-  try{
-    var _lk=document.getElementById("lock-screen");
-    if(_lk&&window.MutationObserver){
-      new MutationObserver(function(){
-        try{if(_lk.classList.contains("show")&&ov&&ov.classList.contains("show"))close();}catch(_){}
-      }).observe(_lk,{attributes:true,attributeFilter:["class"]});
-    }
-  }catch(_eLk){}
-  /* 切后台/锁屏也立刻收起，回到前台不会看到旧聊天界面盖在锁屏上。 */
-  try{
-    document.addEventListener("visibilitychange",function(){
-      if(document.hidden&&ov&&ov.classList.contains("show"))close();
-    });
-  }catch(_eVis){}
+  /* b148：只有用户点返回/关闭才退出回响。切后台、锁屏、回前台都保持原样，
+     不再自动收起回主聊天——回来还是离开时那一屏。 */
   window.__e11TypeWinClose=close;
 })();
 </script>
