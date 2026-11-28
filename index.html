@@ -4,7 +4,7 @@
      这样 iOS 在第一次布局前就能拿到 device-width，不再先按 980px 画一帧。 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimum-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
-<style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#ffffff;}body{visibility:hidden;}@media (prefers-color-scheme:dark){html,body{background:#000000;}}/* v44-236b83：编辑器预览标题/小字上下分开（后置覆盖，避免被前面的 bottom:26px 抢走） */
+<style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#FDF8F4;}body{visibility:hidden;background:inherit;}@media (prefers-color-scheme:dark){html,body{background:#141416;}}/* v44-236b83：编辑器预览标题/小字上下分开（后置覆盖，避免被前面的 bottom:26px 抢走） */
 #dce-preview .dce-t{bottom:19%!important;}
 #dce-preview .dce-sub{bottom:12%!important;left:12px!important;right:12px!important;text-align:left!important;}
 /* ===== v44-236b85：封面字回到平面（参考 b77 的写法，不要烫金/立体） ===== */
@@ -406,7 +406,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-27v44-236b148";
+window.__E11_BUILD="2026-11-27v44-236b149";
 /* b146：在任何 showView 覆盖之前，先把“上次退出时停留的页面”记下来。
    否则启动流程会先写一次 view-me，等 __bootView 再读时已经变成主页了。 */
 try{
@@ -3184,7 +3184,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-27v44-236b148">
+<meta name="app-build" content="2026-11-27v44-236b149">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -14104,7 +14104,9 @@ async function init(){
       var _seenBuild="";try{_seenBuild=String(localStorage.getItem("e11.buildSeen.v1")||"");}catch(_eSB){}
       var _buildChanged=!!(_seenBuild&&_seenBuild!==String(window.__E11_BUILD||""));
       var _exactUpd=!!(_buildChanged||localStorage.getItem("e11.updAt.v1"));
-      var _needRescue=(_curN===0)||(_anonScope&&(_buildChanged||!!localStorage.getItem("e11.updAt.v1")));
+      /* b149：更新后只有当前仍然是“默认空档”才去扫全库。已经有几十条以上真实聊天时，
+         不再每次版本变化都全库扫描——那会把进站拖成几秒白屏。 */
+      var _needRescue=(_curN===0)||(_anonScope&&_curN<=5&&(_buildChanged||!!localStorage.getItem("e11.updAt.v1")));
       if(_needRescue&&_anonScope&&!window.__e11NoAdopt&&!window.__e11DbAdopted){
         try{window.__e11BootRescuing=1;}catch(_eBR){}
         aboutLoadStatus("正在查找本机旧数据…");
@@ -44439,15 +44441,9 @@ body{margin:0;background:var(--bg,#fafafa);}
           return true;
         })
         .then(function(){
-          if(lsFallback)return true;
-          return __e11DbGetTimed("state",15000).then(function(chk){
-            var got=chk?__abMsgN(chk):0;
-            if(got>=n0)return true;
-            /* 第一次读回条数不够，再给主库补写一次；仍不够就报错，绝不带着半份数据重载。 */
-            return window.__e11DbSetLong("state",live).then(function(){return __e11DbGetTimed("state",15000);}).then(function(chk2){
-              return !!(chk2&&__abMsgN(chk2)>=n0);
-            });
-          });
+          /* b149：dbSet 事务完成就代表整份已落库，不再把几 MB 的存档读回来比对一遍。
+             以前恢复 1000+ 条时，读一次、写一次、再读一次，卡顿主要就卡在这。 */
+          return true;
         })
         .then(function(verified){
           if(!verified)throw new Error("恢复数据没有完整写进本机，已停在当前页面，请先导出备份");
@@ -44461,10 +44457,21 @@ body{margin:0;background:var(--bg,#fafafa);}
           if(!lsFallback){try{localStorage.setItem("privateChat",JSON.stringify({__idbOnly:1,__savedAt:live.__savedAt}));}catch(_ePtr){}}
           try{sessionStorage.setItem("e11.restoreJustDone",String(Date.now()));sessionStorage.setItem("e11.rescued","1");}catch(_eFlag){}
           try{window.__e11DiarySnapshot&&window.__e11DiarySnapshot(live);}catch(_eD){}
-          try{toast("已恢复 "+n0+" 条消息，正在重新载入…");}catch(_eT){}
-          showProg("已恢复 "+n0+" 条，正在重新载入…");
-          var u=new URL(location.href);u.searchParams.set("__e11bk",String(s.ts||Date.now()));
-          setTimeout(function(){location.replace(u.toString());},160);
+          /* b149：不再整页重载。数据已经完整写进本机，直接把刚恢复的 state 铺到界面上，
+             省掉重载时重新解析 3MB 脚本、重读数据库、重画聊天那一大段卡顿。 */
+          try{toast("已恢复 "+n0+" 条消息");}catch(_eT){}
+          showProg("已恢复 "+n0+" 条，正在刷新界面…");
+          try{
+            if(window.__settingsBackupRestore)window.__settingsBackupRestore();
+            if(window.__prefApply)window.__prefApply();
+            if(window.applySkin)window.applySkin();
+            /* 只切到聊天页，由 showView 自己铺当前窗口的消息，不再跑整页 renderAll。 */
+            window.__e11GateUp=0;
+            if(typeof showView==="function")showView("view-chat");
+            var _ac=document.getElementById("autobk-close");if(_ac)_ac.click();
+          }catch(_eSoft){}
+          setTimeout(function(){hideProg();},260);
+          window.__restoring=0;window.__e11CloudPause=0;window.__e11CloudHold=0;
           return true;
         })
         .catch(function(e){
