@@ -406,7 +406,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-27v44-236b146";
+window.__E11_BUILD="2026-11-27v44-236b147";
 /* b146：在任何 showView 覆盖之前，先把“上次退出时停留的页面”记下来。
    否则启动流程会先写一次 view-me，等 __bootView 再读时已经变成主页了。 */
 try{
@@ -3184,7 +3184,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-27v44-236b146">
+<meta name="app-build" content="2026-11-27v44-236b147">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -44766,10 +44766,8 @@ body{margin:0;background:var(--bg,#fafafa);}
         <div class="set-row" style="padding:10px 12px;"><span class="set-label">最慢（秒）<div class="set-sub">每次回复会在最快和最慢之间随机</div></span><input class="set-input" id="tw-delay-max" type="number" min="1" max="30" step="1" value="5"></div>
       </div>
       <div class="tw-side-sec">聊天记录</div>
-      <button class="tw-btn tw-side-act" id="tw-act-export">导出全部长图（PNG）</button>
       <button class="tw-btn ghost tw-side-act" id="tw-act-pov">从 TA 的角度看</button>
       <button class="tw-btn ghost tw-side-act" id="tw-act-replay">重看开场电话</button>
-      <button class="tw-btn ghost tw-side-act" id="tw-act-collect">导进聊天页（全部记录）</button>
       <button class="tw-side-close" id="tw-side-close">完成</button>
     </div>
   </div>
@@ -44780,7 +44778,7 @@ body{margin:0;background:var(--bg,#fafafa);}
    我这边自由打字；对方按你设定的延迟，从你添加的字卡里挑一句逐字回。
    进入时先来电（拨号→接听→嘈杂→挂断→忙音），再过一层仿 QQ 的好友验证。 */
 (function(){
-  var ov,anim,inp,logEl,meta={typing:false,timer:null,pend:null,auto:null,queue:"",importing:false,teaseTimer:null,batteryUntil:0,batteryTimer:null,batteryOpen:null,sysTimer:null,batteryQueue:false,sent:[],importedCount:0,meAv:"",ptAv:""};
+  var ov,anim,inp,logEl,meta={typing:false,timer:null,pend:null,auto:null,queue:"",importing:false,teaseTimer:null,batteryUntil:0,batteryTimer:null,batteryOpen:null,sysTimer:null,batteryQueue:false,sent:[],importedCount:0,replyNeed:0,meAv:"",ptAv:""};
   var G={accepted:false,lockUntil:0};
   var RD_MIN=1,RD_MAX=5;
   var twEmojiSide="me";
@@ -44928,7 +44926,6 @@ body{margin:0;background:var(--bg,#fafafa);}
       twSys("对方充上电，回来了",3000);
       if(meta.queue){var _q=meta.queue;meta.queue="";setTimeout(function(){fireText(_q);},0);}
       else if(meta.batteryQueue){meta.batteryQueue=false;setTimeout(function(){schedulePartner();},700);}
-      else scheduleProactive(5,10);
     },dur);
   }
   function maybeBatteryEvent(){
@@ -44985,7 +44982,7 @@ body{margin:0;background:var(--bg,#fafafa);}
     clearTimeout(meta.timer);clearTimeout(meta.pend);clearTimeout(meta.auto);meta.auto=null;meta.typing=false;meta.queue="";
     clearTease();clearTimeout(meta.batteryTimer);clearTimeout(meta.batteryOpen);meta.batteryTimer=null;meta.batteryOpen=null;meta.batteryUntil=0;meta.batteryQueue=false;
     clearTimeout(meta.sysTimer);try{var sy=$_("tw-sys");if(sy){sy.classList.remove("show");sy.textContent="";}}catch(_){}
-    meta.sent=[];meta.importedCount=0;
+    meta.sent=[];meta.importedCount=0;meta.replyNeed=0;
     try{if(logEl)logEl.innerHTML="";}catch(e){}
     try{var h=$_("tw-hint");if(h)h.classList.remove("hide");}catch(e){}
     twOffline(false);setStatus("在线");scrollBottom();
@@ -45059,22 +45056,15 @@ body{margin:0;background:var(--bg,#fafafa);}
       return;
     }
     if(n===2){waitView();return;}
-    status("好友请求已发出，等对方反应…");
+    status("好友申请已发出…");
     later(1400,function(){
-      if(Math.random()<0.5){accepted("对方通过了你的好友请求",true);return;}
-      /* 被拒绝后不再锁界面：对方会反复发申请，直到你同意或退出 */
-      modal("对方拒绝了你的好友请求","申请被退回。对方还会继续发申请，你可以拒绝很多次，也可以直接同意。",[
-        {t:"知道了",cb:function(){later(1800,partnerAskLoop);}}
+      if(Math.random()<0.5){accepted("对方通过了你的好友申请",true);return;}
+      /* 是我发起的申请：被拒后由我再决定要不要重发，不再冒出“对方请求加你”的提示。 */
+      modal("对方拒绝了你的好友申请","申请被退回了。要再发一次吗？",[
+        {t:"再发一次",cb:function(){later(300,function(){pick(3);});}},
+        {t:"退出",cb:function(){close();}}
       ]);
     });
-  }
-  /* 对方反复申请：拒绝一次就过几秒再来一次，不再锁 3–5 分钟 */
-  function partnerAskLoop(){
-    try{var g=$_("twg");if(!g||!g.classList.contains("show"))return;}catch(_){return;}
-    modal("对方请求添加你为好友","对方又发来一次申请，只有你同意才能进。",[
-      {t:"拒绝",cb:function(){later(2200,partnerAskLoop);}},
-      {t:"同意",cb:function(){accepted("你们已经成为好友");}}
-    ]);
   }
   function waitCdText(){
     var rem=Math.max(0,wait.until-Date.now());
@@ -45199,10 +45189,31 @@ body{margin:0;background:var(--bg,#fafafa);}
     setTimeout(function(){try{echoNavGuard();}catch(_){}},320);
     setTimeout(function(){try{inp.focus();}catch(e){}},350);
     setTimeout(stickBottomSoon,360);setTimeout(stickBottomSoon,760);
-    /* v44-236b129：对方也会主动开口。进入回响后 6–11 秒先发一条，之后空闲 22–40 秒再发。 */
-    scheduleProactive(6,11);
+    /* b147：不再主动插入消息，保证“我发几条，对方回几条”。 */
     /* v44-236b132：每次进入 3% 概率触发“对方没电了” */
     maybeBatteryEvent();
+  }
+  /* b147：回响里每一条消息都实时落进主聊天记录，不再靠手动“导进”。
+     和一起听一样，一条条追加，退出回响也不会丢。 */
+  function saveEchoToChat(it){
+    try{
+      if(!it||!it.from||window.__twReplayOnly)return;
+      var ts=Number(it.ts)||Date.now(),id=null;
+      if(it.kind==="emoji"){
+        id=pushMsg(it.from,"image","",{src:it.src||"",kind:"emoji",w:Number(it.w)||0,h:Number(it.h)||0,emojiId:String(it.emojiId||""),quiet:1,time:ts});
+      }else if(it.kind==="image"){
+        id=pushMsg(it.from,"image","",{src:it.src||"",w:Number(it.w)||0,h:Number(it.h)||0,quiet:1,time:ts});
+      }else if(it.text){
+        id=pushMsg(it.from,"text",String(it.text),{quiet:1,time:ts});
+      }else return;
+      try{save();}catch(_){}
+      /* 聊天页就在回响下面时同步追加，退出回响立刻能看到，不用等下次整屏重绘。 */
+      try{
+        if(id&&window.__appendChatMsg&&document.getElementById("view-chat")&&document.getElementById("view-chat").classList.contains("open")){
+          window.__appendChatMsg(id);
+        }else{window.__chatDirty=1;}
+      }catch(_){}
+    }catch(_eSaveEcho){}
   }
   function replyDelay(){return (RD_MIN+Math.random()*(RD_MAX-RD_MIN))*1000;}
   function updateDelayBtn(){var b=$_("tw-delay");if(b)b.textContent="☰";var a=$_("tw-delay-min"),z=$_("tw-delay-max");if(a)a.value=RD_MIN;if(z)z.value=RD_MAX;}
@@ -45214,22 +45225,35 @@ body{margin:0;background:var(--bg,#fafafa);}
     }catch(e){return null;}
   }
   function schedulePartner(){
-    clearTimeout(meta.pend);clearTimeout(meta.auto);meta.auto=null;clearTease();
+    clearTimeout(meta.auto);meta.auto=null;clearTease();
     if(meta.batteryUntil>Date.now()){meta.batteryQueue=true;return;}
-    var emo=(Math.random()<0.4)?pickPartnerEmoji():null;
-    var c=emo?null:pickCard();
-    if(!emo&&!c){try{toast("对方还没有字卡或表情可用");}catch(e){}return;}
+    /* b147：我发几条，对方就回几条。以前每发一条都把上一条的回复计时清掉，
+       连发时只看得到最后一条的回复；现在改成排队，一条一条回。 */
+    meta.replyNeed=(Number(meta.replyNeed)||0)+1;
+    pumpEchoReply();
+  }
+  function pumpEchoReply(){
+    if(meta.pend)return;
+    if((Number(meta.replyNeed)||0)<=0)return;
     meta.pend=setTimeout(function(){
-      if(!ov||!ov.classList.contains("show"))return;
-      if(meta.batteryUntil>Date.now()){meta.batteryQueue=true;return;}
-      if(emo){
+      meta.pend=null;
+      if(!ov||!ov.classList.contains("show")){meta.replyNeed=0;return;}
+      if(meta.batteryUntil>Date.now()){meta.batteryQueue=true;meta.replyNeed=(Number(meta.replyNeed)||0);return;}
+      meta.replyNeed=Math.max(0,(Number(meta.replyNeed)||0)-1);
+      var emo=(Math.random()<0.4)?pickPartnerEmoji():null;
+      var c=emo?null:pickCard();
+      if(!emo&&!c){try{toast("对方还没有字卡或表情可用");}catch(e){}pumpEchoReply();}
+      else if(emo){
         var esrc=emo.src||emo.url;
         addBubble("partner","emoji",{src:esrc});
-        meta.sent.push({from:"partner",kind:"emoji",src:esrc,w:Number(emo.w)||0,h:Number(emo.h)||0,emojiId:String(emo.id||""),ts:Date.now()});
-        scheduleProactive(22,40);
+        var _em={from:"partner",kind:"emoji",src:esrc,w:Number(emo.w)||0,h:Number(emo.h)||0,emojiId:String(emo.id||""),ts:Date.now()};
+        meta.sent.push(_em);saveEchoToChat(_em);pumpEchoReply();
       }else{
         var txt=String(c.text||"").trim();
-        partnerTease(function(){typePartner(txt,function(){meta.sent.push({from:"partner",kind:"text",text:txt,ts:Date.now()});scheduleProactive(22,40);});});
+        partnerTease(function(){typePartner(txt,function(){
+          var _tm={from:"partner",kind:"text",text:txt,ts:Date.now()};
+          meta.sent.push(_tm);saveEchoToChat(_tm);pumpEchoReply();
+        });});
       }
     },replyDelay());
   }
@@ -45253,11 +45277,12 @@ body{margin:0;background:var(--bg,#fafafa);}
         if(emo){
           var esrc=emo.src||emo.url;
           addBubble("partner","emoji",{src:esrc});
-          meta.sent.push({from:"partner",kind:"emoji",src:esrc,w:Number(emo.w)||0,h:Number(emo.h)||0,emojiId:String(emo.id||""),ts:Date.now()});
+          var _pe={from:"partner",kind:"emoji",src:esrc,w:Number(emo.w)||0,h:Number(emo.h)||0,emojiId:String(emo.id||""),ts:Date.now()};
+          meta.sent.push(_pe);saveEchoToChat(_pe);
           scheduleProactive(22,40);
         }else if(c){
           var txt=String(c.text||"").trim();
-          partnerTease(function(){typePartner(txt,function(){meta.sent.push({from:"partner",kind:"text",text:txt,ts:Date.now()});scheduleProactive(22,40);});});
+          partnerTease(function(){typePartner(txt,function(){var _pt={from:"partner",kind:"text",text:txt,ts:Date.now()};meta.sent.push(_pt);saveEchoToChat(_pt);scheduleProactive(22,40);});});
         }
       }catch(_){}
     },wait*1000);
@@ -45265,7 +45290,7 @@ body{margin:0;background:var(--bg,#fafafa);}
   function fireText(t){
     t=String(t||"").trim();if(!t)return;
     addBubble("me","text",t);
-    meta.sent.push({from:"me",kind:"text",text:t,ts:Date.now()});
+    var _mt={from:"me",kind:"text",text:t,ts:Date.now()};meta.sent.push(_mt);saveEchoToChat(_mt);
     schedulePartner();
   }
   function fire(){
@@ -45278,7 +45303,7 @@ body{margin:0;background:var(--bg,#fafafa);}
     try{
       var src=(e&&(e.src||e.url))||"";if(!src)return;
       addBubble("me","emoji",{src:src});
-      meta.sent.push({from:"me",kind:"emoji",src:src,w:Number(e.w)||0,h:Number(e.h)||0,emojiId:String(e.id||""),ts:Date.now()});
+      var _me={from:"me",kind:"emoji",src:src,w:Number(e.w)||0,h:Number(e.h)||0,emojiId:String(e.id||""),ts:Date.now()};meta.sent.push(_me);saveEchoToChat(_me);
       emojiOpen(false);
       schedulePartner();
     }catch(_){}
@@ -45611,7 +45636,7 @@ body{margin:0;background:var(--bg,#fafafa);}
     $_("twc-hang").addEventListener("click",endCall);
     try{$_("tw-clear")&&$_("tw-clear").addEventListener("click",function(){resetBubbles();renderChips();});}catch(_){}
     $_("tw-fire").addEventListener("click",fire);
-    try{var _twSend=$_("tw-send");if(_twSend)_twSend.addEventListener("click",sendToChat);}catch(_){}
+
     /* 顶栏 ＋ 打开底部设置面板 */
     $_("tw-delay").addEventListener("click",function(){sideOpen(true);});
     function bindDelayRange(id,isMax){
@@ -45628,10 +45653,6 @@ body{margin:0;background:var(--bg,#fafafa);}
     $_("tw-emoji-close").addEventListener("click",function(){emojiOpen(false);});
     $_("tw-emoji-bg").addEventListener("click",function(){emojiOpen(false);});
     /* 三条杠里：回复频率下面放聊天记录三项 */
-    $_("tw-act-export").addEventListener("click",function(){
-      sideOpen(false);emojiOpen(false);
-      setTimeout(function(){try{exportTwLong();}catch(_){toast("长图生成失败，请重试");}},80);
-    });
     $_("tw-act-pov").addEventListener("click",function(){
       sideOpen(false);emojiOpen(false);
       setTimeout(function(){try{twShowPov();}catch(_){}},80);
@@ -45639,9 +45660,6 @@ body{margin:0;background:var(--bg,#fafafa);}
     $_("tw-act-replay").addEventListener("click",function(){
       sideOpen(false);emojiOpen(false);
       resetBubbles();startCall();
-    });
-    $_("tw-act-collect").addEventListener("click",function(){
-      sideOpen(false);emojiOpen(false);sendToChat(true);
     });
     $_("tw-pick-img").addEventListener("click",function(){var f=$_("tw-img-file");if(f)f.click();});
     $_("tw-img-file").addEventListener("change",function(e){
@@ -45651,7 +45669,7 @@ body{margin:0;background:var(--bg,#fafafa);}
         try{
           var src=String(fr.result||"");if(!src)return;
           addBubble("me","image",{src:src});
-          meta.sent.push({from:"me",kind:"image",src:src,w:0,h:0,ts:Date.now()});
+          var _mi={from:"me",kind:"image",src:src,w:0,h:0,ts:Date.now()};meta.sent.push(_mi);saveEchoToChat(_mi);
           schedulePartner();
         }catch(_){}
       };
