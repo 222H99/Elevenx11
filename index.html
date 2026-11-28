@@ -406,7 +406,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-27v44-236b143";
+window.__E11_BUILD="2026-11-27v44-236b144";
 /* v44-236b138：区分「后台被系统回收后重载」和「从图标冷启动」。
    sessionStorage 只在本标签/本次任务生命周期内保留：
    - 后台回收再回来：标记还在，恢复离开前那一页；
@@ -3175,7 +3175,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-27v44-236b143">
+<meta name="app-build" content="2026-11-27v44-236b144">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -10206,15 +10206,36 @@ function __e11OpenNamed(name){
   });
 }
 function __e11GetNamedState(name){
+  /* b144：不只读 state。旧库的主档可能早被默认档覆盖，真正的历史在
+     bk_preupdate_full / bk_rescue_full / bk_best / bk_slot_0..6 里。
+     这里把同一库的所有候选一起读出来，按内容量挑最完整的一份。 */
   return __e11OpenNamed(name).then(function(d){
     return new Promise(function(res,rej){
-      var done=false,t=setTimeout(function(){if(!done){done=true;rej(new Error("get-timeout"));}},4000);
+      var done=false,t=setTimeout(function(){if(!done){done=true;rej(new Error("get-timeout"));}},5000);
+      function finish(v){if(done)return;done=true;clearTimeout(t);try{d.close();}catch(_){};res(v);}
       try{
-        var tx=d.transaction(STORE,"readonly"),q=tx.objectStore(STORE).get("state");
-        q.onsuccess=function(){if(!done){done=true;clearTimeout(t);res(q.result);}};
-        q.onerror=function(){if(!done){done=true;clearTimeout(t);rej(q.error);}};
-        tx.oncomplete=function(){try{d.close();}catch(_){};};
-      }catch(e){if(!done){done=true;clearTimeout(t);rej(e);}}
+        var tx=d.transaction(STORE,"readonly"),os=tx.objectStore(STORE);
+        var keys=["state","bk_preupdate_full","bk_rescue_full","bk_best","bk_slot_0","bk_slot_1","bk_slot_2","bk_slot_3","bk_slot_4","bk_slot_5","bk_slot_6"];
+        var vals={},left=keys.length,best=null,bestScore=0;
+        keys.forEach(function(k){
+          var q=os.get(k);
+          q.onsuccess=function(){
+            var v=q.result;vals[k]=v;
+            var st=null;
+            try{
+              if(v&&v.state&&Array.isArray(v.state.messages))st=v.state;
+              else if(v&&Array.isArray(v.messages))st=v;
+            }catch(_){}
+            if(st){
+              var sc=(st.messages||[]).length*3+(st.moments||[]).length*2+(st.letters||[]).length+(st.guestbook||[]).length;
+              if(sc>bestScore){bestScore=sc;best=st;}
+            }
+            if(--left===0)finish(best);
+          };
+          q.onerror=function(){if(--left===0)finish(best);};
+        });
+        tx.onerror=function(){finish(best);};
+      }catch(e){finish(null);}
     });
   });
 }
@@ -10258,6 +10279,23 @@ function __e11ScanRicherState(){
       return null;
     });
   }).catch(function(){return null;});
+}
+/* b144：判断一份存档是不是“只剩默认内容”。
+   默认档也有 messages 数组（一条欢迎语），所以旧逻辑用 !s.messages 判断会漏掉，
+   更新后登录作用域一变就把它当成正常数据，不再去找本机旧库。 */
+function __e11HasRealContent(st){
+  try{
+    if(!st)return false;
+    var msgs=(st.messages||[]).filter(function(m){
+      if(!m||m.sys||m.type==="system")return false;
+      return !(m.from==="partner"&&String(m.text||"").trim()==="嗨，这是我们的私密聊天空间，只有你能看到。");
+    });
+    if(msgs.length)return true;
+    var keys=["cards","letters","guestbook","moments","redpackets","musicPlaylist","emojis","partnerEmojis"];
+    for(var i=0;i<keys.length;i++){if(Array.isArray(st[keys[i]])&&st[keys[i]].length)return true;}
+    if(st.diary&&st.diary.pages&&Object.keys(st.diary.pages).length)return true;
+    return false;
+  }catch(_){return false;}
 }
 function dbGet(k){return new Promise((res,rej)=>{
   if(!db){res(undefined);return;}
@@ -12778,6 +12816,9 @@ function __prefReapplyAll(){
 }
 
 function save(){
+  /* b144：启动时发现当前库只剩默认档、正在从旧库/备份接回数据期间，禁止任何自动保存，
+     否则默认档会带着新的时间戳先写进去，把刚要接回来的整份数据顶掉。 */
+  if(window.__e11BootRescuing)return;
   try{window.__e11Dirty=1;}catch(_eDirty){}
   /* v43-236b25：任何改动都像换照片一样自动落盘——save() 之后最多 0.9 秒内，
      一定补写一份完整离站档（含四项图片备份）。不再等 6 秒、也不依赖退出事件，
@@ -14023,14 +14064,37 @@ async function init(){
       var _rstTsScan=Number(localStorage.getItem("e11.resetLocalOnly.v1"))||0;
       var _hasAuth=false;
       try{var _aRaw=JSON.parse(localStorage.getItem("e11.auth.v1")||"null");_hasAuth=!!(_aRaw&&_aRaw.uid);}catch(_aRawE){}
-      if((!s||!Array.isArray(s.messages))&&!window.__e11DbScope&&!_hasAuth&&!window.__e11NoAdopt){
+      /* b144：更新后登录状态可能掉成 anon，当前库只剩默认档，而真正的数据留在
+         privateChatDB_v1_<uid> 里。anon 也是作用域，旧条件 !window.__e11DbScope 永远不成立，
+         所以以前会直接显示成“全部恢复默认”。现在只要当前内容为空、且没有登录账号，
+         就扫本机所有库（包括各库的备份槽），把最完整的一份接回来。 */
+      var _scopeNow=String(window.__e11DbScope||"");
+      var _anonScope=(_scopeNow===""||_scopeNow==="anon");
+      if(!__e11HasRealContent(s)&&_anonScope&&!window.__e11NoAdopt&&!window.__e11DbAdopted){
+        try{window.__e11BootRescuing=1;}catch(_eBR){}
         aboutLoadStatus("正在查找本机旧数据…");
         var _alt=await __e11ScanRicherState();
-        if(_alt&&_alt.state&&(Number(_alt.state.__savedAt||0)>_rstTsScan)){
+        /* state 本身没有，但备份槽里有：直接扫全部库合并（bk_preupdate_full / bk_slot_* / bk_best）。 */
+        var _deep=null;
+        /* 以最富的那份完整旧档为底再扫全部库：既拿到所有消息，也保住旧档的名字/资料/设置，
+           不能拿当前默认档当底，否则消息回来了、名字和设置还是默认。 */
+        try{if(window.__e11ScanAll)_deep=await window.__e11ScanAll(_alt&&_alt.state?_alt.state:undefined);}catch(_eDeep){}
+        if(_deep&&_deep.state&&_deep.n>0){
+          s=_deep.state;window.__e11DbAdopted=(_alt&&_alt.db)||"scan-all";
+        }else if(_alt&&_alt.state&&Number(_alt.state.__savedAt||0)>_rstTsScan){
           s=_alt.state;window.__e11DbAdopted=_alt.db;
-          try{await dbSet("state",s);}catch(_eAdopt){}
-          try{window.__e11AdoptedNotice=_alt.db;}catch(_eAdopt2){}
-          setTimeout(function(){try{toast("已从本机旧库找回数据");}catch(_eAdToast){}},6500);
+        }
+        if(window.__e11DbAdopted){
+          /* 时间戳盖过本机默认档，避免下一步被 localStorage 里的默认整份档反盖回去。 */
+          s.__savedAt=Math.max(Date.now(),Number(s.__savedAt||0));
+          try{await dbSet("state",s,20000);}catch(_eAdopt){}
+          /* 默认档的 localStorage 整份快照比旧库新，会在这里反盖；当前既然是空的，直接清掉，
+             再写一个只指向 IndexedDB 的指针，下次启动只认这份接回来的档。 */
+          try{localStorage.removeItem("privateChat");localStorage.removeItem("e11.core.v1");localStorage.setItem("privateChat",JSON.stringify({__idbOnly:1,__savedAt:s.__savedAt}));}catch(_eLsClr){}
+          try{localStorage.setItem("e11.adopted.v1",JSON.stringify({db:window.__e11DbAdopted,n:(s.messages||[]).length,name:(s.me&&s.me.name)||""}));}catch(_eMark){}
+          try{window.__e11AdoptedNotice=window.__e11DbAdopted;}catch(_eAdopt2){}
+          try{localStorage.removeItem("e11.resetLocalOnly.v1");}catch(_eRstClr){}
+          setTimeout(function(){try{toast("已从本机旧库找回 "+((s.messages||[]).length)+" 条聊天");}catch(_eAdToast){}},1200);
         }
       }
     }catch(_eScan){}
@@ -14412,6 +14476,8 @@ async function init(){
         }catch(_eVisCJ){}
       }catch(_eLateSLogSet){}
       window.__stateReady=1;window.__e11DataReady=1;try{window.__e11BootLoading=0;}catch(_eBootLoad1){}
+      /* b144：等 state 真正换成接回来的那份、界面可以渲染了，才允许保存。 */
+      try{window.__e11BootRescuing=0;}catch(_eBRDone){}
       /* v43-222：主档正常路径没有走最后的 showView，整机快照里的页面在这里补回来 */
       try{if(window.__e11SessionUI&&window.__e11SessionApplyUI)window.__e11SessionApplyUI();}catch(_eSessUIApply){}
       /* v43-192：一起听会话跟主档一起恢复；更新/重开后仍保持“正在一起听”，不用重新邀请。 */
@@ -44054,7 +44120,10 @@ body{margin:0;background:var(--bg,#fafafa);}
     }catch(_){}
     /* 设置/资料/外观：当前有就用当前，当前空才用备份 */
     try{
-      if((!base.profile||!base.profile.name)&&src.profile)base.profile=src.profile;
+      /* b144：旧档的 profile 可能没有 name 字段（早期版本只有 mpName/handle），
+         不能因此判成“空”再被当前默认档整份替换，否则消息救回来了、名字和主页资料还是默认。 */
+      if((!base.profile||!Object.keys(base.profile).length)&&src.profile)base.profile=Object.assign({},src.profile);
+      else if(base.profile&&src.profile){Object.keys(src.profile).forEach(function(k){if(base.profile[k]===undefined||base.profile[k]==="")base.profile[k]=src.profile[k];});}
       if((!base.me||!base.me.name)&&src.me)base.me=src.me;
       if((!base.partner||!base.partner.name)&&src.partner)base.partner=src.partner;
       if(!base.settings&&src.settings)base.settings=src.settings;
@@ -44064,8 +44133,8 @@ body{margin:0;background:var(--bg,#fafafa);}
     try{base.deletedIds=base.deletedIds||{};delete base.deletedIds.messages;base.__chatClearedAt=0;}catch(_){}
     return base;
   }
-  function __abScanAll(){
-    var base=window.__e11StateGet?window.__e11StateGet():null;
+  function __abScanAll(baseIn){
+    var base=baseIn||(window.__e11StateGet?window.__e11StateGet():null);
     base=base?JSON.parse(JSON.stringify(base)):{messages:[]};
     var sources=[];
     var names=Promise.resolve([DB_NAME]);
