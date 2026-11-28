@@ -406,7 +406,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-27v44-236b140";
+window.__E11_BUILD="2026-11-27v44-236b141";
 /* v44-236b138：区分「后台被系统回收后重载」和「从图标冷启动」。
    sessionStorage 只在本标签/本次任务生命周期内保留：
    - 后台回收再回来：标记还在，恢复离开前那一页；
@@ -3153,7 +3153,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-27v44-236b140">
+<meta name="app-build" content="2026-11-27v44-236b141">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -44900,6 +44900,8 @@ body{margin:0;background:var(--bg,#fafafa);}
       meta.meAv=avOf(state.me.avatar);meta.ptAv=avOf(state.partner.avatar);
     }catch(_){}
     try{sideOpen(false);emojiOpen(false);}catch(_){}
+    try{echoNavGuard();}catch(_){}
+    setTimeout(function(){try{echoNavGuard();}catch(_){}},320);
     setTimeout(function(){try{inp.focus();}catch(e){}},350);
     setTimeout(stickBottomSoon,360);setTimeout(stickBottomSoon,760);
     /* v44-236b129：对方也会主动开口。进入回响后 6–11 秒先发一条，之后空闲 22–40 秒再发。 */
@@ -45230,6 +45232,30 @@ body{margin:0;background:var(--bg,#fafafa);}
     }
     return false;
   }
+  /* b141：顶栏 hide 只应出现在来电/好友验证时。
+     只要已经回到主聊天界面（tw-main.show），就强制把顶栏放回来，避免空白顶栏。 */
+  function echoNavGuard(){
+    try{
+      var ov=$_("tw-overlay"),nav=$_("tw-nav"),main=$_("tw-main"),call=$_("tw-call"),gate=$_("twg");
+      if(!ov||!ov.classList.contains("show")||!nav||!main)return;
+      if(!main.classList.contains("show"))return;
+      if(call&&call.classList.contains("show"))return;
+      if(gate&&gate.classList.contains("show"))return;
+      nav.classList.remove("hide");
+    }catch(_){}
+  }
+  try{
+    var _navObs=new MutationObserver(function(){setTimeout(echoNavGuard,260);});
+    _navObs.observe($_("tw-nav"),{attributes:true,attributeFilter:["class"]});
+    var _mainObs=new MutationObserver(function(){setTimeout(echoNavGuard,120);});
+    _mainObs.observe($_("tw-main"),{attributes:true,attributeFilter:["class"]});
+    var _callObs=new MutationObserver(function(){setTimeout(echoNavGuard,260);});
+    _callObs.observe($_("tw-call"),{attributes:true,attributeFilter:["class"]});
+    var _gateObs=new MutationObserver(function(){setTimeout(echoNavGuard,260);});
+    _gateObs.observe($_("twg"),{attributes:true,attributeFilter:["class"]});
+    document.addEventListener("visibilitychange",function(){if(!document.hidden)setTimeout(echoNavGuard,260);});
+    window.addEventListener("focus",function(){setTimeout(echoNavGuard,260);});
+  }catch(_){}
   /* 开关 */
   function open(){
     loadG();
@@ -45253,11 +45279,14 @@ body{margin:0;background:var(--bg,#fafafa);}
     if(partnerLockChance()){resetBubbles();gateShow();return;}
     /* 已经加过好友：再次点开直接进聊天页，不再重播开场来电。
        只有主动点「重看开场电话」时才保留动画。 */
-    if(G.accepted&&!window.__twReplayOnly){resetBubbles();showMain();return;}
+    if(G.accepted&&!window.__twReplayOnly){resetBubbles();showMain();try{echoNavGuard();}catch(_){ }setTimeout(function(){try{echoNavGuard();}catch(_){}},320);return;}
     resetBubbles();startCall();
   }
   function close(){
     window.__twReplayOnly=false;
+    /* b141：来电/Gate 流程里会把顶栏隐藏；退出回响时如果没走 endCall，hide 会残留，
+       下次进来就只剩空白和输入栏。关窗时一律清掉。 */
+    try{$_("tw-nav")&&$_("tw-nav").classList.remove("hide");}catch(_){}
     clearTimers();clearTimeout(meta.timer);clearTimeout(meta.pend);clearTimeout(meta.auto);meta.auto=null;audioStop();
     var g=$_("twg");if(g){g.classList.remove("show");var mod=g.querySelector(".tw-modal");if(mod)mod.remove();}
     try{$_("tw-side")&&$_("tw-side").classList.remove("show");$_("tw-side-bg")&&$_("tw-side-bg").classList.remove("show");$_("tw-emoji-sheet")&&$_("tw-emoji-sheet").classList.remove("show");$_("tw-emoji-bg")&&$_("tw-emoji-bg").classList.remove("show");}catch(_){}
