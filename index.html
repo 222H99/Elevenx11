@@ -406,7 +406,7 @@ try{window.__iosConfirm=__iosConfirm;}catch(e){}
 })();
 </script>
 <script>
-window.__E11_BUILD="2026-11-27v44-236b144";
+window.__E11_BUILD="2026-11-27v44-236b145";
 /* v44-236b138：区分「后台被系统回收后重载」和「从图标冷启动」。
    sessionStorage 只在本标签/本次任务生命周期内保留：
    - 后台回收再回来：标记还在，恢复离开前那一页；
@@ -3175,7 +3175,7 @@ document.addEventListener("touchmove",function(e){if(e.touches&&e.touches.length
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="app-build" content="2026-11-27v44-236b144">
+<meta name="app-build" content="2026-11-27v44-236b145">
 <style id="global-fs">
 /* ===== 全局字号：设置里的「字体大小」作用于全站所有文字 ===== */
 body{font-size:calc(16px * var(--fs));}
@@ -4236,7 +4236,7 @@ html,body{height:100%;height:100lvh;min-height:100lvh;background:var(--bg,#fafaf
 <div id="rotate-guard" aria-hidden="true"><div class="rg-icon"></div><div class="rg-t">请竖屏使用 Eleven×11</div><div class="rg-s">横屏已关闭，转回竖屏即可继续</div></div>
 <div id="__veil" aria-hidden="true" style="position:fixed;inset:0;z-index:99997;display:flex;align-items:center;justify-content:center;background-image:radial-gradient(120% 80% at 50% 0%,rgba(255,255,255,.92),rgba(255,255,255,0) 62%),linear-gradient(168deg,#eef1f6,#e4eaf3 58%,#dfe6f1);background-size:cover;background-position:center;background-repeat:no-repeat;background-color:#f3f5f8;opacity:1;transition:opacity .22s ease;">
   <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
-    <div style="font-family:-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;font-size:17px;font-weight:700;letter-spacing:.16em;color:#262b36;">Eleven×11</div>
+    <div style="font-family:-apple-system,BlinkMacSystemFont,&#39;PingFang SC&#39;,sans-serif;font-size:17px;font-weight:700;letter-spacing:.16em;color:#262b36;">Eleven×11</div>
     <div style="width:22px;height:22px;border-radius:50%;border:2px solid rgba(90,110,140,.22);border-top-color:rgba(52,120,246,.85);animation:__veilSpin .8s linear infinite;"></div>
   </div>
   <style>@keyframes __veilSpin{to{transform:rotate(360deg)}}</style>
@@ -14080,13 +14080,30 @@ async function init(){
            不能拿当前默认档当底，否则消息回来了、名字和设置还是默认。 */
         try{if(window.__e11ScanAll)_deep=await window.__e11ScanAll(_alt&&_alt.state?_alt.state:undefined);}catch(_eDeep){}
         if(_deep&&_deep.state&&_deep.n>0){
-          s=_deep.state;window.__e11DbAdopted=(_alt&&_alt.db)||"scan-all";
+          /* 优先用“单份最完整”的快照当底：它带着当时真正的名字/资料/设置。
+             scan 合并出来的 base 可能是从当前默认档起的底，会把名字留在默认。 */
+          s=(_deep.best&&__e11HasRealContent(_deep.best))?_deep.best:_deep.state;
+          try{
+            if(_deep.best&&s===_deep.best&&Array.isArray(_deep.state.messages)&&_deep.state.messages.length>(s.messages||[]).length){
+              var _ids={};(s.messages||[]).forEach(function(m){if(m&&m.id)_ids[String(m.id)]=1;});
+              _deep.state.messages.forEach(function(m){if(m&&m.id&&!_ids[String(m.id)]&&!m.sys&&m.type!=="system"){s.messages.push(m);_ids[String(m.id)]=1;}});
+            }
+          }catch(_eMix){}
+          window.__e11DbAdopted=(_alt&&_alt.db)||"scan-all";
         }else if(_alt&&_alt.state&&Number(_alt.state.__savedAt||0)>_rstTsScan){
           s=_alt.state;window.__e11DbAdopted=_alt.db;
         }
         if(window.__e11DbAdopted){
           /* 时间戳盖过本机默认档，避免下一步被 localStorage 里的默认整份档反盖回去。 */
           s.__savedAt=Math.max(Date.now(),Number(s.__savedAt||0));
+          /* b145：默认档启动时已经生下 profile/cfg 小备份，它们的 __ts 比旧库新，
+             会在后面把刚接回来的名字/资料又盖回默认。整份旧档才是权威，删掉这些小备份。 */
+          try{
+            ["e11.profile.v1","e11.cfgBak.v1","e11.settings.v1","e11.userLook.v1","e11.names.v1"].forEach(function(k){try{localStorage.removeItem(k);}catch(_){}});
+            var _tsA=Date.now();
+            ["profile","settings","skin"].forEach(function(k){if(s[k]&&typeof s[k]==="object")s[k].__ts=_tsA;});
+            if(s.me)s.me.__nameEdited=1;if(s.partner)s.partner.__nameEdited=1;
+          }catch(_eSmallClr){}
           try{await dbSet("state",s,20000);}catch(_eAdopt){}
           /* 默认档的 localStorage 整份快照比旧库新，会在这里反盖；当前既然是空的，直接清掉，
              再写一个只指向 IndexedDB 的指针，下次启动只认这份接回来的档。 */
@@ -43992,7 +44009,7 @@ body{margin:0;background:var(--bg,#fafafa);}
     };
     var ps=[];
     ps.push(one("bk_preupdate_meta",function(m){
-      if(!m||!m.ts)return null;
+      if(!m||!m.ts||!(Number(m.n)>0))return null;
       return {ts:Number(m.ts),full:1,reason:"更新前完整备份（含图片）",build:m.build||"",_n:Number(m.n)||0,_src:{idb:"bk_preupdate_full"}};
     }));
     ps.push(one(BK_META,function(meta){
@@ -44005,14 +44022,31 @@ body{margin:0;background:var(--bg,#fafafa);}
       return null;
     }));
     ps.push(one("bk_rescue_meta",function(m){
-      if(!m||!m.ts)return null;
+      if(!m||!m.ts||!(Number(m.n)>0))return null;
       return {ts:Number(m.ts),full:1,reason:"全量合并救援（扫描全部账号库）",build:m.build||"",_n:Number(m.n)||0,_src:{idb:"bk_rescue_full"}};
     }));
     ps.push(one("bk_before_restore_meta",function(m){
       if(!m||!m.ts)return null;
       return {ts:Number(m.ts),full:0,reason:"恢复前的本机存档（文字）",build:m.build||"",_n:Number(m.n)||0,_src:{idb:"bk_before_restore"}};
     }));
-    return Promise.all(ps).then(function(){return out;}).catch(function(){return out;});
+    /* b145：旧版只写了 bk_preupdate_full，没写 meta，列表里就完全看不到这份“更新前备份”。
+       这里补读完整档本身，用里面的条数/时间生成列表项。 */
+    return Promise.all(ps).then(function(){
+      var hasPre=out.some(function(x){return x._src&&x._src.idb==="bk_preupdate_full";});
+      var hasRes=out.some(function(x){return x._src&&x._src.idb==="bk_rescue_full";});
+      var extra=[];
+      if(!hasPre)extra.push(__e11DbGetTimed("bk_preupdate_full",8000).then(function(v){
+        if(!v||!v.state)return;
+        var n=__abMsgN(v.state);
+        if(n>0||v.full)out.push({ts:Number(v.ts)||Date.now(),full:1,reason:"更新前完整备份（含图片）",build:v.build||"",_n:n,_src:{idb:"bk_preupdate_full"}});
+      }).catch(function(){}));
+      if(!hasRes)extra.push(__e11DbGetTimed("bk_rescue_full",8000).then(function(v){
+        if(!v||!v.state)return;
+        var n=__abMsgN(v.state);
+        if(n>0)out.push({ts:Number(v.ts)||Date.now(),full:1,reason:"全量合并救援（扫描全部账号库）",build:v.build||"",_n:n,_src:{idb:"bk_rescue_full"}});
+      }).catch(function(){}));
+      return Promise.all(extra.concat([Promise.resolve()])).then(function(){return out;});
+    }).catch(function(){return out;});
   }
   /* v44-236b140：全量救援扫描。
      更新前那份是从“当时内存里的 state”抓的；如果启动已经少了一批，它也跟着少。
@@ -44137,6 +44171,7 @@ body{margin:0;background:var(--bg,#fafafa);}
     var base=baseIn||(window.__e11StateGet?window.__e11StateGet():null);
     base=base?JSON.parse(JSON.stringify(base)):{messages:[]};
     var sources=[];
+    var bestState=null,bestScore=0;
     var names=Promise.resolve([DB_NAME]);
     try{
       if(indexedDB.databases)names=indexedDB.databases().then(function(ds){
@@ -44156,6 +44191,8 @@ body{margin:0;background:var(--bg,#fafafa);}
               var st=__abStateOf(vals[k]);
               if(st&&Array.isArray(st.messages)&&st.messages.length){
                 got.push({name:name+" / "+k,messages:st.messages.length});
+                var sc=(st.messages||[]).length*3+(st.moments||[]).length*2+(st.letters||[]).length+(st.guestbook||[]).length;
+                if(sc>bestScore){bestScore=sc;bestState=st;}
                 __abMergeState(base,st);
               }
             });
@@ -44165,7 +44202,7 @@ body{margin:0;background:var(--bg,#fafafa);}
       });
       return Promise.all(jobs).then(function(all){
         all.forEach(function(g){g.forEach(function(x){sources.push(x);});});
-        return {state:base,sources:sources,n:(base.messages||[]).length};
+        return {state:base,best:bestState,sources:sources,n:(base.messages||[]).length};
       });
     });
   }
@@ -44207,21 +44244,43 @@ body{margin:0;background:var(--bg,#fafafa);}
     if(s.privateChat)return Promise.resolve(s);
     var src=s._src||{};
     if(src.idb){
-      try{return __e11DbGetTimed(src.idb,6000).then(function(v){return v||null;});}catch(_){return Promise.resolve(null);}
+      /* b145：更新前完整档是 1000+ 条带图，6 秒读不完就被判成“读不出来”，
+         备份看起来就像没用。这里给足 25 秒，界面同时显示进度。 */
+      try{return __e11DbGetTimed(src.idb,25000).then(function(v){return v||null;});}catch(_){return Promise.resolve(null);}
     }
     if(src.cache&&window.caches&&caches.open){
       return caches.open(CACHE_NAME).then(function(c){return c.match(src.cache);}).then(function(res){return res?res.json():null;}).catch(function(){return null;});
     }
     return Promise.resolve(null);
   }
+  /* b145：恢复进度层。点下去立刻有反馈，不再像点了没反应。 */
+  var __bkProgEl=null;
+  function showProg(msg){
+    try{
+      if(!__bkProgEl){
+        __bkProgEl=document.createElement("div");
+        __bkProgEl.id="__bk-prog";
+        __bkProgEl.style.cssText="position:fixed;inset:0;z-index:100050;background:rgba(0,0,0,.38);display:flex;align-items:center;justify-content:center;padding:24px;";
+        __bkProgEl.innerHTML='<div style="width:min(300px,88vw);background:#fff;border-radius:20px;padding:24px 18px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.22);font-family:-apple-system,BlinkMacSystemFont,&#39;PingFang SC&#39;,sans-serif"><div id="__bk-prog-spin" style="width:30px;height:30px;margin:0 auto 14px;border:3px solid #e5e7eb;border-top-color:#3478f6;border-radius:50%;animation:__bkSpin .85s linear infinite"></div><div id="__bk-prog-txt" style="font-size:14px;color:#333;line-height:1.6"></div><div style="font-size:11px;color:#999;margin-top:8px">请先不要关闭页面</div></div>';
+        var st=document.createElement("style");st.textContent="@keyframes __bkSpin{to{transform:rotate(360deg)}}";__bkProgEl.appendChild(st);
+        document.body.appendChild(__bkProgEl);
+      }
+      __bkProgEl.style.display="flex";
+      var t=document.getElementById("__bk-prog-txt");if(t)t.textContent=msg||"正在处理…";
+    }catch(_){}
+  }
+  function hideProg(){try{if(__bkProgEl)__bkProgEl.style.display="none";}catch(_){}}
+  var LAST_LIST=null;
+  var __bkOpenGen=0;
   function restore(i){
     var s=LIST[i];
     if(!s){try{toast("这份备份不可用");}catch(_){}return Promise.resolve(false);}
+    showProg("正在读取这份备份…");
     return loadSnap(s).then(function(loaded){
-      if(!loaded){try{toast("这份备份读不出来，换一份试试");}catch(_){}return false;}
+      if(!loaded){hideProg();try{toast("这份备份读不出来，换一份试试");}catch(_){}return false;}
       var st=null;
       try{st=loaded.state||JSON.parse(loaded.privateChat||"null");}catch(_eP){st=null;}
-      if(!st||!Array.isArray(st.messages)){try{toast("这份备份里没有可用的聊天数据");}catch(_){}return false;}
+      if(!st||!Array.isArray(st.messages)){hideProg();try{toast("这份备份里没有可用的聊天数据");}catch(_){}return false;}
       window.__restoring=1;window.__e11CloudPause=1;window.__e11CloudHold=1;
       /* 恢复是“用备份覆盖本机”，不是和现在合并。先把本机当前文字存一份保险，再整份替换。 */
       try{
@@ -44241,16 +44300,25 @@ body{margin:0;background:var(--bg,#fafafa);}
         var loc=(window.__e11DelLocalRead?window.__e11DelLocalRead():null)||{};
         if(loc&&loc.messages){delete loc.messages;try{window.__e11DelLocalWrite&&window.__e11DelLocalWrite(loc);}catch(_){}}
       }catch(_eTomb){}
+      /* b145：恢复后这份备份就是唯一权威。名字/资料/设置打上当前时间戳，
+         防止本机旧的 profile/cfg 小备份在重载后又把它们盖回默认。 */
+      try{
+        var _tsNow=Date.now();
+        ["profile","settings","skin"].forEach(function(k){if(st[k]&&typeof st[k]==="object")st[k].__ts=_tsNow;});
+        if(st.me)st.me.__nameEdited=1;
+        if(st.partner)st.partner.__nameEdited=1;
+      }catch(_eTsNow){}
       try{if(loaded.keep4&&typeof __e11Keep4ApplyObj==="function")__e11Keep4ApplyObj(st,loaded.keep4);}catch(_eK4){}
       try{if(loaded.globals&&typeof __bkApplyGlobals==="function")__bkApplyGlobals(loaded.globals,loaded.ts,true);}catch(_eGl){}
       try{window.__e11ExitExact=1;}catch(_eEx){}
       var ok=false;
       try{ok=window.__e11StateSet?window.__e11StateSet(st):false;}catch(_eSet){ok=false;}
       if(!ok){try{window.__e11SetState&&window.__e11SetState(st);ok=true;}catch(_eSet2){ok=false;}}
-      if(!ok){window.__restoring=0;try{toast("恢复写入内存失败");}catch(_){}return false;}
+      if(!ok){window.__restoring=0;hideProg();try{toast("恢复写入内存失败");}catch(_){}return false;}
       var live=window.__e11StateGet?window.__e11StateGet():st;
       var n0=__abMsgN(live);
       try{live.__savedAt=Date.now();}catch(_){}
+      showProg("正在写入本机… "+n0+" 条，请稍候");
       var lsFallback=false;
       return (window.__e11DbSetLong?window.__e11DbSetLong("state",live):Promise.reject(new Error("no-db")))
         .catch(function(err){
@@ -44261,11 +44329,11 @@ body{margin:0;background:var(--bg,#fafafa);}
         })
         .then(function(){
           if(lsFallback)return true;
-          return __e11DbGetTimed("state",5000).then(function(chk){
+          return __e11DbGetTimed("state",15000).then(function(chk){
             var got=chk?__abMsgN(chk):0;
             if(got>=n0)return true;
             /* 第一次读回条数不够，再给主库补写一次；仍不够就报错，绝不带着半份数据重载。 */
-            return window.__e11DbSetLong("state",live).then(function(){return __e11DbGetTimed("state",5000);}).then(function(chk2){
+            return window.__e11DbSetLong("state",live).then(function(){return __e11DbGetTimed("state",15000);}).then(function(chk2){
               return !!(chk2&&__abMsgN(chk2)>=n0);
             });
           });
@@ -44275,19 +44343,22 @@ body{margin:0;background:var(--bg,#fafafa);}
           /* 清掉所有比这份备份旧的离站档/外观小档，避免启动时又被旧值盖回去。 */
           try{
             ["e11.exit.v1","e11.exit.meta.v1","e11.core.v1","e11.session.v1","e11.session.meta.v1","e11.session.lite.v1",
-             "e11.settings.v1","e11.userLook.v1","e11.names.v1","e11.keep4.v1","uiPrefs.v1","e11.diaryBak.v1"
+             "e11.settings.v1","e11.userLook.v1","e11.names.v1","e11.keep4.v1","uiPrefs.v1","e11.diaryBak.v1",
+             "e11.profile.v1","e11.cfgBak.v1","e11.adopted.v1"
             ].forEach(function(k){try{localStorage.removeItem(k);}catch(_){}});
           }catch(_eClr){}
           if(!lsFallback){try{localStorage.setItem("privateChat",JSON.stringify({__idbOnly:1,__savedAt:live.__savedAt}));}catch(_ePtr){}}
           try{sessionStorage.setItem("e11.restoreJustDone",String(Date.now()));sessionStorage.setItem("e11.rescued","1");}catch(_eFlag){}
           try{window.__e11DiarySnapshot&&window.__e11DiarySnapshot(live);}catch(_eD){}
           try{toast("已恢复 "+n0+" 条消息，正在重新载入…");}catch(_eT){}
+          showProg("已恢复 "+n0+" 条，正在重新载入…");
           var u=new URL(location.href);u.searchParams.set("__e11bk",String(s.ts||Date.now()));
           setTimeout(function(){location.replace(u.toString());},160);
           return true;
         })
         .catch(function(e){
           window.__restoring=0;
+          hideProg();
           try{toast("恢复失败："+(e&&e.message||e));}catch(_){}
           return false;
         });
@@ -44337,10 +44408,12 @@ body{margin:0;background:var(--bg,#fafafa);}
   }
   window.__e11AutoRescue=autoRescue;
   try{for(var _k=0;_k<6;_k++)setTimeout(autoRescue,1400+_k*1400);}catch(_){setTimeout(autoRescue,2300);}
+  /* b145：启动后空闲时先把备份列表读进内存，第一次点“自动备份”也不用等。 */
+  try{setTimeout(function(){readAll().then(function(l){LAST_LIST=l;}).catch(function(){});},2600);}catch(_ePreload){}
 
   function buildList(list){
     var b=document.getElementById("autobk-body");if(!b)return;
-    list=list||[];
+    list=list||[];LAST_LIST=list.slice();
     if(!list.length){b.innerHTML='<div class="an-item">还没有可用备份。更新前会自动留 1 份完整备份（含图片），平时也会保留最近 7 份完整备份。</div>';return;}
     b.innerHTML=list.map(function(s,i){
       var n=snapN(s);
@@ -44358,10 +44431,16 @@ body{margin:0;background:var(--bg,#fafafa);}
     }).join("");
   }
   function open(){
-    try{var b=document.getElementById("autobk-body");if(b)b.innerHTML='<div class="an-item">正在读取备份…</div>';}catch(_){}
-    readAll().then(function(list){buildList(list);}).catch(function(){buildList([]);});
     var el=document.getElementById("autobk-screen");
     if(el)el.classList.add("show");
+    /* b145：先画上一次的列表，面板立刻出来；后台再刷新，不再每次空白等 3 秒。 */
+    if(LAST_LIST&&LAST_LIST.length){
+      buildList(LAST_LIST);
+    }else{
+      try{var b=document.getElementById("autobk-body");if(b)b.innerHTML='<div class="an-item">正在读取备份…</div>';}catch(_){}
+    }
+    var gen=++__bkOpenGen;
+    readAll().then(function(list){if(gen===__bkOpenGen)buildList(list);}).catch(function(){if(!LAST_LIST)buildList([]);});
   }
   function close(){
     var el=document.getElementById("autobk-screen");
